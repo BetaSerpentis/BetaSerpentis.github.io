@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>宝可梦卡牌收藏馆</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .loading-section {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #FFCC00;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(126px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            aspect-ratio: 63/88;
+            position: relative;
+            height: 176px; /* 126 * 88/63 ≈ 176 */
+        }
+        
+        .card:hover {
+            transform: translateY(-5px) scale(1.03);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background-color: #f0f0f0;
+            background-image: linear-gradient(45deg, #e6e6e6 25%, transparent 25%, transparent 75%, #e6e6e6 75%, #e6e6e6),
+                              linear-gradient(45deg, #e6e6e6 25%, transparent 25%, transparent 75%, #e6e6e6 75%, #e6e6e6);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            transition: opacity 0.3s ease;
+            opacity: 0;
+        }
+        
+        .card-img.loaded {
+            opacity: 1;
+            background: none;
+        }
+        
+        .card-img.error {
+            opacity: 1;
+            background: linear-gradient(45deg, #ffcc00, #ffdd44);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            font-size: 0.8rem;
+            text-align: center;
+            padding: 10px;
+        }
+        
+        .loading-indicator {
+            text-align: center;
+            padding: 20px;
+            color: white;
+            font-style: italic;
+        }
+
+        .card-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(255, 255, 255, 0.95); /* 黄底改为白底，并保持一定透明度 */
+            color: #333; /* 文字颜色改为深色 */
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.7rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* 保留阴影增强可读性 */
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .modal-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .modal-img-container {
+            width: 315px;
+            height: 440px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .modal-img {
+            width: 315px; /* 设置一个固定的宽度 */
+            height: 440px; /* 根据63:88的比例计算，300 * (88/63) ≈ 418 */
+            object-fit: contain; /* 保证图片等比例缩放并完整显示 */
+            border-radius: 8px;
+            box-shadow: 0 5px 25px rgba(255, 204, 0, 0.4);
+            /* 保留其他原有属性 */
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 2rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            z-index: 1001;
+        }
+        
+        .nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 2.5rem;
+            color: white;
+            background: rgba(0, 0, 0, 0.4);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            z-index: 1001;
+        }
+        
+        .nav-arrow:hover {
+            background: rgba(0, 0, 0, 0.7);
+        }
+        
+        .arrow-left {
+            left: 20px;
+        }
+        
+        .arrow-right {
+            right: 20px;
+        }
+        
+        .card-info {
+            color: white;
+            text-align: center;
+            margin-top: 10px;
+        }
+        
+        .card-id {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+            color: #FFCC00;
+        }
+        
+        .card-name {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .card-type {
+            display: inline-block;
+            padding: 5px 15px;
+            background: #FFCC00;
+            color: #333;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: white;
+            opacity: 0.7;
+        }
+        
+        @media (max-width: 768px) {
+            .card-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                gap: 12px;
+            }
+            
+            .card {
+                height: 140px; /* 100 * 88/63 ≈ 140 */
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .nav-arrow {
+                font-size: 2rem;
+                width: 40px;
+                height: 40px;
+            }
+            
+            .modal-img-container {
+                width: 252px;
+                height: 352px;
+            }
+        }
+        
+        /* 3D效果容器 */
+        #three-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <div id="three-container"></div>
+    
+    <div class="container">
+        <header>
+            <h1>宝可梦卡牌收藏馆</h1>
+            <p class="subtitle">浏览您的宝可梦卡牌收藏</p>
+        </header>
+        
+        <div class="loading-section" id="loading-section">
+            <div class="loading-spinner"></div>
+            <div id="loading-status">正在加载卡牌数据...</div>
+        </div>
+        
+        <div class="card-grid" id="card-grid">
+            <!-- 卡牌将通过JavaScript动态生成 -->
+        </div>
+
+        <div class="loading-indicator" id="loading-indicator">正在加载更多卡片...</div>
+        
+        <div class="modal" id="image-modal">
+            <button class="modal-close" id="modal-close">&times;</button>
+            <div class="modal-content">
+                <div class="modal-img-container">
+                    <img class="modal-img" id="modal-img" src="" alt="宝可梦卡牌">
+                </div>
+                <div class="card-info">
+                    <div class="card-id" id="card-id">编号: HK000001</div>
+                    <h2 class="card-name" id="card-name">皮卡丘</h2>
+                    <span class="card-type" id="card-type">电系</span>
+                </div>
+            </div>
+            <div class="nav-arrow arrow-left" id="prev-arrow">&#10094;</div>
+            <div class="nav-arrow arrow-right" id="next-arrow">&#10095;</div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>宝可梦卡牌查看器 &copy; 2023 | 基于Three.js构建</p>
+    </footer>
+
+    <script>
+    // 首先定义所有函数，确保函数声明提升不会出现问题
+
+    // 初始化Three.js场景
+    function initThreeJS() {
+        const container = document.getElementById('three-container');
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        
+        // 创建场景
+        const scene = new THREE.Scene();
+        
+        // 创建相机
+        const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+        camera.position.z = 5;
+        
+        // 创建渲染器
+        const renderer = new THREE.WebGLRenderer({ alpha: true });
+        renderer.setSize(width, height);
+        container.appendChild(renderer.domElement);
+        
+        // 添加环境光
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        
+        // 添加点光源
+        const pointLight = new THREE.PointLight(0xffffff, 1);
+        pointLight.position.set(10, 10, 10);
+        scene.add(pointLight);
+        
+        // 创建粒子系统
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 100;
+        const posArray = new Float32Array(particlesCount * 3);
+        
+        for (let i = 0; i < particlesCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 20;
+        }
+        
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.1,
+            color: 0xFFCC00
+        });
+        
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+        
+        // 动画循环
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            particlesMesh.rotation.x += 0.001;
+            particlesMesh.rotation.y += 0.001;
+            
+            renderer.render(scene, camera);
+        }
+        
+        animate();
+        
+        // 窗口大小调整处理
+        window.addEventListener('resize', () => {
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            renderer.setSize(width, height);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+        });
+    }
+
+    // 生成卡图文件名 (8位数字)
+    function generateImageFilename(id) {
+        const paddedId = id.toString().padStart(8, '0');
+        return `hk${paddedId}.webp`;
+    }
+
+    // 处理多ID卡牌
+    function processMultiIdCards(cardData) {
+        const processedCards = [];
+        
+        cardData.forEach(card => {
+            const cardId = card['卡牌ID'] ? card['卡牌ID'].toString() : '';
+            
+            if (cardId && cardId.includes('*')) {
+                const ids = cardId.split('*');
+                
+                ids.forEach(id => {
+                    const trimmedId = id.trim();
+                    if (trimmedId) {
+                        processedCards.push({
+                            id: trimmedId,
+                            name: card['宝可梦名字'] || '未知',
+                            type: card['属性'] || '未知',
+                            number: card['编号'] || '未知',
+                            image: `images/${generateImageFilename(trimmedId)}`
+                        });
+                    }
+                });
+            } else if (cardId) {
+                processedCards.push({
+                    id: cardId,
+                    name: card['宝可梦名字'] || '未知',
+                    type: card['属性'] || '未知',
+                    number: card['编号'] || '未知',
+                    image: `images/${generateImageFilename(cardId)}`
+                });
+            }
+        });
+        
+        return processedCards;
+    }
+
+    // 加载Excel数据
+    async function loadExcelData() {
+        const statusElement = document.getElementById('loading-status');
+        statusElement.innerHTML = '正在加载Excel数据...';
+        
+        try {
+            const response = await fetch('data/宝可梦卡.xlsx');
+            if (!response.ok) {
+                throw new Error('无法加载Excel文件');
+            }
+            
+            const arrayBuffer = await response.arrayBuffer();
+            const data = new Uint8Array(arrayBuffer);
+            const workbook = XLSX.read(data, { type: 'array' });
+            
+            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet);
+            
+            pokemonCards = processMultiIdCards(jsonData);
+            statusElement.innerHTML = `成功加载 ${pokemonCards.length} 张卡牌数据`;
+            
+            initCardGrid();
+            document.getElementById('loading-section').style.display = 'none';
+            
+        } catch (error) {
+            console.error('加载Excel数据失败:', error);
+            statusElement.innerHTML = `加载失败: ${error.message}`;
+        }
+    }
+
+    // 检查元素是否在视口内
+    function isElementInViewport(el) {
+        const rect = el.getBoundingClientRect();
+        const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+        const windowWidth = window.innerWidth || document.documentElement.clientWidth;
+        
+        return (
+            rect.top >= -rect.height &&
+            rect.left >= -rect.width &&
+            rect.bottom <= windowHeight + rect.height &&
+            rect.right <= windowWidth + rect.width
+        );
+    }
+
+    // 带重试机制的图片加载
+    function loadImageWithRetry(img, src, index, retries) {
+        if (img.dataset.loading === 'true') return;
+        img.dataset.loading = 'true';
+        
+        const tempImg = new Image();
+        
+        tempImg.onload = function() {
+            img.src = src;
+            img.classList.add('loaded');
+            img.classList.remove('error');
+            loadedImages.add(index);
+            failedImages.delete(index);
+            img.dataset.loading = 'false';
+        };
+        
+        tempImg.onerror = function() {
+            if (retries > 0) {
+                setTimeout(() => {
+                    loadImageWithRetry(img, src, index, retries - 1);
+                }, 500);
+            } else {
+                img.src = 'https://via.placeholder.com/252x352/FFCC00/000000?text=加载失败';
+                img.classList.add('error');
+                failedImages.add(index);
+                img.dataset.loading = 'false';
+            }
+        };
+        
+        tempImg.src = src;
+    }
+
+    // 创建单个卡片元素
+    function createCardElement(card, index) {
+        const cardElement = document.createElement('div');
+        cardElement.className = 'card';
+        cardElement.dataset.index = index;
+        
+        const img = document.createElement('img');
+        img.className = 'card-img';
+        img.dataset.src = card.image;
+        img.dataset.index = index;
+        img.alt = card.name;
+        img.dataset.loading = 'false';
+        img.src = 'https://via.placeholder.com/252x352/FFCC00/000000?text=加载中';
+        
+        const badge = document.createElement('div');
+        badge.className = 'card-badge';
+        badge.textContent = card.number || card.id;
+        
+        cardElement.appendChild(img);
+        cardElement.appendChild(badge);
+        
+        if (observer) {
+            observer.observe(img);
+        }
+        
+        cardElement.addEventListener('click', () => {
+            showModal(index);
+        });
+        
+        return cardElement;
+    }
+
+    // 加载当前批次中可见的图片
+    function loadVisibleImagesInBatch(startIndex, endIndex) {
+        const images = document.querySelectorAll('.card-img');
+        images.forEach(img => {
+            const index = parseInt(img.dataset.index);
+            if (index >= startIndex && index < endIndex) {
+                const src = img.dataset.src;
+                if (isElementInViewport(img) && !loadedImages.has(index) && !failedImages.has(index)) {
+                    loadImageWithRetry(img, src, index, 2);
+                }
+            }
+        });
+    }
+
+    // 加载下一批卡片
+    function loadNextBatch() {
+        if (isLoadingBatch || currentBatch * batchSize >= pokemonCards.length) {
+            return;
+        }
+        
+        isLoadingBatch = true;
+        const startIndex = currentBatch * batchSize;
+        const endIndex = Math.min(startIndex + batchSize, pokemonCards.length);
+        
+        const loadingIndicator = document.getElementById('loading-indicator');
+        loadingIndicator.style.display = 'block';
+        
+        setTimeout(() => {
+            const cardGrid = document.getElementById('card-grid');
+            const fragment = document.createDocumentFragment();
+            
+            for (let i = startIndex; i < endIndex; i++) {
+                const card = pokemonCards[i];
+                const cardElement = createCardElement(card, i);
+                fragment.appendChild(cardElement);
+            }
+            
+            const oldTrigger = document.getElementById('load-more-trigger');
+            if (oldTrigger) {
+                oldTrigger.remove();
+            }
+            
+            cardGrid.appendChild(fragment);
+            
+            if (endIndex < pokemonCards.length) {
+                const loadMoreTrigger = document.createElement('div');
+                loadMoreTrigger.id = 'load-more-trigger';
+                loadMoreTrigger.style.height = '50px';
+                loadMoreTrigger.style.width = '100%';
+                cardGrid.appendChild(loadMoreTrigger);
+                observer.observe(loadMoreTrigger);
+            }
+            
+            loadVisibleImagesInBatch(startIndex, endIndex);
+            
+            currentBatch++;
+            isLoadingBatch = false;
+            loadingIndicator.style.display = 'none';
+            
+        }, 100);
+    }
+
+    // 初始化懒加载
+    function initLazyLoading() {
+        observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    if (entry.target.id === 'load-more-trigger') {
+                        loadNextBatch();
+                    }
+                    else if (entry.target.classList.contains('card-img')) {
+                        const img = entry.target;
+                        const index = img.dataset.index;
+                        const src = img.dataset.src;
+                        
+                        if (!loadedImages.has(index) && !failedImages.has(index)) {
+                            loadImageWithRetry(img, src, index, 2);
+                        }
+                    }
+                }
+            });
+        }, {
+            rootMargin: '200px 0px',
+            threshold: 0.01
+        });
+    }
+
+    // 初始化卡片网格
+    function initCardGrid() {
+        const cardGrid = document.getElementById('card-grid');
+        cardGrid.innerHTML = '';
+        loadNextBatch();
+    }
+
+    // 添加滚动事件监听
+    let scrollTimeout;
+    function initScrollListener() {
+        window.addEventListener('scroll', () => {
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                const images = document.querySelectorAll('.card-img');
+                images.forEach(img => {
+                    const index = parseInt(img.dataset.index);
+                    const src = img.dataset.src;
+                    
+                    if (isElementInViewport(img) && !loadedImages.has(index) && !failedImages.has(index)) {
+                        loadImageWithRetry(img, src, index, 2);
+                    }
+                });
+            }, 150);
+        }, { passive: true });
+    }
+
+    // 显示模态框
+    function showModal(index) {
+        const modal = document.getElementById('image-modal');
+        const modalImg = document.getElementById('modal-img');
+        const cardId = document.getElementById('card-id');
+        const cardName = document.getElementById('card-name');
+        const cardType = document.getElementById('card-type');
+        
+        const card = pokemonCards[index];
+
+        const tempImg = new Image();
+        tempImg.onload = function() {
+            modalImg.src = card.image;
+        };
+        tempImg.onerror = function() {
+            modalImg.src = 'https://via.placeholder.com/630x880/FFCC00/000000?text=大图加载失败';
+        };
+        tempImg.src = card.image;
+        
+        cardId.textContent = `编号: HK${card.id.padStart(8, '0')}`;
+        cardName.textContent = card.name;
+        cardType.textContent = card.type;
+        
+        modal.classList.add('active');
+        currentIndex = index;
+        
+        preloadAdjacentImages(index);
+    }
+
+    // 预加载相邻的图片
+    function preloadAdjacentImages(centerIndex) {
+        for (let i = Math.max(0, centerIndex - 2); i <= Math.min(pokemonCards.length - 1, centerIndex + 2); i++) {
+            if (!loadedImages.has(i.toString()) && !failedImages.has(i.toString())) {
+                const cardElement = document.querySelector(`.card[data-index="${i}"]`);
+                if (cardElement) {
+                    const img = cardElement.querySelector('.card-img');
+                    loadImageWithRetry(img, img.dataset.src, i, 2);
+                }
+            }
+        }
+    }
+
+    // 关闭模态框
+    function closeModal() {
+        const modal = document.getElementById('image-modal');
+        modal.classList.remove('active');
+    }
+
+    // 切换卡片
+    function navigateCard(direction) {
+        let newIndex = currentIndex + direction;
+        
+        if (newIndex < 0) {
+            newIndex = pokemonCards.length - 1;
+        } else if (newIndex >= pokemonCards.length) {
+            newIndex = 0;
+        }
+        
+        showModal(newIndex);
+    }
+
+    // 初始化事件监听
+    function initEventListeners() {
+        document.getElementById('modal-close').addEventListener('click', closeModal);
+        
+        document.getElementById('image-modal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                closeModal();
+            }
+        });
+        
+        document.getElementById('prev-arrow').addEventListener('click', (e) => {
+            e.stopPropagation();
+            navigateCard(-1);
+        });
+        
+        document.getElementById('next-arrow').addEventListener('click', (e) => {
+            e.stopPropagation();
+            navigateCard(1);
+        });
+        
+        document.addEventListener('keydown', (e) => {
+            const modal = document.getElementById('image-modal');
+            if (!modal.classList.contains('active')) return;
+            
+            if (e.key === 'Escape') {
+                closeModal();
+            } else if (e.key === 'ArrowLeft') {
+                navigateCard(-1);
+            } else if (e.key === 'ArrowRight') {
+                navigateCard(1);
+            }
+        });
+        
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        const modal = document.getElementById('image-modal');
+        modal.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, false);
+        
+        modal.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, false);
+        
+        function handleSwipe() {
+            const minSwipeDistance = 50;
+            if (touchStartX - touchEndX > minSwipeDistance) {
+                navigateCard(1);
+            } else if (touchEndX - touchStartX > minSwipeDistance) {
+                navigateCard(-1);
+            }
+        }
+    }
+
+    // 初始化应用
+    function initApp() {
+        initThreeJS();
+        initEventListeners();
+        initLazyLoading();
+        initScrollListener();
+        loadExcelData();
+    }
+
+    // 全局变量定义（放在所有函数之后）
+    let pokemonCards = [];
+    let currentIndex = 0;
+    let observer;
+    let batchSize = 50;
+    let currentBatch = 0;
+    let isLoadingBatch = false;
+    let loadedImages = new Set();
+    let failedImages = new Set();
+
+    // 当页面加载完成后初始化应用
+    document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
