@@ -1,0 +1,19 @@
+# 依赖目录
+node_modules/
+
+# 日志文件
+*.log
+logs/
+
+# 环境变量文件（通常包含敏感信息）
+.env
+
+# 运行时文件
+*.pid
+
+# 构建输出目录
+dist/
+build/
+
+# IDE 配置文件（如果你使用特定编辑器，如 VSCode）
+.vscode/

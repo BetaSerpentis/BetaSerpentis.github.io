@@ -688,152 +688,224 @@
             return processedCards;
         }
 
-        async function loadExcelData() {
-            const statusElement = document.getElementById('loading-status');
-            statusElement.innerHTML = '正在加载Excel数据...';
-            
-            try {
-                const response = await fetch('data/宝可梦卡.xlsx');
-                if (!response.ok) throw new Error('无法加载Excel文件');
-                
-                const arrayBuffer = await response.arrayBuffer();
-                const data = new Uint8Array(arrayBuffer);
-                const workbook = XLSX.read(data, { type: 'array' });
-                
-                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                const jsonData = XLSX.utils.sheet_to_json(worksheet);
-                
-                pokemonCards = processMultiIdCards(jsonData);
-                filteredCards = [...pokemonCards];
-                
-                statusElement.innerHTML = `成功加载 ${pokemonCards.length} 张卡牌数据`;
-                updateSearchInfo(`已加载所有 ${pokemonCards.length} 张卡牌`);
-                document.getElementById('loading-section').style.display = 'none';
-                
-                initCardGrid();
-                
-            } catch (error) {
-                console.error('加载Excel数据失败:', error);
-                statusElement.innerHTML = `加载失败: ${error.message}`;
-            }
+// 修改数据加载函数
+async function loadExcelData() {
+    const statusElement = document.getElementById('loading-status');
+    statusElement.innerHTML = '正在加载数据...';
+    
+    try {
+        // 从服务器API获取JSON数据
+        const response = await fetch('/api/get-data');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP错误! 状态: ${response.status}`);
         }
+        
+        const jsonData = await response.json();
+        
+        if (jsonData.length > 0) {
+            // 如果有保存的JSON数据，使用它
+            await loadFromJsonData(jsonData);
+        } else {
+            // 否则从Excel文件加载
+            await loadFromExcelFile();
+        }
+        
+    } catch (error) {
+        console.error('加载数据失败:', error);
+        statusElement.innerHTML = `加载失败: ${error.message}`;
+    }
+}
 
-        // 修改保存函数，使用API保存到服务器
-        async function saveToExcel() {
-            try {
-                // 更新原始Excel数据中的拥有数量
-                const updatedData = originalExcelData.map(excelRow => {
-                    const matchingCards = pokemonCards.filter(card => {
-                        if (excelRow['卡牌ID'] && excelRow['卡牌ID'].includes('*')) {
-                            return excelRow['卡牌ID'].split('*').some(id => id.trim() === card.id);
-                        } else {
-                            return excelRow['卡牌ID'] === card.id;
-                        }
-                    });
-                    
-                    if (matchingCards.length > 0) {
-                        return {
-                            ...excelRow,
-                            '拥有数量': matchingCards[0].quantity
-                        };
-                    }
-                    return excelRow;
-                });
+// 从JSON数据加载
+async function loadFromJsonData(jsonData) {
+    const statusElement = document.getElementById('loading-status');
+    
+    // 创建数量映射
+    const quantityMap = new Map();
+    jsonData.forEach(item => {
+        quantityMap.set(item.id, item.quantity);
+    });
+    
+    // 从Excel文件加载基础数据，但使用保存的数量
+    const response = await fetch('data/宝可梦卡.xlsx');
+    if (!response.ok) throw new Error('无法加载Excel文件');
+    
+    const arrayBuffer = await response.arrayBuffer();
+    const data = new Uint8Array(arrayBuffer);
+    const workbook = XLSX.read(data, { type: 'array' });
+    
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const excelData = XLSX.utils.sheet_to_json(worksheet);
+    originalExcelData = excelData;
+    
+    // 处理卡牌数据，使用保存的数量
+    pokemonCards = processMultiIdCards(excelData).map(card => {
+        const savedQuantity = quantityMap.get(card.id);
+        if (savedQuantity !== undefined) {
+            card.quantity = savedQuantity;
+        }
+        return card;
+    });
+    
+    filteredCards = [...pokemonCards];
+    
+    statusElement.innerHTML = `成功加载 ${pokemonCards.length} 张卡牌数据（已恢复保存的数量）`;
+    updateSearchInfo(`已加载所有 ${pokemonCards.length} 张卡牌`);
+    document.getElementById('loading-section').style.display = 'none';
+    
+    initCardGrid();
+}
 
-                // 创建新的工作簿
-                const wb = XLSX.utils.book_new();
-                const ws = XLSX.utils.json_to_sheet(updatedData);
-                XLSX.utils.book_append_sheet(wb, ws, "宝可梦卡");
-                
-                // 生成Excel二进制数据
-                const excelBuffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
-                
-                // 创建FormData发送到服务器
-                const formData = new FormData();
-                const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-                formData.append('excelData', blob, '宝可梦卡.xlsx');
-                
-                // 发送到服务器API
-                const response = await fetch('/api/save-excel', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    showSaveSuccess('数据保存成功！');
-                    return true;
-                } else {
-                    throw new Error(result.error);
+// 从Excel文件加载（首次使用）
+async function loadFromExcelFile() {
+    const statusElement = document.getElementById('loading-status');
+    
+    const response = await fetch('data/宝可梦卡.xlsx');
+    if (!response.ok) throw new Error('无法加载Excel文件');
+    
+    const arrayBuffer = await response.arrayBuffer();
+    const data = new Uint8Array(arrayBuffer);
+    const workbook = XLSX.read(data, { type: 'array' });
+    
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const excelData = XLSX.utils.sheet_to_json(worksheet);
+    originalExcelData = excelData;
+    
+    pokemonCards = processMultiIdCards(excelData);
+    filteredCards = [...pokemonCards];
+    
+    statusElement.innerHTML = `成功加载 ${pokemonCards.length} 张卡牌数据`;
+    updateSearchInfo(`已加载所有 ${pokemonCards.length} 张卡牌`);
+    document.getElementById('loading-section').style.display = 'none';
+    
+    initCardGrid();
+}
+
+    // 添加数据验证函数
+    function validateDataBeforeSave() {
+        console.log('=== 数据验证 ===');
+        console.log('pokemonCards 数量:', pokemonCards.length);
+        console.log('originalExcelData 数量:', originalExcelData.length);
+        
+        // 检查修改过的卡牌
+        const modifiedCards = pokemonCards.filter(card => card.quantity > 0);
+        console.log('有数量的卡牌:', modifiedCards.length);
+        
+        modifiedCards.forEach((card, index) => {
+            if (index < 10) { // 只显示前10个
+                console.log(`  ${card.name} (${card.id}): ${card.quantity}`);
+            }
+        });
+        
+        // 检查映射是否正确
+        const quantityMap = new Map();
+        pokemonCards.forEach(card => {
+            quantityMap.set(card.id, card.quantity);
+        });
+        console.log('数量映射大小:', quantityMap.size);
+        
+        return modifiedCards.length > 0;
+    }
+
+// 快速保存函数 - 使用JSON格式
+async function saveToExcel() {
+    try {
+        console.log('开始快速保存...');
+        
+        // 直接保存 pokemonCards 数据
+        const saveData = pokemonCards.map(card => ({
+            id: card.id,
+            quantity: card.quantity,
+            name: card.name,
+            type: card.type,
+            number: card.number
+            // 只保存必要字段，减少数据量
+        }));
+        
+        console.log('准备保存的数据条数:', saveData.length);
+        
+        const startTime = Date.now();
+        
+        // 使用JSON格式发送到服务器
+        const response = await fetch('/api/save-data', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ cardData: saveData })
+        });
+        
+        const result = await response.json();
+        const endTime = Date.now();
+        
+        console.log(`保存完成，耗时: ${endTime - startTime}ms`);
+        
+        if (result.success) {
+            showSaveSuccess('数据保存成功！');
+            return true;
+        } else {
+            throw new Error(result.error);
+        }
+    } catch (error) {
+        console.error('保存数据失败:', error);
+        showSaveError('保存数据失败：' + error.message);
+        return false;
+    }
+}
+
+    // 添加调试函数
+    function debugDataState() {
+        console.log('=== 数据状态调试 ===');
+        console.log('pokemonCards 长度:', pokemonCards.length);
+        console.log('originalExcelData 长度:', originalExcelData.length);
+        
+        // 检查前5张卡牌的数量
+        console.log('前5张卡牌数量对比:');
+        for (let i = 0; i < Math.min(5, pokemonCards.length); i++) {
+            const pokemonCard = pokemonCards[i];
+            const excelRow = originalExcelData.find(row => {
+                const cardId = row['卡牌ID'] ? row['卡牌ID'].toString().trim() : '';
+                if (cardId.includes('*')) {
+                    return cardId.split('*').some(id => id.trim() === pokemonCard.id);
                 }
-            } catch (error) {
-                console.error('保存数据失败:', error);
-                showSaveError('保存数据失败：' + error.message);
-                return false;
-            }
+                return cardId === pokemonCard.id;
+            });
+            
+            console.log(`卡牌 ${i+1}: ${pokemonCard.name} (${pokemonCard.id})`);
+            console.log(`  pokemonCards数量: ${pokemonCard.quantity}`);
+            console.log(`  originalExcelData数量: ${excelRow ? excelRow['拥有数量'] : '未找到'}`);
         }
+        console.log('===================');
+    }
 
-        // 修改Excel数据加载函数，从服务器API获取
-        async function loadExcelData() {
-            const statusElement = document.getElementById('loading-status');
-            statusElement.innerHTML = '正在加载Excel数据...';
-            
-            try {
-                // 从服务器API获取Excel文件
-                const response = await fetch('/api/get-excel');
-                
-                if (!response.ok) {
-                    throw new Error('无法加载Excel文件');
-                }
-                
-                const arrayBuffer = await response.arrayBuffer();
-                const data = new Uint8Array(arrayBuffer);
-                const workbook = XLSX.read(data, { type: 'array' });
-                
-                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                const jsonData = XLSX.utils.sheet_to_json(worksheet);
-                
-                pokemonCards = processMultiIdCards(jsonData);
-                filteredCards = [...pokemonCards];
-                
-                statusElement.innerHTML = `成功加载 ${pokemonCards.length} 张卡牌数据`;
-                updateSearchInfo(`已加载所有 ${pokemonCards.length} 张卡牌`);
-                document.getElementById('loading-section').style.display = 'none';
-                
-                initCardGrid();
-                
-            } catch (error) {
-                console.error('加载Excel数据失败:', error);
-                statusElement.innerHTML = `加载失败: ${error.message}`;
-            }
+// 修改保存成功提示，显示更长时间
+function showSaveSuccess(message) {
+    const successMsg = document.createElement('div');
+    successMsg.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(76, 175, 80, 0.95);
+        color: white;
+        padding: 20px 30px;
+        border-radius: 10px;
+        font-size: 1.2rem;
+        font-weight: bold;
+        z-index: 10000;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    `;
+    successMsg.textContent = message;
+    
+    document.body.appendChild(successMsg);
+    
+    setTimeout(() => {
+        if (document.body.contains(successMsg)) {
+            document.body.removeChild(successMsg);
         }
-
-        // 显示保存成功提示
-        function showSaveSuccess(message) {
-            const successMsg = document.createElement('div');
-            successMsg.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: rgba(76, 175, 80, 0.9);
-                color: white;
-                padding: 20px 30px;
-                border-radius: 10px;
-                font-size: 1.2rem;
-                font-weight: bold;
-                z-index: 10000;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            `;
-            successMsg.textContent = message;
-            
-            document.body.appendChild(successMsg);
-            
-            setTimeout(() => {
-                document.body.removeChild(successMsg);
-            }, 3000);
-        }
+    }, 2000); // 显示2秒
+}
 
         function showSaveError(message) {
             const errorMsg = document.createElement('div');
@@ -860,24 +932,29 @@
             }, 3000);
         }
 
-        function toggleStatMode() {
-            isStatMode = !isStatMode;
-            const statsButton = document.getElementById('stats-button');
-            const body = document.body;
-            
-            if (isStatMode) {
-                statsButton.textContent = '完成';
-                statsButton.classList.add('active');
-                body.classList.add('stat-mode');
-            } else {
-                statsButton.textContent = '统计';
-                statsButton.classList.remove('active');
-                body.classList.remove('stat-mode');
-                
-                // 退出统计模式时保存数据
-                saveToExcel();
-            }
-        }
+// 修改统计模式切换，添加保存状态
+function toggleStatMode() {
+    isStatMode = !isStatMode;
+    const statsButton = document.getElementById('stats-button');
+    const body = document.body;
+    
+    if (isStatMode) {
+        statsButton.textContent = '完成';
+        statsButton.classList.add('active');
+        body.classList.add('stat-mode');
+    } else {
+        statsButton.textContent = '保存中...';
+        statsButton.disabled = true;
+        body.classList.remove('stat-mode');
+        
+        // 直接保存
+        saveToExcel().finally(() => {
+            // 保存完成后恢复按钮状态
+            statsButton.textContent = '统计';
+            statsButton.disabled = false;
+        });
+    }
+}
 
         function updateCardQuantity(index, change) {
             const cardsToDisplay = filteredCards.length > 0 ? filteredCards : pokemonCards;
@@ -885,10 +962,22 @@
             
             const card = cardsToDisplay[index];
             const newQuantity = Math.max(0, card.quantity + change);
+            
+            // 更新显示中的卡牌
             card.quantity = newQuantity;
             
-            // 更新所有相关卡牌的显示
+            // 同步更新主数据中的卡牌
+            const mainCardIndex = pokemonCards.findIndex(c => c.id === card.id);
+            if (mainCardIndex !== -1) {
+                pokemonCards[mainCardIndex].quantity = newQuantity;
+            } else {
+                console.warn('警告: 未在主数据中找到卡牌', card.id);
+            }
+            
+            // 更新显示
             updateCardQuantityDisplay(card.id, newQuantity);
+            
+            console.log(`数量更新: ${card.name} (${card.id}) -> ${newQuantity}`);
         }
 
         function updateCardQuantityDisplay(cardId, quantity) {
