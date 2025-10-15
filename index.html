@@ -657,6 +657,7 @@
             return processedCards;
         }
 
+        // 修改数据加载函数，添加LocalStorage恢复
         async function loadJSONData() {
             const statusElement = document.getElementById('loading-status');
             statusElement.innerHTML = '正在加载JSON数据...';
@@ -669,7 +670,40 @@
                 }
                 
                 const jsonData = await response.json();
-                pokemonCards = processCardData(jsonData);
+                
+                // 处理基础数据
+                let processedCards = processCardData(jsonData);
+                
+                // 尝试从LocalStorage恢复保存的数量
+                const savedData = localStorage.getItem('pokemonCardQuantities');
+                if (savedData) {
+                    try {
+                        const savedQuantities = JSON.parse(savedData);
+                        const quantityMap = new Map();
+                        
+                        savedQuantities.forEach(item => {
+                            quantityMap.set(item.id, item.quantity);
+                        });
+                        
+                        // 应用保存的数量
+                        processedCards = processedCards.map(card => {
+                            const savedQuantity = quantityMap.get(card.id);
+                            if (savedQuantity !== undefined) {
+                                card.quantity = savedQuantity;
+                            }
+                            return card;
+                        });
+                        
+                        const lastSaved = localStorage.getItem('lastSaved');
+                        console.log(`从LocalStorage恢复了 ${savedQuantities.length} 张卡牌的数量数据`);
+                        console.log(`最后保存时间: ${lastSaved ? new Date(lastSaved).toLocaleString() : '未知'}`);
+                        
+                    } catch (e) {
+                        console.warn('恢复保存数据失败:', e);
+                    }
+                }
+                
+                pokemonCards = processedCards;
                 filteredCards = [...pokemonCards];
                 
                 statusElement.innerHTML = `成功加载 ${pokemonCards.length} 张卡牌数据`;
@@ -684,9 +718,10 @@
             }
         }
 
+        // 替换现有的保存函数
         async function saveToJSON() {
             try {
-                console.log('开始保存数据...');
+                console.log('开始保存数据到LocalStorage...');
                 
                 // 准备保存的数据
                 const saveData = pokemonCards.map(card => ({
@@ -696,22 +731,14 @@
                 
                 console.log('准备保存的数据条数:', saveData.length);
                 
-                const response = await fetch('/api/save-data', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ cardData: saveData })
-                });
+                // 使用LocalStorage保存
+                localStorage.setItem('pokemonCardQuantities', JSON.stringify(saveData));
+                localStorage.setItem('lastSaved', new Date().toISOString());
                 
-                const result = await response.json();
+                console.log('数据保存成功到LocalStorage');
+                showSaveSuccess('数据保存成功！');
+                return true;
                 
-                if (result.success) {
-                    showSaveSuccess('数据保存成功！');
-                    return true;
-                } else {
-                    throw new Error(result.error);
-                }
             } catch (error) {
                 console.error('保存数据失败:', error);
                 showSaveError('保存数据失败：' + error.message);
@@ -771,6 +798,7 @@
             }, 3000);
         }
 
+        // 替换现有的 toggleStatMode 函数
         function toggleStatMode() {
             isStatMode = !isStatMode;
             const statsButton = document.getElementById('stats-button');
@@ -785,6 +813,13 @@
                 statsButton.disabled = true;
                 body.classList.remove('stat-mode');
                 
+                // 移除导出按钮
+                const exportButton = document.getElementById('export-button');
+                if (exportButton) {
+                    exportButton.remove();
+                }
+                
+                // 保存数据
                 saveToJSON().finally(() => {
                     statsButton.textContent = '统计';
                     statsButton.disabled = false;
@@ -850,6 +885,7 @@
             }, { rootMargin: '200px 0px', threshold: 0.01 });
         }
 
+        // 替换现有的 loadImageWithRetry 函数
         function loadImageWithRetry(img, src, index, retries) {
             if (img.dataset.loading === 'true') return;
             img.dataset.loading = 'true';
@@ -871,7 +907,9 @@
                         loadImageWithRetry(img, src, index, retries - 1);
                     }, 500);
                 } else {
-                    img.src = 'https://via.placeholder.com/252x352/FFCC00/000000?text=加载失败';
+                    // 使用SVG作为占位符，避免外部请求
+                    const svgPlaceholder = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="252" height="352" viewBox="0 0 252 352"><rect width="252" height="352" fill="%23FFCC00"/><text x="126" y="176" font-family="Arial" font-size="14" text-anchor="middle" fill="%23000000">图片加载失败</text></svg>`;
+                    img.src = svgPlaceholder;
                     img.classList.add('error');
                     failedImages.add(index);
                     img.dataset.loading = 'false';
@@ -894,6 +932,7 @@
             );
         }
 
+        // 替换初始占位符
         function createCardElement(card, index) {
             const cardElement = document.createElement('div');
             cardElement.className = 'card';
@@ -905,8 +944,10 @@
             img.dataset.index = index;
             img.alt = card.name;
             img.dataset.loading = 'false';
-            img.src = 'https://via.placeholder.com/252x352/FFCC00/000000?text=加载中';
             
+            // 使用SVG作为初始占位符
+            const svgPlaceholder = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="252" height="352" viewBox="0 0 252 352"><rect width="252" height="352" fill="%23f0f0f0"/><text x="126" y="176" font-family="Arial" font-size="14" text-anchor="middle" fill="%23666">加载中...</text></svg>`;
+            img.src = svgPlaceholder;            
             const badge = document.createElement('div');
             badge.className = 'card-badge';
             badge.textContent = card.number || card.id;
