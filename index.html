@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>宝可梦卡牌收藏馆</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -202,7 +201,6 @@
             padding: 10px;
         }
         
-        /* 修改右上角编号样式 - 字号放大1.5倍，位置更靠右上 */
         .card-badge {
             position: absolute;
             top: 5px;
@@ -215,7 +213,7 @@
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 1.05rem; /* 0.7rem * 1.5 ≈ 1.05rem */
+            font-size: 1.05rem;
             text-shadow: 
                 -1px -1px 0 #000,  
                 1px -1px 0 #000,
@@ -224,7 +222,6 @@
             z-index: 2;
         }
 
-        /* 中间数量显示 */
         .card-quantity {
             position: absolute;
             top: 50%;
@@ -568,7 +565,6 @@
         let isSwiping = false;
         let swipeStartX = 0;
         let isStatMode = false;
-        let originalExcelData = [];
 
         function initThreeJS() {
             const container = document.getElementById('three-container');
@@ -630,57 +626,30 @@
             return `hk${paddedId}.webp`;
         }
 
-        function processMultiIdCards(cardData) {
+        function processCardData(jsonData) {
             const processedCards = [];
-            originalExcelData = cardData; // 保存原始Excel数据
             
-            cardData.forEach(card => {
-                const cardId = card['卡牌ID'] ? card['卡牌ID'].toString() : '';
+            jsonData.forEach(card => {
+                const cardIds = card['卡牌ID'];
                 
-                if (cardId && cardId.includes('*')) {
-                    const ids = cardId.split('*');
-                    
-                    ids.forEach(id => {
-                        const trimmedId = id.trim();
-                        if (trimmedId) {
+                if (cardIds && cardIds.length > 0) {
+                    cardIds.forEach(cardId => {
+                        if (cardId) {
                             processedCards.push({
-                                id: trimmedId,
+                                id: cardId,
                                 name: card['宝可梦名字'] || '未知',
                                 type: card['属性'] || '未知',
                                 number: card['编号'] || '未知',
                                 quantity: parseInt(card['拥有数量']) || 0,
                                 abilityName: card['特性名字'] || '',
                                 abilityEffect: card['特性效果'] || '',
-                                skill1Name: card['技能1名字'] || '',
-                                skill1Effect: card['技能1效果'] || '',
-                                skill2Name: card['技能2名字'] || '',
-                                skill2Effect: card['技能2效果'] || '',
-                                skill3Name: card['技能3名字'] || '',
-                                skill3Effect: card['技能3效果'] || '',
-                                skill4Name: card['技能4名字'] || '',
-                                skill4Effect: card['技能4效果'] || '',
-                                image: `images/${generateImageFilename(trimmedId)}`
+                                skill1: card['技能1'] || {},
+                                skill2: card['技能2'] || {},
+                                skill3: card['技能3'] || {},
+                                skill4: card['技能4'] || {},
+                                image: `images/${generateImageFilename(cardId)}`
                             });
                         }
-                    });
-                } else if (cardId) {
-                    processedCards.push({
-                        id: cardId,
-                        name: card['宝可梦名字'] || '未知',
-                        type: card['属性'] || '未知',
-                        number: card['编号'] || '未知',
-                        quantity: parseInt(card['拥有数量']) || 0,
-                        abilityName: card['特性名字'] || '',
-                        abilityEffect: card['特性效果'] || '',
-                        skill1Name: card['技能1名字'] || '',
-                        skill1Effect: card['技能1效果'] || '',
-                        skill2Name: card['技能2名字'] || '',
-                        skill2Effect: card['技能2效果'] || '',
-                        skill3Name: card['技能3名字'] || '',
-                        skill3Effect: card['技能3效果'] || '',
-                        skill4Name: card['技能4名字'] || '',
-                        skill4Effect: card['技能4效果'] || '',
-                        image: `images/${generateImageFilename(cardId)}`
                     });
                 }
             });
@@ -688,224 +657,94 @@
             return processedCards;
         }
 
-// 修改数据加载函数
-async function loadExcelData() {
-    const statusElement = document.getElementById('loading-status');
-    statusElement.innerHTML = '正在加载数据...';
-    
-    try {
-        // 从服务器API获取JSON数据
-        const response = await fetch('/api/get-data');
-        
-        if (!response.ok) {
-            throw new Error(`HTTP错误! 状态: ${response.status}`);
-        }
-        
-        const jsonData = await response.json();
-        
-        if (jsonData.length > 0) {
-            // 如果有保存的JSON数据，使用它
-            await loadFromJsonData(jsonData);
-        } else {
-            // 否则从Excel文件加载
-            await loadFromExcelFile();
-        }
-        
-    } catch (error) {
-        console.error('加载数据失败:', error);
-        statusElement.innerHTML = `加载失败: ${error.message}`;
-    }
-}
-
-// 从JSON数据加载
-async function loadFromJsonData(jsonData) {
-    const statusElement = document.getElementById('loading-status');
-    
-    // 创建数量映射
-    const quantityMap = new Map();
-    jsonData.forEach(item => {
-        quantityMap.set(item.id, item.quantity);
-    });
-    
-    // 从Excel文件加载基础数据，但使用保存的数量
-    const response = await fetch('data/宝可梦卡.xlsx');
-    if (!response.ok) throw new Error('无法加载Excel文件');
-    
-    const arrayBuffer = await response.arrayBuffer();
-    const data = new Uint8Array(arrayBuffer);
-    const workbook = XLSX.read(data, { type: 'array' });
-    
-    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    const excelData = XLSX.utils.sheet_to_json(worksheet);
-    originalExcelData = excelData;
-    
-    // 处理卡牌数据，使用保存的数量
-    pokemonCards = processMultiIdCards(excelData).map(card => {
-        const savedQuantity = quantityMap.get(card.id);
-        if (savedQuantity !== undefined) {
-            card.quantity = savedQuantity;
-        }
-        return card;
-    });
-    
-    filteredCards = [...pokemonCards];
-    
-    statusElement.innerHTML = `成功加载 ${pokemonCards.length} 张卡牌数据（已恢复保存的数量）`;
-    updateSearchInfo(`已加载所有 ${pokemonCards.length} 张卡牌`);
-    document.getElementById('loading-section').style.display = 'none';
-    
-    initCardGrid();
-}
-
-// 从Excel文件加载（首次使用）
-async function loadFromExcelFile() {
-    const statusElement = document.getElementById('loading-status');
-    
-    const response = await fetch('data/宝可梦卡.xlsx');
-    if (!response.ok) throw new Error('无法加载Excel文件');
-    
-    const arrayBuffer = await response.arrayBuffer();
-    const data = new Uint8Array(arrayBuffer);
-    const workbook = XLSX.read(data, { type: 'array' });
-    
-    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    const excelData = XLSX.utils.sheet_to_json(worksheet);
-    originalExcelData = excelData;
-    
-    pokemonCards = processMultiIdCards(excelData);
-    filteredCards = [...pokemonCards];
-    
-    statusElement.innerHTML = `成功加载 ${pokemonCards.length} 张卡牌数据`;
-    updateSearchInfo(`已加载所有 ${pokemonCards.length} 张卡牌`);
-    document.getElementById('loading-section').style.display = 'none';
-    
-    initCardGrid();
-}
-
-    // 添加数据验证函数
-    function validateDataBeforeSave() {
-        console.log('=== 数据验证 ===');
-        console.log('pokemonCards 数量:', pokemonCards.length);
-        console.log('originalExcelData 数量:', originalExcelData.length);
-        
-        // 检查修改过的卡牌
-        const modifiedCards = pokemonCards.filter(card => card.quantity > 0);
-        console.log('有数量的卡牌:', modifiedCards.length);
-        
-        modifiedCards.forEach((card, index) => {
-            if (index < 10) { // 只显示前10个
-                console.log(`  ${card.name} (${card.id}): ${card.quantity}`);
-            }
-        });
-        
-        // 检查映射是否正确
-        const quantityMap = new Map();
-        pokemonCards.forEach(card => {
-            quantityMap.set(card.id, card.quantity);
-        });
-        console.log('数量映射大小:', quantityMap.size);
-        
-        return modifiedCards.length > 0;
-    }
-
-// 快速保存函数 - 使用JSON格式
-async function saveToExcel() {
-    try {
-        console.log('开始快速保存...');
-        
-        // 直接保存 pokemonCards 数据
-        const saveData = pokemonCards.map(card => ({
-            id: card.id,
-            quantity: card.quantity,
-            name: card.name,
-            type: card.type,
-            number: card.number
-            // 只保存必要字段，减少数据量
-        }));
-        
-        console.log('准备保存的数据条数:', saveData.length);
-        
-        const startTime = Date.now();
-        
-        // 使用JSON格式发送到服务器
-        const response = await fetch('/api/save-data', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ cardData: saveData })
-        });
-        
-        const result = await response.json();
-        const endTime = Date.now();
-        
-        console.log(`保存完成，耗时: ${endTime - startTime}ms`);
-        
-        if (result.success) {
-            showSaveSuccess('数据保存成功！');
-            return true;
-        } else {
-            throw new Error(result.error);
-        }
-    } catch (error) {
-        console.error('保存数据失败:', error);
-        showSaveError('保存数据失败：' + error.message);
-        return false;
-    }
-}
-
-    // 添加调试函数
-    function debugDataState() {
-        console.log('=== 数据状态调试 ===');
-        console.log('pokemonCards 长度:', pokemonCards.length);
-        console.log('originalExcelData 长度:', originalExcelData.length);
-        
-        // 检查前5张卡牌的数量
-        console.log('前5张卡牌数量对比:');
-        for (let i = 0; i < Math.min(5, pokemonCards.length); i++) {
-            const pokemonCard = pokemonCards[i];
-            const excelRow = originalExcelData.find(row => {
-                const cardId = row['卡牌ID'] ? row['卡牌ID'].toString().trim() : '';
-                if (cardId.includes('*')) {
-                    return cardId.split('*').some(id => id.trim() === pokemonCard.id);
-                }
-                return cardId === pokemonCard.id;
-            });
+        async function loadJSONData() {
+            const statusElement = document.getElementById('loading-status');
+            statusElement.innerHTML = '正在加载JSON数据...';
             
-            console.log(`卡牌 ${i+1}: ${pokemonCard.name} (${pokemonCard.id})`);
-            console.log(`  pokemonCards数量: ${pokemonCard.quantity}`);
-            console.log(`  originalExcelData数量: ${excelRow ? excelRow['拥有数量'] : '未找到'}`);
+            try {
+                const response = await fetch('data/pokemon-cards.json');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP错误! 状态: ${response.status}`);
+                }
+                
+                const jsonData = await response.json();
+                pokemonCards = processCardData(jsonData);
+                filteredCards = [...pokemonCards];
+                
+                statusElement.innerHTML = `成功加载 ${pokemonCards.length} 张卡牌数据`;
+                updateSearchInfo(`已加载所有 ${pokemonCards.length} 张卡牌`);
+                document.getElementById('loading-section').style.display = 'none';
+                
+                initCardGrid();
+                
+            } catch (error) {
+                console.error('加载JSON数据失败:', error);
+                statusElement.innerHTML = `加载失败: ${error.message}`;
+            }
         }
-        console.log('===================');
-    }
 
-// 修改保存成功提示，显示更长时间
-function showSaveSuccess(message) {
-    const successMsg = document.createElement('div');
-    successMsg.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: rgba(76, 175, 80, 0.95);
-        color: white;
-        padding: 20px 30px;
-        border-radius: 10px;
-        font-size: 1.2rem;
-        font-weight: bold;
-        z-index: 10000;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    `;
-    successMsg.textContent = message;
-    
-    document.body.appendChild(successMsg);
-    
-    setTimeout(() => {
-        if (document.body.contains(successMsg)) {
-            document.body.removeChild(successMsg);
+        async function saveToJSON() {
+            try {
+                console.log('开始保存数据...');
+                
+                // 准备保存的数据
+                const saveData = pokemonCards.map(card => ({
+                    id: card.id,
+                    quantity: card.quantity
+                }));
+                
+                console.log('准备保存的数据条数:', saveData.length);
+                
+                const response = await fetch('/api/save-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ cardData: saveData })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showSaveSuccess('数据保存成功！');
+                    return true;
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                console.error('保存数据失败:', error);
+                showSaveError('保存数据失败：' + error.message);
+                return false;
+            }
         }
-    }, 2000); // 显示2秒
-}
+
+        function showSaveSuccess(message) {
+            const successMsg = document.createElement('div');
+            successMsg.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(76, 175, 80, 0.95);
+                color: white;
+                padding: 20px 30px;
+                border-radius: 10px;
+                font-size: 1.2rem;
+                font-weight: bold;
+                z-index: 10000;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            `;
+            successMsg.textContent = message;
+            
+            document.body.appendChild(successMsg);
+            
+            setTimeout(() => {
+                if (document.body.contains(successMsg)) {
+                    document.body.removeChild(successMsg);
+                }
+            }, 2000);
+        }
 
         function showSaveError(message) {
             const errorMsg = document.createElement('div');
@@ -932,29 +771,26 @@ function showSaveSuccess(message) {
             }, 3000);
         }
 
-// 修改统计模式切换，添加保存状态
-function toggleStatMode() {
-    isStatMode = !isStatMode;
-    const statsButton = document.getElementById('stats-button');
-    const body = document.body;
-    
-    if (isStatMode) {
-        statsButton.textContent = '完成';
-        statsButton.classList.add('active');
-        body.classList.add('stat-mode');
-    } else {
-        statsButton.textContent = '保存中...';
-        statsButton.disabled = true;
-        body.classList.remove('stat-mode');
-        
-        // 直接保存
-        saveToExcel().finally(() => {
-            // 保存完成后恢复按钮状态
-            statsButton.textContent = '统计';
-            statsButton.disabled = false;
-        });
-    }
-}
+        function toggleStatMode() {
+            isStatMode = !isStatMode;
+            const statsButton = document.getElementById('stats-button');
+            const body = document.body;
+            
+            if (isStatMode) {
+                statsButton.textContent = '完成';
+                statsButton.classList.add('active');
+                body.classList.add('stat-mode');
+            } else {
+                statsButton.textContent = '保存中...';
+                statsButton.disabled = true;
+                body.classList.remove('stat-mode');
+                
+                saveToJSON().finally(() => {
+                    statsButton.textContent = '统计';
+                    statsButton.disabled = false;
+                });
+            }
+        }
 
         function updateCardQuantity(index, change) {
             const cardsToDisplay = filteredCards.length > 0 ? filteredCards : pokemonCards;
@@ -963,25 +799,14 @@ function toggleStatMode() {
             const card = cardsToDisplay[index];
             const newQuantity = Math.max(0, card.quantity + change);
             
-            // 更新显示中的卡牌
             card.quantity = newQuantity;
             
-            // 同步更新主数据中的卡牌
-            const mainCardIndex = pokemonCards.findIndex(c => c.id === card.id);
-            if (mainCardIndex !== -1) {
-                pokemonCards[mainCardIndex].quantity = newQuantity;
-            } else {
-                console.warn('警告: 未在主数据中找到卡牌', card.id);
-            }
-            
-            // 更新显示
             updateCardQuantityDisplay(card.id, newQuantity);
             
             console.log(`数量更新: ${card.name} (${card.id}) -> ${newQuantity}`);
         }
 
         function updateCardQuantityDisplay(cardId, quantity) {
-            // 更新卡片显示
             const cardElements = document.querySelectorAll('.card');
             cardElements.forEach(cardElement => {
                 const index = parseInt(cardElement.dataset.index);
@@ -989,7 +814,6 @@ function toggleStatMode() {
                 const card = cardsToDisplay[index];
                 
                 if (card && card.id === cardId) {
-                    // 更新数量显示
                     let quantityElement = cardElement.querySelector('.card-quantity');
                     
                     if (quantity > 0) {
@@ -1083,12 +907,10 @@ function toggleStatMode() {
             img.dataset.loading = 'false';
             img.src = 'https://via.placeholder.com/252x352/FFCC00/000000?text=加载中';
             
-            // 右上角编号
             const badge = document.createElement('div');
             badge.className = 'card-badge';
             badge.textContent = card.number || card.id;
             
-            // 中间数量显示
             if (card.quantity > 0) {
                 const quantity = document.createElement('div');
                 quantity.className = 'card-quantity';
@@ -1101,7 +923,6 @@ function toggleStatMode() {
             
             if (observer) observer.observe(img);
             
-            // 修改点击事件处理
             cardElement.addEventListener('click', (e) => {
                 if (isStatMode) {
                     e.preventDefault();
@@ -1111,7 +932,6 @@ function toggleStatMode() {
                 }
             });
             
-            // 添加右键点击事件（减1）
             cardElement.addEventListener('contextmenu', (e) => {
                 if (isStatMode) {
                     e.preventDefault();
@@ -1199,18 +1019,22 @@ function toggleStatMode() {
             } else {
                 const searchLower = searchText.toLowerCase().trim();
                 filteredCards = pokemonCards.filter(card => {
-                    return (
-                        card.name.toLowerCase().includes(searchLower) ||
-                        (card.abilityName && card.abilityName.toLowerCase().includes(searchLower)) ||
-                        (card.abilityEffect && card.abilityEffect.toLowerCase().includes(searchLower)) ||
-                        (card.skill1Name && card.skill1Name.toLowerCase().includes(searchLower)) ||
-                        (card.skill1Effect && card.skill1Effect.toLowerCase().includes(searchLower)) ||
-                        (card.skill2Name && card.skill2Name.toLowerCase().includes(searchLower)) ||
-                        (card.skill2Effect && card.skill2Effect.toLowerCase().includes(searchLower)) ||
-                        (card.skill3Name && card.skill3Name.toLowerCase().includes(searchLower)) ||
-                        (card.skill3Effect && card.skill3Effect.toLowerCase().includes(searchLower)) ||
-                        (card.skill4Name && card.skill4Name.toLowerCase().includes(searchLower)) ||
-                        (card.skill4Effect && card.skill4Effect.toLowerCase().includes(searchLower))
+                    const searchFields = [
+                        card.name,
+                        card.abilityName,
+                        card.abilityEffect,
+                        card.skill1.名字,
+                        card.skill1.效果,
+                        card.skill2.名字,
+                        card.skill2.效果,
+                        card.skill3.名字,
+                        card.skill3.效果,
+                        card.skill4.名字,
+                        card.skill4.效果
+                    ];
+                    
+                    return searchFields.some(field => 
+                        field && field.toLowerCase().includes(searchLower)
                     );
                 });
                 
@@ -1229,7 +1053,7 @@ function toggleStatMode() {
         }
 
         function showModal(index) {
-            if (isStatMode) return; // 统计模式下不显示模态框
+            if (isStatMode) return;
             
             const cardsToDisplay = filteredCards;
             if (cardsToDisplay.length === 0) return;
@@ -1316,7 +1140,6 @@ function toggleStatMode() {
         }
 
         function initEventListeners() {
-            // 统计按钮事件
             document.getElementById('stats-button').addEventListener('click', toggleStatMode);
             
             document.getElementById('search-button').addEventListener('click', () => {
@@ -1355,7 +1178,6 @@ function toggleStatMode() {
                 else if (e.key === 'ArrowRight') navigateCardWithAnimation(1);
             });
             
-            // 触摸滑动事件
             const modal = document.getElementById('image-modal');
             modal.addEventListener('touchstart', (e) => {
                 if (!modal.classList.contains('active')) return;
@@ -1387,7 +1209,7 @@ function toggleStatMode() {
             initEventListeners();
             initLazyLoading();
             initScrollListener();
-            loadExcelData();
+            loadJSONData();
         }
 
         document.addEventListener('DOMContentLoaded', initApp);
