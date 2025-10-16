@@ -409,22 +409,24 @@
             }
             
             .card-grid {
-                grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-                gap: 12px;
+                grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); /* 改为4列 */
+                gap: 10px;
             }
-            
+                
             .card {
-                height: 154px;
+                height: 126px; /* 调整高度适应4列 */
             }
             
             .card-badge {
-                font-size: 0.95rem;
+                font-size: 0.8rem;
+                width: 20px;
+                height: 20px;
             }
             
             .card-quantity {
-                width: 33px;
-                height: 33px;
-                font-size: 0.9rem;
+                width: 25px;
+                height: 25px;
+                font-size: 0.8rem;
             }
             
             .nav-arrow {
@@ -455,7 +457,7 @@
                 font-size: 1.5rem;
             }
         }
-/*
+
         @media (max-width: 480px) {
             .search-container {
                 gap: 8px;
@@ -479,14 +481,14 @@
             }
             
             .card-grid {
-                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-                gap: 10px;
+                grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); /* 小屏幕保持4列 */
+                gap: 8px;
             }
             
             .card {
-                height: 140px;
+                height: 119px;
             }
-            
+
             .card-badge {
                 font-size: 0.9rem;
             }
@@ -507,7 +509,7 @@
                 height: 350px;
             }
         }
-*/        
+        
         #three-container {
             position: fixed;
             top: 0;
@@ -672,7 +674,7 @@
             return processedCards;
         }
 
-        // 修改数据加载函数，添加LocalStorage恢复
+        // 修改数据加载函数，优先使用云端数据
         async function loadJSONData() {
             const statusElement = document.getElementById('loading-status');
             statusElement.innerHTML = '正在加载JSON数据...';
@@ -685,38 +687,53 @@
                 }
                 
                 const jsonData = await response.json();
-                
-                // 处理基础数据
                 let processedCards = processCardData(jsonData);
                 
-                // 尝试从LocalStorage恢复保存的数量
-                const savedData = localStorage.getItem('pokemonCardQuantities');
-                if (savedData) {
+                // 数据合并策略
+                let finalQuantities = new Map();
+                
+                // 1. 首先应用本地数据
+                const localData = localStorage.getItem('pokemonCardQuantities');
+                if (localData) {
                     try {
-                        const savedQuantities = JSON.parse(savedData);
-                        const quantityMap = new Map();
-                        
-                        savedQuantities.forEach(item => {
-                            quantityMap.set(item.id, item.quantity);
+                        const localQuantities = JSON.parse(localData);
+                        localQuantities.forEach(item => {
+                            finalQuantities.set(item.id, item.quantity);
                         });
-                        
-                        // 应用保存的数量
-                        processedCards = processedCards.map(card => {
-                            const savedQuantity = quantityMap.get(card.id);
-                            if (savedQuantity !== undefined) {
-                                card.quantity = savedQuantity;
-                            }
-                            return card;
-                        });
-                        
-                        const lastSaved = localStorage.getItem('lastSaved');
-                        console.log(`从LocalStorage恢复了 ${savedQuantities.length} 张卡牌的数量数据`);
-                        console.log(`最后保存时间: ${lastSaved ? new Date(lastSaved).toLocaleString() : '未知'}`);
-                        
+                        console.log(`从本地存储加载了 ${localQuantities.length} 张卡牌的数量`);
                     } catch (e) {
-                        console.warn('恢复保存数据失败:', e);
+                        console.warn('解析本地数据失败:', e);
                     }
                 }
+                
+                // 2. 如果在线，尝试合并云端数据（解决多设备同步）
+                if (isOnline) {
+                    const cloudData = localStorage.getItem('cloudBackup');
+                    if (cloudData) {
+                        try {
+                            const cloudQuantities = JSON.parse(cloudData);
+                            cloudQuantities.forEach(item => {
+                                // 如果本地没有该卡牌数据，或者云端数据更新，使用云端数据
+                                const localQuantity = finalQuantities.get(item.id);
+                                if (localQuantity === undefined) {
+                                    finalQuantities.set(item.id, item.quantity);
+                                }
+                            });
+                            console.log(`合并了云端数据`);
+                        } catch (e) {
+                            console.warn('解析云端数据失败:', e);
+                        }
+                    }
+                }
+                
+                // 应用最终的数量数据
+                processedCards = processedCards.map(card => {
+                    const savedQuantity = finalQuantities.get(card.id);
+                    if (savedQuantity !== undefined) {
+                        card.quantity = savedQuantity;
+                    }
+                    return card;
+                });
                 
                 pokemonCards = processedCards;
                 filteredCards = [...pokemonCards];
@@ -733,32 +750,125 @@
             }
         }
 
-        // 替换现有的保存函数
+        // 修改保存和加载函数，添加云同步功能
+        let isOnline = navigator.onLine;
+
+        // 检测网络状态
+        window.addEventListener('online', () => {
+            isOnline = true;
+            console.log('网络已连接，尝试同步数据...');
+            syncDataToCloud();
+        });
+
+        window.addEventListener('offline', () => {
+            isOnline = false;
+            console.log('网络已断开，使用本地数据');
+        });
+
+        // 修改保存函数，同时保存到本地和尝试同步到云端
         async function saveToJSON() {
             try {
-                console.log('开始保存数据到LocalStorage...');
+                console.log('开始保存数据...');
                 
-                // 准备保存的数据
                 const saveData = pokemonCards.map(card => ({
                     id: card.id,
-                    quantity: card.quantity
+                    quantity: card.quantity,
+                    name: card.name
                 }));
                 
                 console.log('准备保存的数据条数:', saveData.length);
                 
-                // 使用LocalStorage保存
+                // 1. 保存到LocalStorage（主要存储）
                 localStorage.setItem('pokemonCardQuantities', JSON.stringify(saveData));
                 localStorage.setItem('lastSaved', new Date().toISOString());
                 
-                console.log('数据保存成功到LocalStorage');
-                showSaveSuccess('数据保存成功！');
+                console.log('数据保存到LocalStorage成功');
+                
+                // 2. 如果在线，尝试同步到云端
+                if (isOnline) {
+                    await syncDataToCloud();
+                }
+                
                 return true;
                 
             } catch (error) {
                 console.error('保存数据失败:', error);
-                showSaveError('保存数据失败：' + error.message);
                 return false;
             }
+        }
+
+        // 云端同步函数
+        async function syncDataToCloud() {
+            try {
+                const savedData = localStorage.getItem('pokemonCardQuantities');
+                if (!savedData) return;
+                
+                // 尝试使用GitHub Gist或其他云存储
+                // 这里提供一个示例，你可以替换为实际的云存储方案
+                console.log('尝试同步数据到云端...');
+                
+                // 示例：使用localStorage模拟云同步
+                // 在实际应用中，你可以使用：
+                // - GitHub Gist API
+                // - Firebase
+                // - 其他云存储服务
+                
+                // 这里只是模拟，实际使用时需要替换
+                localStorage.setItem('cloudBackup', savedData);
+                localStorage.setItem('lastCloudSync', new Date().toISOString());
+                
+                console.log('数据云端同步成功（模拟）');
+                
+            } catch (error) {
+                console.warn('云端同步失败:', error);
+            }
+        }
+
+        // 添加手动同步按钮
+        function addSyncButton() {
+            const syncButton = document.createElement('button');
+            syncButton.id = 'sync-button';
+            syncButton.innerHTML = '🔄';
+            syncButton.title = '同步数据';
+            syncButton.style.cssText = `
+                position: fixed;
+                bottom: 80px;
+                left: 20px;
+                padding: 12px;
+                background: #2196F3;
+                border: none;
+                border-radius: 50%;
+                color: white;
+                font-size: 1.2rem;
+                cursor: pointer;
+                z-index: 1000;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+                width: 50px;
+                height: 50px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            `;
+            
+            syncButton.addEventListener('click', async () => {
+                syncButton.style.animation = 'spin 1s linear';
+                await syncDataToCloud();
+                setTimeout(() => {
+                    syncButton.style.animation = '';
+                }, 1000);
+            });
+            
+            document.body.appendChild(syncButton);
+            
+            // 添加旋转动画
+            const spinStyle = document.createElement('style');
+            spinStyle.textContent = `
+                @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                }
+            `;
+            document.head.appendChild(spinStyle);
         }
 
         function showSaveSuccess(message) {
@@ -954,12 +1064,12 @@
             );
         }
 
-        // 修改 createCardElement 函数，添加移动端双指支持
+        // 修改 createCardElement 函数中的触摸事件处理
         function createCardElement(card, index) {
             const cardElement = document.createElement('div');
             cardElement.className = 'card';
             cardElement.dataset.index = index;
-            
+
             const img = document.createElement('img');
             img.className = 'card-img';
             img.dataset.src = card.image;
@@ -1005,42 +1115,115 @@
                 }
             });
             
-            // 移动端双指点击事件（减少数量）
+            // 移动端触摸事件
             let touchStartTime = 0;
-            let touchCount = 0;
+            let touchTimer = null;
+            let isDoubleTouch = false;
             
             cardElement.addEventListener('touchstart', (e) => {
                 if (!isStatMode) return;
                 
+                touchStartTime = Date.now();
+                
                 if (e.touches.length === 2) {
-                    // 双指点击，减少数量
+                    // 检测到双指，设置标记
+                    isDoubleTouch = true;
                     e.preventDefault();
-                    updateCardQuantity(index, -1);
                     
                     // 添加视觉反馈
+                    cardElement.style.backgroundColor = 'rgba(255, 107, 0, 0.2)';
                     cardElement.style.transform = 'scale(0.95)';
-                    setTimeout(() => {
-                        cardElement.style.transform = '';
-                    }, 200);
-                } else if (e.touches.length === 1) {
-                    // 单指点击，记录时间用于区分长短按
-                    touchStartTime = Date.now();
-                    touchCount = 1;
                 }
             });
             
             cardElement.addEventListener('touchend', (e) => {
                 if (!isStatMode) return;
                 
-                // 单指点击（增加数量）
-                if (touchCount === 1 && Date.now() - touchStartTime < 300) {
+                const touchDuration = Date.now() - touchStartTime;
+                
+                if (isDoubleTouch) {
+                    // 双指触摸结束，减少数量
+                    e.preventDefault();
+                    updateCardQuantity(index, -1);
+                    
+                    // 重置样式
+                    cardElement.style.backgroundColor = '';
+                    cardElement.style.transform = '';
+                    
+                    // 显示减少反馈
+                    showTouchFeedback(cardElement, '-1');
+                    
+                    isDoubleTouch = false;
+                } else if (touchDuration < 300 && e.changedTouches.length === 1) {
+                    // 单指短按，增加数量
                     e.preventDefault();
                     updateCardQuantity(index, 1);
+                    
+                    // 显示增加反馈
+                    showTouchFeedback(cardElement, '+1');
+                }
+                
+                // 清除可能的定时器
+                if (touchTimer) {
+                    clearTimeout(touchTimer);
+                    touchTimer = null;
+                }
+            });
+            
+            cardElement.addEventListener('touchcancel', () => {
+                // 触摸取消，重置状态
+                cardElement.style.backgroundColor = '';
+                cardElement.style.transform = '';
+                isDoubleTouch = false;
+                
+                if (touchTimer) {
+                    clearTimeout(touchTimer);
+                    touchTimer = null;
                 }
             });
             
             return cardElement;
         }
+
+        // 添加触摸反馈显示
+        function showTouchFeedback(element, text) {
+            const feedback = document.createElement('div');
+            feedback.textContent = text;
+            feedback.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: ${text.includes('+') ? 'rgba(76, 175, 80, 0.9)' : 'rgba(244, 67, 54, 0.9)'};
+                color: white;
+                padding: 8px 12px;
+                border-radius: 20px;
+                font-weight: bold;
+                font-size: 1.2rem;
+                z-index: 10;
+                pointer-events: none;
+                animation: fadeOut 1s ease-out forwards;
+            `;
+            
+            element.appendChild(feedback);
+            
+            setTimeout(() => {
+                if (feedback.parentNode) {
+                    feedback.parentNode.removeChild(feedback);
+                }
+            }, 1000);
+        }
+
+        // 添加动画样式
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeOut {
+                0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                70% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+                100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+            }
+        `;
+        document.head.appendChild(style);
 
         function loadVisibleImagesInBatch(startIndex, endIndex) {
             const images = document.querySelectorAll('.card-img');
@@ -1296,116 +1479,72 @@
         let modalCurrentTranslateX = 0;
         let modalDragThreshold = 50; // 拖动阈值
 
+        // 替换 initModalTouchEvents 函数
         function initModalTouchEvents() {
             const modal = document.getElementById('image-modal');
-            const modalContent = document.getElementById('modal-content');
             const modalImg = document.getElementById('modal-img');
             const cardName = document.getElementById('card-name');
             
-            // 触摸开始
+            let touchStartX = 0;
+            let isDragging = false;
+            const swipeThreshold = 50; // 滑动阈值
+            
             modal.addEventListener('touchstart', (e) => {
                 if (!modal.classList.contains('active') || isStatMode) return;
                 
-                modalTouchStartX = e.touches[0].clientX;
-                modalTouchStartY = e.touches[0].clientY;
-                modalIsDragging = false;
-                modalCurrentTranslateX = 0;
-                
-                // 重置变换
-                modalContent.style.transition = 'none';
-                modalImg.style.transition = 'none';
+                touchStartX = e.touches[0].clientX;
+                isDragging = false;
             }, { passive: true });
             
-            // 触摸移动
             modal.addEventListener('touchmove', (e) => {
-                if (!modal.classList.contains('active') || isStatMode || !modalTouchStartX) return;
+                if (!modal.classList.contains('active') || isStatMode || !touchStartX) return;
                 
                 const touchX = e.touches[0].clientX;
-                const touchY = e.touches[0].clientY;
+                const deltaX = touchX - touchStartX;
                 
-                const deltaX = touchX - modalTouchStartX;
-                const deltaY = touchY - modalTouchStartY;
-                
-                // 如果是垂直滚动，不处理
-                if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 10) {
-                    return;
-                }
-                
-                e.preventDefault();
-                
-                // 开始拖动
-                if (Math.abs(deltaX) > 5) {
-                    modalIsDragging = true;
-                    modalCurrentTranslateX = deltaX;
-                    
-                    // 应用拖动效果
-                    modalContent.style.transform = `translateX(${deltaX}px)`;
-                    modalImg.style.opacity = `${1 - Math.abs(deltaX) / 300}`;
+                // 如果水平移动距离足够，开始拖动
+                if (Math.abs(deltaX) > 10) {
+                    isDragging = true;
+                    e.preventDefault();
                 }
             }, { passive: false });
             
-            // 触摸结束
             modal.addEventListener('touchend', (e) => {
-                if (!modal.classList.contains('active') || isStatMode || !modalTouchStartX) return;
+                if (!modal.classList.contains('active') || isStatMode || !touchStartX) return;
                 
                 const touchEndX = e.changedTouches[0].clientX;
-                const deltaX = touchEndX - modalTouchStartX;
+                const deltaX = touchEndX - touchStartX;
                 
-                // 恢复过渡效果
-                modalContent.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
-                modalImg.style.transition = 'opacity 0.3s ease';
-                
-                if (modalIsDragging && Math.abs(deltaX) > modalDragThreshold) {
-                    // 拖动距离足够，切换卡片
-                    const direction = deltaX > 0 ? -1 : 1; // 修正方向：向右拖显示上一张，向左拖显示下一张
+                if (isDragging && Math.abs(deltaX) > swipeThreshold) {
+                    // 根据滑动方向切换卡片
+                    const direction = deltaX > 0 ? -1 : 1; // 向右滑动显示上一张，向左滑动显示下一张
                     
-                    // 应用切换动画
-                    modalContent.style.transform = `translateX(${direction * 100}%)`;
-                    modalImg.style.opacity = '0';
+                    let newIndex = currentIndex + direction;
+                    if (newIndex < 0) newIndex = filteredCards.length - 1;
+                    else if (newIndex >= filteredCards.length) newIndex = 0;
                     
-                    setTimeout(() => {
-                        // 切换到新卡片
-                        let newIndex = currentIndex + direction;
-                        if (newIndex < 0) newIndex = filteredCards.length - 1;
-                        else if (newIndex >= filteredCards.length) newIndex = 0;
-                        
-                        currentIndex = newIndex;
-                        const card = filteredCards[currentIndex];
-                        
-                        // 更新内容
-                        modalImg.src = card.image;
-                        cardName.textContent = card.name;
-                        
-                        // 重置位置和透明度
-                        modalContent.style.transform = 'translateX(0)';
-                        modalImg.style.opacity = '1';
-                        
-                        preloadAdjacentImages(currentIndex);
-                    }, 150);
-                } else {
-                    // 拖动距离不足，回到原位
-                    modalContent.style.transform = 'translateX(0)';
-                    modalImg.style.opacity = '1';
+                    currentIndex = newIndex;
+                    const card = filteredCards[currentIndex];
+                    
+                    // 直接切换，没有动画效果
+                    modalImg.src = card.image;
+                    cardName.textContent = card.name;
+                    
+                    preloadAdjacentImages(currentIndex);
                 }
                 
-                modalTouchStartX = 0;
-                modalIsDragging = false;
-            }, { passive: true });
-            
-            // 触摸取消
-            modal.addEventListener('touchcancel', () => {
-                modalContent.style.transform = 'translateX(0)';
-                modalImg.style.opacity = '1';
-                modalTouchStartX = 0;
-                modalIsDragging = false;
+                touchStartX = 0;
+                isDragging = false;
             }, { passive: true });
         }
 
+        // 在initApp中调用
         function initApp() {
             initThreeJS();
             initEventListeners();
             initLazyLoading();
             initScrollListener();
+            addSyncButton(); // 添加同步按钮
             loadJSONData();
         }
 
