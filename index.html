@@ -192,6 +192,10 @@
             aspect-ratio: 63/88;
             position: relative;
             height: 119px;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
         }
         
         .card:hover {
@@ -293,6 +297,9 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.3s ease;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
         }
         
         .modal.active {
@@ -308,7 +315,6 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            transition: transform 0.3s ease;
         }
 
         .modal-img-container {
@@ -339,7 +345,24 @@
             border-radius: 8px;
             box-shadow: 0 5px 25px rgba(255, 204, 0, 0.4);
             flex-shrink: 0;
-            transition: opacity 0.3s ease;
+            transition: transform 0.3s ease;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .modal-img.current {
+            z-index: 2;
+        }
+
+        .modal-img.next {
+            z-index: 1;
+            transform: translateX(100%);
+        }
+
+        .modal-img.prev {
+            z-index: 1;
+            transform: translateX(-100%);
         }
 
         .modal-close {
@@ -641,11 +664,9 @@
             <button class="modal-close" id="modal-close">&times;</button>
             <div class="modal-content" id="modal-content">
                 <div class="modal-img-container" id="modal-img-container">
-                    <div class="modal-img-wrapper" id="modal-img-wrapper">
-                        <img class="modal-img" id="modal-img-current" src="" alt="宝可梦卡牌">
-                        <img class="modal-img" id="modal-img-next" src="" alt="宝可梦卡牌" style="display: none;">
-                        <img class="modal-img" id="modal-img-prev" src="" alt="宝可梦卡牌" style="display: none;">
-                    </div>
+                    <img class="modal-img prev" id="modal-img-prev" src="" alt="宝可梦卡牌">
+                    <img class="modal-img current" id="modal-img-current" src="" alt="宝可梦卡牌">
+                    <img class="modal-img next" id="modal-img-next" src="" alt="宝可梦卡牌">
                 </div>
                 <div class="card-info">
                     <h2 class="card-name" id="card-name">皮卡丘</h2>
@@ -685,6 +706,7 @@
         let cardTouchCount = 0;
         let cardTouchTimer = null;
         let cardIsMultiTouch = false;
+        let cardLastTouchEndTime = 0;
 
         function initThreeJS() {
             const container = document.getElementById('three-container');
@@ -1167,8 +1189,8 @@
             cardElement.appendChild(badge);
             
             // 优化触摸事件处理
-            cardElement.addEventListener('touchstart', handleCardTouchStart, { passive: true });
-            cardElement.addEventListener('touchend', handleCardTouchEnd, { passive: true });
+            cardElement.addEventListener('touchstart', handleCardTouchStart, { passive: false });
+            cardElement.addEventListener('touchend', handleCardTouchEnd, { passive: false });
             cardElement.addEventListener('touchcancel', handleCardTouchCancel, { passive: true });
             
             // PC端事件
@@ -1195,36 +1217,45 @@
         }
 
         function handleCardTouchStart(e) {
-            cardTouchStartTime = Date.now();
+            // 防止浏览器默认行为
+            e.preventDefault();
+            
+            const now = Date.now();
+            
+            // 防止快速连续触摸
+            if (now - cardLastTouchEndTime < 300) {
+                return;
+            }
+            
+            cardTouchStartTime = now;
             cardTouchStartX = e.touches[0].clientX;
             cardTouchStartY = e.touches[0].clientY;
             cardTouchCount = e.touches.length;
+            
+            // 如果是双指触摸，立即标记并阻止默认行为
+            if (cardTouchCount >= 2) {
+                cardIsMultiTouch = true;
+                // 阻止Safari的图片查看行为
+                e.preventDefault();
+                return;
+            }
+            
             cardIsMultiTouch = false;
             
-            // 清除之前的定时器
-            if (cardTouchTimer) {
-                clearTimeout(cardTouchTimer);
+            // 设置单指触摸定时器
+            cardTouchTimer = setTimeout(() => {
+                // 单指长按不触发任何操作
                 cardTouchTimer = null;
-            }
-            
-            // 设置双指检测定时器
-            if (cardTouchCount === 1) {
-                cardTouchTimer = setTimeout(() => {
-                    // 单指长按不触发任何操作
-                    cardTouchTimer = null;
-                }, 300);
-            } else if (cardTouchCount >= 2) {
-                // 立即标记为多指触摸
-                cardIsMultiTouch = true;
-                if (cardTouchTimer) {
-                    clearTimeout(cardTouchTimer);
-                    cardTouchTimer = null;
-                }
-            }
+            }, 400);
         }
 
         function handleCardTouchEnd(e) {
-            const touchDuration = Date.now() - cardTouchStartTime;
+            e.preventDefault();
+            
+            const now = Date.now();
+            cardLastTouchEndTime = now;
+            
+            const touchDuration = now - cardTouchStartTime;
             const touchEndX = e.changedTouches[0].clientX;
             const touchEndY = e.changedTouches[0].clientY;
             const deltaX = Math.abs(touchEndX - cardTouchStartX);
@@ -1236,20 +1267,29 @@
                 cardTouchTimer = null;
             }
             
-            // 如果是多指触摸或者已经执行了多指操作，不执行单击
+            const index = parseInt(e.currentTarget.dataset.index);
+            
+            // 处理双指触摸（减少数量）
             if (cardIsMultiTouch || cardTouchCount >= 2) {
+                if (isStatMode && touchDuration < 500) {
+                    updateCardQuantity(index, -1);
+                    showTouchFeedback(e.currentTarget, '-1');
+                }
+                cardIsMultiTouch = false;
                 return;
             }
             
-            // 短按且移动距离小，认为是点击
+            // 处理单指触摸
             if (touchDuration < 300 && deltaX < 10 && deltaY < 10) {
-                const index = parseInt(e.currentTarget.dataset.index);
                 if (isStatMode) {
                     updateCardQuantity(index, 1);
+                    showTouchFeedback(e.currentTarget, '+1');
                 } else {
                     showImageModal(index);
                 }
             }
+            
+            cardIsMultiTouch = false;
         }
 
         function handleCardTouchCancel() {
@@ -1259,6 +1299,45 @@
             }
             cardIsMultiTouch = false;
         }
+
+        function showTouchFeedback(element, text) {
+            const feedback = document.createElement('div');
+            feedback.textContent = text;
+            feedback.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: ${text.includes('+') ? 'rgba(76, 175, 80, 0.9)' : 'rgba(244, 67, 54, 0.9)'};
+                color: white;
+                padding: 8px 12px;
+                border-radius: 20px;
+                font-weight: bold;
+                font-size: 1.2rem;
+                z-index: 10;
+                pointer-events: none;
+                animation: fadeOut 1s ease-out forwards;
+            `;
+            
+            element.appendChild(feedback);
+            
+            setTimeout(() => {
+                if (feedback.parentNode) {
+                    feedback.parentNode.removeChild(feedback);
+                }
+            }, 1000);
+        }
+
+        // 添加动画样式
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeOut {
+                0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                70% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+                100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+            }
+        `;
+        document.head.appendChild(style);
 
         function initCardGrid() {
             const cardGrid = document.getElementById('card-grid');
@@ -1322,15 +1401,14 @@
             const modalImgNext = document.getElementById('modal-img-next');
             const modalImgPrev = document.getElementById('modal-img-prev');
             const cardName = document.getElementById('card-name');
-            const modalImgWrapper = document.getElementById('modal-img-wrapper');
             
             const cardsToDisplay = filteredCards;
             if (cardsToDisplay.length === 0) return;
             
             // 重置模态框状态
-            modalImgWrapper.style.transform = 'translateX(0)';
-            modalImgNext.style.display = 'none';
-            modalImgPrev.style.display = 'none';
+            modalImgCurrent.style.transform = 'translateX(0)';
+            modalImgNext.style.transform = 'translateX(100%)';
+            modalImgPrev.style.transform = 'translateX(-100%)';
             modalIsDragging = false;
             modalCurrentTranslateX = 0;
             
@@ -1349,7 +1427,6 @@
         }
 
         function initModalTouchEvents() {
-            const modalImgWrapper = document.getElementById('modal-img-wrapper');
             const modalImgContainer = document.getElementById('modal-img-container');
             const modalImgCurrent = document.getElementById('modal-img-current');
             const modalImgNext = document.getElementById('modal-img-next');
@@ -1363,7 +1440,9 @@
                 
                 modalTouchStartX = e.touches[0].clientX;
                 modalIsDragging = true;
-                modalImgWrapper.style.transition = 'none';
+                modalImgCurrent.style.transition = 'none';
+                modalImgNext.style.transition = 'none';
+                modalImgPrev.style.transition = 'none';
             }, { passive: true });
             
             modalImgContainer.addEventListener('touchmove', (e) => {
@@ -1377,19 +1456,17 @@
                 const maxTranslate = window.innerWidth * 0.3;
                 const boundedTranslate = Math.max(-maxTranslate, Math.min(maxTranslate, deltaX));
                 
-                modalImgWrapper.style.transform = `translateX(${boundedTranslate}px)`;
+                modalImgCurrent.style.transform = `translateX(${boundedTranslate}px)`;
                 
                 // 预加载拖动方向的图片
-                if (deltaX > 50 && modalImgNext.style.display === 'none') {
+                if (deltaX < -30 && modalImgNext.style.transform === 'translateX(100%)') {
                     const nextIndex = (currentIndex + 1) % cardsToDisplay.length;
                     modalImgNext.src = cardsToDisplay[nextIndex].image;
-                    modalImgNext.style.display = 'block';
-                    modalImgNext.style.transform = `translateX(${modalImgContainer.clientWidth}px)`;
-                } else if (deltaX < -50 && modalImgPrev.style.display === 'none') {
+                    modalImgNext.style.transform = 'translateX(100%)';
+                } else if (deltaX > 30 && modalImgPrev.style.transform === 'translateX(-100%)') {
                     const prevIndex = (currentIndex - 1 + cardsToDisplay.length) % cardsToDisplay.length;
                     modalImgPrev.src = cardsToDisplay[prevIndex].image;
-                    modalImgPrev.style.display = 'block';
-                    modalImgPrev.style.transform = `translateX(-${modalImgContainer.clientWidth}px)`;
+                    modalImgPrev.style.transform = 'translateX(-100%)';
                 }
             }, { passive: true });
             
@@ -1397,38 +1474,49 @@
                 if (!modalIsDragging) return;
                 
                 modalIsDragging = false;
-                modalImgWrapper.style.transition = 'transform 0.3s ease';
+                modalImgCurrent.style.transition = 'transform 0.3s ease';
+                modalImgNext.style.transition = 'transform 0.3s ease';
+                modalImgPrev.style.transition = 'transform 0.3s ease';
                 
                 const shouldChange = Math.abs(modalCurrentTranslateX) > modalDragThreshold;
+                const direction = modalCurrentTranslateX > 0 ? -1 : 1;
                 
                 if (shouldChange) {
-                    const direction = modalCurrentTranslateX > 0 ? -1 : 1;
                     let newIndex = currentIndex + direction;
                     
                     if (newIndex < 0) newIndex = cardsToDisplay.length - 1;
                     else if (newIndex >= cardsToDisplay.length) newIndex = 0;
                     
                     // 设置切换动画
-                    modalImgWrapper.style.transform = `translateX(${direction * modalImgContainer.clientWidth}px)`;
+                    if (direction === 1) {
+                        // 向右切换（显示下一张）
+                        modalImgCurrent.style.transform = 'translateX(-100%)';
+                        modalImgNext.style.transform = 'translateX(0)';
+                    } else {
+                        // 向左切换（显示上一张）
+                        modalImgCurrent.style.transform = 'translateX(100%)';
+                        modalImgPrev.style.transform = 'translateX(0)';
+                    }
                     
                     setTimeout(() => {
                         currentIndex = newIndex;
                         const card = cardsToDisplay[currentIndex];
                         
+                        // 重置所有图片位置
                         modalImgCurrent.src = card.image;
-                        cardName.textContent = card.name;
+                        modalImgCurrent.style.transform = 'translateX(0)';
+                        modalImgNext.style.transform = 'translateX(100%)';
+                        modalImgPrev.style.transform = 'translateX(-100%)';
                         
-                        modalImgWrapper.style.transform = 'translateX(0)';
-                        modalImgNext.style.display = 'none';
-                        modalImgPrev.style.display = 'none';
+                        cardName.textContent = card.name;
                         
                         preloadAdjacentImages(currentIndex);
                     }, 300);
                 } else {
                     // 回到原位
-                    modalImgWrapper.style.transform = 'translateX(0)';
-                    modalImgNext.style.display = 'none';
-                    modalImgPrev.style.display = 'none';
+                    modalImgCurrent.style.transform = 'translateX(0)';
+                    modalImgNext.style.transform = 'translateX(100%)';
+                    modalImgPrev.style.transform = 'translateX(-100%)';
                 }
                 
                 modalCurrentTranslateX = 0;
