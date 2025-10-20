@@ -707,6 +707,7 @@
         let cardTouchTimer = null;
         let cardIsMultiTouch = false;
         let cardLastTouchEndTime = 0;
+        let cardDoubleTouchProcessed = false;
 
         function initThreeJS() {
             const container = document.getElementById('three-container');
@@ -1188,8 +1189,8 @@
             cardElement.appendChild(badge);
             
             // 优化触摸事件处理
-            cardElement.addEventListener('touchstart', handleCardTouchStart, { passive: false });
-            cardElement.addEventListener('touchend', handleCardTouchEnd, { passive: false });
+            cardElement.addEventListener('touchstart', handleCardTouchStart, { passive: true });
+            cardElement.addEventListener('touchend', handleCardTouchEnd, { passive: true });
             cardElement.addEventListener('touchcancel', handleCardTouchCancel, { passive: true });
             
             // PC端事件
@@ -1216,9 +1217,6 @@
         }
 
         function handleCardTouchStart(e) {
-            // 防止浏览器默认行为
-            e.preventDefault();
-            
             const now = Date.now();
             
             // 防止快速连续触摸
@@ -1230,12 +1228,11 @@
             cardTouchStartX = e.touches[0].clientX;
             cardTouchStartY = e.touches[0].clientY;
             cardTouchCount = e.touches.length;
+            cardDoubleTouchProcessed = false;
             
-            // 如果是双指触摸，立即标记并阻止默认行为
+            // 如果是双指触摸，立即标记
             if (cardTouchCount >= 2) {
                 cardIsMultiTouch = true;
-                // 阻止Safari的图片查看行为
-                e.preventDefault();
                 return;
             }
             
@@ -1249,8 +1246,6 @@
         }
 
         function handleCardTouchEnd(e) {
-            e.preventDefault();
-            
             const now = Date.now();
             cardLastTouchEndTime = now;
             
@@ -1268,17 +1263,18 @@
             
             const index = parseInt(e.currentTarget.dataset.index);
             
-            // 处理双指触摸（减少数量）
-            if (cardIsMultiTouch || cardTouchCount >= 2) {
+            // 处理双指触摸（减少数量）- 只执行一次
+            if ((cardIsMultiTouch || cardTouchCount >= 2) && !cardDoubleTouchProcessed) {
                 if (isStatMode && touchDuration < 500) {
                     updateCardQuantity(index, -1);
+                    cardDoubleTouchProcessed = true; // 标记已处理，防止重复执行
                 }
                 cardIsMultiTouch = false;
                 return;
             }
             
             // 处理单指触摸
-            if (touchDuration < 300 && deltaX < 10 && deltaY < 10) {
+            if (!cardDoubleTouchProcessed && touchDuration < 300 && deltaX < 10 && deltaY < 10) {
                 if (isStatMode) {
                     updateCardQuantity(index, 1);
                 } else {
@@ -1295,6 +1291,7 @@
                 cardTouchTimer = null;
             }
             cardIsMultiTouch = false;
+            cardDoubleTouchProcessed = false;
         }
 
         function initCardGrid() {
@@ -1404,9 +1401,6 @@
                 modalImgCurrent.style.transition = 'none';
                 modalImgNext.style.transition = 'none';
                 modalImgPrev.style.transition = 'none';
-                
-                // 阻止事件冒泡，防止背景滚动
-                e.stopPropagation();
             }, { passive: true });
             
             modalImgContainer.addEventListener('touchmove', (e) => {
@@ -1432,9 +1426,6 @@
                     modalImgPrev.src = cardsToDisplay[prevIndex].image;
                     modalImgPrev.style.transform = 'translateX(-100%)';
                 }
-                
-                // 阻止事件冒泡，防止背景滚动
-                e.stopPropagation();
             }, { passive: true });
             
             modalImgContainer.addEventListener('touchend', (e) => {
@@ -1469,7 +1460,7 @@
                         currentIndex = newIndex;
                         const card = cardsToDisplay[currentIndex];
                         
-                        // 直接更新当前图片，不显示动画
+                        // 重置所有图片位置并更新内容
                         modalImgCurrent.src = card.image;
                         modalImgCurrent.style.transform = 'translateX(0)';
                         modalImgNext.style.transform = 'translateX(100%)';
@@ -1487,9 +1478,6 @@
                 }
                 
                 modalCurrentTranslateX = 0;
-                
-                // 阻止事件冒泡，防止背景滚动
-                e.stopPropagation();
             }, { passive: true });
         }
 
@@ -1613,17 +1601,6 @@
                 else if (e.key === 'ArrowLeft') navigateCard(-1);
                 else if (e.key === 'ArrowRight') navigateCard(1);
             });
-            
-            // 阻止模态框打开时的背景滚动
-            document.addEventListener('touchmove', (e) => {
-                const modal = document.getElementById('image-modal');
-                if (modal.classList.contains('active')) {
-                    // 如果触摸点在模态框内，阻止默认滚动行为
-                    if (e.target.closest('.modal')) {
-                        e.preventDefault();
-                    }
-                }
-            }, { passive: false });
         }
 
         function initApp() {
