@@ -177,8 +177,8 @@
         
         .card-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(126px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+            gap: 10px;
             margin-top: 20px;
         }
         
@@ -191,7 +191,7 @@
             cursor: pointer;
             aspect-ratio: 63/88;
             position: relative;
-            height: 176px;
+            height: 119px;
         }
         
         .card:hover {
@@ -246,13 +246,13 @@
             right: 5px;
             color: white;
             border-radius: 50%;
-            width: 25px;
-            height: 25px;
+            width: 20px;
+            height: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 1.05rem;
+            font-size: 0.8rem;
             text-shadow: 
                 -1px -1px 0 #000,  
                 1px -1px 0 #000,
@@ -268,13 +268,13 @@
             transform: translate(-50%, -50%);
             background: rgba(255, 255, 255, 0.95);
             border-radius: 50%;
-            width: 37.5px;
-            height: 37.5px;
+            width: 30px;
+            height: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 1rem;
+            font-size: 0.8rem;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
             z-index: 3;
         }
@@ -300,7 +300,7 @@
             pointer-events: all;
         }
         
-        /* 添加模态框拖动效果的CSS */
+        /* 模态框内容样式 */
         .modal-content {
             position: relative;
             max-width: 90%;
@@ -308,17 +308,9 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            transition: transform 0.3s ease, opacity 0.3s ease;
+            transition: transform 0.3s ease;
         }
 
-        .modal-content.slide-left {
-            transform: translateX(-100%);
-        }
-        
-        .modal-content.slide-right {
-            transform: translateX(100%);
-        }
-        
         .modal-img-container {
             width: 315px;
             height: 440px;
@@ -328,6 +320,16 @@
             background: rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             margin-bottom: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .modal-img-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            transition: transform 0.3s ease;
         }
         
         .modal-img {
@@ -336,6 +338,7 @@
             object-fit: contain;
             border-radius: 8px;
             box-shadow: 0 5px 25px rgba(255, 204, 0, 0.4);
+            flex-shrink: 0;
             transition: opacity 0.3s ease;
         }
 
@@ -384,15 +387,17 @@
         .card-info {
             color: white;
             text-align: center;
-            position: relative; /* 确保名字位置固定 */
+            position: relative;
             z-index: 2;
+            width: 100%;
+            margin-top: 10px;
         }
         
         .card-name {
             font-size: 1.8rem;
             margin-bottom: 5px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            transition: none !important; /* 禁止名字文本的过渡效果 */
+            transition: none !important;
         }
         
         .no-results {
@@ -452,24 +457,24 @@
             }
             
             .card-grid {
-                grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); /* 改为4列 */
-                gap: 10px;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 8px;
             }
                 
             .card {
-                height: 126px; /* 调整高度适应4列 */
+                height: 119px;
             }
             
             .card-badge {
-                font-size: 0.8rem;
-                width: 20px;
-                height: 20px;
+                font-size: 0.7rem;
+                width: 18px;
+                height: 18px;
             }
             
             .card-quantity {
                 width: 25px;
                 height: 25px;
-                font-size: 0.8rem;
+                font-size: 0.7rem;
             }
             
             .nav-arrow {
@@ -534,22 +539,22 @@
             }
             
             .card-grid {
-                grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); /* 小屏幕保持4列 */
-                gap: 8px;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 6px;
             }
             
             .card {
-                height: 119px;
+                height: 112px;
             }
 
             .card-badge {
-                font-size: 0.9rem;
+                font-size: 0.65rem;
             }
             
             .card-quantity {
-                width: 30px;
-                height: 30px;
-                font-size: 0.8rem;
+                width: 22px;
+                height: 22px;
+                font-size: 0.65rem;
             }
             
             .modal-img-container {
@@ -560,6 +565,29 @@
             .modal-img {
                 width: 250px;
                 height: 350px;
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .card-grid {
+                grid-template-columns: repeat(auto-fill, minmax(126px, 1fr));
+                gap: 15px;
+            }
+            
+            .card {
+                height: 176px;
+            }
+            
+            .card-badge {
+                font-size: 1.05rem;
+                width: 25px;
+                height: 25px;
+            }
+            
+            .card-quantity {
+                width: 37.5px;
+                height: 37.5px;
+                font-size: 1rem;
             }
         }
         
@@ -612,8 +640,12 @@
         <div class="modal" id="image-modal">
             <button class="modal-close" id="modal-close">&times;</button>
             <div class="modal-content" id="modal-content">
-                <div class="modal-img-container">
-                    <img class="modal-img" id="modal-img" src="" alt="宝可梦卡牌">
+                <div class="modal-img-container" id="modal-img-container">
+                    <div class="modal-img-wrapper" id="modal-img-wrapper">
+                        <img class="modal-img" id="modal-img-current" src="" alt="宝可梦卡牌">
+                        <img class="modal-img" id="modal-img-next" src="" alt="宝可梦卡牌" style="display: none;">
+                        <img class="modal-img" id="modal-img-prev" src="" alt="宝可梦卡牌" style="display: none;">
+                    </div>
                 </div>
                 <div class="card-info">
                     <h2 class="card-name" id="card-name">皮卡丘</h2>
@@ -638,9 +670,21 @@
         let isLoadingBatch = false;
         let loadedImages = new Set();
         let failedImages = new Set();
-        let isSwiping = false;
-        let swipeStartX = 0;
         let isStatMode = false;
+
+        // 模态框触摸相关变量
+        let modalTouchStartX = 0;
+        let modalIsDragging = false;
+        let modalCurrentTranslateX = 0;
+        let modalDragThreshold = 80;
+
+        // 卡牌触摸相关变量
+        let cardTouchStartTime = 0;
+        let cardTouchStartX = 0;
+        let cardTouchStartY = 0;
+        let cardTouchCount = 0;
+        let cardTouchTimer = null;
+        let cardIsMultiTouch = false;
 
         function initThreeJS() {
             const container = document.getElementById('three-container');
@@ -733,7 +777,6 @@
             return processedCards;
         }
 
-        // 修改数据加载函数
         async function loadJSONData() {
             const statusElement = document.getElementById('loading-status');
             statusElement.innerHTML = '正在加载JSON数据...';
@@ -788,7 +831,6 @@
             }
         }
 
-        // 简化保存函数，只保存到本地
         function saveToLocalStorage() {
             try {
                 const saveData = pokemonCards.map(card => ({
@@ -809,7 +851,6 @@
             }
         }
 
-        // 导出数据函数
         function exportData() {
             const exportData = pokemonCards
                 .filter(card => card.quantity > 0)
@@ -833,7 +874,6 @@
             showSaveSuccess(`已导出 ${exportData.length} 张卡牌数据`);
         }
 
-        // 导入数据函数
         function importData() {
             const input = document.createElement('input');
             input.type = 'file';
@@ -861,6 +901,9 @@
                             if (importedQuantity !== undefined) {
                                 card.quantity = importedQuantity;
                                 updatedCount++;
+                            } else {
+                                // 文件未提到的卡牌数量归0
+                                card.quantity = 0;
                             }
                         });
                         
@@ -870,7 +913,7 @@
                         // 保存到本地存储
                         saveToLocalStorage();
                         
-                        showSaveSuccess(`成功导入 ${updatedCount} 张卡牌数据`);
+                        showSaveSuccess(`成功导入 ${updatedCount} 张卡牌数据，其他卡牌数量已归零`);
                         
                     } catch (error) {
                         console.error('导入数据失败:', error);
@@ -884,7 +927,6 @@
             input.click();
         }
 
-        // 更新所有卡牌显示
         function updateAllCardDisplays() {
             const cardElements = document.querySelectorAll('.card');
             cardElements.forEach(cardElement => {
@@ -961,7 +1003,6 @@
             }, 3000);
         }
 
-        // 简化统计模式切换函数
         function toggleStatMode() {
             isStatMode = !isStatMode;
             const statsButton = document.getElementById('stats-button');
@@ -982,7 +1023,6 @@
             }
         }
 
-        // 修改 updateCardQuantity 函数，添加自动保存
         function updateCardQuantity(index, change) {
             const cardsToDisplay = filteredCards.length > 0 ? filteredCards : pokemonCards;
             if (index < 0 || index >= cardsToDisplay.length) return;
@@ -1000,13 +1040,12 @@
             debouncedSave();
         }
 
-        // 添加防抖保存函数，避免频繁保存
         let saveTimeout;
         function debouncedSave() {
             clearTimeout(saveTimeout);
             saveTimeout = setTimeout(() => {
                 saveToLocalStorage();
-            }, 500); // 500ms防抖
+            }, 500);
         }
 
         function updateCardQuantityDisplay(cardId, quantity) {
@@ -1053,7 +1092,6 @@
             }, { rootMargin: '200px 0px', threshold: 0.01 });
         }
 
-        // 替换现有的 loadImageWithRetry 函数
         function loadImageWithRetry(img, src, index, retries) {
             if (img.dataset.loading === 'true') return;
             img.dataset.loading = 'true';
@@ -1075,7 +1113,6 @@
                         loadImageWithRetry(img, src, index, retries - 1);
                     }, 500);
                 } else {
-                    // 使用SVG作为占位符，避免外部请求
                     const svgPlaceholder = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="252" height="352" viewBox="0 0 252 352"><rect width="252" height="352" fill="%23FFCC00"/><text x="126" y="176" font-family="Arial" font-size="14" text-anchor="middle" fill="%23000000">图片加载失败</text></svg>`;
                     img.src = svgPlaceholder;
                     img.classList.add('error');
@@ -1100,7 +1137,6 @@
             );
         }
 
-        // 修改 createCardElement 函数中的触摸事件处理
         function createCardElement(card, index) {
             const cardElement = document.createElement('div');
             cardElement.className = 'card';
@@ -1113,7 +1149,6 @@
             img.alt = card.name;
             img.dataset.loading = 'false';
             
-            // 使用SVG作为初始占位符
             const svgPlaceholder = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="252" height="352" viewBox="0 0 252 352"><rect width="252" height="352" fill="%23f0f0f0"/><text x="126" y="176" font-family="Arial" font-size="14" text-anchor="middle" fill="%23666">加载中...</text></svg>`;
             img.src = svgPlaceholder;
             
@@ -1131,115 +1166,116 @@
             cardElement.appendChild(img);
             cardElement.appendChild(badge);
             
-            // 添加触摸事件处理
-            let touchStartTime = 0;
-            let touchStartX = 0;
-            let touchStartY = 0;
+            // 优化触摸事件处理
+            cardElement.addEventListener('touchstart', handleCardTouchStart, { passive: true });
+            cardElement.addEventListener('touchend', handleCardTouchEnd, { passive: true });
+            cardElement.addEventListener('touchcancel', handleCardTouchCancel, { passive: true });
             
-            cardElement.addEventListener('touchstart', function(e) {
-                touchStartTime = Date.now();
-                touchStartX = e.touches[0].clientX;
-                touchStartY = e.touches[0].clientY;
-                e.preventDefault();
-            }, { passive: false });
-            
-            cardElement.addEventListener('touchend', function(e) {
-                const touchEndTime = Date.now();
-                const touchDuration = touchEndTime - touchStartTime;
-                const touchEndX = e.changedTouches[0].clientX;
-                const touchEndY = e.changedTouches[0].clientY;
-                const deltaX = Math.abs(touchEndX - touchStartX);
-                const deltaY = Math.abs(touchEndY - touchStartY);
-                
-                // 如果是短按且移动距离小，认为是点击
-                if (touchDuration < 300 && deltaX < 10 && deltaY < 10) {
-                    if (isStatMode) {
-                        // 统计模式：增加数量
-                        updateCardQuantity(index, 1);
-                    } else {
-                        // 正常模式：显示大图
-                        showImageModal(index);
-                    }
-                }
-                e.preventDefault();
-            }, { passive: false });
-            
+            // PC端事件
             cardElement.addEventListener('click', function(e) {
                 if (isStatMode) {
-                    // 统计模式：左键增加，右键减少
-                    if (e.button === 0) { // 左键
+                    if (e.button === 0) {
                         updateCardQuantity(index, 1);
-                    } else if (e.button === 2) { // 右键
-                        updateCardQuantity(index, -1);
-                        e.preventDefault(); // 阻止右键菜单
                     }
                 } else {
-                    // 正常模式：显示大图
                     showImageModal(index);
                 }
             });
             
-            // 阻止右键菜单
             cardElement.addEventListener('contextmenu', function(e) {
                 if (isStatMode) {
                     e.preventDefault();
+                    updateCardQuantity(index, -1);
                 }
             });
             
-            // 添加键盘快捷键支持
-            cardElement.addEventListener('keydown', function(e) {
-                if (isStatMode && (e.key === 'Enter' || e.key === ' ')) {
-                    updateCardQuantity(index, 1);
-                    e.preventDefault();
-                }
-            });
-            
-            // 设置可访问性
-            cardElement.setAttribute('tabindex', '0');
-            cardElement.setAttribute('role', 'button');
-            cardElement.setAttribute('aria-label', `${card.name}卡牌，数量：${card.quantity}`);
+            if (observer) observer.observe(img);
             
             return cardElement;
         }
 
-        function initCardGrid() {
-            const cardGrid = document.getElementById('card-grid');
-            cardGrid.innerHTML = '';
+        function handleCardTouchStart(e) {
+            cardTouchStartTime = Date.now();
+            cardTouchStartX = e.touches[0].clientX;
+            cardTouchStartY = e.touches[0].clientY;
+            cardTouchCount = e.touches.length;
+            cardIsMultiTouch = false;
             
-            filteredCards = [...pokemonCards];
-            
-            const fragment = document.createDocumentFragment();
-            const cardsToDisplay = filteredCards;
-            
-            for (let i = 0; i < Math.min(batchSize, cardsToDisplay.length); i++) {
-                const cardElement = createCardElement(cardsToDisplay[i], i);
-                fragment.appendChild(cardElement);
+            // 清除之前的定时器
+            if (cardTouchTimer) {
+                clearTimeout(cardTouchTimer);
+                cardTouchTimer = null;
             }
             
-            cardGrid.appendChild(fragment);
+            // 设置双指检测定时器
+            if (cardTouchCount === 1) {
+                cardTouchTimer = setTimeout(() => {
+                    // 单指长按不触发任何操作
+                    cardTouchTimer = null;
+                }, 300);
+            } else if (cardTouchCount >= 2) {
+                // 立即标记为多指触摸
+                cardIsMultiTouch = true;
+                if (cardTouchTimer) {
+                    clearTimeout(cardTouchTimer);
+                    cardTouchTimer = null;
+                }
+            }
+        }
+
+        function handleCardTouchEnd(e) {
+            const touchDuration = Date.now() - cardTouchStartTime;
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            const deltaX = Math.abs(touchEndX - cardTouchStartX);
+            const deltaY = Math.abs(touchEndY - cardTouchStartY);
             
-            // 创建加载更多触发器
-            const loadMoreTrigger = document.createElement('div');
-            loadMoreTrigger.id = 'load-more-trigger';
-            loadMoreTrigger.style.height = '1px';
-            cardGrid.appendChild(loadMoreTrigger);
+            // 清除定时器
+            if (cardTouchTimer) {
+                clearTimeout(cardTouchTimer);
+                cardTouchTimer = null;
+            }
             
-            observer.observe(loadMoreTrigger);
+            // 如果是多指触摸或者已经执行了多指操作，不执行单击
+            if (cardIsMultiTouch || cardTouchCount >= 2) {
+                return;
+            }
             
-            currentBatch = 1;
+            // 短按且移动距离小，认为是点击
+            if (touchDuration < 300 && deltaX < 10 && deltaY < 10) {
+                const index = parseInt(e.currentTarget.dataset.index);
+                if (isStatMode) {
+                    updateCardQuantity(index, 1);
+                } else {
+                    showImageModal(index);
+                }
+            }
+        }
+
+        function handleCardTouchCancel() {
+            if (cardTouchTimer) {
+                clearTimeout(cardTouchTimer);
+                cardTouchTimer = null;
+            }
+            cardIsMultiTouch = false;
+        }
+
+        function initCardGrid() {
+            const cardGrid = document.getElementById('card-grid');
+            const noResults = document.getElementById('no-results');
+            cardGrid.innerHTML = '';
+            currentBatch = 0;
+            loadedImages.clear();
+            failedImages.clear();
             
-            // 初始加载可见图片
-            setTimeout(() => {
-                document.querySelectorAll('.card-img').forEach(img => {
-                    if (isElementInViewport(img)) {
-                        const index = img.dataset.index;
-                        const src = img.dataset.src;
-                        if (!loadedImages.has(index) && !failedImages.has(index)) {
-                            loadImageWithRetry(img, src, index, 2);
-                        }
-                    }
-                });
-            }, 100);
+            if (filteredCards.length === 0) {
+                noResults.style.display = 'block';
+                cardGrid.style.display = 'none';
+            } else {
+                noResults.style.display = 'none';
+                cardGrid.style.display = 'grid';
+                loadNextBatch();
+            }
         }
 
         function loadNextBatch() {
@@ -1247,241 +1283,286 @@
             
             const cardsToDisplay = filteredCards;
             const startIndex = currentBatch * batchSize;
-            const endIndex = Math.min(startIndex + batchSize, cardsToDisplay.length);
             
-            if (startIndex >= cardsToDisplay.length) {
-                return;
-            }
+            if (startIndex >= cardsToDisplay.length) return;
             
             isLoadingBatch = true;
+            const endIndex = Math.min(startIndex + batchSize, cardsToDisplay.length);
             
             const cardGrid = document.getElementById('card-grid');
             const fragment = document.createDocumentFragment();
             
             for (let i = startIndex; i < endIndex; i++) {
-                const cardElement = createCardElement(cardsToDisplay[i], i);
+                const card = cardsToDisplay[i];
+                const cardElement = createCardElement(card, i);
                 fragment.appendChild(cardElement);
             }
             
-            cardGrid.insertBefore(fragment, document.getElementById('load-more-trigger'));
+            const oldTrigger = document.getElementById('load-more-trigger');
+            if (oldTrigger) oldTrigger.remove();
+            
+            cardGrid.appendChild(fragment);
+            
+            if (endIndex < cardsToDisplay.length) {
+                const loadMoreTrigger = document.createElement('div');
+                loadMoreTrigger.id = 'load-more-trigger';
+                loadMoreTrigger.style.height = '50px';
+                loadMoreTrigger.style.width = '100%';
+                cardGrid.appendChild(loadMoreTrigger);
+                if (observer) observer.observe(loadMoreTrigger);
+            }
             
             currentBatch++;
             isLoadingBatch = false;
-            
-            // 加载新批次的可见图片
-            setTimeout(() => {
-                document.querySelectorAll('.card-img').forEach(img => {
-                    const index = parseInt(img.dataset.index);
-                    if (index >= startIndex && index < endIndex && isElementInViewport(img)) {
-                        const src = img.dataset.src;
-                        if (!loadedImages.has(index) && !failedImages.has(index)) {
-                            loadImageWithRetry(img, src, index, 2);
-                        }
-                    }
-                });
-            }, 100);
         }
 
         function showImageModal(index) {
             const modal = document.getElementById('image-modal');
-            const modalImg = document.getElementById('modal-img');
+            const modalImgCurrent = document.getElementById('modal-img-current');
+            const modalImgNext = document.getElementById('modal-img-next');
+            const modalImgPrev = document.getElementById('modal-img-prev');
             const cardName = document.getElementById('card-name');
-            const modalContent = document.getElementById('modal-content');
+            const modalImgWrapper = document.getElementById('modal-img-wrapper');
             
-            const cardsToDisplay = filteredCards.length > 0 ? filteredCards : pokemonCards;
+            const cardsToDisplay = filteredCards;
+            if (cardsToDisplay.length === 0) return;
             
-            if (index < 0 || index >= cardsToDisplay.length) return;
+            // 重置模态框状态
+            modalImgWrapper.style.transform = 'translateX(0)';
+            modalImgNext.style.display = 'none';
+            modalImgPrev.style.display = 'none';
+            modalIsDragging = false;
+            modalCurrentTranslateX = 0;
             
-            currentIndex = index;
-            const card = cardsToDisplay[currentIndex];
-            
-            modalImg.src = '';
-            modalImg.classList.remove('loaded', 'error');
-            
-            // 重置动画类
-            modalContent.classList.remove('slide-left', 'slide-right');
-            
-            modalImg.src = card.image;
+            const card = cardsToDisplay[index];
+            modalImgCurrent.src = card.image;
             cardName.textContent = card.name;
             
             modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
+            currentIndex = index;
             
             // 预加载相邻图片
+            preloadAdjacentImages(index);
+            
+            // 初始化模态框触摸事件
+            initModalTouchEvents();
+        }
+
+        function initModalTouchEvents() {
+            const modalImgWrapper = document.getElementById('modal-img-wrapper');
+            const modalImgContainer = document.getElementById('modal-img-container');
+            const modalImgCurrent = document.getElementById('modal-img-current');
+            const modalImgNext = document.getElementById('modal-img-next');
+            const modalImgPrev = document.getElementById('modal-img-prev');
+            const cardName = document.getElementById('card-name');
+            
+            const cardsToDisplay = filteredCards;
+            
+            modalImgContainer.addEventListener('touchstart', (e) => {
+                if (!e.target.closest('.modal-img-container')) return;
+                
+                modalTouchStartX = e.touches[0].clientX;
+                modalIsDragging = true;
+                modalImgWrapper.style.transition = 'none';
+            }, { passive: true });
+            
+            modalImgContainer.addEventListener('touchmove', (e) => {
+                if (!modalIsDragging) return;
+                
+                const touchX = e.touches[0].clientX;
+                const deltaX = touchX - modalTouchStartX;
+                modalCurrentTranslateX = deltaX;
+                
+                // 限制拖动范围
+                const maxTranslate = window.innerWidth * 0.3;
+                const boundedTranslate = Math.max(-maxTranslate, Math.min(maxTranslate, deltaX));
+                
+                modalImgWrapper.style.transform = `translateX(${boundedTranslate}px)`;
+                
+                // 预加载拖动方向的图片
+                if (deltaX > 50 && modalImgNext.style.display === 'none') {
+                    const nextIndex = (currentIndex + 1) % cardsToDisplay.length;
+                    modalImgNext.src = cardsToDisplay[nextIndex].image;
+                    modalImgNext.style.display = 'block';
+                    modalImgNext.style.transform = `translateX(${modalImgContainer.clientWidth}px)`;
+                } else if (deltaX < -50 && modalImgPrev.style.display === 'none') {
+                    const prevIndex = (currentIndex - 1 + cardsToDisplay.length) % cardsToDisplay.length;
+                    modalImgPrev.src = cardsToDisplay[prevIndex].image;
+                    modalImgPrev.style.display = 'block';
+                    modalImgPrev.style.transform = `translateX(-${modalImgContainer.clientWidth}px)`;
+                }
+            }, { passive: true });
+            
+            modalImgContainer.addEventListener('touchend', (e) => {
+                if (!modalIsDragging) return;
+                
+                modalIsDragging = false;
+                modalImgWrapper.style.transition = 'transform 0.3s ease';
+                
+                const shouldChange = Math.abs(modalCurrentTranslateX) > modalDragThreshold;
+                
+                if (shouldChange) {
+                    const direction = modalCurrentTranslateX > 0 ? -1 : 1;
+                    let newIndex = currentIndex + direction;
+                    
+                    if (newIndex < 0) newIndex = cardsToDisplay.length - 1;
+                    else if (newIndex >= cardsToDisplay.length) newIndex = 0;
+                    
+                    // 设置切换动画
+                    modalImgWrapper.style.transform = `translateX(${direction * modalImgContainer.clientWidth}px)`;
+                    
+                    setTimeout(() => {
+                        currentIndex = newIndex;
+                        const card = cardsToDisplay[currentIndex];
+                        
+                        modalImgCurrent.src = card.image;
+                        cardName.textContent = card.name;
+                        
+                        modalImgWrapper.style.transform = 'translateX(0)';
+                        modalImgNext.style.display = 'none';
+                        modalImgPrev.style.display = 'none';
+                        
+                        preloadAdjacentImages(currentIndex);
+                    }, 300);
+                } else {
+                    // 回到原位
+                    modalImgWrapper.style.transform = 'translateX(0)';
+                    modalImgNext.style.display = 'none';
+                    modalImgPrev.style.display = 'none';
+                }
+                
+                modalCurrentTranslateX = 0;
+            }, { passive: true });
+        }
+
+        function preloadAdjacentImages(centerIndex) {
+            const cardsToDisplay = filteredCards;
+            for (let i = Math.max(0, centerIndex - 2); i <= Math.min(cardsToDisplay.length - 1, centerIndex + 2); i++) {
+                if (!loadedImages.has(i.toString()) && !failedImages.has(i.toString())) {
+                    const cardElement = document.querySelector(`.card[data-index="${i}"]`);
+                    if (cardElement) {
+                        const img = cardElement.querySelector('.card-img');
+                        loadImageWithRetry(img, img.dataset.src, i, 2);
+                    }
+                }
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('image-modal').classList.remove('active');
+        }
+
+        function navigateCard(direction) {
+            const cardsToDisplay = filteredCards;
+            if (cardsToDisplay.length === 0) return;
+            
+            let newIndex = currentIndex + direction;
+            if (newIndex < 0) newIndex = cardsToDisplay.length - 1;
+            else if (newIndex >= cardsToDisplay.length) newIndex = 0;
+            
+            currentIndex = newIndex;
+            const card = cardsToDisplay[currentIndex];
+            
+            const modalImgCurrent = document.getElementById('modal-img-current');
+            const cardName = document.getElementById('card-name');
+            
+            modalImgCurrent.src = card.image;
+            cardName.textContent = card.name;
+            
             preloadAdjacentImages(currentIndex);
         }
 
-        function preloadAdjacentImages(currentIndex) {
-            const cardsToDisplay = filteredCards.length > 0 ? filteredCards : pokemonCards;
-            
-            for (let offset of [-2, -1, 1, 2]) {
-                const index = currentIndex + offset;
-                if (index >= 0 && index < cardsToDisplay.length) {
-                    const card = cardsToDisplay[index];
-                    const img = new Image();
-                    img.src = card.image;
-                }
-            }
-        }
-
-        function hideImageModal() {
-            const modal = document.getElementById('image-modal');
-            modal.classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-
-        function navigateModal(direction) {
-            const cardsToDisplay = filteredCards.length > 0 ? filteredCards : pokemonCards;
-            const modalContent = document.getElementById('modal-content');
-            
-            // 添加滑动动画
-            modalContent.classList.add(direction === 'next' ? 'slide-right' : 'slide-left');
-            
-            setTimeout(() => {
-                modalContent.classList.remove('slide-left', 'slide-right');
-                
-                if (direction === 'next') {
-                    currentIndex = (currentIndex + 1) % cardsToDisplay.length;
-                } else {
-                    currentIndex = (currentIndex - 1 + cardsToDisplay.length) % cardsToDisplay.length;
-                }
-                
-                const card = cardsToDisplay[currentIndex];
-                const modalImg = document.getElementById('modal-img');
-                const cardName = document.getElementById('card-name');
-                
-                modalImg.src = '';
-                modalImg.classList.remove('loaded', 'error');
-                
-                modalImg.src = card.image;
-                cardName.textContent = card.name;
-                
-                // 预加载新的相邻图片
-                preloadAdjacentImages(currentIndex);
-                
-            }, 150);
-        }
-
-        function searchCards() {
-            const searchInput = document.getElementById('search-input');
-            const query = searchInput.value.trim().toLowerCase();
-            
-            if (query === '') {
+        function performSearch(searchText) {
+            if (!searchText.trim()) {
                 filteredCards = [...pokemonCards];
-                updateSearchInfo(`已加载所有 ${pokemonCards.length} 张卡牌`);
+                updateSearchInfo(`显示全部 ${pokemonCards.length} 张卡牌`);
             } else {
+                const searchLower = searchText.toLowerCase().trim();
                 filteredCards = pokemonCards.filter(card => {
-                    const searchText = `
-                        ${card.name}
-                        ${card.type}
-                        ${card.abilityName}
-                        ${card.abilityEffect}
-                        ${card.skill1.name || ''}
-                        ${card.skill1.effect || ''}
-                        ${card.skill2.name || ''}
-                        ${card.skill2.effect || ''}
-                        ${card.skill3.name || ''}
-                        ${card.skill3.effect || ''}
-                        ${card.skill4.name || ''}
-                        ${card.skill4.effect || ''}
-                    `.toLowerCase();
+                    const searchFields = [
+                        card.name,
+                        card.abilityName,
+                        card.abilityEffect,
+                        card.skill1.名字,
+                        card.skill1.效果,
+                        card.skill2.名字,
+                        card.skill2.效果,
+                        card.skill3.名字,
+                        card.skill3.效果,
+                        card.skill4.名字,
+                        card.skill4.效果
+                    ];
                     
-                    return searchText.includes(query);
+                    return searchFields.some(field => 
+                        field && field.toLowerCase().includes(searchLower)
+                    );
                 });
                 
-                updateSearchInfo(`找到 ${filteredCards.length} 张匹配的卡牌`);
+                if (filteredCards.length === 0) {
+                    updateSearchInfo(`没有找到匹配"${searchText}"的卡牌`);
+                } else {
+                    updateSearchInfo(`找到 ${filteredCards.length} 张匹配"${searchText}"的卡牌`);
+                }
             }
-            
-            // 重置加载状态
-            loadedImages.clear();
-            failedImages.clear();
-            currentBatch = 0;
             
             initCardGrid();
-            
-            // 显示/隐藏无结果消息
-            const noResults = document.getElementById('no-results');
-            if (filteredCards.length === 0) {
-                noResults.style.display = 'block';
-            } else {
-                noResults.style.display = 'none';
-            }
         }
 
         function updateSearchInfo(message) {
-            const searchInfo = document.getElementById('search-info');
-            searchInfo.textContent = message;
+            document.getElementById('search-info').textContent = message;
         }
 
-        // 初始化函数
-        function init() {
-            initThreeJS();
-            initLazyLoading();
-            loadJSONData();
+        function initEventListeners() {
+            document.getElementById('stats-button').addEventListener('click', toggleStatMode);
             
-            // 事件监听器
-            document.getElementById('search-button').addEventListener('click', searchCards);
-            document.getElementById('search-input').addEventListener('keypress', function(e) {
+            document.getElementById('search-button').addEventListener('click', () => {
+                const searchText = document.getElementById('search-input').value;
+                performSearch(searchText);
+            });
+            
+            document.getElementById('search-input').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
-                    searchCards();
+                    const searchText = document.getElementById('search-input').value;
+                    performSearch(searchText);
                 }
             });
             
-            document.getElementById('modal-close').addEventListener('click', hideImageModal);
-            document.getElementById('prev-arrow').addEventListener('click', () => navigateModal('prev'));
-            document.getElementById('next-arrow').addEventListener('click', () => navigateModal('next'));
+            document.getElementById('modal-close').addEventListener('click', closeModal);
+            document.getElementById('image-modal').addEventListener('click', (e) => {
+                if (e.target === e.currentTarget) closeModal();
+            });
             
-            document.getElementById('stats-button').addEventListener('click', toggleStatMode);
+            document.getElementById('prev-arrow').addEventListener('click', (e) => {
+                e.stopPropagation();
+                navigateCard(-1);
+            });
+            
+            document.getElementById('next-arrow').addEventListener('click', (e) => {
+                e.stopPropagation();
+                navigateCard(1);
+            });
+            
             document.getElementById('export-button').addEventListener('click', exportData);
             document.getElementById('import-button').addEventListener('click', importData);
             
-            // 模态框点击外部关闭
-            document.getElementById('image-modal').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    hideImageModal();
-                }
-            });
-            
-            // 键盘导航
-            document.addEventListener('keydown', function(e) {
+            document.addEventListener('keydown', (e) => {
                 const modal = document.getElementById('image-modal');
-                if (modal.classList.contains('active')) {
-                    if (e.key === 'Escape') {
-                        hideImageModal();
-                    } else if (e.key === 'ArrowLeft') {
-                        navigateModal('prev');
-                    } else if (e.key === 'ArrowRight') {
-                        navigateModal('next');
-                    }
-                }
-            });
-            
-            // 触摸滑动支持
-            let touchStartX = 0;
-            const modal = document.getElementById('image-modal');
-            
-            modal.addEventListener('touchstart', function(e) {
-                touchStartX = e.touches[0].clientX;
-            }, { passive: true });
-            
-            modal.addEventListener('touchend', function(e) {
-                const touchEndX = e.changedTouches[0].clientX;
-                const deltaX = touchEndX - touchStartX;
+                if (!modal.classList.contains('active')) return;
                 
-                if (Math.abs(deltaX) > 50) { // 最小滑动距离
-                    if (deltaX > 0) {
-                        navigateModal('prev');
-                    } else {
-                        navigateModal('next');
-                    }
-                }
-            }, { passive: true });
-            
-            console.log('宝可梦卡牌查看器初始化完成');
+                if (e.key === 'Escape') closeModal();
+                else if (e.key === 'ArrowLeft') navigateCard(-1);
+                else if (e.key === 'ArrowRight') navigateCard(1);
+            });
         }
 
-        // 页面加载完成后初始化
-        document.addEventListener('DOMContentLoaded', init);
+        function initApp() {
+            initThreeJS();
+            initEventListeners();
+            initLazyLoading();
+            loadJSONData();
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
 </html>
