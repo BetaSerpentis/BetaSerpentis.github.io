@@ -699,13 +699,13 @@
         let modalIsDragging = false;
         let modalCurrentTranslateX = 0;
         let modalDragThreshold = 80;
+        let modalIsAnimating = false;
 
         // 卡牌触摸相关变量
         let cardTouchStartTime = 0;
         let cardTouchStartX = 0;
         let cardTouchStartY = 0;
         let cardTouchCount = 0;
-        let cardTouchTimer = null;
         let cardIsMultiTouch = false;
         let cardLastTouchEndTime = 0;
         let cardDoubleTouchProcessed = false;
@@ -1194,8 +1194,12 @@
             cardElement.addEventListener('touchend', handleCardTouchEnd, { passive: true });
             cardElement.addEventListener('touchcancel', handleCardTouchCancel, { passive: true });
             
-            // PC端事件
+            // PC端事件 - 使用一次性事件
+            let clickProcessed = false;
             cardElement.addEventListener('click', function(e) {
+                if (clickProcessed) return;
+                clickProcessed = true;
+                
                 if (isStatMode) {
                     if (e.button === 0) {
                         updateCardQuantity(index, 1);
@@ -1203,6 +1207,10 @@
                 } else {
                     showImageModal(index);
                 }
+                
+                setTimeout(() => {
+                    clickProcessed = false;
+                }, 300);
             });
             
             cardElement.addEventListener('contextmenu', function(e) {
@@ -1262,7 +1270,7 @@
                 return;
             }
             
-            // 处理单指触摸
+            // 处理单指触摸 - 确保只执行一次
             if (!cardIsMultiTouch && !cardDoubleTouchProcessed && touchDuration < 300 && deltaX < 10 && deltaY < 10) {
                 if (isStatMode) {
                     updateCardQuantity(index, 1);
@@ -1351,6 +1359,7 @@
             modalImgPrev.style.transform = 'translateX(-100%)';
             modalIsDragging = false;
             modalCurrentTranslateX = 0;
+            modalIsAnimating = false;
             
             const card = cardsToDisplay[index];
             modalImgCurrent.src = card.image;
@@ -1379,7 +1388,7 @@
             const cardsToDisplay = filteredCards;
             
             modalImgContainer.addEventListener('touchstart', (e) => {
-                if (!e.target.closest('.modal-img-container')) return;
+                if (!e.target.closest('.modal-img-container') || modalIsAnimating) return;
                 
                 modalTouchStartX = e.touches[0].clientX;
                 modalIsDragging = true;
@@ -1389,7 +1398,7 @@
             }, { passive: true });
             
             modalImgContainer.addEventListener('touchmove', (e) => {
-                if (!modalIsDragging) return;
+                if (!modalIsDragging || modalIsAnimating) return;
                 
                 const touchX = e.touches[0].clientX;
                 const deltaX = touchX - modalTouchStartX;
@@ -1414,7 +1423,7 @@
             }, { passive: true });
             
             modalImgContainer.addEventListener('touchend', (e) => {
-                if (!modalIsDragging) return;
+                if (!modalIsDragging || modalIsAnimating) return;
                 
                 modalIsDragging = false;
                 modalImgCurrent.style.transition = 'transform 0.3s ease';
@@ -1425,6 +1434,8 @@
                 const direction = modalCurrentTranslateX > 0 ? -1 : 1;
                 
                 if (shouldChange) {
+                    modalIsAnimating = true;
+                    
                     let newIndex = currentIndex + direction;
                     
                     if (newIndex < 0) newIndex = cardsToDisplay.length - 1;
@@ -1445,7 +1456,7 @@
                         currentIndex = newIndex;
                         const card = cardsToDisplay[currentIndex];
                         
-                        // 重置所有图片位置并更新内容
+                        // 直接更新当前图片，重置所有位置
                         modalImgCurrent.src = card.image;
                         modalImgCurrent.style.transform = 'translateX(0)';
                         modalImgNext.style.transform = 'translateX(100%)';
@@ -1454,6 +1465,7 @@
                         cardName.textContent = card.name;
                         
                         preloadAdjacentImages(currentIndex);
+                        modalIsAnimating = false;
                     }, 300);
                 } else {
                     // 回到原位
@@ -1486,6 +1498,8 @@
         }
 
         function navigateCard(direction) {
+            if (modalIsAnimating) return;
+            
             const cardsToDisplay = filteredCards;
             if (cardsToDisplay.length === 0) return;
             
