@@ -1273,8 +1273,7 @@
             // 处理单指触摸 - 确保只执行一次
             if (!cardIsMultiTouch && !cardDoubleTouchProcessed && touchDuration < 300 && deltaX < 10 && deltaY < 10) {
                 if (isStatMode) {
-                    updateCardQuantity(index, 1);
-                    cardDoubleTouchProcessed = true; // 标记已处理，防止重复执行
+                    //updateCardQuantity(index, 1);
                 } else {
                     showImageModal(index);
                 }
@@ -1458,10 +1457,13 @@
                         const card = cardsToDisplay[currentIndex];
                         
                         // 直接更新当前图片，重置所有位置
+                        modalImgCurrent.style.transition = 'transform 0';
+                        modalImgNext.style.transition = 'transform 0';
+                        modalImgPrev.style.transition = 'transform 0';
                         modalImgCurrent.src = card.image;
-                        //modalImgCurrent.style.transform = 'translateX(0)';
-                        //modalImgNext.style.transform = 'translateX(100%)';
-                        //modalImgPrev.style.transform = 'translateX(-100%)';
+                        modalImgCurrent.style.transform = 'translateX(0)';
+                        modalImgNext.style.transform = 'translateX(100%)';
+                        modalImgPrev.style.transform = 'translateX(-100%)';
                         
                         cardName.textContent = card.name;
                         
