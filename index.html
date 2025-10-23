@@ -1189,12 +1189,12 @@
             cardElement.appendChild(img);
             cardElement.appendChild(badge);
             
-            // 优化触摸事件处理
+            // 优化触摸事件处理 - 只处理双指触摸，单指点击使用PC端事件
             cardElement.addEventListener('touchstart', handleCardTouchStart, { passive: true });
             cardElement.addEventListener('touchend', handleCardTouchEnd, { passive: true });
             cardElement.addEventListener('touchcancel', handleCardTouchCancel, { passive: true });
             
-            // PC端事件 - 使用一次性事件
+            // PC端事件 - 在多端都生效
             let clickProcessed = false;
             cardElement.addEventListener('click', function(e) {
                 if (clickProcessed) return;
@@ -1260,7 +1260,7 @@
             
             const index = parseInt(e.currentTarget.dataset.index);
             
-            // 处理双指触摸（减少数量）- 只执行一次
+            // 只处理双指触摸（减少数量）- 单指点击由PC端事件处理
             if (cardIsMultiTouch && cardTouchCount >= 2 && !cardDoubleTouchProcessed) {
                 if (isStatMode && touchDuration < 500) {
                     updateCardQuantity(index, -1);
@@ -1270,14 +1270,7 @@
                 return;
             }
             
-            // 处理单指触摸 - 确保只执行一次
-            if (!cardIsMultiTouch && !cardDoubleTouchProcessed && touchDuration < 300 && deltaX < 10 && deltaY < 10) {
-                if (isStatMode) {
-                    //updateCardQuantity(index, 1);
-                } else {
-                    showImageModal(index);
-                }
-            }
+            // 不再处理单指触摸，由PC端click事件处理
             
             cardIsMultiTouch = false;
         }
@@ -1456,14 +1449,22 @@
                         currentIndex = newIndex;
                         const card = cardsToDisplay[currentIndex];
                         
-                        // 直接更新当前图片，重置所有位置
-                        modalImgCurrent.style.transition = 'transform 0';
-                        modalImgNext.style.transition = 'transform 0';
-                        modalImgPrev.style.transition = 'transform 0';
+                        // 瞬时重置位置，不播放动画
+                        modalImgCurrent.style.transition = 'none';
+                        modalImgNext.style.transition = 'none';
+                        modalImgPrev.style.transition = 'none';
+                        
                         modalImgCurrent.src = card.image;
                         modalImgCurrent.style.transform = 'translateX(0)';
                         modalImgNext.style.transform = 'translateX(100%)';
                         modalImgPrev.style.transform = 'translateX(-100%)';
+                        
+                        // 立即恢复过渡效果，为下一次动画准备
+                        setTimeout(() => {
+                            modalImgCurrent.style.transition = 'transform 0.3s ease';
+                            modalImgNext.style.transition = 'transform 0.3s ease';
+                            modalImgPrev.style.transition = 'transform 0.3s ease';
+                        }, 50);
                         
                         cardName.textContent = card.name;
                         
