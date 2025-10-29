@@ -38,6 +38,40 @@
             backdrop-filter: blur(10px);
         }
         
+        /* 页签样式 */
+        .tabs-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+            justify-content: center;
+        }
+        
+        .tab {
+            padding: 8px 16px;
+            background: #f0f0f0;
+            border: 2px solid #ddd;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        
+        .tab:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+        }
+        
+        .tab.active {
+            background: #FFCC00;
+            border-color: #FF6B00;
+            color: #333;
+            box-shadow: 0 3px 10px rgba(255, 107, 0, 0.3);
+        }
+        
         .search-container {
             display: flex;
             gap: 12px;
@@ -449,6 +483,16 @@
                 margin-bottom: 15px;
             }
             
+            .tabs-container {
+                gap: 6px;
+                margin-bottom: 12px;
+            }
+            
+            .tab {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+            
             .search-container {
                 gap: 10px;
             }
@@ -640,9 +684,20 @@
     
     <div class="container">
         <div class="search-header">
+            <!-- 页签区域 -->
+            <div class="tabs-container" id="tabs-container">
+                <div class="tab active" data-tab="宝可梦">宝可梦</div>
+                <div class="tab" data-tab="支援者">支援者</div>
+                <div class="tab" data-tab="物品">物品</div>
+                <div class="tab" data-tab="宝可梦道具">宝可梦道具</div>
+                <div class="tab" data-tab="竞技场">竞技场</div>
+                <div class="tab" data-tab="基本能量">基本能量</div>
+                <div class="tab" data-tab="特殊能量">特殊能量</div>
+            </div>
+            
             <div class="search-container">
                 <input type="text" class="search-input" id="search-input" 
-                       placeholder="搜索宝可梦名字、特性、技能效果...">
+                       placeholder="搜索卡牌名字、效果...">
                 <button class="search-button" id="search-button">搜索</button>
             </div>
             <div class="search-info" id="search-info">
@@ -693,6 +748,46 @@
         let loadedImages = new Set();
         let failedImages = new Set();
         let isStatMode = false;
+        let currentTab = '宝可梦';
+
+        // 卡牌类型配置 - 修复图片路径
+        const cardTypes = {
+            '宝可梦': {
+                jsonFile: 'data/pokemon-cards.json',
+                imagePath: 'images/',
+                hasNumber: true
+            },
+            '支援者': {
+                jsonFile: 'data/Supporter-cards.json',
+                imagePath: 'images/',
+                hasNumber: false
+            },
+            '物品': {
+                jsonFile: 'data/Item-cards.json',
+                imagePath: 'images/',
+                hasNumber: false
+            },
+            '宝可梦道具': {
+                jsonFile: 'data/PokemonTool-cards.json',
+                imagePath: 'images/',
+                hasNumber: false
+            },
+            '竞技场': {
+                jsonFile: 'data/Stadium-cards.json',
+                imagePath: 'images/',
+                hasNumber: false
+            },
+            '基本能量': {
+                jsonFile: 'data/BasicEnergy-cards.json',
+                imagePath: 'images/',
+                hasNumber: false
+            },
+            '特殊能量': {
+                jsonFile: 'data/SpecialEnergy-cards.json',
+                imagePath: 'images/',
+                hasNumber: false
+            }
+        };
 
         // 模态框触摸相关变量
         let modalTouchStartX = 0;
@@ -765,12 +860,13 @@
             });
         }
 
-        function generateImageFilename(id) {
+        function generateImageFilename(id, cardType) {
+            // 确保ID是字符串，然后填充0到8位
             const paddedId = id.toString().padStart(8, '0');
             return `hk${paddedId}.webp`;
         }
 
-        function processCardData(jsonData) {
+        function processCardData(jsonData, cardType) {
             const processedCards = [];
             
             jsonData.forEach(card => {
@@ -779,20 +875,31 @@
                 if (cardIds && cardIds.length > 0) {
                     cardIds.forEach(cardId => {
                         if (cardId) {
-                            processedCards.push({
+                            const processedCard = {
                                 id: cardId,
-                                name: card['宝可梦名字'] || '未知',
-                                type: card['属性'] || '未知',
-                                number: card['编号'] || '未知',
+                                name: card['卡牌名字'] || card['宝可梦名字'] || '未知',
+                                type: cardType,
                                 quantity: parseInt(card['拥有数量']) || 0,
-                                abilityName: card['特性名字'] || '',
-                                abilityEffect: card['特性效果'] || '',
-                                skill1: card['技能1'] || {},
-                                skill2: card['技能2'] || {},
-                                skill3: card['技能3'] || {},
-                                skill4: card['技能4'] || {},
-                                image: `images/${generateImageFilename(cardId)}`
-                            });
+                                // 修复图片路径
+                                image: `${cardTypes[cardType].imagePath}${generateImageFilename(cardId, cardType)}`
+                            };
+                            
+                            // 宝可梦卡牌特有字段
+                            if (cardType === '宝可梦') {
+                                processedCard.number = card['编号'] || '未知';
+                                processedCard.attribute = card['属性'] || '未知';
+                                processedCard.abilityName = card['特性名字'] || '';
+                                processedCard.abilityEffect = card['特性效果'] || '';
+                                processedCard.skill1 = card['技能1'] || {};
+                                processedCard.skill2 = card['技能2'] || {};
+                                processedCard.skill3 = card['技能3'] || {};
+                                processedCard.skill4 = card['技能4'] || {};
+                            } else {
+                                // 其他卡牌类型
+                                processedCard.effect = card['效果'] || '';
+                            }
+                            
+                            processedCards.push(processedCard);
                         }
                     });
                 }
@@ -801,19 +908,20 @@
             return processedCards;
         }
 
-        async function loadJSONData() {
+        async function loadJSONData(cardType) {
             const statusElement = document.getElementById('loading-status');
-            statusElement.innerHTML = '正在加载JSON数据...';
+            statusElement.innerHTML = `正在加载${cardType}数据...`;
             
             try {
-                const response = await fetch('data/pokemon-cards.json');
+                const config = cardTypes[cardType];
+                const response = await fetch(config.jsonFile);
                 
                 if (!response.ok) {
                     throw new Error(`HTTP错误! 状态: ${response.status}`);
                 }
                 
                 const jsonData = await response.json();
-                let processedCards = processCardData(jsonData);
+                let processedCards = processCardData(jsonData, cardType);
                 
                 // 从本地存储加载数量数据
                 const localData = localStorage.getItem('pokemonCardQuantities');
@@ -823,18 +931,18 @@
                         const quantityMap = new Map();
                         
                         localQuantities.forEach(item => {
-                            quantityMap.set(item.id, item.quantity);
+                            quantityMap.set(`${item.type}_${item.id}`, item.quantity);
                         });
                         
                         processedCards = processedCards.map(card => {
-                            const savedQuantity = quantityMap.get(card.id);
+                            const savedQuantity = quantityMap.get(`${cardType}_${card.id}`);
                             if (savedQuantity !== undefined) {
                                 card.quantity = savedQuantity;
                             }
                             return card;
                         });
                         
-                        console.log(`从本地存储加载了 ${localQuantities.length} 张卡牌的数量`);
+                        console.log(`从本地存储加载了 ${cardType} 卡牌数量`);
                     } catch (e) {
                         console.warn('解析本地数据失败:', e);
                     }
@@ -843,30 +951,37 @@
                 pokemonCards = processedCards;
                 filteredCards = [...pokemonCards];
                 
-                statusElement.innerHTML = `成功加载 ${pokemonCards.length} 张卡牌数据`;
-                updateSearchInfo(`已加载所有 ${pokemonCards.length} 张卡牌`);
+                statusElement.innerHTML = `成功加载 ${pokemonCards.length} 张${cardType}卡牌`;
+                updateSearchInfo(`已加载所有 ${pokemonCards.length} 张${cardType}卡牌`);
                 document.getElementById('loading-section').style.display = 'none';
                 
                 initCardGrid();
                 
             } catch (error) {
-                console.error('加载JSON数据失败:', error);
+                console.error(`加载${cardType}JSON数据失败:`, error);
                 statusElement.innerHTML = `加载失败: ${error.message}`;
             }
         }
 
         function saveToLocalStorage() {
             try {
-                const saveData = pokemonCards.map(card => ({
-                    id: card.id,
-                    quantity: card.quantity,
-                    name: card.name
-                }));
+                // 获取所有类型的卡牌数据
+                const allCardData = [];
                 
-                localStorage.setItem('pokemonCardQuantities', JSON.stringify(saveData));
+                // 保存当前类型的卡牌数据
+                pokemonCards.forEach(card => {
+                    allCardData.push({
+                        id: card.id,
+                        type: currentTab,
+                        quantity: card.quantity,
+                        name: card.name
+                    });
+                });
+                
+                localStorage.setItem('pokemonCardQuantities', JSON.stringify(allCardData));
                 localStorage.setItem('lastSaved', new Date().toISOString());
                 
-                console.log('数据保存到LocalStorage成功');
+                console.log(`${currentTab}数据保存到LocalStorage成功`);
                 return true;
                 
             } catch (error) {
@@ -880,6 +995,7 @@
                 .filter(card => card.quantity > 0)
                 .map(card => ({
                     id: card.id,
+                    type: currentTab,
                     quantity: card.quantity
                 }));
             
@@ -889,13 +1005,13 @@
             const url = URL.createObjectURL(dataBlob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `pokemon-cards-${new Date().toISOString().split('T')[0]}.json`;
+            link.download = `pokemon-cards-${currentTab}-${new Date().toISOString().split('T')[0]}.json`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
             
-            showSaveSuccess(`已导出 ${exportData.length} 张卡牌数据`);
+            showSaveSuccess(`已导出 ${exportData.length} 张${currentTab}卡牌数据`);
         }
 
         function importData() {
@@ -1175,9 +1291,13 @@
             const svgPlaceholder = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="252" height="352" viewBox="0 0 252 352"><rect width="252" height="352" fill="%23f0f0f0"/><text x="126" y="176" font-family="Arial" font-size="14" text-anchor="middle" fill="%23666">加载中...</text></svg>`;
             img.src = svgPlaceholder;
             
-            const badge = document.createElement('div');
-            badge.className = 'card-badge';
-            badge.textContent = card.number || card.id;
+            // 只在宝可梦卡牌显示编号
+            if (currentTab === '宝可梦' && card.number && card.number !== '未知') {
+                const badge = document.createElement('div');
+                badge.className = 'card-badge';
+                badge.textContent = card.number;
+                cardElement.appendChild(badge);
+            }
             
             if (card.quantity > 0) {
                 const quantity = document.createElement('div');
@@ -1187,7 +1307,6 @@
             }
             
             cardElement.appendChild(img);
-            cardElement.appendChild(badge);
             
             // 优化触摸事件处理 - 只处理双指触摸，单指点击使用PC端事件
             cardElement.addEventListener('touchstart', handleCardTouchStart, { passive: true });
@@ -1526,23 +1645,30 @@
         function performSearch(searchText) {
             if (!searchText.trim()) {
                 filteredCards = [...pokemonCards];
-                updateSearchInfo(`显示全部 ${pokemonCards.length} 张卡牌`);
+                updateSearchInfo(`显示全部 ${pokemonCards.length} 张${currentTab}卡牌`);
             } else {
                 const searchLower = searchText.toLowerCase().trim();
                 filteredCards = pokemonCards.filter(card => {
-                    const searchFields = [
-                        card.name,
-                        card.abilityName,
-                        card.abilityEffect,
-                        card.skill1.名字,
-                        card.skill1.效果,
-                        card.skill2.名字,
-                        card.skill2.效果,
-                        card.skill3.名字,
-                        card.skill3.效果,
-                        card.skill4.名字,
-                        card.skill4.效果
-                    ];
+                    const searchFields = [card.name];
+                    
+                    // 宝可梦卡牌特有搜索字段
+                    if (currentTab === '宝可梦') {
+                        searchFields.push(
+                            card.abilityName,
+                            card.abilityEffect,
+                            card.skill1.名字,
+                            card.skill1.效果,
+                            card.skill2.名字,
+                            card.skill2.效果,
+                            card.skill3.名字,
+                            card.skill3.效果,
+                            card.skill4.名字,
+                            card.skill4.效果
+                        );
+                    } else {
+                        // 其他卡牌类型搜索效果字段
+                        searchFields.push(card.effect);
+                    }
                     
                     return searchFields.some(field => 
                         field && field.toLowerCase().includes(searchLower)
@@ -1550,9 +1676,9 @@
                 });
                 
                 if (filteredCards.length === 0) {
-                    updateSearchInfo(`没有找到匹配"${searchText}"的卡牌`);
+                    updateSearchInfo(`没有找到匹配"${searchText}"的${currentTab}卡牌`);
                 } else {
-                    updateSearchInfo(`找到 ${filteredCards.length} 张匹配"${searchText}"的卡牌`);
+                    updateSearchInfo(`找到 ${filteredCards.length} 张匹配"${searchText}"的${currentTab}卡牌`);
                 }
             }
             
@@ -1563,8 +1689,38 @@
             document.getElementById('search-info').textContent = message;
         }
 
+        function switchTab(tabName) {
+            if (tabName === currentTab) return;
+            
+            // 更新当前标签
+            currentTab = tabName;
+            
+            // 更新标签样式
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+            
+            // 显示加载状态
+            document.getElementById('loading-section').style.display = 'block';
+            document.getElementById('card-grid').innerHTML = '';
+            
+            // 重置搜索
+            document.getElementById('search-input').value = '';
+            
+            // 加载新数据
+            loadJSONData(tabName);
+        }
+
         function initEventListeners() {
             document.getElementById('stats-button').addEventListener('click', toggleStatMode);
+            
+            // 页签点击事件
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    switchTab(tab.dataset.tab);
+                });
+            });
             
             document.getElementById('search-button').addEventListener('click', () => {
                 const searchText = document.getElementById('search-input').value;
@@ -1610,7 +1766,7 @@
             initThreeJS();
             initEventListeners();
             initLazyLoading();
-            loadJSONData();
+            loadJSONData(currentTab);
         }
 
         document.addEventListener('DOMContentLoaded', initApp);
