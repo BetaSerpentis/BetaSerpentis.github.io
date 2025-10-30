@@ -1,0 +1,121 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+    color: #333;
+    min-height: 100vh;
+    padding: 20px;
+    position: relative;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Three.js 容器 */
+#three-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* 加载动画 */
+.loading-spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #FFCC00;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-section {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+/* 功能标签 */
+.feature-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    justify-content: center;
+}
+
+.feature-tab {
+    padding: 12px 24px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid #ddd;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.feature-tab:hover {
+    background: #e0e0e0;
+    transform: translateY(-2px);
+}
+
+.feature-tab.active {
+    background: #FFCC00;
+    border-color: #FF6B00;
+    color: #333;
+    box-shadow: 0 3px 10px rgba(255, 107, 0, 0.3);
+}
+
+.feature-panel {
+    display: none;
+}
+
+.feature-panel.active {
+    display: block;
+}
+
+.coming-soon {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 60px 40px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+}
+
+.coming-soon h2 {
+    color: #1a2a6c;
+    margin-bottom: 15px;
+    font-size: 2rem;
+}
+
+.coming-soon p {
+    color: #666;
+    font-size: 1.1rem;
+}
+
+/* 页脚 */
+footer {
+    text-align: center;
+    margin-top: 40px;
+    color: white;
+    opacity: 0.7;
+}

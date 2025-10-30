@@ -1,0 +1,606 @@
+/* 搜索头部 */
+.search-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 15px 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+/* 页签样式 */
+.tabs-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 15px;
+    justify-content: center;
+}
+
+.tab {
+    padding: 8px 16px;
+    background: #f0f0f0;
+    border: 2px solid #ddd;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.tab:hover {
+    background: #e0e0e0;
+    transform: translateY(-2px);
+}
+
+.tab.active {
+    background: #FFCC00;
+    border-color: #FF6B00;
+    color: #333;
+    box-shadow: 0 3px 10px rgba(255, 107, 0, 0.3);
+}
+
+/* 搜索容器 */
+.search-container {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.search-input {
+    flex: 1;
+    padding: 12px 18px;
+    border: 3px solid #FFCC00;
+    border-radius: 25px;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s ease;
+    background: white;
+    min-width: 0;
+}
+
+.search-input:focus {
+    border-color: #FF6B00;
+    box-shadow: 0 0 15px rgba(255, 107, 0, 0.3);
+}
+
+.search-button {
+    padding: 12px 25px;
+    background: #FFCC00;
+    border: none;
+    border-radius: 25px;
+    color: #333;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.search-button:hover {
+    background: #FFDD44;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.search-info {
+    text-align: center;
+    margin-top: 10px;
+    color: #666;
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+/* 统计按钮样式 */
+.stats-button {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    padding: 15px 30px;
+    background: #4CAF50;
+    border: none;
+    border-radius: 25px;
+    color: white;
+    font-weight: bold;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.stats-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.stats-button.active {
+    background: #FF6B00;
+}
+
+/* 导入导出按钮样式 */
+.import-export-buttons {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 1000;
+}
+
+.import-button, .export-button {
+    padding: 12px 20px;
+    background: #2196F3;
+    border: none;
+    border-radius: 25px;
+    color: white;
+    font-weight: bold;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.import-button:hover, .export-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.export-button {
+    background: #FF9800;
+}
+
+/* 卡牌网格 */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.card {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    aspect-ratio: 63/88;
+    position: relative;
+    height: 119px;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.card:hover {
+    transform: translateY(-5px) scale(1.03);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.3);
+}
+
+.stat-mode .card:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 15px rgba(76, 175, 80, 0.4);
+}
+
+/* 移动端统计模式的视觉反馈 */
+.stat-mode .card:active {
+    transform: scale(0.95);
+    transition: transform 0.2s ease;
+}
+
+.card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background-color: #f0f0f0;
+    background-image: linear-gradient(45deg, #e6e6e6 25%, transparent 25%, transparent 75%, #e6e6e6 75%, #e6e6e6),
+                      linear-gradient(45deg, #e6e6e6 25%, transparent 25%, transparent 75%, #e6e6e6 75%, #e6e6e6);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+    transition: opacity 0.3s ease;
+    opacity: 0;
+}
+
+.card-img.loaded {
+    opacity: 1;
+    background: none;
+}
+
+.card-img.error {
+    opacity: 1;
+    background: linear-gradient(45deg, #ffcc00, #ffdd44);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    font-size: 0.8rem;
+    text-align: center;
+    padding: 10px;
+}
+
+.card-badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.8rem;
+    text-shadow: 
+        -1px -1px 0 #000,  
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+    z-index: 2;
+}
+
+.card-quantity {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.8rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    z-index: 3;
+}
+
+/* 模态框 */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    touch-action: none;
+}
+
+.modal.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* 模态框内容样式 */
+.modal-content {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.modal-img-container {
+    width: 315px;
+    height: 440px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    position: relative;
+    touch-action: pan-y;
+}
+
+.modal-img-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+}
+
+.modal-img {
+    width: 315px;
+    height: 440px;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 5px 25px rgba(255, 204, 0, 0.4);
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.modal-img.current {
+    z-index: 2;
+}
+
+.modal-img.next {
+    z-index: 1;
+    transform: translateX(100%);
+}
+
+.modal-img.prev {
+    z-index: 1;
+    transform: translateX(-100%);
+}
+
+.modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    color: white;
+    font-size: 2rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    z-index: 1001;
+}
+
+.nav-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 2.5rem;
+    color: white;
+    background: rgba(0, 0, 0, 0.4);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    z-index: 1001;
+}
+
+.nav-arrow:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.arrow-left {
+    left: 20px;
+}
+
+.arrow-right {
+    right: 20px;
+}
+
+.card-info {
+    color: white;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.card-name {
+    font-size: 1.8rem;
+    margin-bottom: 5px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    transition: none !important;
+}
+
+.no-results {
+    text-align: center;
+    color: white;
+    font-size: 1.2rem;
+    margin-top: 50px;
+    padding: 20px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .modal-content {
+        max-width: 95%;
+    }
+
+    .search-header {
+        padding: 12px 15px;
+        margin-bottom: 15px;
+    }
+    
+    .tabs-container {
+        gap: 6px;
+        margin-bottom: 12px;
+    }
+    
+    .tab {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+    
+    .search-container {
+        gap: 10px;
+    }
+    
+    .search-input {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+    }
+    
+    .search-button {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+    
+    .stats-button {
+        bottom: 15px;
+        left: 15px;
+        padding: 12px 25px;
+        font-size: 1rem;
+    }
+    
+    .import-export-buttons {
+        bottom: 15px;
+        right: 15px;
+    }
+    
+    .import-button, .export-button {
+        padding: 10px 18px;
+        font-size: 0.85rem;
+    }
+    
+    .card-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+    }
+        
+    .card {
+        height: 119px;
+    }
+    
+    .card-badge {
+        font-size: 0.7rem;
+        width: 18px;
+        height: 18px;
+    }
+    
+    .card-quantity {
+        width: 25px;
+        height: 25px;
+        font-size: 0.7rem;
+    }
+    
+    .nav-arrow {
+        font-size: 2rem;
+        width: 40px;
+        height: 40px;
+    }
+    
+    .arrow-left {
+        left: 10px;
+    }
+    
+    .arrow-right {
+        right: 10px;
+    }
+    
+    .modal-img-container {
+        width: 280px;
+        height: 390px;
+    }
+    
+    .modal-img {
+        width: 280px;
+        height: 390px;
+    }
+    
+    .card-name {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .search-container {
+        gap: 8px;
+    }
+    
+    .search-input {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+    
+    .search-button {
+        padding: 8px 16px;
+        font-size: 0.85rem;
+    }
+    
+    .stats-button {
+        bottom: 10px;
+        left: 10px;
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+    
+    .import-export-buttons {
+        bottom: 10px;
+        right: 10px;
+    }
+    
+    .import-button, .export-button {
+        padding: 8px 16px;
+        font-size: 0.8rem;
+    }
+    
+    .card-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+    }
+    
+    .card {
+        height: 112px;
+    }
+
+    .card-badge {
+        font-size: 0.65rem;
+    }
+    
+    .card-quantity {
+        width: 22px;
+        height: 22px;
+        font-size: 0.65rem;
+    }
+    
+    .modal-img-container {
+        width: 250px;
+        height: 350px;
+    }
+    
+    .modal-img {
+        width: 250px;
+        height: 350px;
+    }
+}
+
+@media (min-width: 769px) {
+    .card-grid {
+        grid-template-columns: repeat(auto-fill, minmax(126px, 1fr));
+        gap: 15px;
+    }
+    
+    .card {
+        height: 176px;
+    }
+    
+    .card-badge {
+        font-size: 1.05rem;
+        width: 25px;
+        height: 25px;
+    }
+    
+    .card-quantity {
+        width: 37.5px;
+        height: 37.5px;
+        font-size: 1rem;
+    }
+}
