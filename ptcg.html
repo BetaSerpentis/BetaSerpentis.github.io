@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>宝可梦卡牌收藏馆</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/ptcg.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <div id="three-container"></div>
+    
+    <!-- 统计按钮 -->
+    <button class="stats-button" id="stats-button">统计</button>
+    
+    <!-- 导入导出按钮 -->
+    <div class="import-export-buttons">
+        <button class="import-button" id="import-button">导入</button>
+        <button class="export-button" id="export-button">导出</button>
+    </div>
+    
+    <div class="container">
+        <div class="search-header">
+            <!-- 页签区域 -->
+            <div class="tabs-container" id="tabs-container">
+                <div class="tab active" data-tab="宝可梦">宝可梦</div>
+                <div class="tab" data-tab="支援者">支援者</div>
+                <div class="tab" data-tab="物品">物品</div>
+                <div class="tab" data-tab="宝可梦道具">宝可梦道具</div>
+                <div class="tab" data-tab="竞技场">竞技场</div>
+                <div class="tab" data-tab="基本能量">基本能量</div>
+                <div class="tab" data-tab="特殊能量">特殊能量</div>
+            </div>
+            
+            <div class="search-container">
+                <input type="text" class="search-input" id="search-input" 
+                       placeholder="搜索卡牌名字、效果...">
+                <button class="search-button" id="search-button">搜索</button>
+            </div>
+            <div class="search-info" id="search-info">
+                已加载所有卡牌，请输入关键词搜索
+            </div>
+        </div>
+        
+        <!-- 功能切换区域 -->
+        <div class="feature-tabs" id="feature-tabs">
+            <button class="feature-tab active" data-feature="browser">卡牌浏览</button>
+            <button class="feature-tab" data-feature="deck">卡组编辑</button>
+            <button class="feature-tab" data-feature="battle">对战模拟</button>
+        </div>
+        
+        <!-- 内容区域 -->
+        <div id="feature-content">
+            <!-- 卡牌浏览内容 -->
+            <div class="feature-panel active" data-feature="browser">
+                <div class="loading-section" id="loading-section">
+                    <div class="loading-spinner"></div>
+                    <div id="loading-status">正在加载卡牌数据...</div>
+                </div>
+                
+                <div class="card-grid" id="card-grid"></div>
+                
+                <div class="no-results" id="no-results" style="display: none;">
+                    没有找到匹配的卡牌，请尝试其他关键词
+                </div>
+            </div>
+            
+            <!-- 卡组编辑内容 -->
+            <div class="feature-panel" data-feature="deck">
+                <div class="coming-soon">
+                    <h2>卡组编辑功能</h2>
+                    <p>正在开发中，敬请期待...</p>
+                </div>
+            </div>
+            
+            <!-- 对战模拟内容 -->
+            <div class="feature-panel" data-feature="battle">
+                <div class="coming-soon">
+                    <h2>对战模拟功能</h2>
+                    <p>正在开发中，敬请期待...</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 模态框 -->
+        <div class="modal" id="image-modal">
+            <button class="modal-close" id="modal-close">&times;</button>
+            <div class="modal-content" id="modal-content">
+                <div class="modal-img-container" id="modal-img-container">
+                    <img class="modal-img prev" id="modal-img-prev" src="" alt="宝可梦卡牌">
+                    <img class="modal-img current" id="modal-img-current" src="" alt="宝可梦卡牌">
+                    <img class="modal-img next" id="modal-img-next" src="" alt="宝可梦卡牌">
+                </div>
+                <div class="card-info">
+                    <h2 class="card-name" id="card-name">皮卡丘</h2>
+                </div>
+            </div>
+            <div class="nav-arrow arrow-left" id="prev-arrow">&#10094;</div>
+            <div class="nav-arrow arrow-right" id="next-arrow">&#10095;</div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>宝可梦卡牌查看器 &copy; 2023 | 基于Three.js构建</p>
+    </footer>
+    
+    <!-- 模块化JS文件 -->
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
