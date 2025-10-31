@@ -37,39 +37,95 @@ export class ModalView {
             if (e.target === e.currentTarget) this.close();
         });
         
+        // 修改左右箭头事件 - 改为触发快速拖动
         this.prevArrow.addEventListener('click', (e) => {
             e.stopPropagation();
-            this.navigateCard(-1);
+            this.triggerSwipe(-1);
         });
         
         this.nextArrow.addEventListener('click', (e) => {
             e.stopPropagation();
-            this.navigateCard(1);
+            this.triggerSwipe(1);
         });
         
         document.addEventListener('keydown', (e) => {
             if (!this.modal.classList.contains('active')) return;
             
             if (e.key === 'Escape') this.close();
-            else if (e.key === 'ArrowLeft') this.navigateCard(-1);
-            else if (e.key === 'ArrowRight') this.navigateCard(1);
+            else if (e.key === 'ArrowLeft') this.triggerSwipe(-1);
+            else if (e.key === 'ArrowRight') this.triggerSwipe(1);
         });
         
         this.initModalTouchEvents();
     }
 
-    // 初始化模态框触摸事件
-    initModalTouchEvents() {
-        const cards = this.cardManager.getDisplayCards();
+    // 新增：触发快速滑动切换
+    triggerSwipe(direction) {
+        if (this.modalIsAnimating) return;
         
+        const cards = this.cardManager.getDisplayCards();
+        if (cards.length === 0) return;
+        
+        this.modalIsAnimating = true;
+        
+        let newIndex = this.currentIndex + direction;
+        if (newIndex < 0) newIndex = cards.length - 1;
+        else if (newIndex >= cards.length) newIndex = 0;
+        
+        // 执行滑动动画
+        if (direction === 1) {
+            // 向右滑动切换
+            this.modalImgCurrent.style.transform = 'translateX(-100%)';
+            this.modalImgNext.style.transform = 'translateX(0)';
+        } else {
+            // 向左滑动切换
+            this.modalImgCurrent.style.transform = 'translateX(100%)';
+            this.modalImgPrev.style.transform = 'translateX(0)';
+        }
+        
+        // 动画完成后更新状态
+        setTimeout(() => {
+            this.currentIndex = newIndex;
+            const card = cards[this.currentIndex];
+            
+            // 重置所有图片位置
+            this.modalImgCurrent.style.transition = 'none';
+            this.modalImgNext.style.transition = 'none';
+            this.modalImgPrev.style.transition = 'none';
+            
+            // 更新当前显示的图片
+            this.modalImgCurrent.src = card.image;
+            this.modalImgCurrent.style.transform = 'translateX(0)';
+            
+            // 重置相邻图片位置
+            this.modalImgNext.style.transform = 'translateX(100%)';
+            this.modalImgPrev.style.transform = 'translateX(-100%)';
+            
+            // 恢复过渡效果
+            setTimeout(() => {
+                this.modalImgCurrent.style.transition = 'transform 0.3s ease';
+                this.modalImgNext.style.transition = 'transform 0.3s ease';
+                this.modalImgPrev.style.transition = 'transform 0.3s ease';
+            }, 50);
+            
+            // 更新卡牌名称
+            this.cardName.textContent = card.name;
+            
+            // 预加载新的相邻图片
+            this.preloadAdjacentImages();
+            
+            this.modalIsAnimating = false;
+        }, 300);
+    }
+
+    // 简化触摸事件处理
+    initModalTouchEvents() {
         this.modalImgContainer.addEventListener('touchstart', (e) => {
             if (!e.target.closest('.modal-img-container') || this.modalIsAnimating) return;
             
             this.modalTouchStartX = e.touches[0].clientX;
             this.modalIsDragging = true;
             this.modalImgCurrent.style.transition = 'none';
-            this.modalImgNext.style.transition = 'none';
-            this.modalImgPrev.style.transition = 'none';
         }, { passive: true });
         
         this.modalImgContainer.addEventListener('touchmove', (e) => {
@@ -79,23 +135,11 @@ export class ModalView {
             const deltaX = touchX - this.modalTouchStartX;
             this.modalCurrentTranslateX = deltaX;
             
-            const maxTranslate = window.innerWidth * 0.3;
+            // 限制最大拖动距离
+            const maxTranslate = window.innerWidth * 0.5;
             const boundedTranslate = Math.max(-maxTranslate, Math.min(maxTranslate, deltaX));
             
             this.modalImgCurrent.style.transform = `translateX(${boundedTranslate}px)`;
-            
-            // 预加载相邻图片（如果还没加载）
-            if (deltaX < -50) {
-                const nextIndex = (this.currentIndex + 1) % cards.length;
-                if (this.modalImgNext.src !== cards[nextIndex].image) {
-                    this.modalImgNext.src = cards[nextIndex].image;
-                }
-            } else if (deltaX > 50) {
-                const prevIndex = (this.currentIndex - 1 + cards.length) % cards.length;
-                if (this.modalImgPrev.src !== cards[prevIndex].image) {
-                    this.modalImgPrev.src = cards[prevIndex].image;
-                }
-            }
         }, { passive: true });
         
         this.modalImgContainer.addEventListener('touchend', (e) => {
@@ -103,65 +147,14 @@ export class ModalView {
             
             this.modalIsDragging = false;
             this.modalImgCurrent.style.transition = 'transform 0.3s ease';
-            this.modalImgNext.style.transition = 'transform 0.3s ease';
-            this.modalImgPrev.style.transition = 'transform 0.3s ease';
             
             const shouldChange = Math.abs(this.modalCurrentTranslateX) > this.modalDragThreshold;
             
             if (shouldChange) {
-                this.modalIsAnimating = true;
                 const direction = this.modalCurrentTranslateX > 0 ? -1 : 1;
-                
-                let newIndex = this.currentIndex + direction;
-                if (newIndex < 0) newIndex = cards.length - 1;
-                else if (newIndex >= cards.length) newIndex = 0;
-                
-                // 执行切换动画
-                if (direction === 1) {
-                    // 向右滑动，切换到下一张
-                    this.modalImgCurrent.style.transform = 'translateX(-100%)';
-                    this.modalImgNext.style.transform = 'translateX(0)';
-                } else {
-                    // 向左滑动，切换到上一张
-                    this.modalImgCurrent.style.transform = 'translateX(100%)';
-                    this.modalImgPrev.style.transform = 'translateX(0)';
-                }
-                
-                // 动画完成后更新状态
-                setTimeout(() => {
-                    this.currentIndex = newIndex;
-                    const card = cards[this.currentIndex];
-                    
-                    // 重置所有图片位置
-                    this.modalImgCurrent.style.transition = 'none';
-                    this.modalImgNext.style.transition = 'none';
-                    this.modalImgPrev.style.transition = 'none';
-                    
-                    // 更新当前显示的图片
-                    this.modalImgCurrent.src = card.image;
-                    this.modalImgCurrent.style.transform = 'translateX(0)';
-                    
-                    // 重置相邻图片位置
-                    this.modalImgNext.style.transform = 'translateX(100%)';
-                    this.modalImgPrev.style.transform = 'translateX(-100%)';
-                    
-                    // 恢复过渡效果
-                    setTimeout(() => {
-                        this.modalImgCurrent.style.transition = 'transform 0.3s ease';
-                        this.modalImgNext.style.transition = 'transform 0.3s ease';
-                        this.modalImgPrev.style.transition = 'transform 0.3s ease';
-                    }, 50);
-                    
-                    // 更新卡牌名称
-                    this.cardName.textContent = card.name;
-                    
-                    // 预加载新的相邻图片
-                    this.preloadAdjacentImages();
-                    
-                    this.modalIsAnimating = false;
-                }, 300);
+                this.triggerSwipe(direction);
             } else {
-                // 滑动距离不够，回到原位
+                // 回到原位
                 this.modalImgCurrent.style.transform = 'translateX(0)';
             }
             
