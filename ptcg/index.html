@@ -22,7 +22,16 @@
     
     <div class="container">
         <div class="search-header">
-            <!-- 页签区域 -->
+            <div class="search-container">
+                <input type="text" class="search-input" id="search-input" 
+                       placeholder="搜索卡牌名字、效果...">
+                <button class="search-button" id="search-button">搜索</button>
+            </div>
+        </div>
+        
+        <!-- 功能切换区域 - 现在只包含卡牌类型筛选 -->
+        <div class="feature-tabs" id="feature-tabs">
+            <!-- 卡牌类型页签 -->
             <div class="tabs-container" id="tabs-container">
                 <div class="tab active" data-tab="宝可梦">宝可梦</div>
                 <div class="tab" data-tab="支援者">支援者</div>
@@ -32,22 +41,6 @@
                 <div class="tab" data-tab="基本能量">基本能量</div>
                 <div class="tab" data-tab="特殊能量">特殊能量</div>
             </div>
-            
-            <div class="search-container">
-                <input type="text" class="search-input" id="search-input" 
-                       placeholder="搜索卡牌名字、效果...">
-                <button class="search-button" id="search-button">搜索</button>
-            </div>
-            <div class="search-info" id="search-info">
-                已加载所有卡牌，请输入关键词搜索
-            </div>
-        </div>
-        
-        <!-- 功能切换区域 -->
-        <div class="feature-tabs" id="feature-tabs">
-            <button class="feature-tab active" data-feature="browser">卡牌浏览</button>
-            <button class="feature-tab" data-feature="deck">卡组编辑</button>
-            <button class="feature-tab" data-feature="battle">对战模拟</button>
         </div>
         
         <!-- 内容区域 -->
@@ -106,6 +99,6 @@
     </footer>
     
     <!-- 模块化JS文件 -->
-    <script type="module" src="js/main.js"></script>
+        <script type="module" src="js/main.js"></script>
 </body>
 </html>
