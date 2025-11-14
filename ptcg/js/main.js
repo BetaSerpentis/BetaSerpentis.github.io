@@ -12,12 +12,16 @@ import { CardBrowser } from './features/CardBrowser.js';
 
 import { initThreeJS, showSaveSuccess } from './utils/helpers.js';
 
+import { DeckManager } from './core/DeckManager.js';
+import { DeckEditor } from './features/DeckEditor.js';
+
 class PTCGApp {
     constructor() {
         this.currentFeature = 'browser';
         this.init();
     }
     
+    // main.js - 确保 ImageLoader 正确初始化
     async init() {
         try {
             // 初始化Three.js背景
@@ -29,22 +33,48 @@ class PTCGApp {
             this.searchEngine = new SearchEngine(this.cardManager);
             this.imageLoader = new ImageLoader();
             
-            // 初始化UI组件
+            // 确保 ImageLoader 初始化完成
+            console.log('初始化 ImageLoader 懒加载');
+            this.imageLoader.initLazyLoading();
+            
+            // 初始化卡组管理器
+            this.deckManager = new DeckManager(this.storageService, this.cardManager);
+            this.deckManager.init();
+            
+            // 先初始化基础的UI组件
+            this.modalView = new ModalView(this.cardManager, this.imageLoader);
+            this.statsManager = new StatsManager(this.cardManager, this.onStatsChange.bind(this));
+            this.tabManager = new TabManager(this.cardManager, this.onTabChange.bind(this));
+            
+            // 创建 CardGrid
             this.cardGrid = new CardGrid(
                 this.cardManager, 
                 this.imageLoader,
-                null, // 将在CardBrowser中设置
-                null  // 将在CardBrowser中设置
+                null,
+                null
             );
-            
-            this.modalView = new ModalView(this.cardManager, this.imageLoader);
-            this.statsManager = new StatsManager(this.cardManager, this.onStatsChange.bind(this));
-            
-            this.tabManager = new TabManager(
-                this.cardManager, 
-                this.onTabChange.bind(this)
+
+            // 确保 CardGrid 可以访问 deckManager
+            this.cardGrid.deckManager = this.deckManager;
+
+            // 初始化 DeckEditor
+            this.deckEditor = new DeckEditor(
+                this.deckManager,
+                this.cardManager,
+                this.imageLoader,
+                this.cardGrid,
+                this.modalView
             );
+
+            // 设置 CardGrid 的回调
+            this.cardGrid.onCardClick = (index, button) => {
+                this.deckEditor.handleCardClick(index, button);
+            };
             
+            this.cardGrid.onQuantityChange = (index, change) => {
+                this.deckEditor.handleQuantityChange(index, change);
+            };
+
             // 初始化功能模块
             this.cardBrowser = new CardBrowser(
                 this.cardManager,
@@ -55,27 +85,29 @@ class PTCGApp {
                 this.searchEngine
             );
             
+            // 让 DeckEditor 可以访问 CardBrowser
+            this.deckEditor.cardBrowser = this.cardBrowser;
+            
             // 初始化组件
-            this.imageLoader.initLazyLoading();
-            this.cardGrid.init();
+            this.cardGrid.init(); // 确保 CardGrid 初始化
             this.tabManager.init();
             this.statsManager.init();
             this.cardBrowser.init();
             
             // 绑定全局事件
             this.bindGlobalEvents();
-            
-            // 绑定功能切换
             this.bindFeatureTabs();
             
             // 加载初始数据
             await this.cardBrowser.loadCardData('宝可梦');
             
+            console.log('✅ 应用初始化完成');
+            
         } catch (error) {
             console.error('应用初始化失败:', error);
         }
     }
-    
+
     // 绑定全局事件
     bindGlobalEvents() {
         // 导入按钮

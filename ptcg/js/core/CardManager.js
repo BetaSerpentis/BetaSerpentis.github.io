@@ -7,6 +7,7 @@ export class CardManager {
         this.cards = [];
         this.filteredCards = [];
         this.currentTab = '宝可梦';
+        this.isShowingAllCards = true; // 新增属性
     }
 
     // 加载指定类型的卡牌数据
@@ -98,6 +99,7 @@ export class CardManager {
     searchCards(searchText) {
         if (!searchText.trim()) {
             this.filteredCards = [...this.cards];
+            this.isShowingAllCards = true; // 空搜索时显示所有卡牌
             return this.filteredCards;
         }
 
@@ -129,9 +131,17 @@ export class CardManager {
             );
         });
 
+        this.isShowingAllCards = false; // 搜索时显示部分卡牌
         return this.filteredCards;
     }
 
+    // 新增方法：强制显示所有卡牌
+    showAllCards() {
+        this.filteredCards = [...this.cards];
+        this.isShowingAllCards = true;
+        return this.filteredCards;
+    }
+    
     // 获取当前显示的卡牌
     getDisplayCards() {
         return this.filteredCards.length > 0 ? this.filteredCards : this.cards;

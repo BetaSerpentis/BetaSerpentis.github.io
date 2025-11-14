@@ -32,13 +32,17 @@ export class ImageLoader {
     }
 
     // 带重试的图片加载
+    // ImageLoader.js - 在 loadImageWithRetry 方法中添加调试信息
     loadImageWithRetry(img, src, index, retries) {
         if (img.dataset.loading === 'true') return;
         img.dataset.loading = 'true';
         
+        // console.log('🖼️ 开始加载图片:', src, '索引:', index);
+        
         const tempImg = new Image();
         
         tempImg.onload = function() {
+            // console.log('✅ 图片加载成功:', src);
             img.src = src;
             img.classList.add('loaded');
             img.classList.remove('error');
@@ -48,6 +52,7 @@ export class ImageLoader {
         }.bind(this);
         
         tempImg.onerror = function() {
+            console.log('❌ 图片加载失败:', src, '剩余重试次数:', retries);
             if (retries > 0) {
                 setTimeout(() => {
                     this.loadImageWithRetry(img, src, index, retries - 1);
@@ -65,9 +70,13 @@ export class ImageLoader {
     }
 
     // 观察图片元素
+    // 在 observeImage 方法中添加调试
     observeImage(img) {
         if (this.observer) {
+            // console.log('👀 开始观察图片:', img.dataset.src);
             this.observer.observe(img);
+        } else {
+            console.error('❌ ImageLoader 观察器未初始化');
         }
     }
 

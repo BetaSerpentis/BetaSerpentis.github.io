@@ -135,4 +135,27 @@ export class StorageService {
             this.saveCardQuantities(cards, currentTab);
         }, 500);
     }
+
+    // 保存卡组数据
+    saveDecks(decks) {
+        try {
+            localStorage.setItem(STORAGE_KEYS.DECKS, JSON.stringify(decks));
+            console.log('卡组数据保存成功');
+            return true;
+        } catch (error) {
+            console.error('保存卡组数据失败:', error);
+            return false;
+        }
+    }
+
+    // 加载卡组数据
+    loadDecks() {
+        try {
+            const decksData = localStorage.getItem(STORAGE_KEYS.DECKS);
+            return decksData ? JSON.parse(decksData) : null;
+        } catch (error) {
+            console.error('加载卡组数据失败:', error);
+            return null;
+        }
+    }
 }

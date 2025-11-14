@@ -197,7 +197,25 @@ export class ModalView {
     }
 
     // 显示模态框
+    // ModalView.js 修改 show 方法
     show(index) {
+        console.log('🔄 ModalView.show 被调用', {
+            index: index,
+            time: new Date().toISOString()
+        });
+        
+        // 检查是否在编辑/添加模式
+        const isDeckMode = !!document.querySelector('.deck-tabs-container');
+        const isDeckAddMode = !!document.querySelector('.deck-complete-button');
+        const isDeckEditMode = !!document.querySelector('.deck-add-button');
+        
+        const shouldPreventModal = isDeckMode && (isDeckAddMode || isDeckEditMode);
+        
+        if (shouldPreventModal) {
+            console.log('🚫 ModalView: 在编辑/添加模式下阻止模态框');
+            return; // 直接返回，不执行任何操作
+        }
+        
         const cards = this.cardManager.getDisplayCards();
         if (cards.length === 0) return;
         

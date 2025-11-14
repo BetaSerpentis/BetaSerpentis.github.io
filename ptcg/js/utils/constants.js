@@ -1,3 +1,4 @@
+// constants.js
 // 卡牌类型配置
 export const CARD_TYPES = {
     '宝可梦': {
@@ -45,8 +46,9 @@ export const CONFIG = {
     debounceTime: 500
 };
 
-// 本地存储键名
+// 本地存储键名 - 保持原有键名兼容，只添加新的卡组键
 export const STORAGE_KEYS = {
-    CARD_QUANTITIES: 'pokemonCardQuantities',
-    LAST_SAVED: 'lastSaved'
+    CARD_QUANTITIES: 'pokemonCardQuantities',  // 保持原有键名
+    LAST_SAVED: 'lastSaved',                   // 保持原有键名  
+    DECKS: 'ptcg_decks'                        // 新增卡组存储键
 };
