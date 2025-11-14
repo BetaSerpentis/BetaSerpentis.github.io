@@ -42,15 +42,43 @@ export class CardBrowser {
         };
     }
 
-    // 处理卡牌点击
+    // CardBrowser.js - 修复 handleCardClick 方法
     handleCardClick(index, button) {
+        console.log('📱 CardBrowser: 卡牌点击事件');
+        console.log('索引:', index, '按钮:', button, '统计模式:', this.statsManager.isStatModeActive());
+        
+        // 统计模式处理 - 最高优先级
         if (this.statsManager.isStatModeActive()) {
-            if (button === 'left') {
-                this.handleQuantityChange(index, 1);
+            console.log('📊 CardBrowser: 统计模式处理');
+            
+            const cards = this.cardManager.getDisplayCards();
+            if (index < 0 || index >= cards.length) {
+                console.log('❌ 索引超出范围');
+                return;
             }
-        } else {
-            this.modalView.show(index);
+            
+            const card = cards[index];
+            console.log('📊 操作卡牌:', card.name, '当前数量:', card.quantity);
+            
+            if (button === 'left') {
+                // 左键：增加数量
+                console.log('➕ 增加数量');
+                const newQuantity = this.cardManager.updateCardQuantity(card.id, 1);
+                this.cardGrid.updateCardQuantityDisplay(card.id, newQuantity);
+                this.cardManager.debouncedSave();
+            } else if (button === 'right') {
+                // 右键：减少数量
+                console.log('➖ 减少数量');
+                const newQuantity = this.cardManager.updateCardQuantity(card.id, -1);
+                this.cardGrid.updateCardQuantityDisplay(card.id, newQuantity);
+                this.cardManager.debouncedSave();
+            }
+            return;
         }
+        
+        // 正常模式：打开模态框
+        console.log('🌐 正常模式 - 打开模态框');
+        this.modalView.show(index);
     }
 
     // 处理数量变化

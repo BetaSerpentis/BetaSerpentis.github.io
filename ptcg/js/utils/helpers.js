@@ -142,3 +142,47 @@ export function isElementInViewport(el) {
         rect.right <= windowWidth + rect.width
     );
 }
+
+// 导出卡组数据
+export function exportDeckData(decks) {
+    const dataStr = JSON.stringify(decks, null, 2);
+    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+    
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ptcg-decks-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    showSaveSuccess(`已导出 ${decks.length} 个卡组数据`);
+}
+
+// 导入卡组数据
+export function importDeckData(callback) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    
+    input.onchange = e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = event => {
+            try {
+                const importedData = JSON.parse(event.target.result);
+                callback(importedData);
+            } catch (error) {
+                console.error('导入卡组数据失败:', error);
+                showSaveError('导入失败：文件格式不正确');
+            }
+        };
+        
+        reader.readAsText(file);
+    };
+    
+    input.click();
+}
