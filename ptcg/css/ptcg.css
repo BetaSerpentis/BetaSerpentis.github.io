@@ -169,7 +169,7 @@
 .card-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
-    gap: 10px;
+    gap: 10px; /* 统一的水平和垂直间距 */
     margin-top: 20px;
 }
 
@@ -486,14 +486,14 @@
         border-radius: 18px;
     }
 
-    /* 移动端卡牌网格 - 每行4张 */
+    /* 移动端卡牌网格 - 每行4张，统一间距 */
     .card-grid {
-        grid-template-columns: repeat(5, 1fr); /* 固定4列 */
-        gap: 8px;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px; /* 保持统一的水平和垂直间距 */
     }
     
     .card {
-        height: 125px; /* 稍微增大高度 */
+        height: 110px; /* 稍微缩小卡图尺寸 */
     }
 }
 
@@ -558,14 +558,14 @@
         border-radius: 16px;
     }
 
-    /* 小屏手机优化 */
+    /* 手机端卡牌网格优化 */
     .card-grid {
         grid-template-columns: repeat(4, 1fr);
-        gap: 6px;
+        gap: 8px; /* 稍微减小间距 */
     }
     
     .card {
-        height: 120px;
+        height: 105px; /* 进一步缩小卡图尺寸 */
     }
 }
 
@@ -578,7 +578,7 @@
     .card {
         height: 176px;
     }
-    
+
     .card-badge {
         font-size: 1.05rem;
         width: 25px;
@@ -1313,35 +1313,37 @@
 @media (max-width: 768px) {
     .tabs-container {
         gap: 6px;
-        justify-content: space-between; /* 更好的空间分布 */
+        justify-content: space-between;
     }
     
     .tab {
-        padding: 10px 14px; /* 稍微增大触摸区域 */
-        font-size: 0.85rem;
-        flex: 1; /* 弹性布局 */
-        min-width: calc(25% - 12px); /* 每行4个，但我们要调整成2行 */
+        padding: 10px 12px; /* 调整内边距 */
+        font-size: 0.8rem; /* 缩小字号 */
+        flex: 1;
+        min-width: calc(25% - 12px);
         text-align: center;
         white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        overflow: visible; /* 改为可见，不隐藏溢出 */
+        text-overflow: clip; /* 改为裁剪而不是省略号 */
     }
 }
 
 @media (max-width: 480px) {
     .tabs-container {
         gap: 5px;
-        /* 2行布局：第一行4个，第二行3个 */
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         grid-template-rows: auto auto;
     }
     
     .tab {
-        padding: 8px 10px;
-        font-size: 0.8rem;
+        padding: 8px 6px; /* 减小内边距 */
+        font-size: 0.75rem; /* 进一步缩小字号 */
         min-width: auto;
         flex: none;
+        white-space: nowrap;
+        overflow: visible;
+        text-overflow: clip;
     }
     
     /* 确保第二行的3个页签居中显示 */
@@ -1357,6 +1359,12 @@
     .tab[data-tab="竞技场"] { grid-column: 1; grid-row: 2; }
     .tab[data-tab="基本能量"] { grid-column: 2; grid-row: 2; }
     .tab[data-tab="特殊能量"] { grid-column: 3; grid-row: 2; }
+    
+    /* 为字数较多的页签特别调整 */
+    .tab[data-tab="宝可梦道具"] {
+        font-size: 0.7rem; /* 4个字进一步缩小 */
+        padding: 8px 4px; /* 减小内边距 */
+    }
 }
 
 /* 超小屏优化 */
@@ -1366,54 +1374,37 @@
     }
     
     .tab {
-        padding: 6px 8px;
-        font-size: 0.75rem;
+        padding: 6px 4px;
+        font-size: 0.7rem; /* 超小屏使用更小字号 */
+    }
+    
+    .tab[data-tab="宝可梦道具"] {
+        font-size: 0.65rem; /* 4个字在超小屏进一步缩小 */
+    }
+
+    .card-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px; /* 超小屏减小间距 */
+    }
+    
+    .card {
+        height: 100px; /* 超小屏进一步缩小 */
     }
 }
 
-/* 卡组页签移动端优化 */
+/* 卡牌数量显示移动端优化 */
 @media (max-width: 480px) {
-    .deck-tabs-container {
-        max-height: 150px; /* 移动端减少最大高度 */
-        padding: 8px;
-        gap: 8px;
-    }
-    
-    .deck-tab {
-        min-width: 160px; /* 移动端稍微减小宽度 */
-        padding: 8px;
-    }
-    
-    .deck-cover {
-        width: 60px;
-        height: 84px;
-    }
-    
-    .deck-tab-add {
-        width: 60px;
-        height: 106px;
+    .card-quantity {
+        width: 25px;
+        height: 25px;
+        font-size: 0.7rem;
     }
 }
 
-/* 搜索容器响应式 */
-@media (max-width: 480px) {
-    .search-container {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .search-input {
-        width: 100%;
-        margin-bottom: 5px;
-    }
-    
-    .search-button {
-        width: 100%;
-    }
-    
-    /* 功能切换区域在移动端减少上下间距 */
-    .feature-tabs {
-        padding: 10px 15px;
-        margin-bottom: 15px;
+@media (max-width: 360px) {
+    .card-quantity {
+        width: 22px;
+        height: 22px;
+        font-size: 0.65rem;
     }
 }
