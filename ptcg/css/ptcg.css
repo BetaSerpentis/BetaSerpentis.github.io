@@ -81,11 +81,12 @@
     box-shadow: 0 0 15px rgba(255, 107, 0, 0.3);
 }
 
+/* 搜索按钮也统一圆角 */
 .search-button {
     padding: 12px 25px;
     background: #FFCC00;
     border: none;
-    border-radius: 25px;
+    border-radius: 20px; /* 统一圆角 */
     color: #333;
     font-weight: bold;
     font-size: 1rem;
@@ -101,22 +102,23 @@
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
-/* 统计按钮样式 */
+/* 确保统计按钮也在统一容器中 */
 .stats-button {
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
-    padding: 15px 30px;
+    /* 移除原有的固定定位 */
+    position: static;
+    /* 其他样式保持不变 */
+    padding: 12px 24px;
     background: #4CAF50;
     border: none;
-    border-radius: 25px;
+    border-radius: 20px;
     color: white;
     font-weight: bold;
-    font-size: 1.1rem;
+    font-size: 1rem;
     cursor: pointer;
     transition: all 0.3s ease;
-    z-index: 1000;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    min-width: 100px;
+    text-align: center;
 }
 
 .stats-button:hover {
@@ -128,28 +130,30 @@
     background: #FF6B00;
 }
 
-/* 导入导出按钮样式 */
+/* 导入导出按钮样式 - 也统一尺寸 */
 .import-export-buttons {
     position: fixed;
     bottom: 20px;
     right: 20px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px; /* 统一间距 */
     z-index: 1000;
 }
 
 .import-button, .export-button {
-    padding: 12px 20px;
+    padding: 12px 20px; /* 调整内边距与其他按钮协调 */
     background: #2196F3;
     border: none;
-    border-radius: 25px;
+    border-radius: 20px; /* 统一圆角 */
     color: white;
     font-weight: bold;
     font-size: 0.9rem;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    min-width: 100px; /* 统一最小宽度 */
+    text-align: center;
 }
 
 .import-button:hover, .export-button:hover {
@@ -420,171 +424,128 @@
     padding: 20px;
 }
 
-/* 响应式设计 */
+/* 响应式设计 - 所有端统一调整 */
 @media (max-width: 768px) {
-    .modal-content {
-        max-width: 95%;
-    }
-
-    .search-header {
-        padding: 12px 15px;
-        margin-bottom: 15px;
-    }
-    
-    .feature-tabs {
-        padding: 12px 15px;
-        margin-bottom: 15px;
-    }
-    
-    .tabs-container {
+    /* 平板端统一调整 */
+    .deck-init-button-container {
+        bottom: 70px;
+        left: 15px;
         gap: 6px;
     }
     
-    .tab {
-        padding: 6px 12px;
-        font-size: 0.8rem;
-    }
-    
-    .search-container {
-        gap: 10px;
-    }
-    
-    .search-input {
-        padding: 10px 15px;
-        font-size: 0.9rem;
-    }
-    
-    .search-button {
+    .deck-button {
         padding: 10px 20px;
-        font-size: 0.9rem;
+        font-size: 0.95rem;
+        min-width: 90px;
+        border-radius: 18px;
     }
     
     .stats-button {
         bottom: 15px;
         left: 15px;
-        padding: 12px 25px;
-        font-size: 1rem;
+        padding: 10px 20px;
+        font-size: 0.95rem;
+        min-width: 90px;
+        border-radius: 18px;
+    }
+    
+    .deck-button-container {
+        bottom: 15px;
+        left: 15px;
+        gap: 6px;
+    }
+    
+    .deck-search-button,
+    .deck-edit-button,
+    .deck-add-button,
+    .deck-save-button,
+    .deck-complete-button,
+    .deck-save-in-add-button {
+        padding: 10px 20px;
+        font-size: 0.95rem;
+        min-width: 90px;
+        border-radius: 18px;
     }
     
     .import-export-buttons {
         bottom: 15px;
         right: 15px;
+        gap: 6px;
     }
     
     .import-button, .export-button {
-        padding: 10px 18px;
-        font-size: 0.85rem;
+        padding: 10px 20px;
+        font-size: 0.95rem;
+        min-width: 90px;
+        border-radius: 18px;
     }
-    
-    .card-grid {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 8px;
-    }
-        
-    .card {
-        height: 119px;
-    }
-    
-    .card-badge {
-        font-size: 0.7rem;
-        width: 18px;
-        height: 18px;
-    }
-    
-    .card-quantity {
-        width: 25px;
-        height: 25px;
-        font-size: 0.7rem;
-    }
-    
-    .nav-arrow {
-        font-size: 2rem;
-        width: 40px;
-        height: 40px;
-    }
-    
-    .arrow-left {
-        left: 10px;
-    }
-    
-    .arrow-right {
-        right: 10px;
-    }
-    
-    .modal-img-container {
-        width: 280px;
-        height: 390px;
-    }
-    
-    .modal-img {
-        width: 280px;
-        height: 390px;
-    }
-    
-    .card-name {
-        font-size: 1.5rem;
+
+    .search-button {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+        border-radius: 18px;
     }
 }
 
 @media (max-width: 480px) {
-    .search-container {
-        gap: 8px;
+    /* 手机端统一调整 */
+    .deck-init-button-container {
+        bottom: 65px;
+        left: 10px;
+        gap: 5px;
     }
     
-    .search-input {
-        padding: 8px 12px;
-        font-size: 0.85rem;
-    }
-    
-    .search-button {
+    .deck-button {
         padding: 8px 16px;
-        font-size: 0.85rem;
+        font-size: 0.9rem;
+        min-width: 80px;
+        border-radius: 16px;
     }
     
     .stats-button {
         bottom: 10px;
         left: 10px;
-        padding: 10px 20px;
+        padding: 8px 16px;
         font-size: 0.9rem;
+        min-width: 80px;
+        border-radius: 16px;
+    }
+    
+    .deck-button-container {
+        bottom: 10px;
+        left: 10px;
+        gap: 5px;
+    }
+    
+    .deck-search-button,
+    .deck-edit-button,
+    .deck-add-button,
+    .deck-save-button,
+    .deck-complete-button,
+    .deck-save-in-add-button {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+        min-width: 80px;
+        border-radius: 16px;
     }
     
     .import-export-buttons {
         bottom: 10px;
         right: 10px;
+        gap: 5px;
     }
     
     .import-button, .export-button {
         padding: 8px 16px;
-        font-size: 0.8rem;
+        font-size: 0.9rem;
+        min-width: 80px;
+        border-radius: 16px;
     }
-    
-    .card-grid {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 6px;
-    }
-    
-    .card {
-        height: 112px;
-    }
-
-    .card-badge {
-        font-size: 0.65rem;
-    }
-    
-    .card-quantity {
-        width: 22px;
-        height: 22px;
-        font-size: 0.65rem;
-    }
-    
-    .modal-img-container {
-        width: 250px;
-        height: 350px;
-    }
-    
-    .modal-img {
-        width: 250px;
-        height: 350px;
+        
+    .search-button {
+        padding: 8px 16px;
+        font-size: 0.85rem;
+        border-radius: 16px;
     }
 }
 
@@ -611,29 +572,24 @@
     }
 }
 
-/* 卡组按钮容器 */
+/* 移除独立的卡组按钮容器 */
 .deck-init-button-container {
-    position: fixed;
-    bottom: 90px;
-    left: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    z-index: 1000;
+    display: none; /* 隐藏独立的容器 */
 }
 
-/* 卡组按钮 */
-.deck-button {
-    padding: 15px 30px;
-    background: #9C27B0;
+/* 统一的按钮基础样式 */
+.deck-button, .stats-button {
+    padding: 12px 24px;
     border: none;
-    border-radius: 25px;
+    border-radius: 20px;
     color: white;
     font-weight: bold;
-    font-size: 1.1rem;
+    font-size: 1rem;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    min-width: 100px;
+    text-align: center;
 }
 
 .deck-button:hover {
@@ -642,19 +598,14 @@
     background: #8E24AA;
 }
 
-/* 卡组页签容器 */
+/* 确保卡组页签容器布局正确 */
 .deck-tabs-container {
-    background: rgba(255, 255, 255, 0.95);
-    padding: 15px 20px;
-    border-radius: 15px;
-    margin-bottom: 20px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(10px);
     display: flex;
-    gap: 15px;
-    overflow-x: auto;
-    scrollbar-width: thin;
-    scrollbar-color: #ccc transparent;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px;
+    max-height: 200px;
+    overflow-y: auto;
     align-items: flex-start;
 }
 
@@ -672,19 +623,21 @@
 }
 
 /* 卡组页签 */
+/* 卡组页签样式（确保一致性） */
 .deck-tab {
-    min-width: 140px;
-    height: 190px; /* 5:7 比例，140x196 */
-    background: white;
-    border: 2px solid #ddd;
-    border-radius: 12px;
-    padding: 10px;
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin: 5px 0;
     cursor: pointer;
-    flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
+    background: white;
+    width: auto;
+    height: auto;
+    min-width: 200px;
+    box-sizing: border-box;
 }
 
 .deck-tab:hover {
@@ -693,13 +646,14 @@
 }
 
 .deck-tab.active {
-    border-color: #FFCC00;
-    box-shadow: 0 4px 12px rgba(255, 204, 0, 0.3);
+    border-color: #FF9800;
+    background: #fff8e1;
 }
 
+/* 修复卡组页签在编辑模式下的样式 */
 .deck-tab.disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+    opacity: 0.5;
+    pointer-events: none;
 }
 
 .deck-tab.disabled:hover {
@@ -707,69 +661,99 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* 卡组封面 - 5:7 比例 */
+/* 卡组封面样式优化 */
+/* 卡组封面样式（确保一致性） */
 .deck-cover {
-    flex: 1;
-    background: #f8f8f8;
+    width: 80px;
+    height: 112px;
+    border: 1px solid #ddd;
     border-radius: 8px;
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
-    font-size: 0.7rem;
-    color: #999;
-    min-height: 120px;
-    position: relative;
+    background: #f5f5f5;
+    flex-shrink: 0;
+    margin-right: 10px;
 }
 
+/* 封面图片样式 - 确保完整显示 */
 .deck-cover img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain; /* 关键：保持完整比例，不裁剪 */
+    object-position: center;
+    border-radius: 7px;
 }
 
+/* 无封面时的样式 */
 .deck-cover.no-cover {
-    background: linear-gradient(135deg, #f5f5f5, #e0e0e0);
+    font-size: 0.7rem;
+    color: #999;
+    text-align: center;
+    padding: 5px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.8rem;
-    color: #999;
+    word-break: break-all;
 }
 
-/* 编辑模式下的封面 */
 .deck-tab.active .deck-cover {
-    cursor: pointer;
-    border: 2px dashed #FFCC00;
+    border: 2px solid #FF9800;
 }
 
 .deck-tab.active .deck-cover:hover {
     background: #fff8e1;
 }
 
-/* 卡组信息 */
+/* 编辑模式下当前卡组封面可点击样式 */
+.deck-tab.active .deck-cover.editable {
+    border: 2px dashed #FF9800 !important;
+    cursor: pointer;
+}
+
+.deck-tab.active .deck-cover.editable:hover {
+    border-color: #FF5722 !important;
+    background: rgba(255, 152, 0, 0.1);
+}
+
+/* 卡组信息样式（确保一致性） */
 .deck-info {
-    margin-top: 8px;
-    text-align: center;
+    flex: 1;
+    min-width: 0;
 }
 
 .deck-name {
-    font-size: 0.9rem;
     font-weight: bold;
+    margin-bottom: 5px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    margin-bottom: 2px;
 }
 
+/* 可点击的卡组名称样式 */
+.deck-name.editable {
+    cursor: pointer;
+    border-bottom: 1px dashed #FF9800;
+    padding: 2px;
+    transition: all 0.2s ease;
+}
+
+.deck-name.editable:hover {
+    background: rgba(255, 152, 0, 0.1);
+    border-bottom-color: #FF5722;
+}
+
+/* 名称输入框样式 */
 .deck-name-input {
     width: 100%;
-    border: 1px solid #FFCC00 !important;
-    border-radius: 4px;
-    padding: 2px 4px;
+    border: 1px solid #FF9800 !important;
+    border-radius: 3px;
+    padding: 2px 5px;
     font-size: 0.9rem;
-    text-align: center;
-    background: #fff8e1;
+    background: white;
+    color: #333;
+    outline: none;
 }
 
 .deck-count {
@@ -777,57 +761,101 @@
     color: #666;
 }
 
-/* 新建卡组按钮 */
+/* 新建卡组按钮样式 - 只保留加号部分 */
 .deck-tab-add {
-    min-width: 80px;
-    height: 190px;
-    background: #f0f0f0;
-    border: 2px dashed #ccc;
-    border-radius: 12px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 2.5rem;
-    color: #666;
+    justify-content: center; /* 居中显示加号 */
+    padding: 10px; /* 保持与卡组页签相同的内边距 */
+    border: 1px solid #ddd; /* 与卡组页签相同的边框 */
+    border-radius: 8px; /* 与卡组页签相同的圆角 */
+    margin: 5px 0; /* 与卡组页签相同的外边距 */
     cursor: pointer;
+    transition: all 0.2s ease;
+    background: white; /* 与卡组页签相同的背景 */
+    width: 80px; /* 固定宽度，只包裹加号 */
+    height: 134px; /* 固定高度，与封面一致 */
     flex-shrink: 0;
-    transition: all 0.3s ease;
+    text-decoration: none;
+    box-sizing: border-box; /* 确保边框和内边距包含在尺寸内 */
 }
 
 .deck-tab-add:hover {
-    background: #e0e0e0;
-    border-color: #999;
-    color: #333;
+    border-color: #FF9800; /* 悬停时与卡组页签相同的边框颜色 */
+    background: #fff8e1; /* 悬停时与卡组页签相同的背景 */
+    transform: translateY(-2px); /* 与卡组页签相同的悬停效果 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* 与卡组页签相同的阴影 */
 }
 
-/* 卡组按钮容器 */
+/* 直接在按钮上显示加号 */
+.deck-tab-add::before {
+    content: '+';
+    font-size: 3rem;
+    color: #999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.deck-tab-add:hover::before {
+    color: #FF9800; /* 悬停时改变加号颜色 */
+}
+
+/* 移除内部的加号容器，直接在按钮上显示加号 */
+.deck-tab-add .add-icon {
+    display: none; /* 隐藏原来的加号容器 */
+}
+
+.deck-tab-add:hover .add-icon {
+    border-color: #FF9800; /* 悬停时与封面边框一致 */
+    color: #FF9800; /* 悬停时与封面颜色一致 */
+    background: rgba(255, 152, 0, 0.1); /* 悬停时轻微背景色 */
+}
+
+/* 完全移除信息区域 */
+.deck-tab-add .add-info {
+    display: none;
+}
+
+/* 移除新增按钮内部的文本 */
+.deck-tab-add .add-text {
+    display: none;
+}
+
+.deck-tab-add:hover .add-text {
+    color: #FF9800;
+}
+
+/* 统一的按钮容器 */
 .deck-button-container {
     position: fixed;
     bottom: 20px;
     left: 20px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
     z-index: 1000;
 }
 
-/* 卡组功能按钮通用样式 */
+/* 卡组功能按钮通用样式 - 完全统一尺寸 */
 .deck-search-button,
 .deck-edit-button,
 .deck-add-button,
 .deck-save-button,
 .deck-complete-button,
 .deck-save-in-add-button {
-    padding: 15px 30px;
+    padding: 12px 24px; /* 完全统一内边距 */
     border: none;
-    border-radius: 25px;
+    border-radius: 20px; /* 完全统一圆角 */
     color: white;
     font-weight: bold;
-    font-size: 1.1rem;
+    font-size: 1rem; /* 完全统一字体大小 */
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    min-width: 120px;
+    min-width: 100px; /* 完全统一最小宽度 */
     text-align: center;
 }
 
@@ -896,45 +924,65 @@
     font-size: 1.2rem;
     text-align: center;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-    animation: fadeIn 0.3s ease;
+    animation: pulse-hint 2s infinite;
 }
 
-/* 响应式设计 */
+@keyframes pulse-hint {
+    0% { box-shadow: 0 4px 20px rgba(255, 152, 0, 0.5); }
+    50% { box-shadow: 0 4px 30px rgba(255, 152, 0, 0.8); }
+    100% { box-shadow: 0 4px 20px rgba(255, 152, 0, 0.5); }
+}
+
+/* 封面选择模式下的卡牌悬停效果 */
+.cover-selection-mode .card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(255, 152, 0, 0.8);
+    cursor: pointer;
+}
+
+/* 可编辑的封面样式 */
+.deck-cover.editable {
+    border: 2px dashed #FF9800 !important;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.deck-cover.editable:hover {
+    border-color: #FF5722 !important;
+    background: rgba(255, 152, 0, 0.1);
+    transform: scale(1.02);
+}
+
+/* 响应式设计 - 移动端优化 */
 @media (max-width: 768px) {
+    /* 卡牌查看界面的按钮 */
     .deck-init-button-container {
-        bottom: 15px;
+        bottom: 70px; /* 在移动端更靠近统计按钮 */
         left: 15px;
+        gap: 6px; /* 移动端更小的间距 */
     }
     
     .deck-button {
-        padding: 12px 25px;
-        font-size: 1rem;
+        padding: 10px 20px;
+        font-size: 0.95rem;
+        min-width: 90px;
+        border-radius: 18px;
     }
     
-    .deck-tabs-container {
-        padding: 12px 15px;
-        margin-bottom: 15px;
-        gap: 10px;
+    .stats-button {
+        bottom: 15px;
+        left: 15px;
+        padding: 10px 20px;
+        font-size: 0.95rem;
+        min-width: 90px;
+        border-radius: 18px;
     }
     
-    .deck-tab {
-        min-width: 120px;
-        height: 168px; /* 120x168 保持5:7 */
-    }
-    
-    .deck-tab-add {
-        min-width: 70px;
-        height: 168px;
-        font-size: 2rem;
-    }
-    
-    .deck-cover {
-        min-height: 100px;
-    }
-    
+    /* 卡组界面的按钮 */
     .deck-button-container {
         bottom: 15px;
         left: 15px;
+        gap: 6px; /* 移动端更小的间距 */
     }
     
     .deck-search-button,
@@ -943,74 +991,26 @@
     .deck-save-button,
     .deck-complete-button,
     .deck-save-in-add-button {
-        padding: 12px 25px;
-        font-size: 1rem;
-        min-width: 100px;
-    }
-    
-    .deck-name {
-        font-size: 0.8rem;
-    }
-    
-    .deck-count {
-        font-size: 0.7rem;
+        padding: 10px 20px;
+        font-size: 0.95rem;
+        min-width: 90px;
+        border-radius: 18px;
     }
 }
 
-@media (max-width: 480px) {
+/* 大屏幕设备（桌面端） */
+@media (min-width: 1025px) {
     .deck-init-button-container {
-        bottom: 10px;
-        left: 10px;
-    }
-    
-    .deck-button {
-        padding: 10px 20px;
-        font-size: 0.9rem;
-    }
-    
-    .deck-tab {
-        min-width: 100px;
-        height: 140px; /* 100x140 保持5:7 */
-    }
-    
-    .deck-tab-add {
-        min-width: 60px;
-        height: 140px;
-        font-size: 1.8rem;
-    }
-    
-    .deck-cover {
-        min-height: 80px;
-        font-size: 0.6rem;
+        bottom: 80px; /* 桌面端也使用调整后的位置 */
+        gap: 8px; /* 桌面端也使用紧凑间距 */
     }
     
     .deck-button-container {
-        bottom: 10px;
-        left: 10px;
+        gap: 8px; /* 桌面端也使用紧凑间距 */
     }
     
-    .deck-search-button,
-    .deck-edit-button,
-    .deck-add-button,
-    .deck-save-button,
-    .deck-complete-button,
-    .deck-save-in-add-button {
-        padding: 10px 20px;
-        font-size: 0.9rem;
-        min-width: 90px;
-    }
-    
-    .deck-name {
-        font-size: 0.7rem;
-    }
-    
-    .deck-count {
-        font-size: 0.6rem;
-    }
-    
-    .cover-selection-hint {
-        font-size: 1rem;
-        padding: 15px 20px;
+    .import-export-buttons {
+        gap: 8px; /* 桌面端也使用紧凑间距 */
     }
 }
 
@@ -1039,4 +1039,252 @@
     20% { opacity: 1; }
     80% { opacity: 1; }
     100% { opacity: 0; }
+}
+
+/* === 统一的按钮样式 === */
+
+/* 统一的全局按钮容器 - 左下角 */
+.global-button-container {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 1000;
+}
+
+/* 统一的按钮基础样式 */
+.global-button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 20px;
+    color: white;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    min-width: 100px;
+    text-align: center;
+}
+
+.global-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* 具体按钮颜色 */
+.deck-button { background: #9C27B0; }
+.stats-button { background: #4CAF50; }
+.stats-button.active { background: #FF6B00; }
+.deck-search-button { background: #2196F3; }
+.deck-edit-button { background: #FF9800; }
+.deck-add-button { background: #4CAF50; }
+.deck-save-button { background: #FF6B00; }
+.deck-complete-button { background: #4CAF50; }
+.import-button { background: #2196F3; }
+.export-button { background: #FF9800; }
+
+/* 导入导出按钮容器 - 右下角 */
+.import-export-buttons {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 1000;
+}
+
+.import-button, .export-button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 20px;
+    color: white;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    min-width: 100px;
+    text-align: center;
+}
+
+.import-button { background: #2196F3; }
+.export-button { background: #FF9800; }
+
+.import-button:hover, .export-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* 隐藏所有旧的按钮容器 */
+.deck-init-button-container,
+.deck-button-container {
+    display: none !important;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .global-button-container,
+    .import-export-buttons {
+        bottom: 15px;
+        gap: 6px;
+    }
+    
+    .global-button-container {
+        left: 15px;
+    }
+    
+    .import-export-buttons {
+        right: 15px;
+    }
+    
+    .global-button,
+    .import-button, 
+    .export-button {
+        padding: 10px 20px;
+        font-size: 0.95rem;
+        min-width: 90px;
+        border-radius: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .global-button-container,
+    .import-export-buttons {
+        bottom: 10px;
+        gap: 5px;
+    }
+    
+    .global-button-container {
+        left: 10px;
+    }
+    
+    .import-export-buttons {
+        right: 10px;
+    }
+    
+    .global-button,
+    .import-button, 
+    .export-button {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+        min-width: 80px;
+        border-radius: 16px;
+    }
+}
+
+/* 卡组删除按钮样式 */
+.deck-delete-button {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    background: #ff4444;
+    border: 2px solid white;
+    border-radius: 50%;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.deck-delete-button:hover {
+    background: #ff0000;
+    transform: scale(1.1);
+}
+
+/* 编辑模式下显示删除按钮 */
+.deck-edit-mode .deck-tab.active .deck-delete-button {
+    display: flex;
+}
+
+/* 确认删除模态框 */
+.delete-confirm-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.delete-confirm-modal.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.delete-confirm-content {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.delete-confirm-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.delete-confirm-message {
+    font-size: 1.1rem;
+    margin-bottom: 25px;
+    color: #666;
+    line-height: 1.5;
+}
+
+.delete-confirm-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.delete-confirm-button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 100px;
+}
+
+.delete-confirm-cancel {
+    background: #6c757d;
+    color: white;
+}
+
+.delete-confirm-cancel:hover {
+    background: #5a6268;
+}
+
+.delete-confirm-delete {
+    background: #dc3545;
+    color: white;
+}
+
+.delete-confirm-delete:hover {
+    background: #c82333;
 }
