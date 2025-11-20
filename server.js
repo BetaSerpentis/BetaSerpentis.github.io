@@ -24,7 +24,7 @@ if (!fs.existsSync(dataDir)) {
 // 保存JSON数据的API
 app.post('/api/save-data', (req, res) => {
     try {
-        console.log('接收到保存请求');
+        // console.log('接收到保存请求');
         
         if (!req.body.cardData) {
             return res.status(400).json({ success: false, error: '没有接收到数据' });
@@ -33,12 +33,12 @@ app.post('/api/save-data', (req, res) => {
         const cardData = req.body.cardData;
         const filePath = path.join(__dirname, 'data', 'card-data.json');
         
-        console.log('保存数据到JSON文件...');
+        // console.log('保存数据到JSON文件...');
         
         // 直接保存为JSON
         fs.writeFileSync(filePath, JSON.stringify(cardData, null, 2), 'utf8');
         
-        console.log('JSON文件保存成功');
+        // console.log('JSON文件保存成功');
         res.json({ success: true, message: '数据保存成功' });
         
     } catch (error) {
@@ -52,17 +52,17 @@ app.get('/api/get-data', (req, res) => {
     try {
         const filePath = path.join(__dirname, 'data', 'card-data.json');
         
-        console.log('读取JSON文件:', filePath);
+        // console.log('读取JSON文件:', filePath);
         
         if (!fs.existsSync(filePath)) {
-            console.log('JSON文件不存在，返回空数据');
+            // console.log('JSON文件不存在，返回空数据');
             return res.json([]);
         }
 
         const fileContent = fs.readFileSync(filePath, 'utf8');
         const cardData = JSON.parse(fileContent);
         
-        console.log('成功读取JSON数据，条数:', cardData.length);
+        // console.log('成功读取JSON数据，条数:', cardData.length);
         res.json(cardData);
         
     } catch (error) {
@@ -82,5 +82,5 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`服务器运行在 http://localhost:${PORT}`);
+    // console.log(`服务器运行在 http://localhost:${PORT}`);
 });

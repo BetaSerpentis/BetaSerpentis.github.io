@@ -29,7 +29,7 @@ export class CardGrid {
 
     // CardGrid.js - 修复 init 方法
     init() {
-        console.log('🔄 CardGrid 初始化懒加载');
+        // console.log('🔄 CardGrid 初始化懒加载');
         this.imageLoader.setOnLoadMore(() => {
             this.loadNextBatch();
         });
@@ -111,6 +111,8 @@ export class CardGrid {
 
     // CardGrid.js - 修复 createCardElement 方法，添加图片观察
     createCardElement(card, index) {
+        // console.log(`🖼️ 创建卡牌元素: ${card.name}, 图片路径: ${card.image}, ID: ${card.id}`);
+        
         const cardElement = document.createElement('div');
         cardElement.className = 'card';
         cardElement.dataset.index = index;
@@ -122,6 +124,15 @@ export class CardGrid {
         img.dataset.index = index;
         img.alt = card.name;
         img.dataset.loading = 'false';
+        
+        // 添加图片加载事件监听用于调试
+        img.onload = () => {
+            // console.log(`✅ 卡牌图片加载成功: ${card.name}, 路径: ${card.image}`);
+        };
+        
+        img.onerror = () => {
+            // console.log(`❌ 卡牌图片加载失败: ${card.name}, 路径: ${card.image}, ID: ${card.id}`);
+        };
         
         const svgPlaceholder = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="252" height="352" viewBox="0 0 252 352"><rect width="252" height="352" fill="%23f0f0f0"/><text x="126" y="176" font-family="Arial" font-size="14" text-anchor="middle" fill="%23666">加载中...</text></svg>`;
         img.src = svgPlaceholder;
@@ -183,7 +194,7 @@ export class CardGrid {
     // 绑定卡牌事件
     // CardGrid.js - 简化 bindCardEvents 方法
     bindCardEvents(cardElement, index) {
-        // console.log('🎮 绑定卡牌事件 - 索引:', index);
+        // // console.log('🎮 绑定卡牌事件 - 索引:', index);
         
         let clickProcessed = false;
         
@@ -191,11 +202,11 @@ export class CardGrid {
             if (clickProcessed) return;
             clickProcessed = true;
             
-            console.log('🖱️ 卡牌点击 - 索引:', index, '按钮:', e.type);
+            // console.log('🖱️ 卡牌点击 - 索引:', index, '按钮:', e.type);
             
             if (this.onCardClick) {
                 const buttonType = e.type === 'contextmenu' ? 'right' : 'left';
-                console.log('📞 调用 onCardClick, 按钮:', buttonType);
+                // console.log('📞 调用 onCardClick, 按钮:', buttonType);
                 this.onCardClick(index, buttonType);
             }
             
@@ -250,27 +261,27 @@ export class CardGrid {
             if (clickProcessed) return;
             clickProcessed = true;
             
-            console.log('📊 统计模式点击 - 索引:', index, '类型:', e.type);
+            // console.log('📊 统计模式点击 - 索引:', index, '类型:', e.type);
             
             const cards = this.cardManager.getDisplayCards();
             if (index < 0 || index >= cards.length) {
-                console.log('❌ 索引超出范围');
+                // console.log('❌ 索引超出范围');
                 return;
             }
             
             const card = cards[index];
-            console.log('📊 操作卡牌:', card.name, '当前数量:', card.quantity);
+            // console.log('📊 操作卡牌:', card.name, '当前数量:', card.quantity);
             
             if (e.type === 'click' || e.button === 0) {
                 // 左键：增加数量
-                console.log('➕ 统计模式增加数量');
+                // console.log('➕ 统计模式增加数量');
                 const newQuantity = this.cardManager.updateCardQuantity(card.id, 1);
                 this.updateCardQuantityDisplay(card.id, newQuantity);
                 this.cardManager.debouncedSave();
                 this.showStatsOperationFeedback(card.name, 1);
             } else if (e.type === 'contextmenu' || e.button === 2) {
                 // 右键：减少数量
-                console.log('➖ 统计模式减少数量');
+                // console.log('➖ 统计模式减少数量');
                 const newQuantity = this.cardManager.updateCardQuantity(card.id, -1);
                 this.updateCardQuantityDisplay(card.id, newQuantity);
                 this.cardManager.debouncedSave();
@@ -320,20 +331,20 @@ export class CardGrid {
 
     // 添加紧急处理方法
     emergencyDeckEditHandler(index, change) {
-        console.log('🆘 紧急处理卡组编辑 - 索引:', index, '变化:', change);
+        // console.log('🆘 紧急处理卡组编辑 - 索引:', index, '变化:', change);
         
         const cards = this.cardManager.getDisplayCards();
         if (index < 0 || index >= cards.length) {
-            console.log('❌ 索引超出范围');
+            // console.log('❌ 索引超出范围');
             return;
         }
         
         const card = cards[index];
-        console.log('🃏 操作卡牌:', card.name, 'ID:', card.id);
+        // console.log('🃏 操作卡牌:', card.name, 'ID:', card.id);
         
         if (this.deckManager) {
             const result = this.deckManager.updateCardQuantity(card.id, change);
-            console.log('✅ 紧急处理结果:', result);
+            // console.log('✅ 紧急处理结果:', result);
             
             // 更新显示
             if (result) {
@@ -424,7 +435,7 @@ export class CardGrid {
 
     // CardGrid.js - 优化 updateCardQuantityDisplay 方法
     updateCardQuantityDisplay(cardId, quantity) {
-        console.log('🔄 更新卡牌数量显示:', cardId, '数量:', quantity);
+        // console.log('🔄 更新卡牌数量显示:', cardId, '数量:', quantity);
         
         const cardElements = document.querySelectorAll('.card');
         
@@ -456,10 +467,10 @@ export class CardGrid {
                         cardElement.appendChild(quantityElement);
                     }
                     quantityElement.textContent = quantity;
-                    console.log('✅ 设置数量显示:', quantity);
+                    // console.log('✅ 设置数量显示:', quantity);
                 } else if (quantityElement) {
                     quantityElement.remove();
-                    console.log('❌ 移除数量显示');
+                    // console.log('❌ 移除数量显示');
                 }
             }
         });
