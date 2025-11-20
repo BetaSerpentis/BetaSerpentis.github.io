@@ -485,6 +485,16 @@
         font-size: 0.9rem;
         border-radius: 18px;
     }
+
+    /* 移动端卡牌网格 - 每行4张 */
+    .card-grid {
+        grid-template-columns: repeat(5, 1fr); /* 固定4列 */
+        gap: 8px;
+    }
+    
+    .card {
+        height: 125px; /* 稍微增大高度 */
+    }
 }
 
 @media (max-width: 480px) {
@@ -546,6 +556,16 @@
         padding: 8px 16px;
         font-size: 0.85rem;
         border-radius: 16px;
+    }
+
+    /* 小屏手机优化 */
+    .card-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+    }
+    
+    .card {
+        height: 120px;
     }
 }
 
@@ -1287,4 +1307,113 @@
 
 .delete-confirm-delete:hover {
     background: #c82333;
+}
+
+/* 响应式页签布局 */
+@media (max-width: 768px) {
+    .tabs-container {
+        gap: 6px;
+        justify-content: space-between; /* 更好的空间分布 */
+    }
+    
+    .tab {
+        padding: 10px 14px; /* 稍微增大触摸区域 */
+        font-size: 0.85rem;
+        flex: 1; /* 弹性布局 */
+        min-width: calc(25% - 12px); /* 每行4个，但我们要调整成2行 */
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+@media (max-width: 480px) {
+    .tabs-container {
+        gap: 5px;
+        /* 2行布局：第一行4个，第二行3个 */
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: auto auto;
+    }
+    
+    .tab {
+        padding: 8px 10px;
+        font-size: 0.8rem;
+        min-width: auto;
+        flex: none;
+    }
+    
+    /* 确保第二行的3个页签居中显示 */
+    .tab:nth-child(n+5) {
+        grid-column: span 1;
+    }
+    
+    /* 调整特定页签的显示 */
+    .tab[data-tab="宝可梦"] { grid-column: 1; grid-row: 1; }
+    .tab[data-tab="支援者"] { grid-column: 2; grid-row: 1; }
+    .tab[data-tab="物品"] { grid-column: 3; grid-row: 1; }
+    .tab[data-tab="宝可梦道具"] { grid-column: 4; grid-row: 1; }
+    .tab[data-tab="竞技场"] { grid-column: 1; grid-row: 2; }
+    .tab[data-tab="基本能量"] { grid-column: 2; grid-row: 2; }
+    .tab[data-tab="特殊能量"] { grid-column: 3; grid-row: 2; }
+}
+
+/* 超小屏优化 */
+@media (max-width: 360px) {
+    .tabs-container {
+        gap: 4px;
+    }
+    
+    .tab {
+        padding: 6px 8px;
+        font-size: 0.75rem;
+    }
+}
+
+/* 卡组页签移动端优化 */
+@media (max-width: 480px) {
+    .deck-tabs-container {
+        max-height: 150px; /* 移动端减少最大高度 */
+        padding: 8px;
+        gap: 8px;
+    }
+    
+    .deck-tab {
+        min-width: 160px; /* 移动端稍微减小宽度 */
+        padding: 8px;
+    }
+    
+    .deck-cover {
+        width: 60px;
+        height: 84px;
+    }
+    
+    .deck-tab-add {
+        width: 60px;
+        height: 106px;
+    }
+}
+
+/* 搜索容器响应式 */
+@media (max-width: 480px) {
+    .search-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .search-input {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+    
+    .search-button {
+        width: 100%;
+    }
+    
+    /* 功能切换区域在移动端减少上下间距 */
+    .feature-tabs {
+        padding: 10px 15px;
+        margin-bottom: 15px;
+    }
 }
