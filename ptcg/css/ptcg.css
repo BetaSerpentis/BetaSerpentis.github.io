@@ -621,20 +621,25 @@
 /* 确保卡组页签容器布局正确 */
 .deck-tabs-container {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap; /* 改为不换行 */
     gap: 10px;
     padding: 10px;
-    max-height: 200px;
-    overflow-y: auto;
+    max-height: 150px; /* 保持适当高度 */
+    overflow-x: auto; /* 横向滚动 */
+    overflow-y: hidden; /* 隐藏纵向滚动 */
     align-items: flex-start;
+    scrollbar-width: thin; /* Firefox 滚动条样式 */
+    -webkit-overflow-scrolling: touch; /* iOS 平滑滚动 */
 }
 
+/* Webkit 滚动条样式 */
 .deck-tabs-container::-webkit-scrollbar {
     height: 6px;
 }
 
 .deck-tabs-container::-webkit-scrollbar-track {
     background: transparent;
+    border-radius: 3px;
 }
 
 .deck-tabs-container::-webkit-scrollbar-thumb {
@@ -642,7 +647,10 @@
     border-radius: 3px;
 }
 
-/* 卡组页签 */
+.deck-tabs-container::-webkit-scrollbar-thumb:hover {
+    background: #aaa;
+}
+
 /* 卡组页签样式（确保一致性） */
 .deck-tab {
     display: flex;
@@ -650,13 +658,13 @@
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 8px;
-    margin: 5px 0;
     cursor: pointer;
     transition: all 0.2s ease;
     background: white;
     width: auto;
     height: auto;
-    min-width: 200px;
+    min-width: 200px; /* 保持最小宽度 */
+    flex-shrink: 0; /* 防止收缩 */
     box-sizing: border-box;
 }
 
@@ -781,23 +789,23 @@
     color: #666;
 }
 
-/* 新建卡组按钮样式 - 只保留加号部分 */
+/* 新建卡组按钮样式 - 横向滚动布局 */
 .deck-tab-add {
     display: flex;
     align-items: center;
-    justify-content: center; /* 居中显示加号 */
-    padding: 10px; /* 保持与卡组页签相同的内边距 */
-    border: 1px solid #ddd; /* 与卡组页签相同的边框 */
-    border-radius: 8px; /* 与卡组页签相同的圆角 */
-    margin: 5px 0; /* 与卡组页签相同的外边距 */
+    justify-content: center;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin: 0; /* 移除上下边距 */
     cursor: pointer;
     transition: all 0.2s ease;
-    background: white; /* 与卡组页签相同的背景 */
-    width: 80px; /* 固定宽度，只包裹加号 */
-    height: 134px; /* 固定高度，与封面一致 */
-    flex-shrink: 0;
+    background: white;
+    width: 80px;
+    height: 134px;
+    flex-shrink: 0; /* 防止收缩 */
     text-decoration: none;
-    box-sizing: border-box; /* 确保边框和内边距包含在尺寸内 */
+    box-sizing: border-box;
 }
 
 .deck-tab-add:hover {
@@ -1196,18 +1204,18 @@
     }
 }
 
-/* 卡组删除按钮样式 */
+/* 删除按钮在横向布局中的定位调整 */
 .deck-delete-button {
     position: absolute;
-    top: -8px;
-    right: -8px;
-    width: 24px;
-    height: 24px;
+    top: -6px; /* 稍微调整位置 */
+    right: -6px;
+    width: 22px;
+    height: 22px;
     background: #ff4444;
     border: 2px solid white;
     border-radius: 50%;
     color: white;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: bold;
     cursor: pointer;
     display: none;
@@ -1407,4 +1415,114 @@
         height: 22px;
         font-size: 0.65rem;
     }
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+    .deck-tabs-container {
+        padding: 8px;
+        gap: 8px;
+        max-height: 140px; /* 移动端稍微降低高度 */
+    }
+    
+    .deck-tab {
+        min-width: 180px; /* 移动端稍微减小宽度 */
+        padding: 8px;
+    }
+    
+    .deck-cover {
+        width: 70px; /* 稍微调整封面大小 */
+        height: 98px;
+    }
+    
+    .deck-tab-add {
+        width: 70px;
+        height: 118px;
+    }
+}
+
+@media (max-width: 480px) {
+    .deck-tabs-container {
+        padding: 6px;
+        gap: 6px;
+        max-height: 130px; /* 手机端进一步降低高度 */
+    }
+    
+    .deck-tab {
+        min-width: 160px; /* 手机端进一步减小宽度 */
+        padding: 6px;
+    }
+    
+    .deck-cover {
+        width: 60px;
+        height: 84px;
+        margin-right: 8px; /* 调整封面与信息的间距 */
+    }
+    
+    .deck-info {
+        min-width: 0; /* 允许信息区域收缩 */
+    }
+    
+    .deck-name {
+        font-size: 0.9rem; /* 稍微缩小名称字号 */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .deck-count {
+        font-size: 0.75rem; /* 稍微缩小计数字号 */
+    }
+    
+    .deck-tab-add {
+        width: 60px;
+        height: 106px;
+    }
+    
+    /* 直接在按钮上显示加号 */
+    .deck-tab-add::before {
+        font-size: 2.5rem; /* 移动端调整加号大小 */
+    }
+}
+
+/* 超小屏优化 */
+@media (max-width: 360px) {
+    .deck-tabs-container {
+        padding: 5px;
+        gap: 5px;
+        max-height: 120px;
+    }
+    
+    .deck-tab {
+        min-width: 150px;
+        padding: 5px;
+    }
+    
+    .deck-cover {
+        width: 55px;
+        height: 77px;
+        margin-right: 6px;
+    }
+    
+    .deck-name {
+        font-size: 0.85rem;
+    }
+    
+    .deck-count {
+        font-size: 0.7rem;
+    }
+    
+    .deck-tab-add {
+        width: 55px;
+        height: 99px;
+    }
+    
+    .deck-tab-add::before {
+        font-size: 2.2rem;
+    }
+}
+
+.modal-img-container img {
+    will-change: transform; /* 提示浏览器优化变换动画 */
+    backface-visibility: hidden; /* 改善动画性能 */
 }

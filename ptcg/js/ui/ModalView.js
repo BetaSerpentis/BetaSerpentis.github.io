@@ -22,18 +22,11 @@ export class ModalView {
         this.modalDragThreshold = 80;
         this.modalIsAnimating = false;
         
+        // 新增：相邻图片跟随移动相关
+        this.modalImgNext.style.transform = 'translateX(100%)';
+        this.modalImgPrev.style.transform = 'translateX(-100%)';
+        
         this.init();
-
-        // 调试函数
-        /*
-        this.debugLog = (message) => {
-            const debugEl = document.getElementById('debug-info');
-            if (debugEl) {
-                debugEl.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
-            }
-            // console.log('ModalView Debug:', message);
-        };
-        */
     }
 
     // 初始化模态框
@@ -48,16 +41,14 @@ export class ModalView {
             if (e.target === e.currentTarget) this.close();
         });
         
-        // 在 bindEvents 方法中修改箭头事件
+        // 箭头事件
         this.prevArrow.addEventListener('click', (e) => {
             e.stopPropagation();
-            // this.debugLog('左箭头点击');
             this.triggerSwipe(-1);
         });
 
         this.nextArrow.addEventListener('click', (e) => {
             e.stopPropagation();
-            // this.debugLog('右箭头点击');
             this.triggerSwipe(1);
         });
 
@@ -72,43 +63,33 @@ export class ModalView {
         this.initModalTouchEvents();
     }
 
-    // 新增：触发快速滑动切换
+    // 触发快速滑动切换
     triggerSwipe(direction) {
-        // this.debugLog(`triggerSwipe - 开始 | 方向: ${direction} | 当前动画状态: ${this.modalIsAnimating}`);
-        
         if (this.modalIsAnimating) {
-            // this.debugLog('triggerSwipe - 动画进行中，拒绝新请求');
             return;
         }
         
         const cards = this.cardManager.getDisplayCards();
         if (cards.length === 0) {
-            // this.debugLog('triggerSwipe - 无卡牌数据');
             return;
         }
         
-        // this.debugLog('triggerSwipe - 设置动画状态为true');
         this.modalIsAnimating = true;
         
         let newIndex = this.currentIndex + direction;
         if (newIndex < 0) newIndex = cards.length - 1;
         else if (newIndex >= cards.length) newIndex = 0;
         
-        // this.debugLog(`triggerSwipe - 索引计算 | 当前: ${this.currentIndex} -> 新: ${newIndex}`);
-        
         // 执行滑动动画
         if (direction === 1) {
             this.modalImgCurrent.style.transform = 'translateX(-100%)';
             this.modalImgNext.style.transform = 'translateX(0)';
-            // this.debugLog('triggerSwipe - 向右切换动画开始');
         } else {
             this.modalImgCurrent.style.transform = 'translateX(100%)';
             this.modalImgPrev.style.transform = 'translateX(0)';
-            // this.debugLog('triggerSwipe - 向左切换动画开始');
         }
         
         setTimeout(() => {
-            // this.debugLog('triggerSwipe - 动画完成，更新状态');
             this.currentIndex = newIndex;
             const card = cards[this.currentIndex];
             
@@ -129,34 +110,32 @@ export class ModalView {
             }, 50);
             
             this.cardName.textContent = card.name;
-            // this.debugLog(`triggerSwipe - 设置动画状态为false | 新卡牌: ${card.name}`);
             this.modalIsAnimating = false;
             
             this.preloadAdjacentImages();
         }, 300);
     }
 
-    // 简化触摸事件处理
+    // 优化触摸事件处理 - 实现相邻卡牌同步跟随
     initModalTouchEvents() {
         const cards = this.cardManager.getDisplayCards();
         
         this.modalImgContainer.addEventListener('touchstart', (e) => {
-            // this.debugLog(`touchstart - 触摸开始 | 动画状态: ${this.modalIsAnimating} | 拖动状态: ${this.modalIsDragging}`);
-            
             if (!e.target.closest('.modal-img-container') || this.modalIsAnimating) {
-                // this.debugLog('touchstart - 条件不满足，退出');
                 return;
             }
             
             this.modalTouchStartX = e.touches[0].clientX;
             this.modalIsDragging = true;
+            
+            // 移除过渡效果以便流畅拖动
             this.modalImgCurrent.style.transition = 'none';
-            // this.debugLog(`touchstart - 开始拖动 | 起始X: ${this.modalTouchStartX}`);
+            this.modalImgNext.style.transition = 'none';
+            this.modalImgPrev.style.transition = 'none';
         }, { passive: true });
         
         this.modalImgContainer.addEventListener('touchmove', (e) => {
             if (!this.modalIsDragging || this.modalIsAnimating) {
-                // this.debugLog(`touchmove - 不允许拖动 | 拖动: ${this.modalIsDragging} | 动画: ${this.modalIsAnimating}`);
                 return;
             }
             
@@ -167,31 +146,43 @@ export class ModalView {
             const maxTranslate = window.innerWidth * 0.5;
             const boundedTranslate = Math.max(-maxTranslate, Math.min(maxTranslate, deltaX));
             
+            // 当前图片跟随手指移动
             this.modalImgCurrent.style.transform = `translateX(${boundedTranslate}px)`;
-            // this.debugLog(`touchmove - 拖动中 | deltaX: ${deltaX} | 限制后: ${boundedTranslate}`);
+            
+            // 相邻图片同步跟随移动
+            if (boundedTranslate > 0) {
+                // 向右拖动，显示前一张图片
+                this.modalImgPrev.style.transform = `translateX(${boundedTranslate - 100}%)`;
+                this.modalImgNext.style.transform = 'translateX(100%)';
+            } else if (boundedTranslate < 0) {
+                // 向左拖动，显示后一张图片
+                this.modalImgNext.style.transform = `translateX(${boundedTranslate + 100}%)`;
+                this.modalImgPrev.style.transform = 'translateX(-100%)';
+            }
         }, { passive: true });
         
         this.modalImgContainer.addEventListener('touchend', (e) => {
-            // this.debugLog(`touchend - 触摸结束 | 拖动状态: ${this.modalIsDragging} | 总位移: ${this.modalCurrentTranslateX}`);
-            
             if (!this.modalIsDragging || this.modalIsAnimating) {
-                // this.debugLog('touchend - 条件不满足，退出');
                 return;
             }
             
             this.modalIsDragging = false;
+            
+            // 恢复过渡效果
             this.modalImgCurrent.style.transition = 'transform 0.3s ease';
+            this.modalImgNext.style.transition = 'transform 0.3s ease';
+            this.modalImgPrev.style.transition = 'transform 0.3s ease';
             
             const shouldChange = Math.abs(this.modalCurrentTranslateX) > this.modalDragThreshold;
-            // this.debugLog(`touchend - 判断切换 | 位移: ${this.modalCurrentTranslateX} | 阈值: ${this.modalDragThreshold} | 是否切换: ${shouldChange}`);
             
             if (shouldChange) {
                 const direction = this.modalCurrentTranslateX > 0 ? -1 : 1;
-                // this.debugLog(`touchend - 触发切换 | 方向: ${direction}`);
                 this.triggerSwipe(direction);
             } else {
-                // this.debugLog('touchend - 位移不足，回到原位');
+                // 回到原位
                 this.modalImgCurrent.style.transform = 'translateX(0)';
+                this.modalImgNext.style.transform = 'translateX(100%)';
+                this.modalImgPrev.style.transform = 'translateX(-100%)';
             }
             
             this.modalCurrentTranslateX = 0;
@@ -199,7 +190,6 @@ export class ModalView {
     }
 
     // 显示模态框
-    // ModalView.js 修改 show 方法
     show(index) {
         console.log('🔄 ModalView.show 被调用', {
             index: index,
@@ -214,16 +204,20 @@ export class ModalView {
         const shouldPreventModal = isDeckMode && (isDeckAddMode || isDeckEditMode);
         
         if (shouldPreventModal) {
-            // console.log('🚫 ModalView: 在编辑/添加模式下阻止模态框');
-            return; // 直接返回，不执行任何操作
+            return;
         }
         
         const cards = this.cardManager.getDisplayCards();
         if (cards.length === 0) return;
         
+        // 重置所有图片位置和状态
         this.modalImgCurrent.style.transform = 'translateX(0)';
         this.modalImgNext.style.transform = 'translateX(100%)';
         this.modalImgPrev.style.transform = 'translateX(-100%)';
+        this.modalImgCurrent.style.transition = 'transform 0.3s ease';
+        this.modalImgNext.style.transition = 'transform 0.3s ease';
+        this.modalImgPrev.style.transition = 'transform 0.3s ease';
+        
         this.modalIsDragging = false;
         this.modalCurrentTranslateX = 0;
         this.modalIsAnimating = false;
@@ -270,5 +264,16 @@ export class ModalView {
         const cards = this.cardManager.getDisplayCards();
         const cardElements = document.querySelectorAll('.card');
         this.imageLoader.preloadAdjacentImages(this.currentIndex, cards, cardElements);
+        
+        // 预加载相邻图片到隐藏的img元素
+        const prevIndex = this.currentIndex > 0 ? this.currentIndex - 1 : cards.length - 1;
+        const nextIndex = this.currentIndex < cards.length - 1 ? this.currentIndex + 1 : 0;
+        
+        if (cards[prevIndex]) {
+            this.modalImgPrev.src = cards[prevIndex].image;
+        }
+        if (cards[nextIndex]) {
+            this.modalImgNext.src = cards[nextIndex].image;
+        }
     }
 }
