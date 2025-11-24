@@ -80,6 +80,9 @@ export class ModalView {
         if (newIndex < 0) newIndex = cards.length - 1;
         else if (newIndex >= cards.length) newIndex = 0;
         
+        // 预加载目标图片
+        this.preloadAdjacentImages();
+        
         // 执行滑动动画
         if (direction === 1) {
             this.modalImgCurrent.style.transform = 'translateX(-100%)';
@@ -116,7 +119,7 @@ export class ModalView {
         }, 300);
     }
 
-    // 优化触摸事件处理 - 实现相邻卡牌同步跟随
+    // 优化触摸事件处理 - 修复相邻卡牌同步移动问题
     initModalTouchEvents() {
         const cards = this.cardManager.getDisplayCards();
         
@@ -132,6 +135,9 @@ export class ModalView {
             this.modalImgCurrent.style.transition = 'none';
             this.modalImgNext.style.transition = 'none';
             this.modalImgPrev.style.transition = 'none';
+            
+            // 确保相邻图片已预加载
+            this.preloadAdjacentImages();
         }, { passive: true });
         
         this.modalImgContainer.addEventListener('touchmove', (e) => {
@@ -143,20 +149,24 @@ export class ModalView {
             const deltaX = touchX - this.modalTouchStartX;
             this.modalCurrentTranslateX = deltaX;
             
-            const maxTranslate = window.innerWidth * 0.5;
+            const maxTranslate = window.innerWidth;
             const boundedTranslate = Math.max(-maxTranslate, Math.min(maxTranslate, deltaX));
             
             // 当前图片跟随手指移动
             this.modalImgCurrent.style.transform = `translateX(${boundedTranslate}px)`;
             
-            // 相邻图片同步跟随移动
+            // 修复：相邻图片以相同距离同步移动，保持相对位置
             if (boundedTranslate > 0) {
-                // 向右拖动，显示前一张图片
-                this.modalImgPrev.style.transform = `translateX(${boundedTranslate - 100}%)`;
+                // 向右拖动，前一张图片从左侧同步进入
+                this.modalImgPrev.style.transform = `translateX(${boundedTranslate - window.innerWidth}px)`;
                 this.modalImgNext.style.transform = 'translateX(100%)';
             } else if (boundedTranslate < 0) {
-                // 向左拖动，显示后一张图片
-                this.modalImgNext.style.transform = `translateX(${boundedTranslate + 100}%)`;
+                // 向左拖动，后一张图片从右侧同步进入
+                this.modalImgNext.style.transform = `translateX(${boundedTranslate + window.innerWidth}px)`;
+                this.modalImgPrev.style.transform = 'translateX(-100%)';
+            } else {
+                // 无拖动时重置位置
+                this.modalImgNext.style.transform = 'translateX(100%)';
                 this.modalImgPrev.style.transform = 'translateX(-100%)';
             }
         }, { passive: true });
@@ -179,7 +189,7 @@ export class ModalView {
                 const direction = this.modalCurrentTranslateX > 0 ? -1 : 1;
                 this.triggerSwipe(direction);
             } else {
-                // 回到原位
+                // 回到原位，带动画效果
                 this.modalImgCurrent.style.transform = 'translateX(0)';
                 this.modalImgNext.style.transform = 'translateX(100%)';
                 this.modalImgPrev.style.transform = 'translateX(-100%)';
