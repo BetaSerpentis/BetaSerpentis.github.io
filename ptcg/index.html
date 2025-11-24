@@ -7,6 +7,28 @@
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/ptcg.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4a90e2">
+    
+    <!-- iOS Safari配置 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <script>
+    // 确保在页面加载后注册Service Worker
+    if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        // 指定sw.js文件位于ptcg目录下，并控制ptcg目录及其子目录
+        navigator.serviceWorker.register('/ptcg/sw.js', { scope: '/ptcg/' })
+        .then(function(registration) {
+            console.log('✅ ServiceWorker 注册成功，作用域: ', registration.scope);
+        })
+        .catch(function(error) {
+            console.log('❌ ServiceWorker 注册失败: ', error);
+        });
+    });
+    }
+    </script>
 </head>
 <body>
     <!-- 调试信息显示 -->
