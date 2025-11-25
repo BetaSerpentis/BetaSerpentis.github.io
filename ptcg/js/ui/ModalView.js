@@ -80,39 +80,58 @@ export class ModalView {
         if (newIndex < 0) newIndex = cards.length - 1;
         else if (newIndex >= cards.length) newIndex = 0;
         
-        // 预加载目标图片
-        this.preloadAdjacentImages();
+        const newCard = cards[newIndex];
         
-        // 执行滑动动画
+        // 关键修复：在动画开始前预加载并设置新图片
         if (direction === 1) {
+            // 向右切换：下一张图片移动到当前位置
+            this.modalImgNext.src = newCard.image;
             this.modalImgCurrent.style.transform = 'translateX(-100%)';
             this.modalImgNext.style.transform = 'translateX(0)';
         } else {
+            // 向左切换：上一张图片移动到当前位置  
+            this.modalImgPrev.src = newCard.image;
             this.modalImgCurrent.style.transform = 'translateX(100%)';
             this.modalImgPrev.style.transform = 'translateX(0)';
         }
         
+        // 等待动画完成
         setTimeout(() => {
-            this.currentIndex = newIndex;
-            const card = cards[this.currentIndex];
-            
-            // 重置所有图片位置
+            // 重置所有图片位置和内容
             this.modalImgCurrent.style.transition = 'none';
             this.modalImgNext.style.transition = 'none';
             this.modalImgPrev.style.transition = 'none';
             
-            this.modalImgCurrent.src = card.image;
+            // 关键修复：直接交换图片角色，而不是重新设置src
+            if (direction === 1) {
+                // 向右切换后：next 变成 current，current 变成 prev
+                [this.modalImgCurrent.src, this.modalImgPrev.src, this.modalImgNext.src] = 
+                [this.modalImgNext.src, this.modalImgCurrent.src, ''];
+            } else {
+                // 向左切换后：prev 变成 current，current 变成 next  
+                [this.modalImgCurrent.src, this.modalImgNext.src, this.modalImgPrev.src] = 
+                [this.modalImgPrev.src, this.modalImgCurrent.src, ''];
+            }
+            
+            // 重置位置
             this.modalImgCurrent.style.transform = 'translateX(0)';
             this.modalImgNext.style.transform = 'translateX(100%)';
             this.modalImgPrev.style.transform = 'translateX(-100%)';
             
+            // 强制重绘，确保样式应用
+            this.modalImgCurrent.offsetHeight;
+            this.modalImgNext.offsetHeight; 
+            this.modalImgPrev.offsetHeight;
+            
+            // 恢复过渡效果
             setTimeout(() => {
                 this.modalImgCurrent.style.transition = 'transform 0.3s ease';
                 this.modalImgNext.style.transition = 'transform 0.3s ease';
                 this.modalImgPrev.style.transition = 'transform 0.3s ease';
             }, 50);
             
-            this.cardName.textContent = card.name;
+            this.currentIndex = newIndex;
+            this.cardName.textContent = newCard.name;
             this.modalIsAnimating = false;
             
             this.preloadAdjacentImages();
@@ -272,18 +291,26 @@ export class ModalView {
     // 预加载相邻图片
     preloadAdjacentImages() {
         const cards = this.cardManager.getDisplayCards();
-        const cardElements = document.querySelectorAll('.card');
-        this.imageLoader.preloadAdjacentImages(this.currentIndex, cards, cardElements);
+        if (cards.length === 0) return;
         
-        // 预加载相邻图片到隐藏的img元素
         const prevIndex = this.currentIndex > 0 ? this.currentIndex - 1 : cards.length - 1;
         const nextIndex = this.currentIndex < cards.length - 1 ? this.currentIndex + 1 : 0;
         
+        // 预加载到隐藏的img元素中
         if (cards[prevIndex]) {
-            this.modalImgPrev.src = cards[prevIndex].image;
+            // 只有在图片不同时才设置src，避免不必要的网络请求
+            if (this.modalImgPrev.src !== cards[prevIndex].image) {
+                this.modalImgPrev.src = cards[prevIndex].image;
+            }
         }
         if (cards[nextIndex]) {
-            this.modalImgNext.src = cards[nextIndex].image;
+            if (this.modalImgNext.src !== cards[nextIndex].image) {
+                this.modalImgNext.src = cards[nextIndex].image;
+            }
         }
+        
+        // 原有的预加载逻辑（如果需要）
+        const cardElements = document.querySelectorAll('.card');
+        this.imageLoader.preloadAdjacentImages(this.currentIndex, cards, cardElements);
     }
 }
