@@ -1523,6 +1523,15 @@
 }
 
 .modal-img-container img {
-    will-change: transform; /* 提示浏览器优化变换动画 */
-    backface-visibility: hidden; /* 改善动画性能 */
+    will-change: transform;
+    backface-visibility: hidden;
+    perspective: 1000px;
+    transform-style: preserve-3d;
+    /* 防止图片被浏览器回收 */
+    content-visibility: auto;
+}
+
+/* 确保图片在动画期间保持渲染 */
+.modal-img-container {
+    transform: translateZ(0);
 }
