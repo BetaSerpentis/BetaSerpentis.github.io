@@ -97,23 +97,23 @@ export class ModalView {
         
         // 等待动画完成
         setTimeout(() => {
-            // 重置所有图片位置和内容
+            // 关键修复：先交换图片角色，再重置位置
+            if (direction === 1) {
+                // 向右切换后：next 变成 current，current 变成 prev
+                [this.modalImgCurrent.src, this.modalImgPrev.src] = 
+                [this.modalImgNext.src, this.modalImgCurrent.src];
+            } else {
+                // 向左切换后：prev 变成 current，current 变成 next  
+                [this.modalImgCurrent.src, this.modalImgNext.src] = 
+                [this.modalImgPrev.src, this.modalImgCurrent.src];
+            }
+            
+            // 现在才重置过渡效果和位置
             this.modalImgCurrent.style.transition = 'none';
             this.modalImgNext.style.transition = 'none';
             this.modalImgPrev.style.transition = 'none';
             
-            // 关键修复：直接交换图片角色，而不是重新设置src
-            if (direction === 1) {
-                // 向右切换后：next 变成 current，current 变成 prev
-                [this.modalImgCurrent.src, this.modalImgPrev.src, this.modalImgNext.src] = 
-                [this.modalImgNext.src, this.modalImgCurrent.src, ''];
-            } else {
-                // 向左切换后：prev 变成 current，current 变成 next  
-                [this.modalImgCurrent.src, this.modalImgNext.src, this.modalImgPrev.src] = 
-                [this.modalImgPrev.src, this.modalImgCurrent.src, ''];
-            }
-            
-            // 重置位置
+            // 重置位置（此时 modalImgCurrent 已经显示正确的新图片）
             this.modalImgCurrent.style.transform = 'translateX(0)';
             this.modalImgNext.style.transform = 'translateX(100%)';
             this.modalImgPrev.style.transform = 'translateX(-100%)';
