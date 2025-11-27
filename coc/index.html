@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>克苏鲁跑团助手</title>
+    
+    <!-- CSS 文件 -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/roster.css">
+    <link rel="stylesheet" href="css/character.css">
+</head>
+<body>
+    <!-- 主容器，用于翻页效果 -->
+    <div class="app-container">
+        <!-- 花名册页面 -->
+        <div id="roster-page" class="page active">
+            <header class="page-header">
+                <h1 class="page-title">【调查员名录】</h1>
+            </header>
+            
+            <main class="roster-container">
+                <!-- 花名册列表 - 通过JS动态生成 -->
+                <div id="roster-list" class="roster-list">
+                    <!-- 静态示例数据 -->
+                    <div class="character-card" data-id="1">
+                        <div class="avatar-container">
+                            <img src="assets/images/placeholder-avatar.jpg" alt="李明" class="avatar">
+                        </div>
+                        <div class="character-info">
+                            <div class="name-line">
+                                <span class="character-name">李明</span>
+                                <span class="gender-symbol">♂</span>
+                            </div>
+                            <div class="detail-line">
+                                <span class="age">32岁</span>
+                                <span class="profession"> / 记者</span>
+                            </div>
+                        </div>
+                        <div class="status-seal status-investigating">调查中</div>
+                        <div class="active-era">1920年代</div>
+                    </div>
+                    
+                    <div class="character-card" data-id="2">
+                        <div class="avatar-container">
+                            <img src="assets/images/placeholder-avatar.jpg" alt="王雪" class="avatar">
+                        </div>
+                        <div class="character-info">
+                            <div class="name-line">
+                                <span class="character-name">王雪</span>
+                                <span class="gender-symbol">♀</span>
+                            </div>
+                            <div class="detail-line">
+                                <span class="age">28岁</span>
+                                <span class="profession"> / 图书管理员</span>
+                            </div>
+                        </div>
+                        <div class="status-seal status-completed">完成调查</div>
+                        <div class="active-era">2010年代</div>
+                    </div>
+                    
+                    <!-- 新增调查员按钮 -->
+                    <div id="add-character" class="character-card add-card">
+                        <div class="add-icon">+</div>
+                        <div class="add-text">新增调查员</div>
+                    </div>
+                </div>
+            </main>
+        </div>
+        
+        <!-- 角色信息页 -->
+        <div id="character-page" class="page">
+            <header class="page-header">
+                <button id="back-button" class="back-button">返回</button>
+                <h1 class="page-title">【调查员档案】</h1>
+            </header>
+            
+            <main class="character-container">
+                <!-- 角色状态区域 -->
+                <section class="status-section">
+                    <div class="avatar-info-group" data-action="background">
+                        <div class="avatar-container large">
+                            <img src="assets/images/placeholder-avatar.jpg" alt="李明" class="avatar">
+                        </div>
+                        <div class="basic-info">
+                            <div class="name-line">
+                                <span class="character-name">李明</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 异常状态指示器 - 竖排显示 -->
+                    <div class="status-indicator">疯狂</div>
+                    
+                    <div class="stats-group">
+                        <div class="stat-bar health" data-action="hp-info">
+                            <div class="stat-progress">
+                                <div class="stat-fill" style="width: 70%"></div>
+                            </div>
+                            <div class="stat-value">14/20</div>
+                        </div>
+                        
+                        <div class="stat-bar mana" data-action="mp-info">
+                            <div class="stat-progress">
+                                <div class="stat-fill" style="width: 45%"></div>
+                            </div>
+                            <div class="stat-value">9/20</div>
+                        </div>
+                        
+                        <div class="stat-bar sanity" data-action="sanity-info">
+                            <div class="stat-progress">
+                                <div class="stat-fill" style="width: 30%"></div>
+                            </div>
+                            <div class="stat-value">30/100</div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="section-divider"></div>
+
+                <!-- 能力九维图区域 -->
+                <section class="ability-section">
+                    <div class="nonagram-container">
+                        <div class="nonagram-wrapper">
+                            <svg class="nonagram-chart" viewBox="0 0 200 200">
+                                <!-- 九边形网格 - 真正的九边形，9个角 -->
+                                <polygon class="nonagram-grid" points="100,10 160,30 190,70 190,130 160,170 100,190 40,170 10,130 10,70 40,30"></polygon>
+                                <!-- 能力填充区域 -->
+                                <polygon class="nonagram-fill" points="100,30 145,45 170,75 170,125 145,155 100,170 55,155 30,125 30,75 55,45"></polygon>
+                            </svg>
+                            
+                            <!-- 能力标签 - 9个角，文字完全在外围且更分散 -->
+                            <div class="ability-label str" data-ability="str">力量<br>65</div>
+                            <div class="ability-label dex" data-ability="dex">敏捷<br>70</div>
+                            <div class="ability-label con" data-ability="con">体质<br>55</div>
+                            <div class="ability-label app" data-ability="app">外貌<br>60</div>
+                            <div class="ability-label pow" data-ability="pow">意志<br>80</div>
+                            <div class="ability-label edu" data-ability="edu">教育<br>70</div>
+                            <div class="ability-label siz" data-ability="siz">体型<br>75</div>
+                            <div class="ability-label int" data-ability="int">智力<br>85</div>
+                            <div class="ability-label luk" data-ability="luk">幸运<br>45</div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="section-divider"></div>
+
+                <!-- 操作按钮区域 -->
+                <section class="action-section">
+                    <div class="action-grid">
+                        <div class="action-btn" data-action="occupation-skills">
+                            <div class="btn-title">职业技能</div>
+                            <div class="btn-content with-value">侦查：70</div>
+                        </div>
+                        <div class="action-btn" data-action="hobby-skills">
+                            <div class="btn-title">兴趣技能</div>
+                            <div class="btn-content with-value">图书馆使用：60</div>
+                        </div>
+                        <div class="action-btn" data-action="weapons">
+                            <div class="btn-title">武器</div>
+                            <div class="btn-content without-value">手枪</div>
+                        </div>
+                        <div class="action-btn" data-action="items">
+                            <div class="btn-title">道具</div>
+                            <div class="btn-content without-value">医疗包</div>
+                        </div>
+                        <div class="action-btn" data-action="notes">
+                            <div class="btn-title">笔记</div>
+                            <div class="btn-content without-value">线索记录</div>
+                        </div>
+                        <div class="action-btn" data-action="magic">
+                            <div class="btn-title">魔法</div>
+                            <div class="btn-content without-value">深潜术</div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <!-- 调查员创建页 (后续开发) -->
+        <div id="creator-page" class="page"></div>
+    </div>
+
+    <!-- JavaScript 文件 -->
+    <script src="js/utils.js"></script>
+    <script src="js/roster.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/character.js"></script>
+</body>
+</html>
