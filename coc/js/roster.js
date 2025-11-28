@@ -62,12 +62,13 @@ const Roster = {
                     luk: 45, siz: 75, int: 85, edu: 70
                 },
                 skills: {
-                    occupation: '侦查：70',  // 直接在内容中包含冒号
-                    hobby: '图书馆使用：60',
-                    weapon: '手枪',
-                    item: '医疗包', 
-                    note: '线索记录',
-                    magic: '深潜术'
+                    // 分开存储技能名和点数
+                    occupation: { name: '侦查', value: 70 },
+                    hobby: { name: '图书馆使用', value: 60 },
+                    weapon: { name: '手枪', value: null }, // 无点数
+                    item: { name: '医疗包', value: null },
+                    note: { name: '线索记录', value: null },
+                    magic: { name: '深潜术', value: null }
                 }
             },
             '2': {
@@ -89,19 +90,35 @@ const Roster = {
                     luk: 65, siz: 55, int: 90, edu: 85
                 },
                 skills: {
-                    occupation: '图书馆使用：80',
-                    hobby: '心理学：50', 
-                    weapon: '',
-                    item: '古籍',
-                    note: '研究记录',
-                    magic: ''
+                    occupation: { name: '图书馆使用', value: 80 },
+                    hobby: { name: '心理学', value: 50 },
+                    weapon: { name: '', value: null },
+                    item: { name: '古籍', value: null },
+                    note: { name: '研究记录', value: null },
+                    magic: { name: '', value: null }
+                }
+            },
+            'test-full': { // 测试用 - 全满值
+                id: 'test-full',
+                name: '测试角色',
+                abilities: {
+                    str: 100, dex: 100, con: 100, pow: 100, app: 100, 
+                    luk: 100, siz: 100, int: 100, edu: 100
+                }
+            },
+            'test-low': { // 测试用 - 低值
+                id: 'test-low', 
+                name: '弱鸡角色',
+                abilities: {
+                    str: 20, dex: 25, con: 15, pow: 30, app: 35, 
+                    luk: 10, siz: 40, int: 45, edu: 50
                 }
             }
         };
         
         return mockCharacters[characterId];
     },
-    
+
     loadCharacters: function() {
         const characters = Storage.getCharacters();
         console.log('加载角色数据:', characters);

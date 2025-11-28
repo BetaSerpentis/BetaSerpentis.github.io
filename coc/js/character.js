@@ -186,37 +186,110 @@ const CharacterPage = {
                 label.innerHTML = `${abilityNames[ability]}<br>${value}`;
             }
         }
+        
+        // 更新九维图填充区域
+        this.updateNonagramFill(abilities);
+    },
+
+    updateNonagramFill: function(abilities) {
+        const centerX = 100;
+        const centerY = 100;
+        const maxRadius = 80; // 最大半径（100%能力值时的半径）
+        const baseRadius = 20; // 基础半径（0%能力值时的半径）
+        const labelRadius = 110; // 标签位置的半径（在图形外部）
+        
+        // 能力顺序对应九边形的角顺序（从顶部开始顺时针）
+        const abilityOrder = ['str', 'dex', 'con', 'app', 'pow', 'edu', 'siz', 'int', 'luk'];
+        
+        // 计算每个点的实际位置
+        const actualPoints = abilityOrder.map((ability, index) => {
+            const value = abilities[ability];
+            
+            // 计算角度（从顶部开始，顺时针）
+            const angle = (index * 40 - 90) * Math.PI / 180; // 每40度一个点，从-90°开始（顶部）
+            
+            // 计算半径（根据能力值在基础半径和最大半径之间插值）
+            const radius = baseRadius + (maxRadius - baseRadius) * (value / 100);
+            
+            // 计算坐标
+            const x = centerX + radius * Math.cos(angle);
+            const y = centerY + radius * Math.sin(angle);
+            
+            return [x, y];
+        });
+        
+        // 生成SVG points字符串
+        const pointsString = actualPoints.map(point => 
+            Math.round(point[0]) + ',' + Math.round(point[1])
+        ).join(' ');
+        
+        // 更新SVG填充区域
+        const fillElement = document.querySelector('.nonagram-fill');
+        if (fillElement) {
+            fillElement.setAttribute('points', pointsString);
+        }
+        
+        // 同时更新外框九边形（确保是正九边形）
+        const maxPoints = abilityOrder.map((_, index) => {
+            const angle = (index * 40 - 90) * Math.PI / 180;
+            const x = centerX + maxRadius * Math.cos(angle);
+            const y = centerY + maxRadius * Math.sin(angle);
+            return [Math.round(x), Math.round(y)];
+        });
+        
+        const gridElement = document.querySelector('.nonagram-grid');
+        if (gridElement) {
+            gridElement.setAttribute('points', maxPoints.map(point => point.join(',')).join(' '));
+        }
+        
+        // 更新标签位置（确保三点一线）
+        this.updateLabelPositions(abilities, centerX, centerY, labelRadius);
+    },
+
+    updateLabelPositions: function(abilities, centerX, centerY, labelRadius) {
+        // 能力顺序对应九边形的角顺序（从顶部开始顺时针）
+        const abilityOrder = ['str', 'dex', 'con', 'app', 'pow', 'edu', 'siz', 'int', 'luk'];
+        
+        abilityOrder.forEach((ability, index) => {
+            // 计算角度（从顶部开始，顺时针）
+            const angle = (index * 40 - 90) * Math.PI / 180;
+            
+            // 计算标签位置（在延长线上）
+            const labelX = centerX + labelRadius * Math.cos(angle);
+            const labelY = centerY + labelRadius * Math.sin(angle);
+            
+            // 更新标签位置
+            const labelElement = document.querySelector(`[data-ability="${ability}"]`);
+            if (labelElement) {
+                // 转换为百分比位置（相对于280x280容器）
+                const percentX = (labelX / 200 * 100); // 200是viewBox宽度
+                const percentY = (labelY / 200 * 100); // 200是viewBox高度
+                
+                labelElement.style.left = percentX + '%';
+                labelElement.style.top = percentY + '%';
+                
+                console.log(`${ability}: (${percentX.toFixed(1)}%, ${percentY.toFixed(1)}%) 角度: ${(angle * 180 / Math.PI).toFixed(1)}°`);
+            }
+        });
     },
 
     updateActionButtons: function(skills) {
         // 更新操作按钮内容
         const buttons = {
-            'occupation-skills': { 
-                content: skills.occupation
-            },
-            'hobby-skills': { 
-                content: skills.hobby
-            },
-            'weapons': { 
-                content: skills.weapon
-            },
-            'items': { 
-                content: skills.item
-            },
-            'notes': { 
-                content: skills.note
-            },
-            'magic': { 
-                content: skills.magic
-            }
+            'occupation-skills': skills.occupation,
+            'hobby-skills': skills.hobby,
+            'weapons': skills.weapon,
+            'items': skills.item,
+            'notes': skills.note,
+            'magic': skills.magic
         };
         
-        for (const [action, data] of Object.entries(buttons)) {
+        for (const [action, skill] of Object.entries(buttons)) {
             const btn = document.querySelector(`[data-action="${action}"] .btn-content`);
-            if (btn) {
-                btn.textContent = data.content;
-                // 统一使用 without-value 类，因为冒号已经在内容中了
-                btn.className = 'btn-content without-value';
+            if (btn && skill.name) {
+                // 动态生成显示文本：有数值就加冒号和数值，没有就只显示名称
+                const displayText = skill.value !== null ? `${skill.name}：${skill.value}` : skill.name;
+                btn.textContent = displayText;
             }
         }
     }
