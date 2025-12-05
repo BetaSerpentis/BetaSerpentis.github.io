@@ -138,14 +138,8 @@ const CharacterPage = {
             nameElement.classList.remove('long');
         }
         
-        // 更新状态指示器
-        const statusIndicator = document.querySelector('.status-indicator');
-        if (characterData.status && characterData.status !== '正常') {
-            statusIndicator.textContent = characterData.status;
-            statusIndicator.style.display = 'block';
-        } else {
-            statusIndicator.style.display = 'none';
-        }
+        // 更新异常状态
+        this.updateStatusIndicators(characterData.status);
         
         // 更新进度条
         this.updateStatBars(characterData.stats);
@@ -157,21 +151,85 @@ const CharacterPage = {
         this.updateActionButtons(characterData.skills);
     },
 
+    updateStatusIndicators: function(status) {
+        const container = document.querySelector('.status-indicators-container');
+        if (!container) return;
+        
+        // 清空现有状态
+        container.innerHTML = '';
+        
+        // 如果没有状态或状态为正常，隐藏容器
+        if (!status || status === '正常') {
+            container.style.display = 'none';
+            return;
+        }
+        
+        // 显示容器
+        container.style.display = 'flex';
+        
+        // 处理多个状态（用空格或逗号分隔）
+        const statusList = status.split(/[,，\s]+/).filter(s => s && s !== '正常');
+        
+        if (statusList.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+        
+        // 创建状态指示器项
+        statusList.forEach(statusText => {
+            const indicator = document.createElement('div');
+            indicator.className = 'status-indicator-item';
+            indicator.textContent = statusText;
+            container.appendChild(indicator);
+        });
+    },
+
     updateStatBars: function(stats) {
+        // 基准最大值
+        const BASE_HP = 20;
+        const BASE_MP = 20;
+        const BASE_SANITY = 100;
+        
         // 生命值
         const hpPercent = (stats.hp.current / stats.hp.max) * 100;
-        document.querySelector('.health .stat-fill').style.width = hpPercent + '%';
-        document.querySelector('.health .stat-value').textContent = `${stats.hp.current}/${stats.hp.max}`;
+        const hpWidthPercent = (stats.hp.max / BASE_HP) * 100; // 条的总长度比例
+        
+        const hpProgress = document.querySelector('.health .stat-progress');
+        const hpFill = document.querySelector('.health .stat-fill');
+        
+        if (hpProgress && hpFill) {
+            hpProgress.style.width = hpWidthPercent + '%'; // 调整整个进度条容器的宽度
+            hpFill.style.width = hpPercent + '%';
+            document.querySelector('.health .stat-value').textContent = `${stats.hp.current}/${stats.hp.max}`;
+        }
         
         // 法力值
         const mpPercent = (stats.mp.current / stats.mp.max) * 100;
-        document.querySelector('.mana .stat-fill').style.width = mpPercent + '%';
-        document.querySelector('.mana .stat-value').textContent = `${stats.mp.current}/${stats.mp.max}`;
+        const mpWidthPercent = (stats.mp.max / BASE_MP) * 100;
         
-        // 理智值
+        const mpProgress = document.querySelector('.mana .stat-progress');
+        const mpFill = document.querySelector('.mana .stat-fill');
+        
+        if (mpProgress && mpFill) {
+            mpProgress.style.width = mpWidthPercent + '%';
+            mpFill.style.width = mpPercent + '%';
+            document.querySelector('.mana .stat-value').textContent = `${stats.mp.current}/${stats.mp.max}`;
+        }
+        
+        // 理智值（基准是100，所以通常都是100%宽度）
         const sanityPercent = (stats.sanity.current / stats.sanity.max) * 100;
-        document.querySelector('.sanity .stat-fill').style.width = sanityPercent + '%';
-        document.querySelector('.sanity .stat-value').textContent = `${stats.sanity.current}/${stats.sanity.max}`;
+        const sanityWidthPercent = (stats.sanity.max / BASE_SANITY) * 100;
+        
+        const sanityProgress = document.querySelector('.sanity .stat-progress');
+        const sanityFill = document.querySelector('.sanity .stat-fill');
+        
+        if (sanityProgress && sanityFill) {
+            sanityProgress.style.width = sanityWidthPercent + '%';
+            sanityFill.style.width = sanityPercent + '%';
+            document.querySelector('.sanity .stat-value').textContent = `${stats.sanity.current}/${stats.sanity.max}`;
+        }
+        
+        console.log(`进度条宽度调整: HP=${hpWidthPercent}%, MP=${mpWidthPercent}%, Sanity=${sanityWidthPercent}%`);
     },
 
     updateAbilities: function(abilities) {
@@ -195,8 +253,8 @@ const CharacterPage = {
         const centerX = 100;
         const centerY = 100;
         const maxRadius = 80; // 最大半径（100%能力值时的半径）
-        const baseRadius = 20; // 基础半径（0%能力值时的半径）
-        const labelRadius = 110; // 标签位置的半径（在图形外部）
+        const baseRadius = 5; // 基础半径（0%能力值时的半径）
+        const labelRadius = 100; // 标签位置的半径（在图形外部）
         
         // 能力顺序对应九边形的角顺序（从顶部开始顺时针）
         const abilityOrder = ['str', 'dex', 'con', 'app', 'pow', 'edu', 'siz', 'int', 'luk'];
@@ -287,12 +345,30 @@ const CharacterPage = {
         for (const [action, skill] of Object.entries(buttons)) {
             const btn = document.querySelector(`[data-action="${action}"] .btn-content`);
             if (btn && skill.name) {
-                // 动态生成显示文本：有数值就加冒号和数值，没有就只显示名称
+                // 动态生成显示文本
                 const displayText = skill.value !== null ? `${skill.name}：${skill.value}` : skill.name;
                 btn.textContent = displayText;
+                
+                // 简单的文字长度判断
+                this.adjustButtonText(btn, displayText);
             }
         }
-    }
+    },
+
+    // 简化版的文字调整
+    adjustButtonText: function(buttonElement, text) {
+        // 重置所有文字长度类
+        buttonElement.classList.remove('long-text', 'very-long', 'extremely-long');
+        
+        // 根据文字长度添加相应类
+        if (text.length > 12) {
+            buttonElement.classList.add('extremely-long');
+        } else if (text.length > 9) {
+            buttonElement.classList.add('very-long');
+        } else if (text.length > 6) {
+            buttonElement.classList.add('long-text');
+        }
+    },
 };
 
 // 页面路由管理
