@@ -1,6 +1,6 @@
-/* 角色详情页样式 */
+/* 角色详情页样式 - 移除标题区域后调整 */
 .character-container {
-    height: calc(100vh - 80px);
+    height: 100vh; /* 使用整个视口高度 */
     padding: 1rem 1.5rem;
     display: flex;
     flex-direction: column;
@@ -14,24 +14,28 @@
     background: linear-gradient(to bottom, var(--bg-paper), var(--bg-old));
 }
 
+/* 返回按钮样式调整 - 屏幕最左上角 */
 .back-button {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
+    position: fixed; /* 改为fixed定位，相对于视口 */
+    left: 0.5rem;    /* ← 调整这个：水平位置（离左边距离） */
+    top: 0.5rem;     /* ← 调整这个：垂直位置（离顶部距离） */
     background: var(--primary-color);
     color: white;
     border: none;
-    padding: 0.5rem 1rem;
-    border-radius: var(--border-radius);
+    padding: 0.5rem 0.8rem; /* ← 调整这个：内边距（第一个值上下，第二个值左右） */
+    border-radius: 0 0 var(--border-radius) 0; /* 只保留右下角圆角 */
     font-family: inherit;
     cursor: pointer;
-    font-size: var(--font-size-sm);
-    z-index: 10;
+    font-size: var(--font-size-sm); /* ← 调整这个：字体大小 */
+    z-index: 10000; /* 最高层级 */
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    transition: all 0.2s ease;
 }
 
+.back-button:hover,
 .back-button:active {
     background: var(--text-dark);
+    transform: scale(0.95);
 }
 
 .page-title {
@@ -44,26 +48,30 @@
 
 /* 区域分割线 */
 .section-divider {
-    height: 2px;
+    height: 1px;
     background: linear-gradient(to right, transparent, var(--border-color), transparent);
-    margin: 0.5rem 0;
+    margin: 0.3rem 0;
 }
 
-/* 角色状态区域 - 顶部对齐 */
+/* 角色状态区域调整 - 包含返回按钮 */
 .status-section {
     display: flex;
-    align-items: flex-start; /* 改为顶部对齐 */
-    min-height: 120px;
+    align-items: flex-start;
+    min-height: 100px; /* 稍微降低高度 */
     margin-bottom: 0.5rem;
+    position: relative; /* 为返回按钮定位 */
+    padding-top: 2rem; /* 为返回按钮留出空间 */
 }
 
+/* 移除原先的状态区域中间空间 */
 .avatar-info-group {
     display: flex;
     flex-direction: column;
     align-items: center;
     flex: 0 0 auto;
     cursor: pointer;
-    margin-right: 1rem;
+    margin-right: 0.5rem; /* 减少右边距，将空间给血条 */
+    position: relative; /* 为状态指示器定位 */
 }
 
 .avatar-container.large {
@@ -104,29 +112,59 @@
     font-size: 1rem;
 }
 
-/* 异常状态指示器 - 与头像顶部对齐 */
+/* 异常状态指示器 - 移到头像右上角 */
 .status-indicator {
     writing-mode: vertical-rl;
     text-orientation: mixed;
-    align-self: flex-start; /* 顶部对齐 */
-    margin: 0 0.5rem;
-    margin-top: 10px; /* 与头像顶部对齐 */
-    font-size: var(--font-size-sm);
+    position: absolute; /* 改为绝对定位在头像上 */
+    top: -5px; /* 调整这个：距离头像顶部的距离 */
+    right: -8px; /* 调整这个：距离头像右边的距离 */
+    font-size: 0.7rem; /* 调整这个：字体大小 */
     color: var(--accent-color);
-    background: rgba(196, 30, 58, 0.1);
-    padding: 0.5rem 0.3rem;
-    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.95); /* 半透明白色背景 */
+    padding: 0.3rem 0.2rem;
+    border-radius: 4px;
     border: 1px solid var(--accent-color);
     display: none;
+    z-index: 10; /* 确保在头像上方 */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    max-height: 60px; /* 限制最大高度 */
+    overflow: hidden;
 }
 
-/* 进度条区域扩展 */
+/* 多个异常状态容器 */
+.status-indicators-container {
+    position: absolute;
+    top: -5px;
+    right: -8px;
+    display: flex;
+    flex-direction: row-reverse; /* 从右向左排列 */
+    gap: 2px;
+    z-index: 10;
+}
+
+/* 单个异常状态项 */
+.status-indicator-item {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-size: 0.65rem;
+    color: var(--accent-color);
+    background: rgba(255, 255, 255, 0.95);
+    padding: 0.2rem 0.15rem;
+    border-radius: 3px;
+    border: 1px solid var(--accent-color);
+    max-height: 55px;
+    overflow: hidden;
+}
+
+/* 确保状态区域正确布局 */
 .stats-group {
     flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     margin-left: 0;
+    align-items: flex-start; /* 左对齐 */
 }
 
 .stat-bar {
@@ -134,16 +172,19 @@
     align-items: center;
     cursor: pointer;
     padding: 0.4rem 0;
+    width: 100%; /* 占满可用宽度 */
 }
 
+/* 修改进度条样式，移除固定宽度限制 */
 .stat-progress {
-    flex: 1;
     height: 18px;
     background: #f0f0f0;
     border-radius: 9px;
     border: 1px solid var(--border-color);
     overflow: hidden;
     margin-right: 0.5rem;
+    /* 移除 flex-shrink: 0 和 min-width */
+    transition: width 0.3s ease; /* 宽度变化时有动画 */
 }
 
 .stat-fill {
@@ -170,23 +211,25 @@
     min-width: 60px;
     text-align: right;
     font-variant-numeric: tabular-nums;
+    flex-shrink: 0; /* 禁止缩放，保持数值区域固定宽度 */
 }
 
-/* 能力九维图区域 */
+/* 能力九维图区域 - 获得更多空间 */
 .ability-section {
     flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 200px;
-    margin: 0.5rem 0;
+    min-height: 220px; /* 增加最小高度 */
+    max-height: 380px; /* 增加最大高度 */
+    margin: 0.3rem 0;
 }
 
-/* 确保九边形容器有足够的空间显示外部标签 */
+/* 九边形容器调整 */
 .nonagram-container {
     position: relative;
-    width: 320px;  /* 增加宽度以容纳外部标签 */
-    height: 320px; /* 增加高度以容纳外部标签 */
+    width: 300px;  /* 稍微调小基准尺寸 */
+    height: 300px; /* 稍微调小基准尺寸 */
     margin: 0 auto;
 }
 
@@ -242,27 +285,30 @@
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-/* 操作按钮区域 */
+/* 操作按钮区域调整 */
 .action-section {
-    margin-top: 0.5rem;
+    margin-top: 0.3rem;
+    flex-shrink: 0;
+    min-height: 100px;
 }
 
+/* 操作按钮区域 - 改为2列布局 */
 .action-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr); /* 改为2列 */
     gap: 0.75rem;
 }
 
-/* 操作按钮样式优化 */
+/* 操作按钮样式优化 - 调整内部布局 */
 .action-btn {
     background: white;
     border: 2px solid var(--border-color);
     border-radius: var(--border-radius);
-    padding: 0.5rem;
-    text-align: left;
+    padding: 0.75rem 0.5rem;
+    text-align: left; /* 整体左对齐 */
     cursor: pointer;
     transition: all 0.2s ease;
-    min-height: 70px;
+    min-height: 75px;
     display: flex;
     flex-direction: column;
     position: relative;
@@ -273,29 +319,55 @@
     background: var(--bg-old);
 }
 
+/* 按钮标题 - 置顶左对齐 */
 .btn-title {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: bold;
     color: var(--text-light);
-    margin-bottom: 0.25rem;
+    text-align: left; /* 左对齐 */
+    width: 100%;
+    margin-bottom: 0.5rem;
+    padding-left: 0.25rem; /* 左侧留一点空间 */
     position: absolute;
-    top: 0.3rem;
-    left: 0.5rem;
+    top: 5%;
 }
 
+/* 按钮内容 - 在按钮正中心居中 */
 .btn-content {
     font-size: 1rem;
     font-weight: bold;
     color: var(--primary-color);
     line-height: 1.2;
-    word-break: break-word;
-    margin-top: 1rem;
-    text-align: center;
+    text-align: center; /* 内容本身居中 */
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    
+    /* 在按钮内垂直水平居中 */
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    padding: 0 0.5rem; /* 左右留一点边距 */
 }
 
 .btn-content::before {
-    content: ":";
-    margin: 0 0.2rem;
+    content: none !important;
+}
+
+/* 长文字处理 - 调整字号 */
+.btn-content.long-text {
+    font-size: 1.0rem;
+}
+
+.btn-content.very-long {
+    font-size: 0.9rem;
+}
+
+.btn-content.extremely-long {
+    font-size: 0.8rem;
 }
 
 /* 操作按钮内容样式修正 */
@@ -321,49 +393,58 @@
     margin: 0 !important;
 }
 
-.btn-content.with-value,
-.btn-content.without-value {
-    font-size: 1rem;
-    font-weight: bold;
-    color: var(--primary-color);
-    line-height: 1.2;
-    word-break: break-word;
-    margin-top: 1rem;
-    text-align: center;
+/* 响应式设计调整 */
+@media (max-width: 480px) {
+    .action-btn {
+        min-height: 70px;
+        padding: 0.6rem 0.4rem;
+    }
+    
+    .btn-title {
+        font-size: 0.7rem;
+        padding-left: 0.2rem;
+    }
+    
+    .btn-content {
+        font-size: 0.9rem;
+        padding: 0 0.4rem;
+    }
+    
+    .btn-content.long-text {
+        font-size: 0.8rem;
+    }
+    
+    .btn-content.very-long {
+        font-size: 0.7rem;
+    }
+    
+    .btn-content.extremely-long {
+        font-size: 0.6rem;
+    }
 }
 
-/* 响应式设计 */
-@media (max-width: 480px) {
-    .character-container {
-        padding: 0.75rem 1rem;
-    }
-    
-    .status-section {
-        min-height: 100px;
-    }
-    
-    .avatar-container.large {
-        width: 80px;
-        height: 80px;
-    }
-    
-    .character-name {
-        font-size: 1.3rem;
-    }
-    
+/* 大屏幕调整 */
+@media (min-width: 768px) and (max-height: 800px) {
+    /* 中等高度屏幕 */
     .nonagram-container {
-        width: 240px;
-        height: 240px;
+        width: 280px;
+        height: 280px;
     }
     
-    .action-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.5rem;
+    .ability-section {
+        max-height: 350px;
+    }
+}
+
+@media (min-width: 768px) and (min-height: 801px) {
+    /* 大高度屏幕 */
+    .nonagram-container {
+        width: 320px;
+        height: 320px;
     }
     
-    .action-btn {
-        min-height: 55px;
-        padding: 0.5rem 0.25rem;
+    .ability-section {
+        max-height: 400px;
     }
 }
 

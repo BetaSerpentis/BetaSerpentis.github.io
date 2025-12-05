@@ -58,17 +58,17 @@ const Roster = {
                     sanity: { current: 30, max: 100 }
                 },
                 abilities: {
-                    str: 65, dex: 70, con: 55, pow: 80, app: 60, 
-                    luk: 45, siz: 75, int: 85, edu: 70
+                    str: 5, dex: 100, con: 55, pow: 10, app: 60, 
+                    luk: 45, siz: 5, int: 85, edu: 5
                 },
+                // 在js/roster.js的模拟数据中测试
                 skills: {
-                    // 分开存储技能名和点数
-                    occupation: { name: '侦查', value: 70 },
-                    hobby: { name: '图书馆使用', value: 60 },
-                    weapon: { name: '手枪', value: null }, // 无点数
-                    item: { name: '医疗包', value: null },
-                    note: { name: '线索记录', value: null },
-                    magic: { name: '深潜术', value: null }
+                    occupation: { name: '克苏鲁神话知识', value: 85 },
+                    hobby: { name: '图书馆使用与研究', value: 70 },
+                    weapon: { name: '古董左轮手枪', value: null },
+                    item: { name: '医疗急救包', value: null },
+                    note: { name: '密斯卡托尼克大学调查记录', value: null },
+                    magic: { name: '深潜者召唤术', value: null }
                 }
             },
             '2': {

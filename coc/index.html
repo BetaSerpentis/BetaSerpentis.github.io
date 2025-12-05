@@ -70,14 +70,11 @@
         
         <!-- 角色信息页 -->
         <div id="character-page" class="page">
-            <header class="page-header">
-                <button id="back-button" class="back-button">返回</button>
-                <h1 class="page-title">【调查员档案】</h1>
-            </header>
-            
+            <!-- 移除单独的header，将返回按钮集成到状态区域 -->
             <main class="character-container">
                 <!-- 角色状态区域 -->
                 <section class="status-section">
+                    <button id="back-button" class="back-button">← 返回</button>
                     <div class="avatar-info-group" data-action="background">
                         <div class="avatar-container large">
                             <img src="assets/images/placeholder-avatar.jpg" alt="李明" class="avatar">
@@ -87,10 +84,13 @@
                                 <span class="character-name">李明</span>
                             </div>
                         </div>
+                        
+                        <!-- 异常状态指示器 - 在头像右上角 -->
+                        <div class="status-indicators-container">
+                            <div class="status-indicator-item">疯狂</div>
+                            <div class="status-indicator-item">麻痹</div>
+                        </div>
                     </div>
-                    
-                    <!-- 异常状态指示器 - 竖排显示 -->
-                    <div class="status-indicator">疯狂</div>
                     
                     <div class="stats-group">
                         <div class="stat-bar health" data-action="hp-info">
@@ -129,7 +129,7 @@
                                 <polygon class="nonagram-fill" points=""></polygon>
                             </svg>
                             
-                            <!-- 能力标签位置保持不变 -->
+                            <!-- 能力标签 - 由JavaScript动态定位 -->
                             <div class="ability-label str" data-ability="str">力量<br>65</div>
                             <div class="ability-label dex" data-ability="dex">敏捷<br>70</div>
                             <div class="ability-label con" data-ability="con">体质<br>55</div>
