@@ -81,9 +81,9 @@ const Roster = {
                 activeEra: '2010年代',
                 avatar: 'assets/images/placeholder-avatar.jpg',
                 stats: {
-                    hp: { current: 18, max: 18 },
-                    mp: { current: 15, max: 15 },
-                    sanity: { current: 75, max: 75 }
+                    hp: { current: 20, max: 20 },
+                    mp: { current: 5, max: 5 },
+                    sanity: { current: 50, max: 50 }
                 },
                 abilities: {
                     str: 45, dex: 60, con: 50, pow: 70, app: 80, 
