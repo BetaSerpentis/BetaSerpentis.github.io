@@ -122,9 +122,24 @@ const CharacterPage = {
         this.playPageTurnIn(() => {
             // 更新页面数据
             this.updateCharacterData(characterData);
+            
+            // 调试：检查DOM结构
+            setTimeout(() => {
+                console.log('检查进度条元素:');
+                console.log('HP进度条:', document.querySelector('.health .stat-progress'));
+                console.log('HP填充:', document.querySelector('.health .stat-fill'));
+                console.log('HP数值:', document.querySelector('.health .stat-value'));
+                
+                // 强制触发重绘
+                document.querySelectorAll('.stat-progress').forEach(el => {
+                    el.style.display = 'none';
+                    el.offsetHeight; // 触发重绘
+                    el.style.display = '';
+                });
+            }, 100);
         });
     },
-    
+
     updateCharacterData: function(characterData) {
         // 更新基本信息
         const nameElement = document.querySelector('.character-name');
