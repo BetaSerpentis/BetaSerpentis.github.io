@@ -1,11 +1,10 @@
 export class CardGrid {
-    // CardGrid.js - 在构造函数中确保方法可用
     constructor(cardManager, imageLoader, onCardClick, onQuantityChange) {
         this.cardManager = cardManager;
         this.imageLoader = imageLoader;
         this.onCardClick = onCardClick;
         this.onQuantityChange = onQuantityChange;
-        
+                
         this.cardGrid = document.getElementById('card-grid');
         this.noResults = document.getElementById('no-results');
         this.loadingSection = document.getElementById('loading-section');
@@ -14,17 +13,8 @@ export class CardGrid {
         this.currentBatch = 0;
         this.isLoadingBatch = false;
         
-        // 确保统计模式检测方法可用
-        this.isStatsModeActive = this.isStatsModeActive.bind(this);
-        
-        // 触摸相关变量
-        this.cardTouchStartTime = 0;
-        this.cardTouchStartX = 0;
-        this.cardTouchStartY = 0;
-        this.cardTouchCount = 0;
-        this.cardIsMultiTouch = false;
-        this.cardLastTouchEndTime = 0;
-        this.cardDoubleTouchProcessed = false;
+        // ==== 关键修复：移除所有方法绑定，等后续再绑定 ====
+        // 不要在这里绑定任何方法
     }
 
     // CardGrid.js - 修复 init 方法
@@ -36,10 +26,12 @@ export class CardGrid {
         
         // 确保懒加载观察器已启动
         this.imageLoader.initLazyLoading();
+        
+        // 新增：禁用图片长按保存
+        this.disableImageLongPress();
     }
 
     // 渲染卡牌网格
-    // 修复 render 方法中的错误调用
     render() {
         this.cardGrid.innerHTML = '';
         this.currentBatch = 0;
@@ -54,16 +46,10 @@ export class CardGrid {
             this.noResults.style.display = 'none';
             this.cardGrid.style.display = 'grid';
             this.loadNextBatch();
-            
-            // 修复：移除错误的方法调用
-            // setTimeout(() => {
-            //     this.imageLoader.checkVisibleImages(); // 这行会导致错误
-            // }, 100);
         }
     }
 
     // 加载下一批卡牌
-    // CardGrid.js - 修复 loadNextBatch 和 render 方法中的错误调用
     loadNextBatch() {
         if (this.isLoadingBatch) return;
         
@@ -104,12 +90,9 @@ export class CardGrid {
         
         this.currentBatch++;
         this.isLoadingBatch = false;
-        
-        // 修复：使用正确的方法名 - 移除这行或者使用正确的方法
-        // this.imageLoader.checkVisibleImages(); // 这行会导致错误
     }
 
-    // CardGrid.js - 修复 createCardElement 方法，添加图片观察
+    // 创建卡牌元素
     createCardElement(card, index) {
         // console.log(`🖼️ 创建卡牌元素: ${card.name}, 图片路径: ${card.image}, ID: ${card.id}`);
         
@@ -136,40 +119,42 @@ export class CardGrid {
         
         const svgPlaceholder = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="252" height="352" viewBox="0 0 252 352"><rect width="252" height="352" fill="%23f0f0f0"/><text x="126" y="176" font-family="Arial" font-size="14" text-anchor="middle" fill="%23666">加载中...</text></svg>`;
         img.src = svgPlaceholder;
-
-        // 简化的模式检测
-        const isDeckMode = !!document.querySelector('.deck-tabs-container');
-        const hasSearchHeader = document.querySelector('.search-header').style.display !== 'none';
         
-        // 数量显示逻辑
+        // 简化的数量显示逻辑
         let displayQuantity = 0;
         let shouldDisplayQuantity = false;
         
-        if (isDeckMode && !hasSearchHeader) {
-            // 卡组模式（显示卡组页签，隐藏搜索栏）：数量为1不显示
+        // 检查是否在卡组模式
+        const isDeckMode = !!document.querySelector('.deck-tabs-container');
+        const hasSearchHeader = document.querySelector('.search-header').style.display !== 'none';
+        
+        // 检查是否是卡组添加模式
+        const isDeckAddMode = !!document.querySelector('.deck-complete-button') || 
+                            (isDeckMode && hasSearchHeader);
+        
+        if (isDeckMode) {
+            // 卡组模式：显示卡组中的数量
             if (this.deckManager) {
                 const currentDeck = this.deckManager.getCurrentDeck();
                 if (currentDeck) {
                     const deckCard = currentDeck.cards.find(c => c.id === card.id);
                     displayQuantity = deckCard ? deckCard.quantity : 0;
-                    shouldDisplayQuantity = displayQuantity > 1;
+                    
+                    // 根据具体模式决定显示规则
+                    if (isDeckAddMode) {
+                        // 添加模式：数量>0就显示（包括1）
+                        shouldDisplayQuantity = displayQuantity > 0;
+                    } else {
+                        // 编辑模式：总是显示数量
+                        const isDeckEditMode = !!document.querySelector('.deck-edit-button');
+                        shouldDisplayQuantity = isDeckEditMode ? (displayQuantity > 0) : (displayQuantity > 1);
+                    }
                 }
             }
         } else {
-            // 卡牌浏览模式（显示搜索栏）：数量为1也要显示
-            if (isDeckMode && this.deckManager) {
-                // 卡组新增界面：显示卡组内的数量
-                const currentDeck = this.deckManager.getCurrentDeck();
-                if (currentDeck) {
-                    const deckCard = currentDeck.cards.find(c => c.id === card.id);
-                    displayQuantity = deckCard ? deckCard.quantity : 0;
-                    shouldDisplayQuantity = displayQuantity > 0;
-                }
-            } else {
-                // 统计模式或正常浏览：显示拥有数量
-                displayQuantity = card.quantity;
-                shouldDisplayQuantity = displayQuantity > 0;
-            }
+            // 普通模式：显示拥有数量（统计模式）
+            displayQuantity = card.quantity || 0;
+            shouldDisplayQuantity = displayQuantity > 0;
         }
         
         // 显示数量
@@ -182,51 +167,203 @@ export class CardGrid {
         
         cardElement.appendChild(img);
         
-        // 绑定事件
+        // 绑定事件 - 使用统一的触摸处理
         const elementWithEvents = this.bindCardEvents(cardElement, index);
         
-        // 重要：观察图片加载 - 这行是修复自动加载的关键
         this.imageLoader.observeImage(img);
         
         return elementWithEvents;
     }
 
-    // 绑定卡牌事件
-    // CardGrid.js - 简化 bindCardEvents 方法
+    // ==== 统一触摸事件处理 ====
     bindCardEvents(cardElement, index) {
-        // // console.log('🎮 绑定卡牌事件 - 索引:', index);
+        let touchStartTime = 0;
+        let longPressTimer = null;
+        let touchMoved = false;
         
-        let clickProcessed = false;
-        
-        const handleClick = (e) => {
-            if (clickProcessed) return;
-            clickProcessed = true;
+        // 触摸开始
+        cardElement.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             
-            // console.log('🖱️ 卡牌点击 - 索引:', index, '按钮:', e.type);
+            // 只处理单指触摸
+            if (e.touches.length > 1) return;
             
-            if (this.onCardClick) {
-                const buttonType = e.type === 'contextmenu' ? 'right' : 'left';
-                // console.log('📞 调用 onCardClick, 按钮:', buttonType);
-                this.onCardClick(index, buttonType);
+            touchStartTime = Date.now();
+            touchMoved = false;
+            
+            // 清除之前的定时器
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
             }
             
-            setTimeout(() => { clickProcessed = false; }, 300);
-        };
-
-        cardElement.addEventListener('click', (e) => {
+            // 设置长按定时器（1秒）
+            longPressTimer = setTimeout(() => {
+                // 长按：-1
+                this.handleCardAction(index, 'decrement');
+                
+                // 持续减少（每1秒-1）
+                const intervalId = setInterval(() => {
+                    this.handleCardAction(index, 'decrement');
+                }, 1000);
+                
+                // 存储intervalId，触摸结束时清除
+                const clearIntervalOnEnd = () => {
+                    clearInterval(intervalId);
+                    cardElement.removeEventListener('touchend', clearIntervalOnEnd);
+                    cardElement.removeEventListener('touchcancel', clearIntervalOnEnd);
+                };
+                
+                cardElement.addEventListener('touchend', clearIntervalOnEnd, { once: true });
+                cardElement.addEventListener('touchcancel', clearIntervalOnEnd, { once: true });
+            }, 1000);
+            
+        }, { passive: false });
+        
+        // 触摸移动
+        cardElement.addEventListener('touchmove', (e) => {
+            // 如果移动距离较大，取消长按
+            touchMoved = true;
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+        }, { passive: true });
+        
+        // 触摸结束
+        cardElement.addEventListener('touchend', (e) => {
             e.preventDefault();
-            handleClick(e);
-        });
+            e.stopPropagation();
+            
+            // 清除长按定时器
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+            
+            // 如果发生了移动，不处理点击
+            if (touchMoved) return;
+            
+            const touchDuration = Date.now() - touchStartTime;
+            
+            console.log('🖐️ CardGrid: 触摸结束', { touchDuration, touchMoved });
+            
+            // 短按（<1秒）：+1
+            if (touchDuration < 1000) {
+                console.log('➕ CardGrid: 触发增加动作');
+                this.handleCardAction(index, 'increment');
+            }
+            
+        }, { passive: false });
 
+        // 触摸取消
+        cardElement.addEventListener('touchcancel', (e) => {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+        }, { passive: true });
+        
+        // 桌面端右键（备用）
         cardElement.addEventListener('contextmenu', (e) => {
             e.preventDefault();
-            handleClick(e);
-        });
+            e.stopPropagation();
+            this.handleCardAction(index, 'decrement');
+        }, false);
+        
+        // 桌面端左键（备用）
+        cardElement.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.handleCardAction(index, 'increment');
+        }, false);
         
         return cardElement;
     }
 
-    // 新增：更可靠的统计模式检测方法
+    // 在 handleCardAction 方法中修复
+    handleCardAction(index, action) {
+        const change = action === 'increment' ? 1 : -1;
+        const buttonType = action === 'increment' ? 'left' : 'right';
+        
+        console.log('🃏 CardGrid: 触发卡牌动作', { index, action, change, buttonType });
+        
+        // 优先使用 onCardClick 回调
+        if (this.onCardClick) {
+            console.log('✅ CardGrid: 使用 onCardClick 回调');
+            this.onCardClick(index, buttonType);
+            return;
+        }
+        
+        // 如果没有 onCardClick，尝试使用 onQuantityChange
+        if (this.onQuantityChange) {
+            console.log('✅ CardGrid: 使用 onQuantityChange 回调');
+            this.onQuantityChange(index, change);
+            return;
+        }
+        
+        console.error('❌ CardGrid: 没有可用的回调函数来处理卡牌动作');
+    }
+
+    // ==== 新增：禁用图片长按保存 ====
+    disableImageLongPress() {
+        // CSS禁用长按菜单
+        const style = document.createElement('style');
+        style.textContent = `
+            .card img {
+                -webkit-touch-callout: none !important;
+                -webkit-user-select: none !important;
+                -moz-user-select: none !important;
+                -ms-user-select: none !important;
+                user-select: none !important;
+                pointer-events: none !important;
+            }
+            
+            .card {
+                -webkit-tap-highlight-color: transparent !important;
+                touch-action: manipulation !important;
+            }
+            
+            img {
+                -webkit-touch-callout: none !important;
+            }
+            
+            /* 防止iOS上的长按菜单 */
+            * {
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // JavaScript阻止默认行为
+        document.addEventListener('contextmenu', (e) => {
+            if (e.target.closest('.card') || e.target.closest('.card img')) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        }, { capture: true });
+        
+        // iOS特殊处理 - 阻止长按事件
+        document.addEventListener('touchstart', (e) => {
+            if (e.target.closest('.card') || e.target.closest('.card img')) {
+                // 允许阻止默认行为
+                if (e.cancelable) {
+                    e.preventDefault();
+                }
+            }
+        }, { passive: false, capture: true });
+        
+        // 额外：防止触摸保持菜单
+        document.addEventListener('touchend', (e) => {
+            if (e.target.closest('.card')) {
+                e.preventDefault();
+            }
+        }, { passive: false, capture: true });
+    }
+
+    // ==== 统计模式检测 ====
     isStatsModeActive() {
         // 方法1：检查统计按钮状态
         const statsButton = document.querySelector('.stats-button');
@@ -234,214 +371,25 @@ export class CardGrid {
             return true;
         }
         
-        // 方法2：检查统计面板是否可见
-        const statsPanel = document.querySelector('.stats-panel');
-        if (statsPanel && statsPanel.style.display !== 'none') {
-            return true;
-        }
-        
-        // 方法3：检查是否有统计模式特定的类名
-        if (document.querySelector('.stats-mode-active')) {
-            return true;
-        }
-        
-        // 方法4：检查全局变量（如果存在）
-        if (window.isStatsModeActive && typeof window.isStatsModeActive === 'function') {
-            return window.isStatsModeActive();
+        // 方法2：检查全局变量
+        if (window.statsManager && window.statsManager.isStatModeActive) {
+            return window.statsManager.isStatModeActive();
         }
         
         return false;
     }
 
-    // 新增：统计模式事件绑定
-    bindStatsModeEvents(cardElement, index) {
-        let clickProcessed = false;
-        
-        const handleClick = (e) => {
-            if (clickProcessed) return;
-            clickProcessed = true;
-            
-            // console.log('📊 统计模式点击 - 索引:', index, '类型:', e.type);
-            
-            const cards = this.cardManager.getDisplayCards();
-            if (index < 0 || index >= cards.length) {
-                // console.log('❌ 索引超出范围');
-                return;
-            }
-            
-            const card = cards[index];
-            // console.log('📊 操作卡牌:', card.name, '当前数量:', card.quantity);
-            
-            if (e.type === 'click' || e.button === 0) {
-                // 左键：增加数量
-                // console.log('➕ 统计模式增加数量');
-                const newQuantity = this.cardManager.updateCardQuantity(card.id, 1);
-                this.updateCardQuantityDisplay(card.id, newQuantity);
-                this.cardManager.debouncedSave();
-                this.showStatsOperationFeedback(card.name, 1);
-            } else if (e.type === 'contextmenu' || e.button === 2) {
-                // 右键：减少数量
-                // console.log('➖ 统计模式减少数量');
-                const newQuantity = this.cardManager.updateCardQuantity(card.id, -1);
-                this.updateCardQuantityDisplay(card.id, newQuantity);
-                this.cardManager.debouncedSave();
-                this.showStatsOperationFeedback(card.name, -1);
-            }
-            
-            setTimeout(() => { clickProcessed = false; }, 300);
-        };
-
-        cardElement.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            handleClick(e);
-        });
-
-        cardElement.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            handleClick(e);
-        });
-        
-        return cardElement;
-    }
-
-    // 新增：统计模式操作反馈
-    showStatsOperationFeedback(cardName, change) {
-        const feedback = document.createElement('div');
-        feedback.textContent = `${cardName} ${change > 0 ? '增加' : '减少'}成功`;
-        feedback.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            z-index: 1001;
-            font-size: 1rem;
-        `;
-        
-        document.body.appendChild(feedback);
-        setTimeout(() => {
-            feedback.remove();
-        }, 1000);
-    }
-
-    // 添加紧急处理方法
-    emergencyDeckEditHandler(index, change) {
-        // console.log('🆘 紧急处理卡组编辑 - 索引:', index, '变化:', change);
-        
-        const cards = this.cardManager.getDisplayCards();
-        if (index < 0 || index >= cards.length) {
-            // console.log('❌ 索引超出范围');
-            return;
-        }
-        
-        const card = cards[index];
-        // console.log('🃏 操作卡牌:', card.name, 'ID:', card.id);
-        
-        if (this.deckManager) {
-            const result = this.deckManager.updateCardQuantity(card.id, change);
-            // console.log('✅ 紧急处理结果:', result);
-            
-            // 更新显示
-            if (result) {
-                this.updateCardQuantityDisplay(card.id, result.quantity);
-            }
-            
-            // 显示反馈
-            this.showDeckOperationFeedback(card.name, change);
-        }
-    }
-
-    // 添加反馈方法
-    showDeckOperationFeedback(cardName, change) {
-        const feedback = document.createElement('div');
-        feedback.textContent = `${cardName} ${change > 0 ? '添加' : '移除'}成功`;
-        feedback.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            z-index: 1001;
-            font-size: 1rem;
-        `;
-        
-        document.body.appendChild(feedback);
-        setTimeout(() => {
-            feedback.remove();
-        }, 1000);
-    }
-
-    // 卡牌触摸开始
-    handleCardTouchStart(e) {
-        const now = Date.now();
-        
-        if (now - this.cardLastTouchEndTime < 300) {
-            return;
-        }
-        
-        this.cardTouchStartTime = now;
-        this.cardTouchStartX = e.touches[0].clientX;
-        this.cardTouchStartY = e.touches[0].clientY;
-        this.cardTouchCount = e.touches.length;
-        this.cardDoubleTouchProcessed = false;
-        
-        if (this.cardTouchCount >= 2) {
-            this.cardIsMultiTouch = true;
-            return;
-        }
-        
-        this.cardIsMultiTouch = false;
-    }
-
-    // 卡牌触摸结束
-    handleCardTouchEnd(e) {
-        const now = Date.now();
-        this.cardLastTouchEndTime = now;
-        
-        const touchDuration = now - this.cardTouchStartTime;
-        const touchEndX = e.changedTouches[0].clientX;
-        const touchEndY = e.changedTouches[0].clientY;
-        const deltaX = Math.abs(touchEndX - this.cardTouchStartX);
-        const deltaY = Math.abs(touchEndY - this.cardTouchStartY);
-        
-        const index = parseInt(e.currentTarget.dataset.index);
-        
-        // 只处理双指触摸（减少数量）
-        if (this.cardIsMultiTouch && this.cardTouchCount >= 2 && !this.cardDoubleTouchProcessed) {
-            if (this.onQuantityChange && touchDuration < 500) {
-                this.onQuantityChange(index, -1);
-                this.cardDoubleTouchProcessed = true;
-            }
-            this.cardIsMultiTouch = false;
-            return;
-        }
-        
-        this.cardIsMultiTouch = false;
-    }
-
-    // 卡牌触摸取消
-    handleCardTouchCancel() {
-        this.cardIsMultiTouch = false;
-        this.cardDoubleTouchProcessed = false;
-    }
-
-    // CardGrid.js - 优化 updateCardQuantityDisplay 方法
+    // ==== 更新卡牌数量显示 ====
     updateCardQuantityDisplay(cardId, quantity) {
-        // console.log('🔄 更新卡牌数量显示:', cardId, '数量:', quantity);
-        
         const cardElements = document.querySelectorAll('.card');
         
         // 简化的模式检测
         const isDeckMode = !!document.querySelector('.deck-tabs-container');
         const hasSearchHeader = document.querySelector('.search-header').style.display !== 'none';
+        
+        // 特别检查是否是卡组添加模式
+        const isDeckAddMode = !!document.querySelector('.deck-complete-button') || 
+                            (isDeckMode && hasSearchHeader);
         
         cardElements.forEach(cardElement => {
             const elementCardId = cardElement.dataset.cardId;
@@ -452,8 +400,11 @@ export class CardGrid {
                 // 根据模式决定显示规则
                 let shouldDisplay = false;
                 
-                if (isDeckMode && !hasSearchHeader) {
-                    // 卡组模式：数量为1不显示
+                if (isDeckAddMode) {
+                    // 卡组添加模式：数量>0就显示（包括1）
+                    shouldDisplay = quantity > 0;
+                } else if (isDeckMode && !hasSearchHeader) {
+                    // 卡组编辑/浏览模式：数量为1不显示
                     shouldDisplay = quantity > 1;
                 } else {
                     // 卡牌浏览模式：数量为1也要显示
@@ -467,15 +418,13 @@ export class CardGrid {
                         cardElement.appendChild(quantityElement);
                     }
                     quantityElement.textContent = quantity;
-                    // console.log('✅ 设置数量显示:', quantity);
                 } else if (quantityElement) {
                     quantityElement.remove();
-                    // console.log('❌ 移除数量显示');
                 }
             }
         });
     }
-
+    
     // 显示加载状态
     showLoading() {
         this.loadingSection.style.display = 'block';
@@ -496,4 +445,19 @@ export class CardGrid {
             searchInfo.textContent = message;
         }
     }
+
+    // ==== 移除不再需要的方法 ====
+    // 删除以下重复或不再需要的方法：
+    // - handleShortPress
+    // - handleLongPress
+    // - handleRightClick
+    // - handleLeftClick
+    // - triggerCardAction（重复）
+    // - bindStatsModeEvents
+    // - showStatsOperationFeedback
+    // - emergencyDeckEditHandler
+    // - showDeckOperationFeedback
+    // - handleCardTouchStart
+    // - handleCardTouchEnd
+    // - handleCardTouchCancel
 }
