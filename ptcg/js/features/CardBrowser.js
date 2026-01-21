@@ -14,12 +14,12 @@ export class CardBrowser {
         this.init();
     }
 
-    // 初始化
+    // 修改 init 方法，移除事件绑定
     init() {
         this.bindEvents();
     }
 
-    // 绑定事件
+    // 修改 bindEvents 方法，只绑定搜索相关事件
     bindEvents() {
         this.searchButton.addEventListener('click', () => {
             this.performSearch();
@@ -31,15 +31,8 @@ export class CardBrowser {
             }
         });
         
-        // 设置卡牌点击回调
-        this.cardGrid.onCardClick = (index, button) => {
-            this.handleCardClick(index, button);
-        };
-        
-        // 设置数量变化回调
-        this.cardGrid.onQuantityChange = (index, change) => {
-            this.handleQuantityChange(index, change);
-        };
+        // 注意：不再在这里设置 cardGrid.onCardClick
+        // 事件现在由 main.js 统一处理
     }
 
     // CardBrowser.js - 修复 handleCardClick 方法

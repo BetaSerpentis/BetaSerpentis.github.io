@@ -24,7 +24,6 @@ class PTCGApp {
     }
     
     // main.js - 确保 ImageLoader 正确初始化
-    // 在 main.js 的 init 方法中，确保 CardBrowser 在 DeckEditor 之前初始化
     async init() {
         try {
             // 初始化Three.js背景
@@ -56,12 +55,12 @@ class PTCGApp {
             this.statsManager = new StatsManager(this.cardManager, this.onStatsChange.bind(this));
             this.tabManager = new TabManager(this.cardManager, this.onTabChange.bind(this));
             
-            // 创建 CardGrid
+            // 创建 CardGrid - 这次传入正确的回调
             this.cardGrid = new CardGrid(
                 this.cardManager, 
                 this.imageLoader,
-                null,
-                null
+                (index, button) => this.handleCardClick(index, button), // 统一处理卡牌点击
+                (index, change) => this.handleQuantityChange(index, change) // 统一处理数量变化
             );
 
             // 确保 CardGrid 可以访问 deckManager
@@ -89,15 +88,6 @@ class PTCGApp {
             // 让 DeckEditor 可以访问 CardBrowser
             this.deckEditor.cardBrowser = this.cardBrowser;
             
-            // 设置 CardGrid 的回调
-            this.cardGrid.onCardClick = (index, button) => {
-                this.deckEditor.handleCardClick(index, button);
-            };
-            
-            this.cardGrid.onQuantityChange = (index, change) => {
-                this.deckEditor.handleQuantityChange(index, change);
-            };
-
             // 初始化组件
             this.cardGrid.init(); // 确保 CardGrid 初始化
             this.tabManager.init();
@@ -130,10 +120,61 @@ class PTCGApp {
             // 加载初始数据
             await this.cardBrowser.loadCardData('宝可梦');
             
-            // console.log('✅ 应用初始化完成');
+            console.log('✅ 应用初始化完成');
             
         } catch (error) {
             console.error('应用初始化失败:', error);
+        }
+    }
+
+    // ===== 新增：统一的卡牌点击处理 =====
+    handleCardClick(index, button) {
+        console.log('🔄 Main: 卡牌点击事件分发', { index, button });
+        
+        // 检查统计模式（最高优先级）
+        if (this.statsManager.isStatModeActive()) {
+            console.log('📊 Main: 分发到统计模式');
+            const change = button === 'left' ? 1 : -1;
+            const result = this.statsManager.updateCardQuantity(index, change);
+            if (result) {
+                this.cardGrid.updateCardQuantityDisplay(result.cardId, result.quantity);
+            }
+            return;
+        }
+        
+        // 检查是否是卡组模式
+        const isDeckMode = !!document.querySelector('.deck-tabs-container');
+        
+        if (isDeckMode) {
+            // 卡组模式：分发到 DeckEditor
+            console.log('🎴 Main: 分发到卡组编辑模式');
+            this.deckEditor.handleCardClick(index, button);
+        } else {
+            // 普通浏览模式：打开模态框
+            console.log('🌐 Main: 分发到模态框');
+            this.modalView.show(index);
+        }
+    }
+
+    // ===== 新增：统一的数量变化处理 =====
+    handleQuantityChange(index, change) {
+        console.log('🔄 Main: 数量变化事件分发', { index, change });
+        
+        // 统计模式处理
+        if (this.statsManager.isStatModeActive()) {
+            console.log('📊 Main: 统计模式数量变化');
+            const result = this.statsManager.updateCardQuantity(index, change);
+            if (result) {
+                this.cardGrid.updateCardQuantityDisplay(result.cardId, result.quantity);
+            }
+            return;
+        }
+        
+        // 卡组模式处理
+        const isDeckMode = !!document.querySelector('.deck-tabs-container');
+        if (isDeckMode) {
+            console.log('🎴 Main: 卡组模式数量变化');
+            this.deckEditor.handleQuantityChange(index, change);
         }
     }
 
