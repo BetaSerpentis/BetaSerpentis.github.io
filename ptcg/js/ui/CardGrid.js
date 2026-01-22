@@ -387,6 +387,7 @@ export class CardGrid {
     disableImageLongPress() {
         const style = document.createElement('style');
         style.textContent = `
+            /* 防止图片缩放和长按 */
             .card img {
                 -webkit-touch-callout: none !important;
                 -webkit-user-select: none !important;
@@ -394,10 +395,32 @@ export class CardGrid {
                 -ms-user-select: none !important;
                 user-select: none !important;
                 pointer-events: none !important;
+                -webkit-user-drag: none !important;
+                -khtml-user-drag: none !important;
+                -moz-user-drag: none !important;
+                -o-user-drag: none !important;
+                user-drag: none !important;
             }
             
+            /* 防止双击缩放 */
             .card {
                 -webkit-tap-highlight-color: transparent !important;
+                touch-action: manipulation !important;
+            }
+            
+            /* 防止页面缩放 */
+            html, body {
+                touch-action: manipulation;
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                overscroll-behavior: none;
+            }
+            
+            /* 允许输入框 */
+            input, textarea, .search-input, [contenteditable="true"] {
+                touch-action: auto !important;
+                -webkit-user-select: auto !important;
+                user-select: auto !important;
             }
             
             /* 拖拽时的样式 */
@@ -412,23 +435,10 @@ export class CardGrid {
                 -webkit-overflow-scrolling: touch;
                 touch-action: pan-y;
             }
-            
-            /* 仅对卡牌相关元素禁用长按菜单，而不是全局 */
-            .card, .card img, .card * {
-                -webkit-touch-callout: none;
-                -webkit-user-select: none;
-            }
-            
-            /* 允许输入框正常工作 */
-            input, textarea, .search-input, [contenteditable="true"] {
-                -webkit-touch-callout: default !important;
-                -webkit-user-select: auto !important;
-                user-select: auto !important;
-            }
         `;
         document.head.appendChild(style);
         
-        // JavaScript阻止默认行为 - 只针对卡牌
+        // JavaScript阻止默认行为
         document.addEventListener('contextmenu', (e) => {
             if (e.target.closest('.card') || e.target.closest('.card img')) {
                 e.preventDefault();
@@ -436,7 +446,31 @@ export class CardGrid {
                 return false;
             }
         }, { capture: true });
+        
+        // 防止双击缩放
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (e) => {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, { passive: false });
+        
+        // 防止双指缩放
+        document.addEventListener('gesturestart', (e) => {
+            e.preventDefault();
+        });
+        
+        document.addEventListener('gesturechange', (e) => {
+            e.preventDefault();
+        });
+        
+        document.addEventListener('gestureend', (e) => {
+            e.preventDefault();
+        });
     }
+
     isStatsModeActive() {
         const statsButton = document.querySelector('.stats-button');
         if (statsButton && statsButton.classList.contains('active')) {

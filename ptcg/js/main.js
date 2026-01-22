@@ -16,6 +16,7 @@ import { DeckManager } from './core/DeckManager.js';
 import { DeckEditor } from './features/DeckEditor.js';
 
 import { ButtonManager } from './utils/ButtonManager.js';
+import { TouchManager } from './utils/TouchManager.js';
 
 class PTCGApp {
     constructor() {
@@ -30,11 +31,20 @@ class PTCGApp {
             initThreeJS();
             
             // 初始化核心服务
+            const touchManager = new TouchManager();
+            this.touchManager = touchManager; // 保存到实例变量中
+
             this.storageService = new StorageService();
             this.cardManager = new CardManager(this.storageService);
             this.searchEngine = new SearchEngine(this.cardManager);
             this.imageLoader = new ImageLoader();
-            
+
+            // 确保输入框可以正常工作
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                touchManager.enableTouchForElement(searchInput);
+            } 
+
             // 确保 ImageLoader 初始化完成
             // console.log('初始化 ImageLoader 懒加载');
             this.imageLoader.initLazyLoading();
