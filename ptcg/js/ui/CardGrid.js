@@ -384,7 +384,6 @@ export class CardGrid {
         console.error('❌ CardGrid: 没有可用的回调函数来处理卡牌动作');
     }
 
-    // ==== 禁用图片长按保存 ====
     disableImageLongPress() {
         const style = document.createElement('style');
         style.textContent = `
@@ -401,10 +400,6 @@ export class CardGrid {
                 -webkit-tap-highlight-color: transparent !important;
             }
             
-            img {
-                -webkit-touch-callout: none !important;
-            }
-            
             /* 拖拽时的样式 */
             .card-grid.dragging .card {
                 cursor: grabbing !important;
@@ -418,15 +413,22 @@ export class CardGrid {
                 touch-action: pan-y;
             }
             
-            /* 防止iOS上的长按菜单 */
-            * {
+            /* 仅对卡牌相关元素禁用长按菜单，而不是全局 */
+            .card, .card img, .card * {
                 -webkit-touch-callout: none;
                 -webkit-user-select: none;
+            }
+            
+            /* 允许输入框正常工作 */
+            input, textarea, .search-input, [contenteditable="true"] {
+                -webkit-touch-callout: default !important;
+                -webkit-user-select: auto !important;
+                user-select: auto !important;
             }
         `;
         document.head.appendChild(style);
         
-        // JavaScript阻止默认行为
+        // JavaScript阻止默认行为 - 只针对卡牌
         document.addEventListener('contextmenu', (e) => {
             if (e.target.closest('.card') || e.target.closest('.card img')) {
                 e.preventDefault();
@@ -435,7 +437,6 @@ export class CardGrid {
             }
         }, { capture: true });
     }
-
     isStatsModeActive() {
         const statsButton = document.querySelector('.stats-button');
         if (statsButton && statsButton.classList.contains('active')) {

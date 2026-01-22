@@ -11,8 +11,10 @@
     backdrop-filter: blur(10px);
 }
 
-/* 功能切换区域 */
+/* 修改功能切换区域 */
 .feature-tabs {
+    position: sticky;
+    top: 90px; /* 根据搜索栏高度调整 */
     z-index: 99;
     background: rgba(255, 255, 255, 0.95);
     padding: 15px 20px;
@@ -20,6 +22,9 @@
     margin-bottom: 20px;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
     backdrop-filter: blur(10px);
+    /* 添加触摸支持 */
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* 页签样式 */
@@ -528,6 +533,13 @@
     
     .card {
         height: 110px; /* 稍微缩小卡图尺寸 */
+    }
+
+    .feature-tabs {
+        position: sticky;
+        top: 70px; /* 移动端调整 */
+        padding: 10px 15px;
+        margin-bottom: 10px;
     }
 }
 
@@ -1554,4 +1566,11 @@
     .deck-tab-add::before {
         font-size: 2.2rem;
     }
+}
+
+/* 确保容器允许滚动 */
+.container {
+    height: 100vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
