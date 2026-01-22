@@ -165,12 +165,46 @@
     background: #FF9800;
 }
 
-/* 卡牌网格 */
+/* 在 ptcg.css 的 .card-grid 部分添加 */
 .card-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
-    gap: 10px; /* 统一的水平和垂直间距 */
+    gap: 10px;
     margin-top: 20px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* iOS 平滑滚动 */
+    touch-action: pan-y; /* 允许垂直滚动 */
+    height: calc(100vh - 200px); /* 根据你的布局调整 */
+    padding-bottom: 20px;
+}
+
+/* 拖拽时的样式 */
+.card-grid.dragging {
+    cursor: grabbing;
+}
+
+.card-grid.dragging .card {
+    pointer-events: none; /* 拖拽时禁用卡牌点击 */
+    user-select: none;
+}
+
+/* 确保滚动条样式一致 */
+.card-grid::-webkit-scrollbar {
+    width: 6px;
+}
+
+.card-grid::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 3px;
+}
+
+.card-grid::-webkit-scrollbar-thumb {
+    background: rgba(255, 204, 0, 0.5);
+    border-radius: 3px;
+}
+
+.card-grid::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 204, 0, 0.8);
 }
 
 .card {

@@ -369,6 +369,13 @@ export class DeckEditor {
     // 处理卡牌点击 - 修复编辑模式逻辑
     // 修改 handleCardClick 方法的开头部分
     handleCardClick(index, button) {  // 这里参数名应该是 button
+        // 添加拖拽检测
+        const cardGrid = document.querySelector('.card-grid');
+        if (cardGrid && cardGrid.classList.contains('dragging')) {
+            console.log('🔄 拖拽滚动中，忽略卡牌点击');
+            return;
+        }
+        
         console.log('=== DeckEditor: 卡牌点击事件 ===');
         console.log('索引:', index, '按钮:', button);
         
