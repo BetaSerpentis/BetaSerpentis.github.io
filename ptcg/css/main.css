@@ -54,37 +54,6 @@ body {
     text-align: center;
 }
 
-/* 功能标签 */
-.feature-tabs {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    justify-content: center;
-}
-
-.feature-tab {
-    padding: 12px 24px;
-    background: rgba(255, 255, 255, 0.9);
-    border: 2px solid #ddd;
-    border-radius: 25px;
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: bold;
-    transition: all 0.3s ease;
-}
-
-.feature-tab:hover {
-    background: #e0e0e0;
-    transform: translateY(-2px);
-}
-
-.feature-tab.active {
-    background: #FFCC00;
-    border-color: #FF6B00;
-    color: #333;
-    box-shadow: 0 3px 10px rgba(255, 107, 0, 0.3);
-}
-
 .feature-panel {
     display: none;
 }

@@ -42,6 +42,7 @@
     </div>
     
     <div class="container">
+        <!-- 搜索栏固定在顶部 -->
         <div class="search-header">
             <div class="search-container">
                 <input type="text" class="search-input" id="search-input" 
@@ -50,49 +51,51 @@
             </div>
         </div>
         
-        <!-- 功能切换区域 - 现在只包含卡牌类型筛选 -->
-        <div class="feature-tabs" id="feature-tabs">
-            <!-- 卡牌类型页签 -->
-            <div class="tabs-container" id="tabs-container">
-                <div class="tab active" data-tab="宝可梦">宝可梦</div>
-                <div class="tab" data-tab="支援者">支援者</div>
-                <div class="tab" data-tab="物品">物品</div>
-                <div class="tab" data-tab="宝可梦道具">宝可梦道具</div>
-                <div class="tab" data-tab="竞技场">竞技场</div>
-                <div class="tab" data-tab="基本能量">基本能量</div>
-                <div class="tab" data-tab="特殊能量">特殊能量</div>
-            </div>
-        </div>
-        
-        <!-- 内容区域 -->
-        <div id="feature-content">
-            <!-- 卡牌浏览内容 -->
-            <div class="feature-panel active" data-feature="browser">
-                <div class="loading-section" id="loading-section">
-                    <div class="loading-spinner"></div>
-                    <div id="loading-status">正在加载卡牌数据...</div>
+        <!-- 可滚动的内容容器 -->
+        <div class="content-wrapper">
+            <!-- 内容区域 -->
+            <div id="feature-content">
+                <!-- 卡牌浏览内容 -->
+                <div class="feature-panel active" data-feature="browser">
+                    <!-- 筛选栏（和卡牌一起滚动） -->
+                    <div class="feature-tabs" id="feature-tabs">
+                        <div class="tabs-container" id="tabs-container">
+                            <div class="tab active" data-tab="宝可梦">宝可梦</div>
+                            <div class="tab" data-tab="支援者">支援者</div>
+                            <div class="tab" data-tab="物品">物品</div>
+                            <div class="tab" data-tab="宝可梦道具">宝可梦道具</div>
+                            <div class="tab" data-tab="竞技场">竞技场</div>
+                            <div class="tab" data-tab="基本能量">基本能量</div>
+                            <div class="tab" data-tab="特殊能量">特殊能量</div>
+                        </div>
+                    </div>
+                    
+                    <div class="loading-section" id="loading-section">
+                        <div class="loading-spinner"></div>
+                        <div id="loading-status">正在加载卡牌数据...</div>
+                    </div>
+                    
+                    <div class="card-grid" id="card-grid"></div>
+                    
+                    <div class="no-results" id="no-results" style="display: none;">
+                        没有找到匹配的卡牌，请尝试其他关键词
+                    </div>
                 </div>
                 
-                <div class="card-grid" id="card-grid"></div>
+                <!-- 卡组编辑内容 -->
+                <div class="feature-panel" data-feature="deck">
+                    <div class="coming-soon">
+                        <h2>卡组编辑功能</h2>
+                        <p>正在开发中，敬请期待...</p>
+                    </div>
+                </div>
                 
-                <div class="no-results" id="no-results" style="display: none;">
-                    没有找到匹配的卡牌，请尝试其他关键词
-                </div>
-            </div>
-            
-            <!-- 卡组编辑内容 -->
-            <div class="feature-panel" data-feature="deck">
-                <div class="coming-soon">
-                    <h2>卡组编辑功能</h2>
-                    <p>正在开发中，敬请期待...</p>
-                </div>
-            </div>
-            
-            <!-- 对战模拟内容 -->
-            <div class="feature-panel" data-feature="battle">
-                <div class="coming-soon">
-                    <h2>对战模拟功能</h2>
-                    <p>正在开发中，敬请期待...</p>
+                <!-- 对战模拟内容 -->
+                <div class="feature-panel" data-feature="battle">
+                    <div class="coming-soon">
+                        <h2>对战模拟功能</h2>
+                        <p>正在开发中，敬请期待...</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -120,6 +123,6 @@
     </footer>
     
     <!-- 模块化JS文件 -->
-        <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>

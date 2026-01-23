@@ -49,6 +49,14 @@ export class CardGrid {
         } else {
             this.noResults.style.display = 'none';
             this.cardGrid.style.display = 'grid';
+            
+            // 确保网格对齐方式正确
+            if (cards.length < 12) { // 如果卡牌数量少
+                this.cardGrid.style.alignContent = 'start';
+            } else {
+                this.cardGrid.style.alignContent = 'start'; // 始终从顶部开始
+            }
+            
             this.loadNextBatch();
         }
     }
@@ -387,88 +395,68 @@ export class CardGrid {
     disableImageLongPress() {
         const style = document.createElement('style');
         style.textContent = `
-            /* 防止图片缩放和长按 */
-            .card img {
+            /* 只对卡牌相关元素禁用触摸菜单 */
+            .card, .card * {
                 -webkit-touch-callout: none !important;
                 -webkit-user-select: none !important;
-                -moz-user-select: none !important;
-                -ms-user-select: none !important;
                 user-select: none !important;
-                pointer-events: none !important;
-                -webkit-user-drag: none !important;
-                -khtml-user-drag: none !important;
-                -moz-user-drag: none !important;
-                -o-user-drag: none !important;
-                user-drag: none !important;
-            }
-            
-            /* 防止双击缩放 */
-            .card {
                 -webkit-tap-highlight-color: transparent !important;
-                touch-action: manipulation !important;
-            }
-            
-            /* 防止页面缩放 */
-            html, body {
-                touch-action: manipulation;
-                -webkit-touch-callout: none;
-                -webkit-user-select: none;
-                overscroll-behavior: none;
             }
             
             /* 允许输入框 */
             input, textarea, .search-input, [contenteditable="true"] {
-                touch-action: auto !important;
+                -webkit-touch-callout: default !important;
                 -webkit-user-select: auto !important;
                 user-select: auto !important;
+                -webkit-tap-highlight-color: auto !important;
             }
             
-            /* 拖拽时的样式 */
-            .card-grid.dragging .card {
-                cursor: grabbing !important;
-                user-select: none !important;
+            /* 卡牌图片特殊处理 */
+            .card img {
+                pointer-events: none !important;
+                -webkit-user-drag: none !important;
+                user-drag: none !important;
             }
             
-            /* 确保卡牌网格可以滚动 */
-            .card-grid {
-                overflow-y: auto;
+            /* 允许滚动 */
+            .content-wrapper, .card-grid {
                 -webkit-overflow-scrolling: touch;
                 touch-action: pan-y;
+            }
+            
+            /* 确保触摸事件可以正常工作 */
+            .card {
+                touch-action: manipulation;
             }
         `;
         document.head.appendChild(style);
         
-        // JavaScript阻止默认行为
+        // 只阻止卡牌区域的长按菜单
         document.addEventListener('contextmenu', (e) => {
-            if (e.target.closest('.card') || e.target.closest('.card img')) {
+            if (e.target.closest('.card')) {
                 e.preventDefault();
                 e.stopPropagation();
                 return false;
             }
         }, { capture: true });
         
-        // 防止双击缩放
+        // 防止双击缩放 - 只在卡牌区域
         let lastTouchEnd = 0;
+        let lastTouchTarget = null;
+        
         document.addEventListener('touchend', (e) => {
-            const now = Date.now();
-            if (now - lastTouchEnd <= 300) {
-                e.preventDefault();
+            if (e.target.closest('.card')) {
+                const now = Date.now();
+                if (now - lastTouchEnd <= 300 && lastTouchTarget === e.target) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                lastTouchEnd = now;
+                lastTouchTarget = e.target;
             }
-            lastTouchEnd = now;
         }, { passive: false });
         
-        // 防止双指缩放
-        document.addEventListener('gesturestart', (e) => {
-            e.preventDefault();
-        });
-        
-        document.addEventListener('gesturechange', (e) => {
-            e.preventDefault();
-        });
-        
-        document.addEventListener('gestureend', (e) => {
-            e.preventDefault();
-        });
+        console.log('✅ 触摸防护已启用（只针对卡牌）');
     }
 
     isStatsModeActive() {
