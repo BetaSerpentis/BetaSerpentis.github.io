@@ -134,13 +134,13 @@ export class DeckEditor {
         });
     }
 
-    // 创建卡组界面
+    // 修改 createDeckInterface 方法
     createDeckInterface() {
-        // 创建卡组页签容器
+        // 创建卡组页签容器 - 使用固定定位，与搜索栏相同
         this.deckTabsContainer = document.createElement('div');
         this.deckTabsContainer.className = 'deck-tabs-container';
         
-        // 创建底部按钮容器 - 改为上下排列
+        // 创建底部按钮容器
         this.deckButtonContainer = document.createElement('div');
         this.deckButtonContainer.className = 'deck-button-container';
         this.deckButtonContainer.style.cssText = `
@@ -153,17 +153,15 @@ export class DeckEditor {
             z-index: 1000;
         `;
         
-        // 创建查卡按钮 - 移除内联样式
+        // 创建查卡按钮
         this.searchButton = document.createElement('button');
         this.searchButton.className = 'deck-search-button';
         this.searchButton.textContent = '查卡';
-        // 移除 style.cssText 行
 
-        // 创建编辑按钮 - 移除内联样式
+        // 创建编辑按钮
         this.editButton = document.createElement('button');
         this.editButton.className = 'deck-edit-button';
         this.editButton.textContent = '编辑';
-        // 移除 style.cssText 行
 
         // 绑定事件
         this.searchButton.addEventListener('click', () => {
