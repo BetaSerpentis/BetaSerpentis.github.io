@@ -1,6 +1,3 @@
-// 在 DeckManager.js 的导入部分添加：
-import { generateImageFilename } from '../utils/helpers.js';
-
 // ptcg/js/core/DeckManager.js
 export class DeckManager {
     constructor(storageService, cardManager) {
@@ -25,6 +22,10 @@ export class DeckManager {
         const savedDecks = this.storageService.loadDecks();
         if (savedDecks && savedDecks.length > 0) {
             this.decks = savedDecks;
+            // 加载时对每个卡组进行排序
+            this.decks.forEach(deck => {
+                this.sortDeckCards(deck);
+            });
         }
     }
 
@@ -70,8 +71,7 @@ export class DeckManager {
         return false;
     }
 
-    // DeckManager.js - 添加卡牌类型排序功能
-// 卡牌类型排序顺序
+    // 卡牌类型排序顺序（与CardManager一致）
     getCardTypeOrder() {
         return {
             '宝可梦': 1,
@@ -84,25 +84,41 @@ export class DeckManager {
         };
     }
 
-    // 获取卡牌类型
-    getCardType(cardId) {
-        const card = this.cardManager.cards.find(c => c.id === cardId);
-        return card ? card.type : '未知';
-    }
-
     // 获取卡牌详细信息
     getCardDetails(cardId) {
+        // 首先在当前加载的卡牌中查找
         const card = this.cardManager.cards.find(c => c.id === cardId);
-        return card || null;
+        if (card) {
+            return card;
+        }
+        
+        // 然后在全局缓存中查找
+        if (this.cardManager.allCardsCache) {
+            const cachedCard = this.cardManager.allCardsCache.find(c => c.id === cardId);
+            if (cachedCard) {
+                // 需要从JSON数据中获取更多信息
+                const baseInfo = this.cardManager.getCardBaseInfo(cardId);
+                return {
+                    ...cachedCard,
+                    ...baseInfo
+                };
+            }
+        }
+        
+        return null;
     }
 
-    // 排序卡组中的卡牌 - 优化排序规则
+    // 排序卡组中的卡牌 - 重新设计排序规则
     sortDeckCards(deck) {
-        if (!deck || !deck.cards) return;
+        if (!deck || !deck.cards || deck.cards.length === 0) return;
+        
+        console.log('🔄 开始对卡组进行排序:', deck.name);
+        console.log('排序前卡牌:', deck.cards.map(c => ({id: c.id, name: c.name})));
         
         const typeOrder = this.getCardTypeOrder();
         
         deck.cards.sort((a, b) => {
+            // 获取卡牌详情
             const cardA = this.getCardDetails(a.id);
             const cardB = this.getCardDetails(b.id);
             
@@ -114,51 +130,123 @@ export class DeckManager {
             
             // 首先按类型排序
             if (orderA !== orderB) {
+                console.log(`类型排序: ${typeA}(${orderA}) vs ${typeB}(${orderB})`);
                 return orderA - orderB;
             }
             
-            // 同类型下的排序规则
-            if (typeA === '宝可梦') {
-                // 宝可梦卡：按编号增序 -> 名称增序 -> ID增序
-                return this.sortPokemonCards(cardA, cardB, a, b);
-            } else {
-                // 非宝可梦卡：按名称增序
-                return this.sortNonPokemonCards(cardA, cardB, a, b);
+            // 同类型下的详细排序规则
+            let result = 0;
+            
+            switch (typeA) {
+                case '宝可梦':
+                    // 宝可梦：按编号增序 -> 名称增序 -> ID增序
+                    result = this.sortPokemonCards(cardA, cardB, a, b);
+                    break;
+                    
+                case '竞技场':
+                case '特殊能量':
+                    // 竞技场和特殊能量：按编号（版本）增序
+                    result = this.sortByNumber(cardA, cardB, a, b);
+                    break;
+                    
+                default:
+                    // 其他类型：按名称增序 -> ID增序
+                    result = this.sortByName(cardA, cardB, a, b);
+                    break;
             }
+            
+            if (result !== 0) {
+                console.log(`同类型(${typeA})排序结果:`, { 
+                    cardA: a.name, 
+                    cardB: b.name, 
+                    result 
+                });
+            }
+            
+            return result;
         });
+        
+        console.log('✅ 排序完成，排序后卡牌:', deck.cards.map(c => ({id: c.id, name: c.name})));
     }
 
     // 宝可梦卡排序规则
     sortPokemonCards(cardA, cardB, deckCardA, deckCardB) {
         // 按编号排序
-        const numberA = cardA ? cardA.number || '' : '';
-        const numberB = cardB ? cardB.number || '' : '';
+        const numberA = cardA ? (cardA.number || '') : '';
+        const numberB = cardB ? (cardB.number || '') : '';
         
         if (numberA !== numberB) {
-            return this.compareNumbers(numberA, numberB);
+            const numberCompare = this.compareNumbers(numberA, numberB);
+            if (numberCompare !== 0) {
+                console.log(`宝可梦编号比较: ${numberA} vs ${numberB} = ${numberCompare}`);
+                return numberCompare;
+            }
         }
         
         // 同编号按名称排序
         const nameA = deckCardA.name || '';
         const nameB = deckCardB.name || '';
         if (nameA !== nameB) {
-            return nameA.localeCompare(nameB, 'zh-CN');
+            const nameCompare = nameA.localeCompare(nameB, 'zh-CN');
+            console.log(`宝可梦名称比较: ${nameA} vs ${nameB} = ${nameCompare}`);
+            return nameCompare;
+        }
+        
+        // 同名称按ID排序
+        const idCompare = deckCardA.id.localeCompare(deckCardB.id);
+        console.log(`宝可梦ID比较: ${deckCardA.id} vs ${deckCardB.id} = ${idCompare}`);
+        return idCompare;
+    }
+
+    // 按编号排序（用于竞技场和特殊能量）
+    sortByNumber(cardA, cardB, deckCardA, deckCardB) {
+        // 按编号排序
+        const numberA = cardA ? (cardA.number || '') : '';
+        const numberB = cardB ? (cardB.number || '') : '';
+        
+        if (numberA !== numberB) {
+            const numberCompare = this.compareNumbers(numberA, numberB);
+            if (numberCompare !== 0) {
+                console.log(`${cardA?.type || '未知'}编号比较: ${numberA} vs ${numberB} = ${numberCompare}`);
+                return numberCompare;
+            }
+        }
+        
+        // 同编号按名称排序
+        const nameA = deckCardA.name || '';
+        const nameB = deckCardB.name || '';
+        if (nameA !== nameB) {
+            const nameCompare = nameA.localeCompare(nameB, 'zh-CN');
+            console.log(`${cardA?.type || '未知'}名称比较: ${nameA} vs ${nameB} = ${nameCompare}`);
+            return nameCompare;
         }
         
         // 同名称按ID排序
         return deckCardA.id.localeCompare(deckCardB.id);
     }
 
-    // 非宝可梦卡排序规则
-    sortNonPokemonCards(cardA, cardB, deckCardA, deckCardB) {
+    // 按名称排序（用于支援者、物品、宝可梦道具、基本能量）
+    sortByName(cardA, cardB, deckCardA, deckCardB) {
         // 按名称排序
         const nameA = deckCardA.name || '';
         const nameB = deckCardB.name || '';
-        return nameA.localeCompare(nameB, 'zh-CN');
+        const nameCompare = nameA.localeCompare(nameB, 'zh-CN');
+        
+        if (nameCompare !== 0) {
+            console.log(`${cardA?.type || '未知'}名称比较: ${nameA} vs ${nameB} = ${nameCompare}`);
+            return nameCompare;
+        }
+        
+        // 同名称按ID排序
+        return deckCardA.id.localeCompare(deckCardB.id);
     }
 
     // 比较编号（支持数字和字母混合的编号）
     compareNumbers(numA, numB) {
+        if (!numA && !numB) return 0;
+        if (!numA) return -1;
+        if (!numB) return 1;
+        
         // 提取数字部分和字母部分
         const regex = /^(\d*)([A-Za-z]*)$/;
         const matchA = numA.match(regex) || ['', '', ''];
@@ -178,33 +266,27 @@ export class DeckManager {
         return alphaPartA.localeCompare(alphaPartB);
     }
 
-    // 更新卡组中的卡牌数量
-    // 在 updateCardQuantity 方法中确保排序被调用
+    // 更新卡组中的卡牌数量 - 确保排序被正确调用
     updateCardQuantity(cardId, change) {
-        // console.log('🔄 DeckManager: 更新卡牌数量');
+        console.log('🔄 DeckManager: 更新卡牌数量', { cardId, change });
         
         const deck = this.getCurrentDeck();
         if (!deck) {
-            // console.log('❌ 没有找到当前卡组');
+            console.log('❌ 没有找到当前卡组');
             return null;
         }
 
-        // console.log('当前卡组:', deck.name);
-        // console.log('卡组中的卡牌:', deck.cards);
-
         const existingCard = deck.cards.find(card => card.id === cardId);
-        // console.log('找到现有卡牌:', existingCard);
         
         if (existingCard) {
             existingCard.quantity = Math.max(0, existingCard.quantity + change);
-            // console.log('更新后数量:', existingCard.quantity);
+            console.log('更新现有卡牌数量:', { id: cardId, quantity: existingCard.quantity });
             
             if (existingCard.quantity === 0) {
                 deck.cards = deck.cards.filter(card => card.id !== cardId);
-                // console.log('卡牌数量为0，从卡组移除');
+                console.log('卡牌数量为0，从卡组移除');
             }
         } else if (change > 0) {
-            // console.log('添加新卡牌到卡组');
             const cardData = this.cardManager.cards.find(card => card.id === cardId);
             if (cardData) {
                 const newCard = {
@@ -214,38 +296,35 @@ export class DeckManager {
                     quantity: change
                 };
                 deck.cards.push(newCard);
-                // console.log('新卡牌添加成功:', newCard);
+                console.log('添加新卡牌到卡组:', newCard);
             } else {
-                // console.log('❌ 没有找到卡牌数据');
+                console.log('❌ 没有找到卡牌数据');
             }
         }
 
         deck.totalCount = deck.cards.reduce((total, card) => total + card.quantity, 0);
-        // console.log('卡组总数量:', deck.totalCount);
+        console.log('卡组总数量:', deck.totalCount);
         
         // 自动排序 - 确保每次更新后都重新排序
+        console.log('🔄 执行卡组排序...');
         this.sortDeckCards(deck);
         
         this.saveDecks();
         
         const result = deck.cards.find(card => card.id === cardId);
-        // console.log('最终结果:', result);
+        console.log('最终结果:', result);
         return result;
     }
 
-    // 确保 setDeckCover 方法正确工作
+    // 设置卡组封面
     setDeckCover(cardId) {
         const deck = this.getCurrentDeck();
         if (deck) {
-            // 验证卡牌是否存在于卡组中
             const cardInDeck = deck.cards.find(card => card.id === cardId);
             if (cardInDeck) {
                 deck.coverCardId = cardId;
                 this.saveDecks();
-                // console.log(`✅ 成功设置封面: 卡牌ID ${cardId}`);
                 return true;
-            } else {
-                // console.log('❌ 卡牌不在当前卡组中，无法设置为封面');
             }
         }
         return false;
@@ -264,6 +343,10 @@ export class DeckManager {
 
     // 保存卡组数据
     saveDecks() {
+        // 保存前确保所有卡组都排序
+        this.decks.forEach(deck => {
+            this.sortDeckCards(deck);
+        });
         this.storageService.saveDecks(this.decks);
     }
 
@@ -282,20 +365,17 @@ export class DeckManager {
         const validDecks = [];
         
         importedDecks.forEach((deck, index) => {
-            // 基本验证（适应精简格式）
             if (!deck.id || !deck.name || !Array.isArray(deck.cards)) {
                 console.warn(`⚠️ 跳过无效卡组 [${index}]: 缺少必要字段`);
                 return;
             }
             
-            // 清理卡组数据（适应精简格式）
             const cleanedDeck = this.cleanMinimizedDeckData(deck);
             if (cleanedDeck) {
                 validDecks.push(cleanedDeck);
             }
         });
         
-        // console.log(`✅ 验证通过 ${validDecks.length} 个卡组`);
         return validDecks;
     }
 
@@ -304,26 +384,23 @@ export class DeckManager {
         try {
             const cleanedDeck = {
                 id: deck.id.toString(),
-                name: deck.name.toString().substring(0, 50), // 限制名称长度
+                name: deck.name.toString().substring(0, 50),
                 coverCardId: deck.coverCardId ? deck.coverCardId.toString() : null,
                 cards: [],
                 totalCount: 0
             };
             
-            // 清理卡组内的卡牌（精简格式）
             if (Array.isArray(deck.cards)) {
                 deck.cards.forEach(card => {
                     if (card.id && typeof card.quantity === 'number' && card.quantity > 0) {
-                        // 精简格式只需要验证 ID 和数量
                         cleanedDeck.cards.push({
                             id: card.id.toString(),
-                            quantity: Math.min(card.quantity, 4) // 限制单卡数量
+                            quantity: Math.min(card.quantity, 4)
                         });
                     }
                 });
             }
             
-            // 计算总数量
             cleanedDeck.totalCount = cleanedDeck.cards.reduce((total, card) => total + card.quantity, 0);
             
             return cleanedDeck;
@@ -339,36 +416,31 @@ export class DeckManager {
         try {
             const cleanedDeck = {
                 id: deck.id.toString(),
-                name: deck.name.toString().substring(0, 50), // 限制名称长度
+                name: deck.name.toString().substring(0, 50),
                 coverCardId: deck.coverCardId ? deck.coverCardId.toString() : null,
                 cards: [],
                 totalCount: 0
             };
             
-            // 清理卡组内的卡牌
             if (Array.isArray(deck.cards)) {
                 deck.cards.forEach(card => {
                     if (card.id && typeof card.quantity === 'number' && card.quantity > 0) {
-                        // 验证卡牌是否存在
                         const cardDetails = this.getCardDetails(card.id);
                         if (cardDetails) {
                             cleanedDeck.cards.push({
                                 id: card.id.toString(),
                                 name: cardDetails.name || '未知卡牌',
                                 image: cardDetails.image || '',
-                                quantity: Math.min(card.quantity, 4) // 限制单卡数量
+                                quantity: Math.min(card.quantity, 4)
                             });
-                        } else {
-                            console.warn(`⚠️ 卡组 ${deck.name} 中包含不存在的卡牌: ${card.id}`);
                         }
                     }
                 });
             }
             
-            // 计算总数量
             cleanedDeck.totalCount = cleanedDeck.cards.reduce((total, card) => total + card.quantity, 0);
             
-            // 自动排序
+            // 排序清理后的卡组
             this.sortDeckCards(cleanedDeck);
             
             return cleanedDeck;
@@ -381,13 +453,18 @@ export class DeckManager {
 
     // 获取精简的卡组数据（用于导出）
     getMinimizedDecks() {
+        // 导出前确保排序
+        this.decks.forEach(deck => {
+            this.sortDeckCards(deck);
+        });
+        
         return this.decks.map(deck => ({
             id: deck.id,
             name: deck.name,
             coverCardId: deck.coverCardId,
             cards: deck.cards.map(card => ({
-                id: card.id,           // 只保留 ID
-                quantity: card.quantity // 只保留数量
+                id: card.id,
+                quantity: card.quantity
             })),
             totalCount: deck.totalCount
         }));
@@ -397,7 +474,6 @@ export class DeckManager {
     async restoreDecksFromMinimized(minimizedDecks) {
         const restoredDecks = [];
         
-        // 确保卡牌管理器已经预加载了基础信息
         await this.cardManager.preloadAllCardBaseInfo();
         
         for (const minimizedDeck of minimizedDecks) {
@@ -410,23 +486,21 @@ export class DeckManager {
                     totalCount: minimizedDeck.totalCount || 0
                 };
                 
-                // 恢复卡组内的卡牌完整信息 - 统一使用卡牌管理器的图片路径
                 if (Array.isArray(minimizedDeck.cards)) {
                     for (const minimizedCard of minimizedDeck.cards) {
                         const cardInfo = this.cardManager.getCardBaseInfo(minimizedCard.id);
                         restoredDeck.cards.push({
                             id: minimizedCard.id,
                             name: cardInfo.name,
-                            image: cardInfo.image, // 统一使用卡牌管理器生成的图片路径
+                            image: cardInfo.image,
                             quantity: minimizedCard.quantity
                         });
                     }
                 }
                 
-                // 重新计算总数量
                 restoredDeck.totalCount = restoredDeck.cards.reduce((total, card) => total + card.quantity, 0);
                 
-                // 自动排序
+                // 排序恢复的卡组
                 this.sortDeckCards(restoredDeck);
                 
                 restoredDecks.push(restoredDeck);
@@ -436,13 +510,12 @@ export class DeckManager {
             }
         }
         
-        // console.log(`✅ 成功恢复 ${restoredDecks.length} 个卡组`);
+        console.log(`✅ 成功恢复 ${restoredDecks.length} 个卡组，并已排序`);
         return restoredDecks;
     }
 
-    // 生成卡牌信息（最简化）
+    // 生成卡牌信息
     async generateCardInfo(cardId) {
-        // 首先尝试在当前卡牌中查找名称
         const existingCard = this.cardManager.cards.find(c => c.id === cardId);
         const cardName = existingCard ? existingCard.name : `卡牌 ${cardId}`;
         
@@ -452,30 +525,28 @@ export class DeckManager {
         };
     }
 
-    // 生成卡牌图片路径（最简化）
+    // 生成卡牌图片路径
     generateCardImage(cardId) {
         const paddedId = cardId.toString().padStart(8, '0');
         return `images/hk${paddedId}.webp`;
     }
 
-    // 新增：生成占位符图片
+    // 生成占位符图片
     generatePlaceholderImage(cardId) {
-        // 使用一个通用的占位符图片，或者根据卡牌ID生成
         return `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="252" height="352" viewBox="0 0 252 352"><rect width="252" height="352" fill="%23f0f0f0"/><text x="126" y="176" font-family="Arial" font-size="14" text-anchor="middle" fill="%23666">卡牌 ${cardId}</text></svg>`;
     }
 
-    // 修改导入卡组数据方法，使用精简格式
+    // 导入卡组数据
     importDecks(data) {
         try {
             const importedDecks = JSON.parse(data);
             const validatedDecks = this.validateAndCleanDecks(importedDecks);
             
             if (validatedDecks.length > 0) {
-                // 从精简数据恢复完整卡组
                 this.decks = this.restoreDecksFromMinimized(validatedDecks);
                 this.currentDeckIndex = 0;
                 this.saveDecks();
-                // console.log(`✅ 成功导入 ${validatedDecks.length} 个卡组`);
+                console.log(`✅ 成功导入 ${validatedDecks.length} 个卡组并排序`);
                 return true;
             } else {
                 console.warn('⚠️ 没有有效的卡组数据可导入');
@@ -493,8 +564,8 @@ export class DeckManager {
             totalDecks: this.decks.length,
             totalCardsInDecks: 0,
             decksBySize: {
-                standard: 0, // 60张
-                expanded: 0  // 其他数量
+                standard: 0,
+                expanded: 0
             }
         };
         
@@ -510,9 +581,13 @@ export class DeckManager {
         return stats;
     }
 
-    // 获取卡组显示卡片（用于卡组编辑界面）
+    // 获取卡组显示卡片
     getDeckDisplayCards() {
         const deck = this.getCurrentDeck();
+        if (deck) {
+            // 确保返回前已经排序
+            this.sortDeckCards(deck);
+        }
         return deck ? deck.cards : [];
     }
 
@@ -524,46 +599,35 @@ export class DeckManager {
         }
     }
 
-    // 优化 setSelectingCoverMode 方法
+    // 设置封面选择模式
     setSelectingCoverMode(selecting) {
         this.isSelectingCover = selecting;
-        // console.log(`🖼️ 封面选择模式: ${selecting ? '开启' : '关闭'}`);
     }
 
     // 删除当前卡组
     deleteCurrentDeck() {
         if (this.decks.length <= 1) {
-            // console.log('❌ 不能删除最后一个卡组');
             return false;
         }
         
         const deckToDelete = this.getCurrentDeck();
         if (!deckToDelete) {
-            // console.log('❌ 没有找到要删除的卡组');
             return false;
         }
         
-        // console.log(`🗑️ 删除卡组: ${deckToDelete.name}`);
-        
-        // 删除当前卡组
         this.decks.splice(this.currentDeckIndex, 1);
-        
-        // 切换到第一个卡组
         this.currentDeckIndex = 0;
-        
-        // 保存更改
         this.saveDecks();
         
-        // console.log(`✅ 卡组删除成功，切换到: ${this.getCurrentDeck().name}`);
         return true;
     }
 
-    // 获取卡组统计信息（用于确认对话框）
+    // 获取卡组统计信息
     getDeckStatsForDelete(deck) {
         return {
             name: deck.name,
             cardCount: deck.totalCount,
             deckCount: this.decks.length
         };
-    }    
+    }
 }
