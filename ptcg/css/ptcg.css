@@ -1,32 +1,33 @@
-/* 搜索头部 - 保持固定在顶部 */
+/* 搜索头部 - 固定在顶部 */
 .search-header {
-    position: fixed; /* 改为 fixed，始终在最上方 */
+    position: sticky;
     top: 0;
-    left: 20px;
-    right: 20px;
-    z-index: 100;
+    z-index: 1000;
     background: rgba(255, 255, 255, 0.95);
     padding: 15px 20px;
-    border-radius: 15px;
-    margin-bottom: 20px;
+    border-radius: 0 0 15px 15px;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
     backdrop-filter: blur(10px);
+    flex-shrink: 0;
 }
 
-/* 修改功能切换区域 - 跟随卡牌滚动 */
+/* 可滚动的内容包装器 */
+.content-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 功能切换区域 */
 .feature-tabs {
-    position: sticky;
-    top: 90px; /* 搜索栏高度 + 内边距 */
+    position: relative;
     z-index: 99;
     background: rgba(255, 255, 255, 0.95);
     padding: 15px 20px;
     border-radius: 15px;
-    margin: 90px 0 20px 0; /* 上边距为搜索栏高度 */
+    margin: 20px;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
     backdrop-filter: blur(10px);
-    /* 添加触摸支持 */
-    touch-action: pan-y;
-    -webkit-overflow-scrolling: touch;
 }
 
 /* 页签样式 */
@@ -172,17 +173,12 @@
     background: #FF9800;
 }
 
-/* 修复卡牌网格间距问题 */
+/* 卡牌网格 */
 .card-grid {
     display: grid;
-    /* 改用固定列数，而不是auto-fill */
-    grid-template-columns: repeat(4, 1fr); /* 默认4列 */
+    grid-template-columns: repeat(4, 1fr);
     gap: 10px;
-    margin-top: 20px;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch; /* iOS 平滑滚动 */
-    touch-action: pan-y; /* 允许垂直滚动 */
-    height: calc(100vh - 250px); /* 根据布局调整 */
+    margin: 20px;
     padding-bottom: 20px;
 }
 
@@ -215,6 +211,7 @@
     background: rgba(255, 204, 0, 0.8);
 }
 
+/* 卡牌固定尺寸 */
 .card {
     background: white;
     border-radius: 8px;
@@ -224,12 +221,10 @@
     cursor: pointer;
     aspect-ratio: 63/88;
     position: relative;
-    height: 119px;
-    -webkit-user-select: none;
-    user-select: none;
-    -webkit-touch-callout: none;
-    -webkit-tap-highlight-color: transparent;
+    width: 100%;
+    height: auto;
 }
+
 
 .card:hover {
     transform: translateY(-5px) scale(1.03);
@@ -247,17 +242,14 @@
     transition: transform 0.2s ease;
 }
 
+/* 卡牌图片 - 确保完整显示 */
 .card-img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    background-color: #f0f0f0;
-    background-image: linear-gradient(45deg, #e6e6e6 25%, transparent 25%, transparent 75%, #e6e6e6 75%, #e6e6e6),
-                      linear-gradient(45deg, #e6e6e6 25%, transparent 25%, transparent 75%, #e6e6e6 75%, #e6e6e6);
-    background-size: 20px 20px;
-    background-position: 0 0, 10px 10px;
-    transition: opacity 0.3s ease;
-    opacity: 0;
+    object-fit: cover; /* 保持覆盖整个区域 */
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 .card-img.loaded {
@@ -531,24 +523,6 @@
     .card {
         height: 110px; /* 稍微缩小卡图尺寸 */
     }
-
-    .search-header {
-        left: 10px;
-        right: 10px;
-        padding: 12px 15px;
-    }
-    
-    .feature-tabs {
-        top: 70px; /* 移动端调整 */
-        margin: 70px 0 10px 0;
-        padding: 10px 15px;
-    }
-    
-    .card-grid {
-        height: calc(100vh - 200px); /* 移动端调整高度 */
-        grid-template-columns: repeat(4, 1fr); /* 移动端固定4列 */
-        gap: 8px; /* 移动端更紧凑 */
-    }
 }
 
 @media (max-width: 480px) {
@@ -615,32 +589,10 @@
     .card {
         height: 105px; /* 进一步缩小卡图尺寸 */
     }
-
-    .search-header {
-        left: 5px;
-        right: 5px;
-        padding: 10px 12px;
-    }
-    
-    .feature-tabs {
-        top: 60px;
-        margin: 60px 0 10px 0;
-        padding: 8px 10px;
-    }
-    
-    .card-grid {
-        height: calc(100vh - 180px);
-        grid-template-columns: repeat(4, 1fr);
-        gap: 6px;
-    }}
+}
 
 /* 桌面端更多列 */
 @media (min-width: 769px) {
-    .card-grid {
-        grid-template-columns: repeat(auto-fit, minmax(126px, 1fr)); /* 桌面端可以auto-fit */
-        gap: 15px;
-    }
-    
     .card {
         height: 176px;
     }
@@ -1588,11 +1540,11 @@
     }
 }
 
-/* 确保容器布局稳定 */
+/* 主容器 */
 .container {
     height: 100vh;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
     position: relative;
 }
 
@@ -1608,21 +1560,28 @@ body {
     -webkit-tap-highlight-color: transparent;
 }
 
-/* 允许输入框选择文本 */
+/* 允许输入框 */
 input, textarea, .search-input, [contenteditable="true"] {
-    user-select: auto !important;
+    -webkit-touch-callout: default !important;
     -webkit-user-select: auto !important;
+    user-select: auto !important;
+    -webkit-tap-highlight-color: auto !important;
 }
 
-/* 内容区域调整 */
+/* 内容区域 */
 #feature-content {
-    margin-top: 0;
-    padding-top: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0 20px;
 }
 
-/* 确保筛选栏不会被遮盖 */
-.feature-tabs {
-    transition: transform 0.2s ease;
+/* 卡牌网格区域 */
+.card-grid-container {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 /* 滚动时的样式调整 */
@@ -1640,5 +1599,114 @@ input, textarea, .search-input, [contenteditable="true"] {
     .container {
         overflow-y: visible;
         height: auto;
+    }
+}
+
+/* 卡牌网格区域 - 修复间距问题 */
+.card-grid-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 只在需要的地方禁用 */
+.card, .card * {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+/* 确保触摸事件可以正常工作 */
+.card-grid, .content-wrapper, .container {
+    pointer-events: auto !important;
+    touch-action: pan-y !important;
+}
+
+/* ====== 响应式设计 ====== */
+
+@media (max-width: 768px) {
+    #feature-content {
+        padding: 0 15px;
+    }
+    
+    .search-header {
+        padding: 12px 15px;
+    }
+    
+    .feature-tabs {
+        padding: 10px 15px;
+        margin: 15px 0;
+    }
+    
+    .card-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    #feature-content {
+        padding: 0 10px;
+    }
+    
+    .search-header {
+        padding: 10px 12px;
+    }
+    
+    .feature-tabs {
+        margin: 15px;
+        padding: 10px 15px;
+    }
+    
+    .card-grid {
+        margin: 15px;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+    }
+}
+
+@media (min-width: 769px) {
+    .card-grid {
+        grid-template-columns: repeat(auto-fill, minmax(126px, 1fr));
+        gap: 15px;
+    }
+}
+
+/* ====== 强制固定间距的方法 ====== */
+/* 创建一个填充器来确保网格高度 */
+.grid-filler {
+    display: none; /* 默认隐藏 */
+}
+
+/* 当卡牌数量少时，使用这个填充器 */
+.card-grid:has(.card:nth-last-child(-n+8)) {
+    align-content: start;
+}
+
+/* 确保最后一个卡牌后面有空间 */
+.card-grid::after {
+    content: '';
+    height: 20px;
+    display: block;
+}
+
+/* 桌面端优化 */
+@media (min-width: 769px) {
+    .card {
+        min-height: 176px; /* 桌面端最小高度 */
+    }
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+    .card {
+        min-height: 110px; /* 移动端最小高度 */
+    }
+}
+
+@media (max-width: 480px) {
+    .card {
+        min-height: 105px; /* 手机端最小高度 */
     }
 }
