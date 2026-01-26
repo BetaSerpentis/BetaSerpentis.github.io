@@ -14,9 +14,213 @@ export class CardManager {
         
         // 新增：全局卡牌缓存，存储所有卡牌的基础信息
         this.allCardsCache = null;
+        
+        // 新增：世代筛选相关
+        this.generationManager = null;
+        this.currentGeneration = 'all';
+        this.generationRanges = {
+            '1': { start: 1, end: 151, name: '第一世代' },
+            '2': { start: 152, end: 251, name: '第二世代' },
+            '3': { start: 252, end: 386, name: '第三世代' },
+            '4': { start: 387, end: 493, name: '第四世代' },
+            '5': { start: 494, end: 649, name: '第五世代' },
+            '6': { start: 650, end: 721, name: '第六世代' },
+            '7': { start: 722, end: 809, name: '第七世代' },
+            '8': { start: 810, end: 905, name: '第八世代' },
+            '9': { start: 906, end: 1025, name: '第九世代' }
+        };
     }
 
-    // 新增：预加载所有卡牌的基础信息
+    // 新增：设置世代管理器
+    setGenerationManager(generationManager) {
+        this.generationManager = generationManager;
+    }
+
+    // 新增：获取当前世代
+    getCurrentGeneration() {
+        return this.currentGeneration;
+    }
+
+    // 新增：设置当前世代
+    setCurrentGeneration(generation) {
+        this.currentGeneration = generation;
+    }
+
+    // 新增：应用世代筛选
+    applyGenerationFilter(generation = this.currentGeneration) {
+        this.currentGeneration = generation;
+        
+        if (generation === 'all' || this.currentTab !== '宝可梦') {
+            this.filteredCards = [...this.cards];
+        } else {
+            this.filteredCards = this.filterByGeneration(this.cards, generation);
+        }
+        
+        return this.filteredCards;
+    }
+
+    // 新增：根据世代筛选卡牌
+    filterByGeneration(cards, generation) {
+        if (generation === 'all' || this.currentTab !== '宝可梦') {
+            return cards;
+        }
+
+        const range = this.generationRanges[generation];
+        if (!range) return cards;
+
+        return cards.filter(card => {
+            // 只筛选宝可梦卡牌
+            if (card.type !== '宝可梦') return false;
+            
+            // 提取宝可梦编号
+            const number = this.extractPokemonNumber(card);
+            if (!number) return false;
+            
+            return number >= range.start && number <= range.end;
+        });
+    }
+
+    // 新增：提取宝可梦编号
+    extractPokemonNumber(card) {
+        if (!card.number || card.number === '未知') return null;
+        
+        // 处理不同格式的编号，如 "001"、"25" 等
+        const match = card.number.match(/\d+/);
+        return match ? parseInt(match[0], 10) : null;
+    }
+
+    // 新增：获取世代名称
+    getGenerationName(generation) {
+        if (generation === 'all') return '全部';
+        return this.generationRanges[generation]?.name || generation;
+    }
+
+    // 新增：重置世代筛选
+    resetGenerationFilter() {
+        this.currentGeneration = 'all';
+        this.filteredCards = [...this.cards];
+    }
+
+    // 新增：获取宝可梦的世代
+    getPokemonGeneration(card) {
+        if (card.type !== '宝可梦') return null;
+        
+        const number = this.extractPokemonNumber(card);
+        if (!number) return null;
+        
+        for (const [genKey, range] of Object.entries(this.generationRanges)) {
+            if (number >= range.start && number <= range.end) {
+                return genKey;
+            }
+        }
+        return null;
+    }
+
+    // 修改：更新搜索方法以结合世代筛选
+    searchCards(searchText) {
+        if (!searchText.trim()) {
+            // 空搜索时显示所有卡牌，但要考虑世代筛选
+            let filtered = [...this.cards];
+            
+            // 应用世代筛选（如果是宝可梦类型）
+            if (this.currentTab === '宝可梦' && this.currentGeneration !== 'all') {
+                filtered = this.filterByGeneration(filtered, this.currentGeneration);
+            }
+            
+            this.filteredCards = filtered;
+            this.isShowingAllCards = true;
+            return this.filteredCards;
+        }
+
+        const searchLower = searchText.toLowerCase().trim();
+        let filtered = this.cards.filter(card => {
+            const searchFields = [card.name];
+            
+            // 宝可梦卡牌特有搜索字段
+            if (this.currentTab === '宝可梦') {
+                searchFields.push(
+                    card.abilityName,
+                    card.abilityEffect,
+                    card.skill1?.名字,
+                    card.skill1?.效果,
+                    card.skill2?.名字,
+                    card.skill2?.效果,
+                    card.skill3?.名字,
+                    card.skill3?.效果,
+                    card.skill4?.名字,
+                    card.skill4?.效果
+                );
+            } else {
+                // 其他卡牌类型搜索效果字段
+                searchFields.push(card.effect);
+            }
+            
+            return searchFields.some(field => 
+                field && field.toLowerCase().includes(searchLower)
+            );
+        });
+
+        // 应用世代筛选（如果是宝可梦类型）
+        if (this.currentTab === '宝可梦' && this.currentGeneration !== 'all') {
+            filtered = this.filterByGeneration(filtered, this.currentGeneration);
+        }
+
+        this.filteredCards = filtered;
+        this.isShowingAllCards = false;
+        return this.filteredCards;
+    }
+
+    // 修改：获取当前显示的卡牌，考虑世代筛选
+    getDisplayCards() {
+        if (this.filteredCards.length > 0) {
+            return this.filteredCards;
+        }
+        
+        // 如果没有搜索结果，但应用了世代筛选，则返回世代筛选后的结果
+        if (this.currentTab === '宝可梦' && this.currentGeneration !== 'all') {
+            return this.filterByGeneration(this.cards, this.currentGeneration);
+        }
+        
+        return this.cards;
+    }
+
+    // 修改：加载卡牌数据时重置世代筛选
+    async loadCardData(cardType) {
+        const config = CARD_TYPES[cardType];
+        if (!config) {
+            throw new Error(`未知的卡牌类型: ${cardType}`);
+        }
+
+        try {
+            const response = await fetch(config.jsonFile);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP错误! 状态: ${response.status}`);
+            }
+            
+            const jsonData = await response.json();
+            let processedCards = this.processCardData(jsonData, cardType);
+            
+            // 从本地存储加载数量数据
+            processedCards = this.storageService.loadCardQuantities(processedCards, cardType);
+            
+            this.cards = processedCards;
+            this.currentTab = cardType;
+            
+            // 重置筛选状态
+            this.resetGenerationFilter();
+            this.filteredCards = [...this.cards];
+            
+            // console.log(`成功加载 ${this.cards.length} 张${cardType}卡牌`);
+            return this.cards;
+            
+        } catch (error) {
+            console.error(`加载${cardType}JSON数据失败:`, error);
+            throw error;
+        }
+    }
+
+    // 预加载所有卡牌的基础信息
     async preloadAllCardBaseInfo() {
         if (this.allCardsCache) {
             return this.allCardsCache; // 已经加载过，直接返回缓存
@@ -115,39 +319,6 @@ export class CardManager {
         return `images/hk${paddedId}.webp`;
     }
 
-    // 加载指定类型的卡牌数据
-    async loadCardData(cardType) {
-        const config = CARD_TYPES[cardType];
-        if (!config) {
-            throw new Error(`未知的卡牌类型: ${cardType}`);
-        }
-
-        try {
-            const response = await fetch(config.jsonFile);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP错误! 状态: ${response.status}`);
-            }
-            
-            const jsonData = await response.json();
-            let processedCards = this.processCardData(jsonData, cardType);
-            
-            // 从本地存储加载数量数据
-            processedCards = this.storageService.loadCardQuantities(processedCards, cardType);
-            
-            this.cards = processedCards;
-            this.filteredCards = [...processedCards];
-            this.currentTab = cardType;
-            
-            // console.log(`成功加载 ${this.cards.length} 张${cardType}卡牌`);
-            return this.cards;
-            
-        } catch (error) {
-            console.error(`加载${cardType}JSON数据失败:`, error);
-            throw error;
-        }
-    }
-
     // 处理卡牌数据
     processCardData(jsonData, cardType) {
         const processedCards = [];
@@ -200,56 +371,11 @@ export class CardManager {
         return 0;
     }
 
-    // 搜索卡牌
-    searchCards(searchText) {
-        if (!searchText.trim()) {
-            this.filteredCards = [...this.cards];
-            this.isShowingAllCards = true; // 空搜索时显示所有卡牌
-            return this.filteredCards;
-        }
-
-        const searchLower = searchText.toLowerCase().trim();
-        this.filteredCards = this.cards.filter(card => {
-            const searchFields = [card.name];
-            
-            // 宝可梦卡牌特有搜索字段
-            if (this.currentTab === '宝可梦') {
-                searchFields.push(
-                    card.abilityName,
-                    card.abilityEffect,
-                    card.skill1.名字,
-                    card.skill1.效果,
-                    card.skill2.名字,
-                    card.skill2.效果,
-                    card.skill3.名字,
-                    card.skill3.效果,
-                    card.skill4.名字,
-                    card.skill4.效果
-                );
-            } else {
-                // 其他卡牌类型搜索效果字段
-                searchFields.push(card.effect);
-            }
-            
-            return searchFields.some(field => 
-                field && field.toLowerCase().includes(searchLower)
-            );
-        });
-
-        this.isShowingAllCards = false; // 搜索时显示部分卡牌
-        return this.filteredCards;
-    }
-
-    // 新增方法：强制显示所有卡牌
+    // 强制显示所有卡牌
     showAllCards() {
         this.filteredCards = [...this.cards];
         this.isShowingAllCards = true;
         return this.filteredCards;
-    }
-    
-    // 获取当前显示的卡牌
-    getDisplayCards() {
-        return this.filteredCards.length > 0 ? this.filteredCards : this.cards;
     }
 
     // 获取卡牌类型配置
@@ -281,8 +407,6 @@ export class CardManager {
     debouncedSave() {
         this.storageService.debouncedSave(this.cards, this.currentTab);
     }
-
-    // 在 CardManager 类中添加这些方法：
 
     // 获取所有卡牌类型的配置
     getAllCardTypes() {

@@ -63,7 +63,6 @@ class PTCGApp {
             // 先初始化基础的UI组件
             this.modalView = new ModalView(this.cardManager, this.imageLoader);
             this.statsManager = new StatsManager(this.cardManager, this.onStatsChange.bind(this));
-            this.tabManager = new TabManager(this.cardManager, this.onTabChange.bind(this));
             
             // 创建 CardGrid - 这次传入正确的回调
             this.cardGrid = new CardGrid(
@@ -85,6 +84,9 @@ class PTCGApp {
                 this.statsManager,
                 this.searchEngine
             );
+            
+            // 然后初始化 TabManager（修改：需要传入 cardBrowser）
+            this.tabManager = new TabManager(this.cardBrowser, this.cardManager);
             
             // 然后初始化 DeckEditor
             this.deckEditor = new DeckEditor(
@@ -189,42 +191,84 @@ class PTCGApp {
     }
 
     // 绑定全局事件
-    bindGlobalEvents() {}
+    bindGlobalEvents() {
+        // 绑定搜索按钮事件
+        const searchButton = document.getElementById('search-button');
+        const searchInput = document.getElementById('search-input');
+        
+        if (searchButton && this.cardBrowser) {
+            searchButton.addEventListener('click', () => {
+                this.cardBrowser.performSearch();
+            });
+        }
+        
+        if (searchInput && this.cardBrowser) {
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.cardBrowser.performSearch();
+                }
+            });
+        }
+    }
     
     // 绑定功能标签
     bindFeatureTabs() {
         const featureTabs = document.getElementById('feature-tabs');
         const featurePanels = document.querySelectorAll('.feature-panel');
         
-        featureTabs.addEventListener('click', (e) => {
-            if (e.target.classList.contains('feature-tab')) {
-                const feature = e.target.dataset.feature;
-                
-                // 更新标签状态
-                featureTabs.querySelectorAll('.feature-tab').forEach(tab => {
-                    tab.classList.remove('active');
-                });
-                e.target.classList.add('active');
-                
-                // 更新面板显示
-                featurePanels.forEach(panel => {
-                    panel.classList.remove('active');
-                });
-                document.querySelector(`.feature-panel[data-feature="${feature}"]`).classList.add('active');
-                
-                this.currentFeature = feature;
-            }
-        });
+        if (featureTabs) {
+            featureTabs.addEventListener('click', (e) => {
+                if (e.target.classList.contains('feature-tab')) {
+                    const feature = e.target.dataset.feature;
+                    
+                    // 更新标签状态
+                    featureTabs.querySelectorAll('.feature-tab').forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    e.target.classList.add('active');
+                    
+                    // 更新面板显示
+                    featurePanels.forEach(panel => {
+                        panel.classList.remove('active');
+                    });
+                    const targetPanel = document.querySelector(`.feature-panel[data-feature="${feature}"]`);
+                    if (targetPanel) {
+                        targetPanel.classList.add('active');
+                    }
+                    
+                    this.currentFeature = feature;
+                    
+                    // 切换功能时重置世代筛选
+                    if (feature === 'browser' && this.cardManager) {
+                        // 如果是浏览器模式，重置为宝可梦类型
+                        this.tabManager.switchTab('宝可梦');
+                    } else if (this.cardManager) {
+                        // 其他模式重置世代筛选
+                        this.cardManager.resetGenerationFilter();
+                    }
+                }
+            });
+        }
     }
     
-    // 页签切换回调
+    // 页签切换回调（修改为异步）
     async onTabChange(tabName) {
-        await this.cardBrowser.loadCardData(tabName);
+        if (this.cardBrowser) {
+            await this.cardBrowser.loadCardData(tabName);
+        }
     }
     
     // 统计模式变化回调
     onStatsChange(isStatMode) {
-        // console.log(`统计模式: ${isStatMode ? '开启' : '关闭'}`);
+        console.log(`统计模式: ${isStatMode ? '开启' : '关闭'}`);
+        
+        // 如果切换到非统计模式且当前是宝可梦类型，确保世代筛选正确应用
+        if (!isStatMode && this.cardManager && this.tabManager) {
+            const currentTab = this.cardManager.getCurrentTab();
+            if (currentTab === '宝可梦') {
+                this.tabManager.refreshFilters();
+            }
+        }
     }
 }
 
