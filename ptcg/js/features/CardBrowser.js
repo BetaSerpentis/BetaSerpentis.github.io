@@ -84,12 +84,23 @@ export class CardBrowser {
         }
     }
 
-    // 执行搜索
+    // 执行搜索（更新以考虑世代筛选）
     performSearch() {
         const searchText = this.searchInput.value;
         const searchResult = this.searchEngine.performSearch(searchText);
         
-        this.cardGrid.updateSearchInfo(searchResult.message);
+        // 显示搜索和筛选的综合结果
+        const generation = this.cardManager.getCurrentGeneration();
+        const generationName = this.cardManager.getGenerationName(generation);
+        
+        let message = searchResult.message;
+        
+        // 如果是宝可梦类型且应用了世代筛选，添加世代信息
+        if (this.cardManager.getCurrentTab() === '宝可梦' && generation !== 'all') {
+            message = `在${generationName}中${searchResult.message.includes('显示全部') ? '显示全部' : '搜索'}: ${searchResult.cards.length} 张`;
+        }
+        
+        this.cardGrid.updateSearchInfo(message);
         this.cardGrid.render();
     }
 
@@ -109,15 +120,28 @@ export class CardBrowser {
                 card.type === cardType
             );
             
-            // 关键：确保 getDisplayCards 使用正确的 filteredCards
-            this.cardManager.getDisplayCards = () => this.cardManager.filteredCards;
+            // 如果是宝可梦类型，应用当前世代筛选（如果有的话）
+            if (cardType === '宝可梦' && this.cardManager.getCurrentGeneration() !== 'all') {
+                this.cardManager.applyGenerationFilter();
+            }
             
             this.cardGrid.hideLoading();
             
-            const displayCount = this.cardManager.filteredCards.length;
+            const displayCards = this.cardManager.getDisplayCards();
+            const displayCount = displayCards.length;
+            
+            // 生成显示信息
+            let displayMessage = `已加载所有 ${displayCount} 张${cardType}卡牌`;
+            
+            // 如果是宝可梦类型且应用了世代筛选
+            if (cardType === '宝可梦' && this.cardManager.getCurrentGeneration() !== 'all') {
+                const generationName = this.cardManager.getGenerationName(this.cardManager.getCurrentGeneration());
+                displayMessage = `显示${generationName}: ${displayCount} 张卡牌`;
+            }
+            
             // console.log(`✅ ${cardType} 数据加载完成，显示 ${displayCount} 张卡牌`);
             
-            this.cardGrid.updateSearchInfo(`已加载所有 ${displayCount} 张${cardType}卡牌`);
+            this.cardGrid.updateSearchInfo(displayMessage);
             this.cardGrid.render();
             
             // 更新搜索框提示
