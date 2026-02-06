@@ -1,4 +1,4 @@
-// core/GameBoard.js
+// core/GameBoard.js - 完整简化版本
 import { SummonSystem } from './SummonSystem.js';
 import RuleEngine from './RuleEngine.js';
 import EvolutionManager from './EvolutionManager.js';
@@ -10,12 +10,10 @@ class GameBoard {
     this.grid = new Array(9).fill(null);
     this.ballsRemaining = initialBalls;
     
-    // 系统模块
     this.summonSystem = new SummonSystem(pokemonData, this);
     this.ruleEngine = new RuleEngine(this);
     this.evolutionManager = new EvolutionManager(pokemonData, this);
     
-    // 状态记录
     this.summonedLegendaryIds = new Set();
     this.summonedMythicalIds = new Set();
     this.totalBallsAdded = 0;
@@ -24,142 +22,195 @@ class GameBoard {
     console.log(`游戏初始化: 选择属性[${playerChosenType}], 初始精灵球: ${initialBalls}`);
   }
 
-  // 主召唤方法
+  // GameBoard.js - 修复召唤方法中的消息
   summonPokemon() {
-    if (this.ballsRemaining <= 0) {
-      this.logGameEvent('错误', '没有精灵球了！');
-      return null;
-    }
-    
-    this.ballsRemaining--;
-    this.logGameEvent('行动', `使用1个精灵球，剩余: ${this.ballsRemaining}`);
-    
-    // 1. 找到空位
-    const emptySlots = [];
-    this.grid.forEach((cell, index) => {
-      if (cell === null) emptySlots.push(index);
-    });
-    
-    if (emptySlots.length === 0) {
-      this.logGameEvent('错误', '场地已满！');
-      this.ballsRemaining++; // 退回精灵球
-      return null;
-    }
-    
-    const targetIndex = emptySlots[Math.floor(Math.random() * emptySlots.length)];
-    
-    // 2. 召唤宝可梦
-    const summonedPokemon = this.summonSystem.summonPokemon(targetIndex);
-    this.grid[targetIndex] = summonedPokemon;
-    
-    // 3. 处理特殊奖励（异色、传说、幻之）
-    const specialRewards = this.processSpecialRewards(summonedPokemon);
-    if (specialRewards.balls > 0) {
-      this.ballsRemaining += specialRewards.balls;
-      this.totalBallsAdded += specialRewards.balls;
-      this.logGameEvent('奖励', specialRewards.description);
-    }
-    
-    // 4. 处理变身者
-    if (summonedPokemon.data.isTransformer) {
-      this.handleTransformer(summonedPokemon, targetIndex);
-    }
-    
-    // 5. 检查规则
-    const ruleRewards = this.ruleEngine.checkAllRules();
-    this.processRuleRewards(ruleRewards);
-    
-    // 6. 检查进化
-    const evolutionEvents = this.evolutionManager.checkEvolutions();
-    this.processEvolutionEvents(evolutionEvents);
-    
-    // 7. 检查游戏是否结束
-    this.checkGameEnd();
-    
-    // 8. 更新显示（控制台版本）
-    this.displayGrid();
-    
-    return summonedPokemon;
+      if (this.ballsRemaining <= 0) {
+          this.logGameEvent('错误', '没有精灵球了！');
+          return null;
+      }
+      
+      this.ballsRemaining--;
+      this.logGameEvent('行动', `使用1个精灵球，剩余: ${this.ballsRemaining}`);
+      
+      const emptySlots = [];
+      this.grid.forEach((cell, index) => {
+          if (cell === null) emptySlots.push(index);
+      });
+      
+      if (emptySlots.length === 0) {
+          this.logGameEvent('错误', '场地已满！');
+          this.ballsRemaining++;
+          return null;
+      }
+      
+      const targetIndex = emptySlots[Math.floor(Math.random() * emptySlots.length)];
+      const summonedPokemon = this.summonSystem.summonPokemon(targetIndex);
+      this.grid[targetIndex] = summonedPokemon;
+      
+      // 修复：添加详细的召唤消息
+      let summonMessage = `召唤了${summonedPokemon.data.name}`;
+      if (summonedPokemon.isShiny) summonMessage += ' (异色✨)';
+      if (summonedPokemon.data.isLegendary) summonMessage += ' (传说🌟)';
+      if (summonedPokemon.data.isMythical) summonMessage += ' (幻之💫)';
+      if (summonedPokemon.data.isTransformer) summonMessage += ' (变身者🌀)';
+      
+      this.logGameEvent('召唤', summonMessage);
+      
+      // 处理特殊奖励（异色、传说、幻之）
+      const specialRewards = this.processSpecialRewards(summonedPokemon);
+      if (specialRewards.balls > 0) {
+          this.ballsRemaining += specialRewards.balls;
+          this.totalBallsAdded += specialRewards.balls;
+          
+          // 记录每个奖励事件（立即显示）
+          specialRewards.rewards.forEach(reward => {
+              this.logGameEvent('奖励', reward.message);
+          });
+      }
+      
+      // 立即检查命定属性规则（不延迟）
+      const chosenTypeRewards = this.ruleEngine.checkChosenType();
+      if (chosenTypeRewards.length > 0) {
+          this.processImmediateRuleRewards(chosenTypeRewards);
+      }
+      
+      // 处理变身者（延迟一点）
+      if (summonedPokemon.data.isTransformer) {
+          setTimeout(() => {
+              this.handleTransformer(summonedPokemon, targetIndex);
+          }, 800);
+      }
+      
+      // 检查其他规则（对对碰、三连等）- 延迟一点
+      setTimeout(() => {
+          const otherRuleRewards = this.ruleEngine.checkOtherRules();
+          if (otherRuleRewards.length > 0) {
+              this.processRuleRewards(otherRuleRewards);
+          }
+      }, 300);
+      
+      // 检查进化
+      setTimeout(() => {
+          const evolutionEvents = this.evolutionManager.checkEvolutions();
+          if (evolutionEvents.length > 0) {
+              this.processEvolutionEvents(evolutionEvents);
+          }
+      }, 500);
+      
+      return summonedPokemon;
   }
 
+  // 新增：立即处理规则奖励（不延迟）
+  processImmediateRuleRewards(rewards) {
+      rewards.forEach(reward => {
+          this.ballsRemaining += reward.balls;
+          this.totalBallsAdded += reward.balls;
+          
+          // 根据规则类型显示不同的消息
+          let message = '';
+          switch(reward.ruleName) {
+              case '命定属性':
+                  message = `属性一致，精灵球+${reward.balls}`;
+                  break;
+              default:
+                  message = `${reward.ruleName}，精灵球+${reward.balls}`;
+          }
+          
+          this.logGameEvent('规则', message);
+      });
+  }
+
+  // 修改processSpecialRewards方法，让它返回更详细的信息
   processSpecialRewards(pokemonInstance) {
-    let balls = 0;
-    let description = '';
-    
-    // 异色奖励
-    if (pokemonInstance.isShiny && !pokemonInstance.isTransformed) {
-      balls += 2;
-      description += `异色${pokemonInstance.data.name} +2球 `;
-    }
-    
-    // 传说宝可梦奖励
-    if (pokemonInstance.data.isLegendary && !pokemonInstance.isTransformed) {
-      balls += 1;
-      description += `传说宝可梦 +1球 `;
-    }
-    
-    // 幻之宝可梦奖励
-    if (pokemonInstance.data.isMythical && !pokemonInstance.isTransformed) {
-      balls += 2;
-      description += `幻之宝可梦 +2球 `;
-    }
-    
-    // 如果有获得球，立即进行进化判定
-    if (balls > 0) {
-        this.checkEvolutionsOnBallsAdded();
-    }
-    
-    return { balls, description: description.trim() };
+      let balls = 0;
+      let description = '';
+      const rewards = [];
+      
+      // 异色奖励
+      if (pokemonInstance.isShiny && !pokemonInstance.isTransformed) {
+          balls += 2;
+          description += `异色${pokemonInstance.data.name} +2球 `;
+          rewards.push({
+              type: '异色奖励',
+              message: `异色${pokemonInstance.data.name}出现，精灵球+2`,
+              balls: 2
+          });
+      }
+      
+      // 传说宝可梦奖励
+      if (pokemonInstance.data.isLegendary && !pokemonInstance.isTransformed) {
+          balls += 1;
+          description += `传说宝可梦 +1球 `;
+          rewards.push({
+              type: '传说奖励',
+              message: `传说宝可梦${pokemonInstance.data.name}出现，精灵球+1`,
+              balls: 1
+          });
+      }
+      
+      // 幻之宝可梦奖励
+      if (pokemonInstance.data.isMythical && !pokemonInstance.isTransformed) {
+          balls += 2;
+          description += `幻之宝可梦 +2球 `;
+          rewards.push({
+              type: '幻之奖励',
+              message: `幻之宝可梦${pokemonInstance.data.name}出现，精灵球+2`,
+              balls: 2
+          });
+      }
+      
+      return { 
+          balls, 
+          description: description.trim(),
+          rewards  // 新增：返回详细的奖励信息
+      };
   }
 
+  // 修改handleTransformer，确保变身事件立即显示
   handleTransformer(transformerInstance, index) {
-    // 获取场上其他非变身者宝可梦
-    const potentialTargets = this.grid
-      .map((p, i) => (p && !p.data.isTransformer && i !== index) ? { pokemon: p, index: i } : null)
-      .filter(Boolean);
-    
-    if (potentialTargets.length === 0) {
-      this.logGameEvent('变身', `${transformerInstance.data.name}找不到变身目标`);
-      return;
-    }
-    
-    // 寻找最佳变身目标
-    let bestTarget = null;
-    let bestScore = -1;
-    
-    for (const { pokemon, index: targetIndex } of potentialTargets) {
-      let score = 0;
+      const potentialTargets = this.grid
+          .map((p, i) => (p && !p.data.isTransformer && i !== index) ? { pokemon: p, index: i } : null)
+          .filter(Boolean);
       
-      // 尝试每种可能的属性
-      for (const type of pokemon.currentTypes) {
-        // 检查是否会形成三连
-        if (this.ruleEngine.wouldFormThreeInRow(index, type)) {
-          score = 100; // 最高优先级
-          break;
-        }
-        
-        // 检查是否会形成对子
-        const wouldFormPair = this.checkWouldFormPair(index, type);
-        if (wouldFormPair) {
-          score = Math.max(score, 50);
-        }
+      if (potentialTargets.length === 0) {
+          this.logGameEvent('变身', `${transformerInstance.data.name}找不到变身目标`);
+          return;
       }
       
-      if (score > bestScore) {
-        bestScore = score;
-        bestTarget = { pokemon, targetIndex };
-      }
-    }
-    
-    // 执行变身
-    if (bestTarget) {
-      transformerInstance.transformInto(bestTarget.pokemon);
-      this.logGameEvent('变身', `${transformerInstance.transformedFrom.name}变身成${bestTarget.pokemon.data.name}`);
+      let bestTarget = null;
+      let bestScore = -1;
       
-      // 变身可能需要重新检查规则
-      const ruleRewards = this.ruleEngine.checkAllRules();
-      this.processRuleRewards(ruleRewards);
-    }
+      for (const { pokemon, index: targetIndex } of potentialTargets) {
+          let score = 0;
+          
+          for (const type of pokemon.currentTypes) {
+              if (this.ruleEngine.wouldFormThreeInRow(index, type)) {
+                  score = 100;
+                  break;
+              }
+              
+              const wouldFormPair = this.checkWouldFormPair(index, type);
+              if (wouldFormPair) {
+                  score = Math.max(score, 50);
+              }
+          }
+          
+          if (score > bestScore) {
+              bestScore = score;
+              bestTarget = { pokemon, targetIndex };
+          }
+      }
+      
+      if (bestTarget) {
+          transformerInstance.transformInto(bestTarget.pokemon);
+          this.logGameEvent('变身', `${transformerInstance.transformedFrom.name}变身成了${bestTarget.pokemon.data.name}`);
+          
+          // 变身可能需要重新检查规则（延迟一点）
+          setTimeout(() => {
+              const ruleRewards = this.ruleEngine.checkAllRules();
+              this.processRuleRewards(ruleRewards);
+          }, 300);
+      }
   }
 
   checkWouldFormPair(index, type) {
@@ -172,7 +223,7 @@ class GameBoard {
     return false;
   }
 
-  // 在 processRuleRewards 方法中
+  // 修改processRuleRewards，确保规则触发时立即显示
   processRuleRewards(rewards) {
       let totalBallsFromRules = 0;
       
@@ -180,7 +231,27 @@ class GameBoard {
           this.ballsRemaining += reward.balls;
           this.totalBallsAdded += reward.balls;
           totalBallsFromRules += reward.balls;
-          this.logGameEvent('规则', `${reward.ruleName}: ${reward.description} +${reward.balls}球`);
+          
+          // 根据规则类型显示不同的消息（立即显示）
+          let message = '';
+          switch(reward.ruleName) {
+              case '命定属性':
+                  message = `属性一致，精灵球+${reward.balls}`;
+                  break;
+              case '对对碰':
+                  message = `宝可梦凑对，精灵球+${reward.balls}`;
+                  break;
+              case '三连消除':
+                  message = `三连消除，精灵球+${reward.balls}`;
+                  break;
+              case '全图鉴':
+                  message = `全图鉴达成，精灵球+${reward.balls}`;
+                  break;
+              default:
+                  message = `${reward.ruleName}，精灵球+${reward.balls}`;
+          }
+          
+          this.logGameEvent('规则', message);
           
           // 消除宝可梦（命定属性除外）
           if (reward.indexes && reward.indexes.length > 0) {
@@ -190,41 +261,52 @@ class GameBoard {
           }
       });
       
-      // 如果有从规则中获得球，进行进化判定
       if (totalBallsFromRules > 0) {
-          this.checkEvolutionsOnBallsAdded();
+          // 延迟一点再检查进化，让规则动画完成
+          setTimeout(() => {
+              const evolutionEvents = this.evolutionManager.checkEvolutions();
+              this.processEvolutionEvents(evolutionEvents);
+          }, 200);
       }
   }
 
-  // 新增方法：在获得球时检查进化
-  checkEvolutionsOnBallsAdded() {
-      const evolutionEvents = this.evolutionManager.checkEvolutions();
-      this.processEvolutionEvents(evolutionEvents);
+  // 修改processEvolutionEvents，确保进化事件立即显示
+  processEvolutionEvents(evolutionEvents) {
+      evolutionEvents.forEach(event => {
+          this.ballsRemaining += event.rewardBalls;
+          this.totalBallsAdded += event.rewardBalls;
+          
+          // 进化事件本身
+          let desc = `${event.oldPokemon}进化为${event.newPokemon}`;
+          if (event.isShiny) desc += ' (异色)';
+          this.logGameEvent('进化', desc);
+          
+          // 进化奖励（如果有）
+          if (event.rewardBalls > 0) {
+              let rewardMessage = '';
+              if (event.stage === '一阶进化') {
+                  rewardMessage = `一阶进化，精灵球+${event.rewardBalls}`;
+              } else if (event.stage === '二阶进化') {
+                  rewardMessage = `二阶进化，精灵球+${event.rewardBalls}`;
+              }
+              
+              if (rewardMessage) {
+                  this.logGameEvent('奖励', rewardMessage);
+              }
+          }
+          
+          // 进化后重新检查规则（延迟一点）
+          setTimeout(() => {
+              const ruleRewards = this.ruleEngine.checkAllRules();
+              this.processRuleRewards(ruleRewards);
+          }, 300);
+      });
   }
-
-// processEvolutionEvents 方法保持原样
-processEvolutionEvents(evolutionEvents) {
-    evolutionEvents.forEach(event => {
-        this.ballsRemaining += event.rewardBalls;
-        this.totalBallsAdded += event.rewardBalls;
-        
-        let desc = `${event.oldPokemon}进化为${event.newPokemon}`;
-        if (event.rewardBalls > 0) desc += ` +${event.rewardBalls}球`;
-        if (event.isShiny) desc += ' (异色)';
-        
-        this.logGameEvent('进化', desc);
-        
-        // 进化后检查规则（因为属性可能改变）
-        const ruleRewards = this.ruleEngine.checkAllRules();
-        this.processRuleRewards(ruleRewards);
-    });
-}
 
   checkGameEnd() {
     const emptySlots = this.grid.filter(cell => cell === null).length;
     const hasPairs = this.hasRemainingPairs();
     
-    // 游戏结束条件：没有精灵球且没有可消除的对子
     if (this.ballsRemaining <= 0 && !hasPairs && emptySlots > 0) {
       this.logGameEvent('游戏结束', '没有精灵球且没有可消除的对子，游戏结束！');
       return true;
@@ -288,207 +370,65 @@ processEvolutionEvents(evolutionEvents) {
     return stats;
   }
 
-    // 批量投放所有精灵球
-    async summonAllBalls() {
-        if (this.ballsRemaining <= 0) {
-            this.logGameEvent('错误', '没有精灵球了！');
-            return null;
-        }
-        
-        this.logGameEvent('行动', `批量投放 ${this.ballsRemaining} 个精灵球`);
-        
-        // 阶段1: 收集所有要召唤的位置
-        const summonQueue = [];
-        let ballsToUse = this.ballsRemaining;
-        
-        // 找出所有空位
-        const emptySlots = this.grid
-            .map((cell, index) => cell === null ? index : -1)
-            .filter(i => i !== -1);
-        
-        // 计算最多能召唤多少只（受空位限制）
-        const maxSummons = Math.min(ballsToUse, emptySlots.length);
-        
-        if (maxSummons === 0) {
-            this.logGameEvent('错误', '场地已满！');
-            return null;
-        }
-        
-        // 创建召唤队列（随机顺序）
-        const shuffledSlots = [...emptySlots].sort(() => Math.random() - 0.5);
-        const slotsToUse = shuffledSlots.slice(0, maxSummons);
-        
-        // 消耗所有精灵球
-        this.ballsRemaining -= maxSummons;
-        
-        // 阶段2: 依次召唤所有宝可梦（但先不处理规则）
-        const summonedPokemons = [];
-        
-        for (let i = 0; i < slotsToUse.length; i++) {
-            const targetIndex = slotsToUse[i];
-            
-            // 召唤宝可梦
-            const summonedPokemon = this.summonSystem.summonPokemon(targetIndex);
-            this.grid[targetIndex] = summonedPokemon;
-            summonedPokemons.push({
-                pokemon: summonedPokemon,
-                index: targetIndex
-            });
-            
-            // 记录特殊奖励（先累计，最后处理）
-            const specialRewards = this.calculateSpecialRewards(summonedPokemon);
-            if (specialRewards.balls > 0) {
-                // 这里先记录，最后统一加球
-                this.pendingSpecialRewards = (this.pendingSpecialRewards || 0) + specialRewards.balls;
-                this.logGameEvent('奖励', `${specialRewards.description} (待处理)`);
-            }
-            
-            // 显示进度（可选）
-            this.logGameEvent('进度', `已召唤 ${i+1}/${slotsToUse.length}: ${summonedPokemon.data.name}`);
-            
-            // 添加一点延迟，增加视觉效果
-            await this.delay(100); // 100ms延迟
-        }
-        
-        // 阶段3: 批量处理所有后续逻辑
-        await this.processBatchEffects(summonedPokemons);
-        
-        return summonedPokemons;
+  // 批量召唤方法
+  async summonAllBalls() {
+    if (this.ballsRemaining <= 0) {
+      this.logGameEvent('错误', '没有精灵球了！');
+      return null;
     }
     
-    // 计算特殊奖励（不实际加球）
-    calculateSpecialRewards(pokemonInstance) {
-        let balls = 0;
-        let description = '';
-        
-        // 异色奖励
-        if (pokemonInstance.isShiny && !pokemonInstance.isTransformed) {
-            balls += 2;
-            description += `异色${pokemonInstance.data.name} +2球 `;
-        }
-        
-        // 传说宝可梦奖励
-        if (pokemonInstance.data.isLegendary && !pokemonInstance.isTransformed) {
-            balls += 1;
-            description += `传说宝可梦 +1球 `;
-        }
-        
-        // 幻之宝可梦奖励
-        if (pokemonInstance.data.isMythical && !pokemonInstance.isTransformed) {
-            balls += 2;
-            description += `幻之宝可梦 +2球 `;
-        }
-        
-        return { balls, description: description.trim() };
+    this.logGameEvent('行动', `批量投放 ${this.ballsRemaining} 个精灵球`);
+    
+    const emptySlots = this.grid
+      .map((cell, index) => cell === null ? index : -1)
+      .filter(i => i !== -1);
+    
+    const maxSummons = Math.min(this.ballsRemaining, emptySlots.length);
+    
+    if (maxSummons === 0) {
+      this.logGameEvent('错误', '场地已满！');
+      return null;
     }
     
-    // 批量处理所有效果
-    async processBatchEffects(summonedPokemons) {
-        this.logGameEvent('处理', '开始批量处理效果...');
-        
-        let totalBallsAdded = 0;
-        
-        // 1. 先处理特殊奖励
-        if (this.pendingSpecialRewards > 0) {
-            this.ballsRemaining += this.pendingSpecialRewards;
-            totalBallsAdded += this.pendingSpecialRewards;
-            this.logGameEvent('奖励', `特殊奖励总计: +${this.pendingSpecialRewards}球`);
-            this.pendingSpecialRewards = 0;
-        }
-        
-        // 2. 处理变身者
-        for (const { pokemon, index } of summonedPokemons) {
-            if (pokemon.data.isTransformer) {
-                this.logGameEvent('变身', `处理变身者: ${pokemon.data.name}`);
-                this.handleTransformer(pokemon, index);
-                await this.delay(50); // 小延迟
-            }
-        }
-        
-        // 3. 处理规则（反复处理直到没有可触发的规则）
-        let iteration = 0;
-        let totalRuleBalls = 0;
-        
-        do {
-            iteration++;
-            this.logGameEvent('规则', `第${iteration}轮规则检查`);
-            
-            const ruleRewards = this.ruleEngine.checkAllRules();
-            const ruleBalls = this.calculateRuleBalls(ruleRewards);
-            
-            if (ruleBalls > 0) {
-                this.ballsRemaining += ruleBalls;
-                totalBallsAdded += ruleBalls;
-                totalRuleBalls += ruleBalls;
-                
-                // 应用规则消除
-                ruleRewards.forEach(reward => {
-                    this.logGameEvent('规则', `${reward.ruleName}: ${reward.description} +${reward.balls}球`);
-                    
-                    if (reward.ruleName !== '命定属性' && reward.indexes && reward.indexes.length > 0) {
-                        reward.indexes.forEach(idx => {
-                            this.grid[idx] = null;
-                        });
-                    }
-                });
-                
-                // 如果有消除，需要重新检查
-                await this.delay(100);
-            } else {
-                break; // 没有规则触发，退出循环
-            }
-            
-            // 防止无限循环
-            if (iteration > 20) {
-                this.logGameEvent('警告', '规则处理循环超过20次，强制退出');
-                break;
-            }
-        } while (true);
-        
-        if (totalRuleBalls > 0) {
-            this.logGameEvent('规则', `规则奖励总计: +${totalRuleBalls}球`);
-        }
-        
-        // 4. 处理进化（只在最后处理一次）
-        this.logGameEvent('进化', '开始进化判定');
-        const evolutionEvents = this.evolutionManager.checkEvolutions();
-        let evolutionBalls = 0;
-        
-        evolutionEvents.forEach(event => {
-            this.ballsRemaining += event.rewardBalls;
-            totalBallsAdded += event.rewardBalls;
-            evolutionBalls += event.rewardBalls;
-            
-            let desc = `${event.oldPokemon}进化为${event.newPokemon}`;
-            if (event.rewardBalls > 0) desc += ` +${event.rewardBalls}球`;
-            if (event.isShiny) desc += ' (异色)';
-            
-            this.logGameEvent('进化', desc);
-        });
-        
-        if (evolutionBalls > 0) {
-            this.logGameEvent('进化', `进化奖励总计: +${evolutionBalls}球`);
-        }
-        
-        // 5. 更新累计总数
-        this.totalBallsAdded += totalBallsAdded;
-        
-        // 6. 检查游戏结束
-        this.checkGameEnd();
-        
-        this.logGameEvent('处理', `批量处理完成，总计获得: +${totalBallsAdded}球`);
-        this.logGameEvent('状态', `剩余精灵球: ${this.ballsRemaining}`);
+    const results = [];
+    for (let i = 0; i < maxSummons; i++) {
+      const targetIndex = emptySlots[i];
+      this.ballsRemaining--;
+      
+      const summonedPokemon = this.summonSystem.summonPokemon(targetIndex);
+      this.grid[targetIndex] = summonedPokemon;
+      
+      results.push({
+        pokemon: summonedPokemon,
+        index: targetIndex
+      });
+      
+      this.logGameEvent('召唤', `${summonedPokemon.data.name} 出现了！`);
+      
+      // 处理特殊奖励
+      const specialRewards = this.processSpecialRewards(summonedPokemon);
+      if (specialRewards.balls > 0) {
+        this.ballsRemaining += specialRewards.balls;
+        this.totalBallsAdded += specialRewards.balls;
+        this.logGameEvent('奖励', specialRewards.description);
+      }
+      
+      // 处理变身者
+      if (summonedPokemon.data.isTransformer) {
+        this.handleTransformer(summonedPokemon, targetIndex);
+      }
     }
     
-    // 计算规则奖励的球数
-    calculateRuleBalls(rewards) {
-        return rewards.reduce((total, reward) => total + reward.balls, 0);
-    }
+    // 批量召唤完成后检查规则
+    const ruleRewards = this.ruleEngine.checkAllRules();
+    this.processRuleRewards(ruleRewards);
     
-    // 延迟辅助方法
-    delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }  
+    // 批量召唤完成后检查进化
+    const evolutionEvents = this.evolutionManager.checkEvolutions();
+    this.processEvolutionEvents(evolutionEvents);
+    
+    return results;
+  }
 }
 
 export default GameBoard;

@@ -33,7 +33,7 @@ class EvolutionManager {
         return evolutionEvents;
     }
 
-    // 原有的 evolvePokemon 方法保持不变
+    // EvolutionManager.js - 修改evolvePokemon方法，返回阶段信息
     evolvePokemon(index, pokemonInstance) {
         const newPokemonId = pokemonInstance.data.evolvesTo;
         const newPokemonData = this.data.getPokemonById(newPokemonId);
@@ -55,17 +55,23 @@ class EvolutionManager {
         
         // 根据进化阶段给予奖励
         let rewardBalls = 0;
+        let stageName = '';
+        
         if (newPokemonData.stage === '一阶进化') {
             rewardBalls = 1;
+            stageName = '一阶进化';
         } else if (newPokemonData.stage === '二阶进化') {
             rewardBalls = 2;
+            stageName = '二阶进化';
         }
         
         return {
             oldPokemon: pokemonInstance.data.name,
             newPokemon: newPokemonData.name,
+            newPokemonId: newPokemonId,
             index: index,
             rewardBalls: rewardBalls,
+            stage: stageName,
             isShiny: evolvedInstance.isShiny
         };
     }
