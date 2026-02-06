@@ -4,48 +4,61 @@ class RuleEngine {
     this.board = gameBoard;
   }
 
-  // 检查所有规则
+  // RuleEngine.js - 修改checkAllRules方法
   checkAllRules() {
-    const rewards = [];
-    
-    // 1. 检查命定属性
-    rewards.push(...this.checkChosenType());
-    
-    // 2. 检查对子
-    rewards.push(...this.checkPairs());
-    
-    // 3. 检查三连
-    rewards.push(...this.checkThreeInRow());
-    
-    // 4. 检查全不同
-    rewards.push(...this.checkAllDifferent());
-    
-    // 5. 检查异色奖励（需要在召唤时处理）
-    // 6. 检查传说/幻之奖励
-    
-    return rewards;
+      const rewards = [];
+      
+      // 1. 检查命定属性
+      rewards.push(...this.checkChosenType());
+      
+      // 2. 检查对子
+      rewards.push(...this.checkPairs());
+      
+      // 3. 检查三连
+      rewards.push(...this.checkThreeInRow());
+      
+      // 4. 检查全不同
+      rewards.push(...this.checkAllDifferent());
+      
+      return rewards;
   }
 
-// 修改 RuleEngine.js 中的 checkChosenType 方法：
-checkChosenType() {
-    const rewards = [];
-    this.board.grid.forEach((pokemon, index) => {
-        if (pokemon && !pokemon.isTransformed && !pokemon.hasTriggeredChosenType) {
-            // 检查是否包含玩家选择的属性
-            if (pokemon.currentTypes.includes(this.board.playerChosenType)) {
-                // 只奖励球，不移除宝可梦
-                rewards.push({ 
-                    ruleName: '命定属性', 
-                    balls: 1, 
-                    indexes: [], // 关键：空数组表示不移除任何宝可梦
-                    description: `${pokemon.data.name}是${this.board.playerChosenType}属性`
-                });
-                pokemon.hasTriggeredChosenType = true; // 标记已触发
-            }
-        }
-    });
-    return rewards;
-}
+  // 新增：只检查非命定属性规则
+  checkOtherRules() {
+      const rewards = [];
+      
+      // 检查对子
+      rewards.push(...this.checkPairs());
+      
+      // 检查三连
+      rewards.push(...this.checkThreeInRow());
+      
+      // 检查全不同
+      rewards.push(...this.checkAllDifferent());
+      
+      return rewards;
+  }
+
+  // RuleEngine.js - 修改checkChosenType方法
+  checkChosenType() {
+      const rewards = [];
+      this.board.grid.forEach((pokemon, index) => {
+          if (pokemon && !pokemon.isTransformed && !pokemon.hasTriggeredChosenType) {
+              // 检查是否包含玩家选择的属性
+              if (pokemon.currentTypes.includes(this.board.playerChosenType)) {
+                  // 只奖励球，不移除宝可梦
+                  rewards.push({ 
+                      ruleName: '命定属性', 
+                      balls: 1, 
+                      indexes: [], // 关键：空数组表示不移除任何宝可梦
+                      description: `${pokemon.data.name}是${this.board.playerChosenType}属性`
+                  });
+                  pokemon.hasTriggeredChosenType = true; // 标记已触发
+              }
+          }
+      });
+      return rewards;
+  }
 
   checkPairs() {
     const rewards = [];

@@ -1301,6 +1301,19 @@
       "isTransformer": false
     },
     {
+      "id": 644,
+      "name": "捷克罗姆",
+      "type1": "雷",
+      "type2": "龙",
+      "stage": "基础",
+      "evolvesTo": null,
+      "evolutionProb": 0,
+      "shinyProb": 0.01,
+      "isLegendary": true,
+      "isMythical": false,
+      "isTransformer": false
+    },
+    {
       "id": 677,
       "name": "妙喵",
       "type1": "超",
@@ -1676,31 +1689,18 @@
       "isLegendary": true,
       "isMythical": false,
       "isTransformer": false
-    },
-    {
-      "id": 1008,
-      "name": "密勒顿",
-      "type1": "雷",
-      "type2": "龙",
-      "stage": "基础",
-      "evolvesTo": null,
-      "evolutionProb": 0,
-      "shinyProb": 0.01,
-      "isLegendary": true,
-      "isMythical": false,
-      "isTransformer": false
     }
   ],
   "typeColors": {
-    "草": "#008a39",
-    "火": "#cc1228",
-    "水": "#0086c9",
-    "斗": "#b05912",
-    "超": "#834f9c",
-    "恶": "#012621",
-    "雷": "#ffd900",
-    "钢": "#809196",
-    "龙": "#998f1c",
-    "无": "#f7f7f7"
+    "草": "#78C850",
+    "火": "#F08030",
+    "水": "#6890F0",
+    "斗": "#C03028",
+    "超": "#F85888",
+    "恶": "#705848",
+    "雷": "#F8D030",
+    "钢": "#B8B8D0",
+    "龙": "#7038F8",
+    "无": "#A8A878"
   }
 }
