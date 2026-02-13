@@ -1,35 +1,44 @@
 // ui/PokemonCell.js - 简化版本
 class PokemonCell {
-    constructor(index, container, size) {
-        this.index = index;
-        this.container = container;
-        this.size = size;
-        this.pokemon = null;
-        this.isActive = true;
-        this.typeColors = {};
-        
-        this.createCanvas();
-    }
+constructor(index, container, size) {
+    this.index = index;
+    this.container = container;
+    this.size = size;
+    this.pokemon = null;
+    this.isActive = true;
+    this.typeColors = {};
+    
+    this.createCanvas();
+}
 
-    createCanvas() {
-        // 移除已有的canvas
-        while (this.container.firstChild) {
-            this.container.removeChild(this.container.firstChild);
-        }
-        
-        // 创建新的canvas
-        this.canvas = document.createElement('canvas');
-        this.canvas.width = this.size;
-        this.canvas.height = this.size;
-        this.canvas.style.width = '100%';
-        this.canvas.style.height = '100%';
-        this.canvas.style.display = 'block';
-        this.canvas.style.borderRadius = '8px';
-        this.container.appendChild(this.canvas);
-        this.ctx = this.canvas.getContext('2d');
-        
-        this.drawEmpty();
+updateSize(newSize) {
+    if (newSize && newSize !== this.size) {
+        this.size = newSize;
+        this.canvas.width = newSize;
+        this.canvas.height = newSize;
+        this.updateDisplay();
     }
+}
+
+createCanvas() {
+    // 移除已有的canvas
+    while (this.container.firstChild) {
+        this.container.removeChild(this.container.firstChild);
+    }
+    
+    // 创建新的canvas
+    this.canvas = document.createElement('canvas');
+    this.canvas.width = this.size || 100;
+    this.canvas.height = this.size || 100;
+    this.canvas.style.width = '100%';
+    this.canvas.style.height = '100%';
+    this.canvas.style.display = 'block';
+    this.canvas.style.borderRadius = '8px';
+    this.container.appendChild(this.canvas);
+    this.ctx = this.canvas.getContext('2d');
+    
+    this.drawEmpty();
+}
 
     setPokemon(pokemon, imageLoader) {
         console.log(`[格子${this.index}] 设置宝可梦:`, pokemon?.data?.name);

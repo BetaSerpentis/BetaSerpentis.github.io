@@ -77,6 +77,11 @@ class VisualGame {
             this.logMessage('错误', `加载失败: ${error.message}`);
             console.error(error);
         }
+
+            // 确保格子大小正确
+    setTimeout(() => {
+        this.updateGridSize();
+    }, 200);
     }
 
     // 修改summonPokemon方法，在召唤动画完成后处理奖励
@@ -1072,275 +1077,244 @@ class VisualGame {
         }
     }
 
-    // main.js - 修改initUI方法，适配PWA全屏
-    initUI() {
-        // 设置页面样式 - 使用fixed定位防止滚动
-        document.body.style.margin = '0';
-        document.body.style.padding = '0';
-        document.body.style.overflow = 'hidden';
-        document.body.style.position = 'fixed';
-        document.body.style.width = '100%';
-        document.body.style.height = '100%';
-        document.body.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-        document.body.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-        
-        // 创建游戏容器 - 使用env()适配刘海屏
-        const container = document.createElement('div');
-        container.id = 'game-container';
-        container.style.width = '100%';
-        container.style.height = '100%';
-        container.style.position = 'relative';
-        container.style.maxWidth = '500px';
-        container.style.margin = '0 auto';
-        container.style.background = 'rgba(0, 0, 0, 0.2)';
-        container.style.display = 'flex';
-        container.style.flexDirection = 'column';
-        container.style.padding = 'env(safe-area-inset-top, 15px) 15px env(safe-area-inset-bottom, 15px) 15px';
-        container.style.boxSizing = 'border-box';
-        container.style.overflowY = 'auto';
-        container.style.overflowX = 'hidden';
-        container.style.WebkitOverflowScrolling = 'touch'; // iOS平滑滚动
-        document.body.appendChild(container);
-        
-        this.container = container;
+// main.js - 修改initUI方法
+initUI() {
+    const container = document.getElementById('game-container');
+    if (!container) return;
+    
+    this.container = container;
+    
+    // 清空容器
+    container.innerHTML = '';
+    
+    // ========== 顶部标题 ==========
+    const title = document.createElement('div');
+    title.className = 'game-title';
+    title.textContent = '宝可梦对对碰';
+    container.appendChild(title);
+    
+    // ========== 信息栏 ==========
+    const infoBar = document.createElement('div');
+    infoBar.className = 'info-bar';
+    container.appendChild(infoBar);
+    
+    // 精灵球数量行
+    const ballRow = document.createElement('div');
+    ballRow.style.display = 'flex';
+    ballRow.style.alignItems = 'center';
+    ballRow.style.marginBottom = '8px';
+    infoBar.appendChild(ballRow);
+    
+    const ballIcon = document.createElement('span');
+    ballIcon.textContent = '⚽';
+    ballIcon.style.fontSize = 'min(24px, 6vw)';
+    ballIcon.style.marginRight = '10px';
+    ballIcon.style.color = '#FF4444';
+    ballRow.appendChild(ballIcon);
+    
+    const ballLabel = document.createElement('span');
+    ballLabel.textContent = '精灵球：';
+    ballLabel.style.color = 'white';
+    ballLabel.style.fontSize = 'min(16px, 4vw)';
+    ballLabel.style.fontWeight = '500';
+    ballRow.appendChild(ballLabel);
+    
+    this.ballCountSpan = document.createElement('span');
+    this.ballCountSpan.textContent = '9';
+    this.ballCountSpan.style.color = '#FFD700';
+    this.ballCountSpan.style.fontSize = 'min(20px, 5vw)';
+    this.ballCountSpan.style.fontWeight = 'bold';
+    this.ballCountSpan.style.marginLeft = '5px';
+    ballRow.appendChild(this.ballCountSpan);
+    
+    // 累计捕获行
+    const captureRow = document.createElement('div');
+    captureRow.style.display = 'flex';
+    captureRow.style.alignItems = 'center';
+    infoBar.appendChild(captureRow);
+    
+    const captureIcon = document.createElement('span');
+    captureIcon.textContent = '🏆';
+    captureIcon.style.fontSize = 'min(20px, 5vw)';
+    captureIcon.style.marginRight = '10px';
+    captureIcon.style.color = '#FFD700';
+    captureRow.appendChild(captureIcon);
+    
+    const captureLabel = document.createElement('span');
+    captureLabel.textContent = '累计获得：';
+    captureLabel.style.color = 'white';
+    captureLabel.style.fontSize = 'min(15px, 4vw)';
+    captureLabel.style.fontWeight = '500';
+    captureRow.appendChild(captureLabel);
+    
+    this.totalBallsSpan = document.createElement('span');
+    this.totalBallsSpan.textContent = '0';
+    this.totalBallsSpan.style.color = '#81C784';
+    this.totalBallsSpan.style.fontSize = 'min(18px, 4.5vw)';
+    this.totalBallsSpan.style.fontWeight = 'bold';
+    this.totalBallsSpan.style.marginLeft = '5px';
+    captureRow.appendChild(this.totalBallsSpan);
+    
+    // ========== 九宫格场地 ==========
+    this.createGameGrid();
+    
+    // ========== 命定属性栏 ==========
+    const typeBar = document.createElement('div');
+    typeBar.style.width = '100%';
+    typeBar.style.maxWidth = 'min(400px, 90vw)';
+    typeBar.style.margin = 'min(15px, 2vh) auto';
+    typeBar.style.display = 'flex';
+    typeBar.style.justifyContent = 'center';
+    typeBar.style.alignItems = 'center';
+    container.appendChild(typeBar);
+    
+    this.typeSelectBtn = this.createTypeSelectButton();
+    typeBar.appendChild(this.typeSelectBtn);
+    
+    // ========== 游戏日志 ==========
+    const logContainer = document.createElement('div');
+    logContainer.style.width = '100%';
+    logContainer.style.maxWidth = 'min(400px, 90vw)';
+    logContainer.style.margin = '0 auto';
+    logContainer.style.flex = '1';
+    logContainer.style.minHeight = '0';
+    logContainer.style.display = 'flex';
+    logContainer.style.flexDirection = 'column';
+    container.appendChild(logContainer);
+    
+    const logTitle = document.createElement('div');
+    logTitle.textContent = '📋 游戏日志';
+    logTitle.style.color = '#FFD700';
+    logTitle.style.fontSize = 'min(16px, 4vw)';
+    logTitle.style.fontWeight = 'bold';
+    logTitle.style.marginBottom = '5px';
+    logTitle.style.paddingLeft = '5px';
+    logContainer.appendChild(logTitle);
+    
+    this.messageBoard = new MessageBoard(0, 0, 400, 140);
+    const messageElement = this.messageBoard.getElement();
+    messageElement.style.position = 'relative';
+    messageElement.style.width = '100%';
+    messageElement.style.height = 'min(140px, 20vh)';
+    messageElement.style.left = '0';
+    messageElement.style.top = '0';
+    messageElement.style.background = 'rgba(0, 0, 0, 0.7)';
+    messageElement.style.borderRadius = '12px';
+    messageElement.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+    messageElement.style.backdropFilter = 'blur(5px)';
+    logContainer.appendChild(messageElement);
+    
+    // ========== 操作按钮 ==========
+    const buttonBar = document.createElement('div');
+    buttonBar.style.width = '100%';
+    buttonBar.style.maxWidth = 'min(400px, 90vw)';
+    buttonBar.style.margin = 'min(15px, 2vh) auto';
+    buttonBar.style.display = 'flex';
+    buttonBar.style.justifyContent = 'center';
+    buttonBar.style.gap = 'min(20px, 4vw)';
+    buttonBar.style.padding = '0 min(10px, 2vw)';
+    buttonBar.style.boxSizing = 'border-box';
+    container.appendChild(buttonBar);
+    
+    const throwBtn = this.createButton('🎯 扔球', () => this.summonPokemon());
+    throwBtn.style.flex = '1';
+    throwBtn.style.maxWidth = 'min(160px, 40vw)';
+    throwBtn.style.background = 'linear-gradient(45deg, #2196F3, #21CBF3)';
+    buttonBar.appendChild(throwBtn);
+    
+    const restartBtn = this.createButton('🔄 重新开始', () => this.restartGame());
+    restartBtn.style.flex = '1';
+    restartBtn.style.maxWidth = 'min(160px, 40vw)';
+    restartBtn.style.background = 'linear-gradient(45deg, #FF6B6B, #FF8E8E)';
+    buttonBar.appendChild(restartBtn);
+    
+    this.throwBtn = throwBtn;
+    this.restartBtn = restartBtn;
+    
+    this.setGameStartState(false);
+}
 
-        // 标题
-        const title = document.createElement('div');
-        title.textContent = '宝可梦对对碰';
-        title.style.textAlign = 'center';
-        title.style.color = '#FFD700';
-        title.style.fontSize = '26px';
-        title.style.fontWeight = 'bold';
-        title.style.padding = '15px 0 10px 0';
-        title.style.textShadow = '2px 2px 4px rgba(0,0,0,0.5)';
-        title.style.letterSpacing = '2px';
-        container.appendChild(title);
-        
-        // 信息栏
-        const infoBar = document.createElement('div');
-        infoBar.style.width = '100%';
-        infoBar.style.maxWidth = '400px';
-        infoBar.style.margin = '0 auto 15px auto';
-        infoBar.style.padding = '15px 20px';
-        infoBar.style.background = 'rgba(0, 0, 0, 0.5)';
-        infoBar.style.borderRadius = '15px';
-        infoBar.style.boxSizing = 'border-box';
-        infoBar.style.backdropFilter = 'blur(5px)';
-        infoBar.style.border = '1px solid rgba(255, 255, 255, 0.2)';
-        container.appendChild(infoBar);
-        
-        // 精灵球数量
-        const ballRow = document.createElement('div');
-        ballRow.style.display = 'flex';
-        ballRow.style.alignItems = 'center';
-        ballRow.style.marginBottom = '8px';
-        infoBar.appendChild(ballRow);
-        
-        const ballIcon = document.createElement('span');
-        ballIcon.textContent = '⚽';
-        ballIcon.style.fontSize = '24px';
-        ballIcon.style.marginRight = '10px';
-        ballIcon.style.color = '#FF4444';
-        ballRow.appendChild(ballIcon);
-        
-        const ballLabel = document.createElement('span');
-        ballLabel.textContent = '精灵球：';
-        ballLabel.style.color = 'white';
-        ballLabel.style.fontSize = '16px';
-        ballLabel.style.fontWeight = '500';
-        ballRow.appendChild(ballLabel);
-        
-        this.ballCountSpan = document.createElement('span');
-        this.ballCountSpan.textContent = '9';
-        this.ballCountSpan.style.color = '#FFD700';
-        this.ballCountSpan.style.fontSize = '20px';
-        this.ballCountSpan.style.fontWeight = 'bold';
-        this.ballCountSpan.style.marginLeft = '5px';
-        ballRow.appendChild(this.ballCountSpan);
-        
-        // 累计捕获
-        const captureRow = document.createElement('div');
-        captureRow.style.display = 'flex';
-        captureRow.style.alignItems = 'center';
-        infoBar.appendChild(captureRow);
-        
-        const captureIcon = document.createElement('span');
-        captureIcon.textContent = '🏆';
-        captureIcon.style.fontSize = '20px';
-        captureIcon.style.marginRight = '10px';
-        captureIcon.style.color = '#FFD700';
-        captureRow.appendChild(captureIcon);
-        
-        const captureLabel = document.createElement('span');
-        captureLabel.textContent = '累计获得：';
-        captureLabel.style.color = 'white';
-        captureLabel.style.fontSize = '15px';
-        captureLabel.style.fontWeight = '500';
-        captureRow.appendChild(captureLabel);
-        
-        this.totalBallsSpan = document.createElement('span');
-        this.totalBallsSpan.textContent = '0';
-        this.totalBallsSpan.style.color = '#81C784';
-        this.totalBallsSpan.style.fontSize = '18px';
-        this.totalBallsSpan.style.fontWeight = 'bold';
-        this.totalBallsSpan.style.marginLeft = '5px';
-        captureRow.appendChild(this.totalBallsSpan);
-        
-        // 九宫格场地
-        this.createGameGrid();
-        
-        // 命定属性栏
-        const typeBar = document.createElement('div');
-        typeBar.style.width = '100%';
-        typeBar.style.maxWidth = '400px';
-        typeBar.style.margin = '15px auto';
-        typeBar.style.display = 'flex';
-        typeBar.style.justifyContent = 'center';
-        typeBar.style.alignItems = 'center';
-        container.appendChild(typeBar);
-        
-        this.typeSelectBtn = this.createTypeSelectButton();
-        typeBar.appendChild(this.typeSelectBtn);
-        
-        // 游戏日志
-        const logContainer = document.createElement('div');
-        logContainer.style.width = '100%';
-        logContainer.style.maxWidth = '400px';
-        logContainer.style.margin = '0 auto';
-        logContainer.style.flex = '1';
-        logContainer.style.minHeight = '0';
-        logContainer.style.display = 'flex';
-        logContainer.style.flexDirection = 'column';
-        container.appendChild(logContainer);
-        
-        const logTitle = document.createElement('div');
-        logTitle.textContent = '📋 游戏日志';
-        logTitle.style.color = '#FFD700';
-        logTitle.style.fontSize = '16px';
-        logTitle.style.fontWeight = 'bold';
-        logTitle.style.marginBottom = '5px';
-        logTitle.style.paddingLeft = '5px';
-        logContainer.appendChild(logTitle);
-        
-        this.messageBoard = new MessageBoard(0, 0, 400, 140);
-        const messageElement = this.messageBoard.getElement();
-        messageElement.style.position = 'relative';
-        messageElement.style.width = '100%';
-        messageElement.style.height = '140px';
-        messageElement.style.left = '0';
-        messageElement.style.top = '0';
-        messageElement.style.background = 'rgba(0, 0, 0, 0.7)';
-        messageElement.style.borderRadius = '12px';
-        messageElement.style.border = '1px solid rgba(255, 255, 255, 0.2)';
-        messageElement.style.backdropFilter = 'blur(5px)';
-        logContainer.appendChild(messageElement);
-        
-        // 操作按钮
-        const buttonBar = document.createElement('div');
-        buttonBar.style.width = '100%';
-        buttonBar.style.maxWidth = '400px';
-        buttonBar.style.margin = '15px auto';
-        buttonBar.style.display = 'flex';
-        buttonBar.style.justifyContent = 'center';
-        buttonBar.style.gap = '20px';
-        buttonBar.style.padding = '0 10px';
-        buttonBar.style.boxSizing = 'border-box';
-        container.appendChild(buttonBar);
-        
-        const throwBtn = this.createButton('🎯 扔球', () => this.summonPokemon());
-        throwBtn.style.flex = '1';
-        throwBtn.style.maxWidth = '160px';
-        throwBtn.style.background = 'linear-gradient(45deg, #2196F3, #21CBF3)';
-        buttonBar.appendChild(throwBtn);
-        
-        const restartBtn = this.createButton('🔄 重新开始', () => this.restartGame());
-        restartBtn.style.flex = '1';
-        restartBtn.style.maxWidth = '160px';
-        restartBtn.style.background = 'linear-gradient(45deg, #FF6B6B, #FF8E8E)';
-        buttonBar.appendChild(restartBtn);
-        
-        this.throwBtn = throwBtn;
-        this.restartBtn = restartBtn;
-        
-        this.setGameStartState(false);
-    }
-
-    // main.js - 简化createGameGrid方法，使用CSS Grid布局
-    createGameGrid() {
-        const container = this.container;
-        
-        // 创建九宫格外容器 - 使用CSS Grid布局
-        const gridWrapper = document.createElement('div');
-        gridWrapper.style.width = '100%';
-        gridWrapper.style.maxWidth = '400px';
-        gridWrapper.style.margin = '0 auto';
-        gridWrapper.style.aspectRatio = '1 / 1';
-        gridWrapper.style.display = 'grid';
-        gridWrapper.style.gridTemplateColumns = 'repeat(3, 1fr)';
-        gridWrapper.style.gridTemplateRows = 'repeat(3, 1fr)';
-        gridWrapper.style.gap = '5px';
-        gridWrapper.style.padding = '5px';
-        gridWrapper.style.boxSizing = 'border-box';
-        gridWrapper.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-        gridWrapper.style.borderRadius = '15px';
-        gridWrapper.style.border = '2px solid rgba(255, 255, 255, 0.2)';
-        gridWrapper.style.backdropFilter = 'blur(5px)';
-        container.appendChild(gridWrapper);
-        
-        this.gridWrapper = gridWrapper;
-        
-        // 创建9个格子
-        this.gridCells = [];
-        
-        for (let row = 0; row < 3; row++) {
-            for (let col = 0; col < 3; col++) {
-                const index = row * 3 + col;
-                
-                // 创建格子容器
-                const cellContainer = document.createElement('div');
-                cellContainer.style.width = '100%';
-                cellContainer.style.height = '100%';
-                cellContainer.style.display = 'flex';
-                cellContainer.style.justifyContent = 'center';
-                cellContainer.style.alignItems = 'center';
-                cellContainer.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-                cellContainer.style.borderRadius = '10px';
-                cellContainer.style.border = '1px solid rgba(255, 255, 255, 0.1)';
-                gridWrapper.appendChild(cellContainer);
-                
-                // 获取格子实际大小
-                setTimeout(() => {
-                    const rect = cellContainer.getBoundingClientRect();
-                    const cellSize = Math.min(rect.width, rect.height);
-                    
-                    // 创建PokemonCell
-                    const cell = new PokemonCell(index, cellContainer, cellSize);
-                    this.gridCells.push(cell);
-                    
-                    // 初始化显示
-                    cell.updateDisplay();
-                }, 0);
+// 添加更新格子大小的方法
+updateGridSize() {
+    if (!this.gridWrapper || !this.gridCells) return;
+    
+    this.gridCells.forEach((cell, index) => {
+        const row = Math.floor(index / 3);
+        const col = index % 3;
+        const cellContainer = this.gridWrapper.children[row * 3 + col];
+        if (cellContainer) {
+            const rect = cellContainer.getBoundingClientRect();
+            const newSize = Math.min(rect.width, rect.height);
+            if (newSize > 0) {
+                cell.size = newSize;
+                cell.canvas.width = newSize;
+                cell.canvas.height = newSize;
+                cell.updateDisplay();
             }
         }
-        
-        // 监听窗口大小变化，更新格子大小
-        window.addEventListener('resize', () => {
-            setTimeout(() => {
-                this.gridCells.forEach((cell, index) => {
-                    const row = Math.floor(index / 3);
-                    const col = index % 3;
-                    const cellContainer = this.gridWrapper.children[row * 3 + col];
-                    const rect = cellContainer.getBoundingClientRect();
-                    const newSize = Math.min(rect.width, rect.height);
-                    
-                    cell.size = newSize;
-                    cell.canvas.width = newSize;
-                    cell.canvas.height = newSize;
-                    cell.updateDisplay();
-                });
-            }, 100);
-        });
+    });
+}
+
+// main.js - 修复createGameGrid方法
+createGameGrid() {
+    const container = this.container;
+    
+    // 创建九宫格外容器 - 使用CSS Grid布局
+    const gridWrapper = document.createElement('div');
+    gridWrapper.className = 'grid-wrapper';
+    gridWrapper.style.width = '100%';
+    gridWrapper.style.maxWidth = 'min(400px, 90vw)';
+    gridWrapper.style.margin = '0 auto';
+    gridWrapper.style.aspectRatio = '1 / 1';
+    gridWrapper.style.display = 'grid';
+    gridWrapper.style.gridTemplateColumns = 'repeat(3, 1fr)';
+    gridWrapper.style.gridTemplateRows = 'repeat(3, 1fr)';
+    gridWrapper.style.gap = '5px';
+    gridWrapper.style.padding = '5px';
+    gridWrapper.style.boxSizing = 'border-box';
+    gridWrapper.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+    gridWrapper.style.borderRadius = '15px';
+    gridWrapper.style.border = '2px solid rgba(255, 255, 255, 0.2)';
+    gridWrapper.style.backdropFilter = 'blur(5px)';
+    container.appendChild(gridWrapper);
+    
+    this.gridWrapper = gridWrapper;
+    
+    // 创建9个格子
+    this.gridCells = [];
+    
+    for (let row = 0; row < 3; row++) {
+        for (let col = 0; col < 3; col++) {
+            const index = row * 3 + col;
+            
+            // 创建格子容器 - 作为grid的子元素
+            const cellContainer = document.createElement('div');
+            cellContainer.style.width = '100%';
+            cellContainer.style.height = '100%';
+            cellContainer.style.display = 'flex';
+            cellContainer.style.justifyContent = 'center';
+            cellContainer.style.alignItems = 'center';
+            cellContainer.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+            cellContainer.style.borderRadius = '10px';
+            cellContainer.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+            gridWrapper.appendChild(cellContainer);
+            
+            // 创建PokemonCell
+            const cell = new PokemonCell(index, cellContainer, 0);
+            this.gridCells.push(cell);
+        }
     }
+    
+    // 延迟获取格子大小
+    setTimeout(() => {
+        this.updateGridSize();
+    }, 100);
+    
+    // 监听窗口大小变化
+    window.addEventListener('resize', () => {
+        this.updateGridSize();
+    });
+}
 
     // 在createControls方法中修改，添加属性选择按钮
     createControls() {
