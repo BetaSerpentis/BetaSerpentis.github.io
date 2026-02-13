@@ -24,6 +24,7 @@ class VisualGame {
         this.loadGame();
     }
 
+    // main.js - 修复loadGame方法，移除对ballCounter的引用
     async loadGame() {
         this.logMessage('系统', '正在加载宝可梦数据...');
         
@@ -34,24 +35,50 @@ class VisualGame {
                 return;
             }
             
-            const ballImage = await this.imageLoader.loadBallImage();
-            this.ballCounter.setBallImage(ballImage);
+            // 移除ballCounter相关的代码，因为我们不再使用它
+            // const ballImage = await this.imageLoader.loadBallImage();
+            // this.ballCounter.setBallImage(ballImage);
             
             const allTypes = this.pokemonData.getAllTypes();
-            const chosenType = allTypes[0];
-            this.gameBoard = new GameBoard(this.pokemonData, chosenType, 9);
+            
+            // 默认选择第一个属性作为初始值
+            this.selectedType = allTypes[0];
+            this.selectedTypeColor = this.pokemonData.typeColors?.[allTypes[0]] || '#A8A878';
+            
+            // 更新属性选择按钮
+            if (this.typeSelectBtn) {
+                this.typeSelectBtn.textContent = `✨ 命定属性：${this.selectedType}`;
+                this.typeSelectBtn.style.background = `linear-gradient(45deg, ${this.selectedTypeColor}, ${this.lightenColor(this.selectedTypeColor, 20)})`;
+            }
+            
+            // 初始化游戏板
+            this.gameBoard = new GameBoard(
+                this.pokemonData, 
+                this.selectedType, 
+                9,
+                (type, message) => this.immediateLogMessage(type, message)
+            );
+            
+            // 设置游戏板的命定属性
+            this.gameBoard.playerChosenType = this.selectedType;
+            
+            // 设置UI回调
+            this.gameBoard.setUICallback((type, message) => {
+                this.immediateLogMessage(type, message);
+            });
             
             this.gridCells.forEach(cell => {
                 cell.typeColors = this.pokemonData.typeColors;
             });
             
             // 初始化格子
-            this.gridCells.forEach(cell => {
-                cell.clear();
-                cell.updateDisplay();
-            });
+            this.initializeGridCells();
             
-            this.logMessage('系统', '游戏准备就绪！点击"扔球"开始游戏');
+            // 游戏未开始状态
+            this.gameStarted = false;
+            this.setGameStartState(false);
+            
+            this.logMessage('系统', '游戏准备就绪！请选择命定属性开始游戏');
             
         } catch (error) {
             this.logMessage('错误', `加载失败: ${error.message}`);
@@ -59,12 +86,24 @@ class VisualGame {
         }
     }
 
-    // main.js - 修改summonPokemon方法，恢复召唤消息
+    // 修改summonPokemon方法，在第一次召唤时锁定属性
     async summonPokemon() {
+        // 检查是否选择了命定属性
+        if (!this.selectedType) {
+            this.logMessage('错误', '请先选择命定属性！');
+            return;
+        }
+        
         if (this.isSummoning || this.isGameOver) return;
         if (this.gameBoard.ballsRemaining <= 0) {
             this.logMessage('错误', '没有精灵球了！');
             return;
+        }
+        
+        // 第一次召唤时锁定属性选择
+        if (!this.gameStarted) {
+            this.setGameStartState(true);
+            this.logMessage('系统', `游戏开始，命定属性已锁定为【${this.selectedType}】`);
         }
         
         this.isSummoning = true;
@@ -81,19 +120,43 @@ class VisualGame {
                 console.log(`召唤宝可梦: ${result.data.name}, 格子 ${index}`);
                 
                 // 预加载当前宝可梦图片
-                console.log(`预加载宝可梦图片: ${result.data.id}`);
                 await this.imageLoader.loadPokemonImage(result.data.id);
                 
                 // 设置宝可梦到格子
                 cell.setPokemon(result, this.imageLoader);
                 
-                // 播放动画
+                // 播放召唤动画
                 await this.playDirectSummonAnimation(cell, result);
+                
+                // 检查是否为变身者
+                if (result.data.isTransformer && result.transformInfo) {
+                    console.log(`[变身流程] 开始变身动画`);
+                    
+                    // 播放变身动画
+                    await this.playTransformAnimation(cell, result.transformInfo);
+                    
+                    // 变身完成后执行游戏逻辑的变身
+                    const transformedPokemon = this.gameBoard.executeTransform(result.transformInfo);
+                    
+                    if (transformedPokemon) {
+                        // 更新格子显示为变身后的宝可梦
+                        await this.imageLoader.loadPokemonImage(transformedPokemon.data.id);
+                        cell.setPokemon(transformedPokemon, this.imageLoader);
+                        cell.updateDisplay();
+                        
+                        // 关键：等待规则检查完成
+                        console.log(`[变身流程] 等待规则检查...`);
+                        await this.delay(500);
+                        
+                        // 检查是否有规则触发，如果有，立即同步
+                        await this.checkAndProcessTransformRules();
+                    }
+                }
                 
                 // 预加载所有场上宝可梦的图片
                 await this.preloadAllPokemonImages();
                 
-                // 使用完整的同步方法
+                // 正常的同步（如果有规则触发，上面的checkAndProcessTransformRules已经处理了）
                 setTimeout(async () => {
                     await this.syncGridWithGameBoard();
                 }, 100);
@@ -115,21 +178,296 @@ class VisualGame {
         console.log('=== 召唤结束 ===');
     }
 
+    // 新增：检查和处理变身触发的规则
+    async checkAndProcessTransformRules() {
+        console.log(`[规则检查] 检查变身触发的规则`);
+        
+        // 等待一点时间，确保GameBoard的规则检查完成
+        await this.delay(100);
+        
+        // 检查是否有需要消除的格子
+        const cellsToClear = [];
+        
+        for (let i = 0; i < 9; i++) {
+            const cell = this.gridCells[i];
+            const gamePokemon = this.gameBoard.grid[i];
+            const cellPokemon = cell.pokemon;
+            
+            if (!gamePokemon && cellPokemon) {
+                console.log(`[规则检查] 格子 ${i} 需要消除: ${cellPokemon.data.name}`);
+                cellsToClear.push({ index: i, cell, pokemon: cellPokemon });
+            }
+        }
+        
+        // 如果有需要消除的格子，播放动画
+        if (cellsToClear.length > 0) {
+            console.log(`[规则检查] 发现 ${cellsToClear.length} 个格子需要消除`);
+            
+            if (cellsToClear.length === 2) {
+                // 播放对对碰消除动画
+                await this.playPairEliminationAnimation(
+                    cellsToClear[0].cell,
+                    cellsToClear[1].cell
+                );
+            } else if (cellsToClear.length === 3) {
+                // 播放三连消除动画
+                await this.playTripleEliminationAnimation(
+                    cellsToClear[0].cell,
+                    cellsToClear[1].cell,
+                    cellsToClear[2].cell
+                );
+            } else {
+                // 单个消除
+                for (const { cell } of cellsToClear) {
+                    await this.playDisappearAnimation(cell);
+                }
+            }
+            
+            // 更新球计数器（因为消除会获得精灵球）
+            this.updateBallCounter();
+        }
+    }
+
+    // 新增：三连消除动画
+    async playTripleEliminationAnimation(cell1, cell2, cell3) {
+        console.log(`[动画] 播放三连消除动画，格子 ${cell1.index}, ${cell2.index}, ${cell3.index}`);
+        
+        return new Promise((resolve) => {
+            const duration = 800;
+            const startTime = performance.now();
+            
+            const originalPositions = [
+                { x: cell1.x + cell1.size / 2, y: cell1.y + cell1.size / 2 },
+                { x: cell2.x + cell2.size / 2, y: cell2.y + cell2.size / 2 },
+                { x: cell3.x + cell3.size / 2, y: cell3.y + cell3.size / 2 }
+            ];
+            
+            // 计算飞向的目标位置（屏幕上方中间）
+            const targetX = window.innerWidth / 2;
+            const targetY = 50;
+            
+            const animate = () => {
+                const elapsed = performance.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // 清空三个格子
+                cell1.ctx.clearRect(0, 0, cell1.size, cell1.size);
+                cell2.ctx.clearRect(0, 0, cell2.size, cell2.size);
+                cell3.ctx.clearRect(0, 0, cell3.size, cell3.size);
+                
+                if (progress < 0.7) {
+                    // 缩小并飞向目标
+                    const scale = 1 - progress * 0.7;
+                    
+                    [cell1, cell2, cell3].forEach((cell, idx) => {
+                        const pos = originalPositions[idx];
+                        const currentPos = {
+                            x: pos.x + (targetX - pos.x) * progress,
+                            y: pos.y + (targetY - pos.y) * progress
+                        };
+                        
+                        cell.ctx.save();
+                        cell.ctx.translate(currentPos.x - cell.x, currentPos.y - cell.y);
+                        cell.ctx.scale(scale, scale);
+                        
+                        // 绘制宝可梦
+                        if (cell.pokemon && cell.sprite) {
+                            cell.ctx.drawImage(
+                                cell.sprite,
+                                -cell.sprite.width / 2,
+                                -cell.sprite.height / 2
+                            );
+                        }
+                        
+                        cell.ctx.restore();
+                    });
+                }
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    // 动画完成，清除格子
+                    cell1.clear();
+                    cell2.clear();
+                    cell3.clear();
+                    resolve();
+                }
+            };
+            
+            animate();
+        });
+    }
+
+    // main.js - 修改playTransformAnimation方法
+    async playTransformAnimation(cell, transformInfo) {
+        const { transformer, targetPokemon } = transformInfo;
+        
+        console.log(`[动画] 播放变身动画，格子 ${cell.index}: ${transformer.data.name} -> ${targetPokemon.data.name}`);
+        
+        await this.imageLoader.loadPokemonImage(targetPokemon.data.id);
+        
+        return new Promise((resolve) => {
+            const duration = 1000;
+            const startTime = performance.now();
+            
+            const targetSprite = this.imageLoader.getPokemonSprite(
+                targetPokemon.data.id,
+                transformer.isShiny,
+                false
+            );
+            
+            const animate = () => {
+                const elapsed = performance.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                cell.ctx.clearRect(0, 0, cell.size, cell.size);
+                
+                if (progress < 0.3) {
+                    cell.updateDisplay();
+                } else if (progress < 0.5) {
+                    cell.ctx.save();
+                    const blurAmount = (progress - 0.3) / 0.2 * 5;
+                    cell.ctx.filter = `blur(${blurAmount}px)`;
+                    if (cell.sprite) {
+                        const maxSize = cell.size * 0.7;
+                        const scale = maxSize / Math.max(cell.sprite.width, cell.sprite.height);
+                        cell.ctx.save();
+                        cell.ctx.translate(cell.size / 2, cell.size / 2);
+                        cell.ctx.scale(scale, scale);
+                        cell.ctx.drawImage(
+                            cell.sprite,
+                            -cell.sprite.width / 2,
+                            -cell.sprite.height / 2
+                        );
+                        cell.ctx.restore();
+                    }
+                    cell.ctx.restore();
+                } else if (progress < 0.7) {
+                    cell.ctx.save();
+                    const distortion = Math.sin((progress - 0.5) / 0.2 * Math.PI) * 0.3;
+                    cell.ctx.transform(1 + distortion, 0, 0, 1 - distortion, 0, 0);
+                    
+                    // 混合显示
+                    if (cell.sprite) {
+                        cell.ctx.globalAlpha = 0.5;
+                        const maxSize = cell.size * 0.7;
+                        const scale = maxSize / Math.max(cell.sprite.width, cell.sprite.height);
+                        cell.ctx.save();
+                        cell.ctx.translate(cell.size / 2, cell.size / 2);
+                        cell.ctx.scale(scale, scale);
+                        cell.ctx.drawImage(
+                            cell.sprite,
+                            -cell.sprite.width / 2,
+                            -cell.sprite.height / 2
+                        );
+                        cell.ctx.restore();
+                    }
+                    
+                    if (targetSprite) {
+                        cell.ctx.globalAlpha = 0.5;
+                        const maxSize = cell.size * 0.7;
+                        const scale = maxSize / Math.max(targetSprite.width, targetSprite.height);
+                        cell.ctx.save();
+                        cell.ctx.translate(cell.size / 2, cell.size / 2);
+                        cell.ctx.scale(scale, scale);
+                        cell.ctx.drawImage(
+                            targetSprite,
+                            -targetSprite.width / 2,
+                            -targetSprite.height / 2
+                        );
+                        cell.ctx.restore();
+                    }
+                    
+                    cell.ctx.restore();
+                } else if (progress < 0.9) {
+                    const targetAlpha = (progress - 0.7) / 0.2;
+                    
+                    if (targetPokemon.currentTypes && targetPokemon.currentTypes[0]) {
+                        const mainType = targetPokemon.currentTypes[0];
+                        const typeColor = cell.typeColors[mainType] || '#A8A878';
+                        
+                        cell.ctx.fillStyle = `${typeColor}66`;
+                        cell.ctx.globalAlpha = targetAlpha * 0.4;
+                        cell.ctx.fillRect(0, 0, cell.size, cell.size);
+                        
+                        cell.ctx.strokeStyle = typeColor;
+                        cell.ctx.lineWidth = 3;
+                        cell.ctx.globalAlpha = targetAlpha;
+                        cell.ctx.strokeRect(2, 2, cell.size - 4, cell.size - 4);
+                    }
+                    
+                    if (targetSprite) {
+                        cell.ctx.globalAlpha = targetAlpha;
+                        const maxSize = cell.size * 0.7;
+                        const scale = maxSize / Math.max(targetSprite.width, targetSprite.height);
+                        cell.ctx.save();
+                        cell.ctx.translate(cell.size / 2, cell.size / 2);
+                        cell.ctx.scale(scale, scale);
+                        cell.ctx.drawImage(
+                            targetSprite,
+                            -targetSprite.width / 2,
+                            -targetSprite.height / 2
+                        );
+                        cell.ctx.restore();
+                    }
+                    
+                    cell.ctx.globalAlpha = 1.0;
+                } else {
+                    if (targetPokemon.currentTypes && targetPokemon.currentTypes[0]) {
+                        const mainType = targetPokemon.currentTypes[0];
+                        const typeColor = cell.typeColors[mainType] || '#A8A878';
+                        
+                        cell.ctx.fillStyle = `${typeColor}66`;
+                        cell.ctx.fillRect(0, 0, cell.size, cell.size);
+                        
+                        cell.ctx.strokeStyle = typeColor;
+                        cell.ctx.lineWidth = 3;
+                        cell.ctx.strokeRect(2, 2, cell.size - 4, cell.size - 4);
+                    }
+                    
+                    if (targetSprite) {
+                        const maxSize = cell.size * 0.7;
+                        const scale = maxSize / Math.max(targetSprite.width, targetSprite.height);
+                        cell.ctx.save();
+                        cell.ctx.translate(cell.size / 2, cell.size / 2);
+                        cell.ctx.scale(scale, scale);
+                        cell.ctx.drawImage(
+                            targetSprite,
+                            -targetSprite.width / 2,
+                            -targetSprite.height / 2
+                        );
+                        cell.ctx.restore();
+                    }
+                }
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    resolve();
+                }
+            };
+            
+            animate();
+        });
+    }
+
+    // main.js - 修改syncGridWithGameBoard方法
     async syncGridWithGameBoard() {
         console.log('[同步] ========== 开始同步 ==========');
         
         if (!this.gameBoard) return;
         
-        // 首先检查是否有进化事件需要处理
+        // 等待一下，确保所有动画完成
+        await this.delay(200);
+        
+        // 检查是否有进化事件
         const hasEvolution = await this.checkAndProcessEvolutions();
         
         if (hasEvolution) {
-            console.log('[同步] 已处理进化事件，重新同步');
-            // 如果处理了进化，需要重新检查整个状态
-            await this.delay(200); // 给进化动画一点时间
+            await this.delay(800);
         }
         
-        // 同步所有格子状态
+        // 同步所有格子状态（排除已经在动画中处理过的）
         const cellsToClear = [];
         const cellsToAdd = [];
         
@@ -138,13 +476,18 @@ class VisualGame {
             const gamePokemon = this.gameBoard.grid[i];
             const cellPokemon = cell.pokemon;
             
+            // 如果格子已经被清除（pokemon为null），跳过
+            if (!cell.isActive) continue;
+            
             if (!gamePokemon && cellPokemon) {
                 cellsToClear.push({ index: i, cell, pokemon: cellPokemon });
             } else if (gamePokemon && !cellPokemon) {
                 cellsToAdd.push({ index: i, cell, pokemon: gamePokemon });
             } else if (gamePokemon && cellPokemon && gamePokemon !== cellPokemon) {
-                // 宝可梦变化（不是进化，因为进化已经在前面处理了）
-                cellsToAdd.push({ index: i, cell, pokemon: gamePokemon });
+                // 如果是变身，跳过（已经在动画中处理了）
+                if (!gamePokemon.data.isTransformer || !cellPokemon.data.isTransformer) {
+                    cellsToAdd.push({ index: i, cell, pokemon: gamePokemon });
+                }
             }
         }
         
@@ -157,6 +500,12 @@ class VisualGame {
                     cellsToClear[0].cell,
                     cellsToClear[1].cell
                 );
+            } else if (cellsToClear.length === 3) {
+                await this.playTripleEliminationAnimation(
+                    cellsToClear[0].cell,
+                    cellsToClear[1].cell,
+                    cellsToClear[2].cell
+                );
             } else {
                 for (const { cell } of cellsToClear) {
                     await this.playDisappearAnimation(cell);
@@ -168,12 +517,7 @@ class VisualGame {
         if (cellsToAdd.length > 0) {
             console.log(`[同步] 发现 ${cellsToAdd.length} 个格子需要更新`);
             for (const { cell, pokemon } of cellsToAdd) {
-                // 确保图片已加载
-                try {
-                    await this.imageLoader.loadPokemonImage(pokemon.data.id);
-                } catch (error) {
-                    console.warn(`[同步] 加载图片 ${pokemon.data.id} 失败，使用占位符`);
-                }
+                await this.imageLoader.loadPokemonImage(pokemon.data.id);
                 cell.setPokemon(pokemon, this.imageLoader);
                 cell.updateDisplay();
             }
@@ -523,22 +867,24 @@ class VisualGame {
         });
     }
 
-    // main.js - 完整的syncGridWithGameBoard方法
+    // main.js - 修改syncGridWithGameBoard，确保变身后的规则能正确检查
     async syncGridWithGameBoard() {
         console.log('[同步] ========== 开始同步 ==========');
-        console.log('[同步] 当前游戏板状态:');
-        
-        // 打印游戏板状态
-        const gridState = this.gameBoard.grid.map((p, i) => 
-            `${i}:${p?.data?.name || '空'}`
-        ).join(' ');
-        console.log(`[同步] ${gridState}`);
         
         if (!this.gameBoard) return;
         
-        // 首先找出所有需要处理的格子
+        // 先等待一下，确保所有动画完成
+        await this.delay(200);
+        
+        // 检查是否有进化事件
+        const hasEvolution = await this.checkAndProcessEvolutions();
+        
+        if (hasEvolution) {
+            await this.delay(800); // 等待进化动画
+        }
+        
+        // 同步所有格子状态
         const cellsToClear = [];
-        const cellsToEvolve = [];
         const cellsToAdd = [];
         
         for (let i = 0; i < 9; i++) {
@@ -546,41 +892,15 @@ class VisualGame {
             const gamePokemon = this.gameBoard.grid[i];
             const cellPokemon = cell.pokemon;
             
-            console.log(`[同步] 格子 ${i}: 游戏板=${gamePokemon?.data?.name || '空'}, UI=${cellPokemon?.data?.name || '空'}`);
-            
             if (!gamePokemon && cellPokemon) {
-                // 需要消除的格子
                 cellsToClear.push({ index: i, cell, pokemon: cellPokemon });
             } else if (gamePokemon && !cellPokemon) {
-                // 需要添加的格子（不应该发生）
                 cellsToAdd.push({ index: i, cell, pokemon: gamePokemon });
             } else if (gamePokemon && cellPokemon && gamePokemon !== cellPokemon) {
-                // 宝可梦变化 - 检查是否是进化
-                if (this.isEvolution(cellPokemon, gamePokemon)) {
-                    // 确保新宝可梦图片已加载
-                    console.log(`[同步] 预加载进化宝可梦图片: ${gamePokemon.data.id}`);
-                    await this.imageLoader.loadPokemonImage(gamePokemon.data.id);
-                    
-                    cellsToEvolve.push({ 
-                        index: i, 
-                        cell, 
-                        oldPokemon: cellPokemon, 
-                        newPokemon: gamePokemon 
-                    });
-                } else {
-                    // 其他变化（如变身）
+                // 如果是变身，已经在动画中处理了，跳过
+                if (!gamePokemon.data.isTransformer || !cellPokemon.data.isTransformer) {
                     cellsToAdd.push({ index: i, cell, pokemon: gamePokemon });
                 }
-            }
-        }
-        
-        // 处理进化（优先处理）
-        if (cellsToEvolve.length > 0) {
-            console.log(`[同步] 发现 ${cellsToEvolve.length} 个格子需要进化`);
-            
-            for (const { index, cell, oldPokemon, newPokemon } of cellsToEvolve) {
-                console.log(`[同步] 格子 ${index} 进化: ${oldPokemon.data.name} -> ${newPokemon.data.name}`);
-                await this.playEvolutionAnimation(cell, newPokemon);
             }
         }
         
@@ -588,64 +908,106 @@ class VisualGame {
         if (cellsToClear.length > 0) {
             console.log(`[同步] 发现 ${cellsToClear.length} 个格子需要消除`);
             
-            // 如果是成对消除（对对碰）
             if (cellsToClear.length === 2) {
-                // 播放对对碰消除动画
                 await this.playPairEliminationAnimation(
                     cellsToClear[0].cell,
                     cellsToClear[1].cell
                 );
             } else {
-                // 其他情况（三连、单个等）
                 for (const { cell } of cellsToClear) {
                     await this.playDisappearAnimation(cell);
                 }
             }
         }
         
-        // 处理添加（其他变化）
+        // 处理添加/更新
         if (cellsToAdd.length > 0) {
             console.log(`[同步] 发现 ${cellsToAdd.length} 个格子需要更新`);
             for (const { cell, pokemon } of cellsToAdd) {
-                // 确保图片已加载
                 await this.imageLoader.loadPokemonImage(pokemon.data.id);
                 cell.setPokemon(pokemon, this.imageLoader);
                 cell.updateDisplay();
             }
         }
         
-        // 最后更新球计数器
+        // 更新球计数器
         this.updateBallCounter();
         
         console.log('[同步] 同步完成');
     }
 
-    // 直接播放动画，不使用动画管理器
+    // main.js - 修改playDirectSummonAnimation方法
     async playDirectSummonAnimation(cell, pokemonInstance) {
         const ballImage = await this.imageLoader.loadBallImage();
         
         console.log(`播放召唤动画，格子 ${cell.index}`);
         
         return new Promise((resolve) => {
-            // 步骤1: 抛物线动画
-            this.playParabolaAnimation(cell, ballImage, () => {
-                console.log(`精灵球动画完成，格子 ${cell.index}`);
+            // 获取格子中心位置
+            const centerPos = cell.getCenterPosition();
+            
+            // 精灵球起始位置（屏幕底部中间）
+            const startX = window.innerWidth / 2;
+            const startY = window.innerHeight - 50;
+            
+            // 目标位置是格子中心
+            const endX = centerPos.x;
+            const endY = centerPos.y;
+            
+            // 获取格子canvas的上下文
+            const ctx = cell.ctx;
+            const canvasWidth = cell.size;
+            const canvasHeight = cell.size;
+            
+            const duration = 800;
+            const startTime = performance.now();
+            const ballScale = 1.5;
+            
+            const animate = () => {
+                const elapsed = performance.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
                 
-                // 步骤2: 宝可梦出现动画
-                this.playPokemonAppearAnimation(cell, () => {
-                    console.log(`宝可梦出现动画完成，格子 ${cell.index}`);
-                    
-                    // 测试：立即显示一条召唤完成消息
-                    this.logMessage('召唤', `${pokemonInstance.data.name}登场完成！`);
-                    
-                    // 步骤3: 如果是异色，播放特效
-                    if (pokemonInstance.isShiny) {
-                        this.playShinyEffect(cell, resolve);
-                    } else {
-                        resolve();
-                    }
-                });
-            });
+                // 贝塞尔曲线计算
+                const controlX = (startX + endX) / 2;
+                const controlY = Math.min(startY, endY) - 100;
+                
+                const x = Math.pow(1 - progress, 2) * startX +
+                        2 * (1 - progress) * progress * controlX +
+                        Math.pow(progress, 2) * endX;
+                
+                const y = Math.pow(1 - progress, 2) * startY +
+                        2 * (1 - progress) * progress * controlY +
+                        Math.pow(progress, 2) * endY;
+                
+                const rotation = progress * 720;
+                
+                // 计算相对于canvas的坐标
+                const canvasX = x - (endX - canvasWidth / 2);
+                const canvasY = y - (endY - canvasHeight / 2);
+                
+                ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+                ctx.save();
+                ctx.translate(canvasX, canvasY);
+                ctx.rotate(rotation * Math.PI / 180);
+                
+                ctx.drawImage(
+                    ballImage,
+                    -ballImage.width * ballScale / 2,
+                    -ballImage.height * ballScale / 2,
+                    ballImage.width * ballScale,
+                    ballImage.height * ballScale
+                );
+                ctx.restore();
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+                    this.playPokemonAppearAnimation(cell, resolve);
+                }
+            };
+            
+            animate();
         });
     }
 
@@ -708,7 +1070,7 @@ class VisualGame {
         animate();
     }
 
-    // 宝可梦出现动画
+    // 修改宝可梦出现动画
     playPokemonAppearAnimation(cell, onComplete) {
         const duration = 500;
         const startTime = performance.now();
@@ -717,13 +1079,11 @@ class VisualGame {
             const elapsed = performance.now() - startTime;
             const progress = Math.min(elapsed / duration, 1);
             
-            // 从小放大
             const scale = 0.1 + (0.9 * progress);
             
-            // 清空并重新绘制
             cell.ctx.clearRect(0, 0, cell.size, cell.size);
             
-            // 绘制背景（根据宝可梦属性）
+            // 绘制背景
             if (cell.pokemon && cell.pokemon.currentTypes && cell.pokemon.currentTypes[0]) {
                 const mainType = cell.pokemon.currentTypes[0];
                 const typeColor = cell.typeColors[mainType] || '#A8A878';
@@ -736,11 +1096,14 @@ class VisualGame {
                 cell.ctx.strokeRect(2, 2, cell.size - 4, cell.size - 4);
             }
             
-            // 绘制宝可梦（缩放）
+            // 绘制宝可梦
             if (cell.sprite) {
+                const maxSize = cell.size * 0.7;
+                const baseScale = maxSize / Math.max(cell.sprite.width, cell.sprite.height);
+                
                 cell.ctx.save();
                 cell.ctx.translate(cell.size / 2, cell.size / 2);
-                cell.ctx.scale(scale, scale);
+                cell.ctx.scale(scale * baseScale, scale * baseScale);
                 cell.ctx.drawImage(
                     cell.sprite,
                     -cell.sprite.width / 2,
@@ -752,7 +1115,6 @@ class VisualGame {
             if (progress < 1) {
                 requestAnimationFrame(animate);
             } else {
-                // 动画完成，最终更新显示
                 cell.updateDisplay();
                 if (onComplete) onComplete();
             }
@@ -837,19 +1199,27 @@ class VisualGame {
         animate();
     }
 
+    // 修改updateBallCounter方法，更新新的计数显示
     updateBallCounter() {
         if (!this.gameBoard) return;
-        this.ballCounter.setCount(this.gameBoard.ballsRemaining);
-        this.ballCounter.setTotalAdded(this.gameBoard.totalBallsAdded);
+        
+        // 更新精灵球数量显示
+        if (this.ballCountSpan) {
+            this.ballCountSpan.textContent = this.gameBoard.ballsRemaining;
+        }
+        
+        // 更新累计获得显示
+        if (this.totalBallsSpan) {
+            this.totalBallsSpan.textContent = this.gameBoard.totalBallsAdded;
+        }
     }
 
-    // ... 其他UI方法保持不变（initUI, createGameGrid, createControls等）
-    // 这些方法与你之前提供的版本相同
-
+    // main.js - 修改initUI方法，简化布局
     initUI() {
         document.body.style.margin = '0';
         document.body.style.overflow = 'hidden';
         document.body.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        document.body.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
         
         const container = document.createElement('div');
         container.id = 'game-container';
@@ -858,75 +1228,255 @@ class VisualGame {
         container.style.position = 'relative';
         container.style.maxWidth = '500px';
         container.style.margin = '0 auto';
-        container.style.background = 'rgba(0, 0, 0, 0.3)';
+        container.style.background = 'rgba(0, 0, 0, 0.2)';
+        container.style.display = 'flex';
+        container.style.flexDirection = 'column';
+        container.style.padding = '0 15px';
+        container.style.boxSizing = 'border-box';
+        container.style.overflowY = 'auto';
         document.body.appendChild(container);
         
         this.container = container;
         
+        // 标题
         const title = document.createElement('div');
         title.textContent = '宝可梦对对碰';
         title.style.textAlign = 'center';
         title.style.color = '#FFD700';
-        title.style.fontSize = '24px';
+        title.style.fontSize = '26px';
         title.style.fontWeight = 'bold';
-        title.style.padding = '20px 0';
+        title.style.padding = '15px 0 10px 0';
         title.style.textShadow = '2px 2px 4px rgba(0,0,0,0.5)';
+        title.style.letterSpacing = '2px';
         container.appendChild(title);
         
-        this.ballCounter = new BallCounter(10, 70);
-        container.appendChild(this.ballCounter.getElement());
+        // 信息栏
+        const infoBar = document.createElement('div');
+        infoBar.style.width = '100%';
+        infoBar.style.maxWidth = '400px';
+        infoBar.style.margin = '0 auto 15px auto';
+        infoBar.style.padding = '15px 20px';
+        infoBar.style.background = 'rgba(0, 0, 0, 0.5)';
+        infoBar.style.borderRadius = '15px';
+        infoBar.style.boxSizing = 'border-box';
+        infoBar.style.backdropFilter = 'blur(5px)';
+        infoBar.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+        container.appendChild(infoBar);
         
+        // 精灵球数量
+        const ballRow = document.createElement('div');
+        ballRow.style.display = 'flex';
+        ballRow.style.alignItems = 'center';
+        ballRow.style.marginBottom = '8px';
+        infoBar.appendChild(ballRow);
+        
+        const ballIcon = document.createElement('span');
+        ballIcon.textContent = '⚽';
+        ballIcon.style.fontSize = '24px';
+        ballIcon.style.marginRight = '10px';
+        ballIcon.style.color = '#FF4444';
+        ballRow.appendChild(ballIcon);
+        
+        const ballLabel = document.createElement('span');
+        ballLabel.textContent = '精灵球：';
+        ballLabel.style.color = 'white';
+        ballLabel.style.fontSize = '16px';
+        ballLabel.style.fontWeight = '500';
+        ballRow.appendChild(ballLabel);
+        
+        this.ballCountSpan = document.createElement('span');
+        this.ballCountSpan.textContent = '9';
+        this.ballCountSpan.style.color = '#FFD700';
+        this.ballCountSpan.style.fontSize = '20px';
+        this.ballCountSpan.style.fontWeight = 'bold';
+        this.ballCountSpan.style.marginLeft = '5px';
+        ballRow.appendChild(this.ballCountSpan);
+        
+        // 累计捕获
+        const captureRow = document.createElement('div');
+        captureRow.style.display = 'flex';
+        captureRow.style.alignItems = 'center';
+        infoBar.appendChild(captureRow);
+        
+        const captureIcon = document.createElement('span');
+        captureIcon.textContent = '🏆';
+        captureIcon.style.fontSize = '20px';
+        captureIcon.style.marginRight = '10px';
+        captureIcon.style.color = '#FFD700';
+        captureRow.appendChild(captureIcon);
+        
+        const captureLabel = document.createElement('span');
+        captureLabel.textContent = '累计获得：';
+        captureLabel.style.color = 'white';
+        captureLabel.style.fontSize = '15px';
+        captureLabel.style.fontWeight = '500';
+        captureRow.appendChild(captureLabel);
+        
+        this.totalBallsSpan = document.createElement('span');
+        this.totalBallsSpan.textContent = '0';
+        this.totalBallsSpan.style.color = '#81C784';
+        this.totalBallsSpan.style.fontSize = '18px';
+        this.totalBallsSpan.style.fontWeight = 'bold';
+        this.totalBallsSpan.style.marginLeft = '5px';
+        captureRow.appendChild(this.totalBallsSpan);
+        
+        // 九宫格场地
         this.createGameGrid();
         
-        const messageBoardHeight = 150;
-        const messageBoardY = window.innerHeight - messageBoardHeight - 80;
-        this.messageBoard = new MessageBoard(10, messageBoardY, 380, messageBoardHeight);
-        container.appendChild(this.messageBoard.getElement());
+        // 命定属性栏
+        const typeBar = document.createElement('div');
+        typeBar.style.width = '100%';
+        typeBar.style.maxWidth = '400px';
+        typeBar.style.margin = '15px auto';
+        typeBar.style.display = 'flex';
+        typeBar.style.justifyContent = 'center';
+        typeBar.style.alignItems = 'center';
+        container.appendChild(typeBar);
         
-        this.createControls();
+        this.typeSelectBtn = this.createTypeSelectButton();
+        typeBar.appendChild(this.typeSelectBtn);
+        
+        // 游戏日志
+        const logContainer = document.createElement('div');
+        logContainer.style.width = '100%';
+        logContainer.style.maxWidth = '400px';
+        logContainer.style.margin = '0 auto';
+        logContainer.style.flex = '1';
+        logContainer.style.minHeight = '0';
+        logContainer.style.display = 'flex';
+        logContainer.style.flexDirection = 'column';
+        container.appendChild(logContainer);
+        
+        const logTitle = document.createElement('div');
+        logTitle.textContent = '📋 游戏日志';
+        logTitle.style.color = '#FFD700';
+        logTitle.style.fontSize = '16px';
+        logTitle.style.fontWeight = 'bold';
+        logTitle.style.marginBottom = '5px';
+        logTitle.style.paddingLeft = '5px';
+        logContainer.appendChild(logTitle);
+        
+        this.messageBoard = new MessageBoard(0, 0, 400, 140);
+        const messageElement = this.messageBoard.getElement();
+        messageElement.style.position = 'relative';
+        messageElement.style.width = '100%';
+        messageElement.style.height = '140px';
+        messageElement.style.left = '0';
+        messageElement.style.top = '0';
+        messageElement.style.background = 'rgba(0, 0, 0, 0.7)';
+        messageElement.style.borderRadius = '12px';
+        messageElement.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+        messageElement.style.backdropFilter = 'blur(5px)';
+        logContainer.appendChild(messageElement);
+        
+        // 操作按钮
+        const buttonBar = document.createElement('div');
+        buttonBar.style.width = '100%';
+        buttonBar.style.maxWidth = '400px';
+        buttonBar.style.margin = '15px auto';
+        buttonBar.style.display = 'flex';
+        buttonBar.style.justifyContent = 'center';
+        buttonBar.style.gap = '20px';
+        buttonBar.style.padding = '0 10px';
+        buttonBar.style.boxSizing = 'border-box';
+        container.appendChild(buttonBar);
+        
+        const throwBtn = this.createButton('🎯 扔球', () => this.summonPokemon());
+        throwBtn.style.flex = '1';
+        throwBtn.style.maxWidth = '160px';
+        throwBtn.style.background = 'linear-gradient(45deg, #2196F3, #21CBF3)';
+        buttonBar.appendChild(throwBtn);
+        
+        const restartBtn = this.createButton('🔄 重新开始', () => this.restartGame());
+        restartBtn.style.flex = '1';
+        restartBtn.style.maxWidth = '160px';
+        restartBtn.style.background = 'linear-gradient(45deg, #FF6B6B, #FF8E8E)';
+        buttonBar.appendChild(restartBtn);
+        
+        this.throwBtn = throwBtn;
+        this.restartBtn = restartBtn;
+        
+        this.setGameStartState(false);
     }
 
+    // main.js - 简化createGameGrid方法，使用CSS Grid布局
     createGameGrid() {
         const container = this.container;
-        const gridSize = Math.min(window.innerWidth - 40, 400);
-        const cellSize = gridSize / 3;
-        const gridX = (container.clientWidth - gridSize) / 2;
-        const gridY = 150;
         
-        const gridBg = document.createElement('div');
-        gridBg.style.position = 'absolute';
-        gridBg.style.left = `${gridX}px`;
-        gridBg.style.top = `${gridY}px`;
-        gridBg.style.width = `${gridSize}px`;
-        gridBg.style.height = `${gridSize}px`;
-        gridBg.style.background = 'rgba(255, 255, 255, 0.1)';
-        gridBg.style.borderRadius = '10px';
-        gridBg.style.display = 'grid';
-        gridBg.style.gridTemplateColumns = 'repeat(3, 1fr)';
-        gridBg.style.gridTemplateRows = 'repeat(3, 1fr)';
-        gridBg.style.gap = '5px';
-        gridBg.style.padding = '5px';
-        container.appendChild(gridBg);
+        // 创建九宫格外容器 - 使用CSS Grid布局
+        const gridWrapper = document.createElement('div');
+        gridWrapper.style.width = '100%';
+        gridWrapper.style.maxWidth = '400px';
+        gridWrapper.style.margin = '0 auto';
+        gridWrapper.style.aspectRatio = '1 / 1';
+        gridWrapper.style.display = 'grid';
+        gridWrapper.style.gridTemplateColumns = 'repeat(3, 1fr)';
+        gridWrapper.style.gridTemplateRows = 'repeat(3, 1fr)';
+        gridWrapper.style.gap = '5px';
+        gridWrapper.style.padding = '5px';
+        gridWrapper.style.boxSizing = 'border-box';
+        gridWrapper.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+        gridWrapper.style.borderRadius = '15px';
+        gridWrapper.style.border = '2px solid rgba(255, 255, 255, 0.2)';
+        gridWrapper.style.backdropFilter = 'blur(5px)';
+        container.appendChild(gridWrapper);
         
+        this.gridWrapper = gridWrapper;
+        
+        // 创建9个格子
         this.gridCells = [];
+        
         for (let row = 0; row < 3; row++) {
             for (let col = 0; col < 3; col++) {
                 const index = row * 3 + col;
-                const x = gridX + col * cellSize + 5;
-                const y = gridY + row * cellSize + 5;
                 
-                const cell = new PokemonCell(index, x, y, cellSize - 10);
-                this.gridCells.push(cell);
-                container.appendChild(cell.getElement());
+                // 创建格子容器
+                const cellContainer = document.createElement('div');
+                cellContainer.style.width = '100%';
+                cellContainer.style.height = '100%';
+                cellContainer.style.display = 'flex';
+                cellContainer.style.justifyContent = 'center';
+                cellContainer.style.alignItems = 'center';
+                cellContainer.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                cellContainer.style.borderRadius = '10px';
+                cellContainer.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+                gridWrapper.appendChild(cellContainer);
                 
-                const placeholder = document.createElement('div');
-                placeholder.style.background = 'rgba(255, 255, 255, 0.05)';
-                placeholder.style.borderRadius = '5px';
-                gridBg.appendChild(placeholder);
+                // 获取格子实际大小
+                setTimeout(() => {
+                    const rect = cellContainer.getBoundingClientRect();
+                    const cellSize = Math.min(rect.width, rect.height);
+                    
+                    // 创建PokemonCell
+                    const cell = new PokemonCell(index, cellContainer, cellSize);
+                    this.gridCells.push(cell);
+                    
+                    // 初始化显示
+                    cell.updateDisplay();
+                }, 0);
             }
         }
+        
+        // 监听窗口大小变化，更新格子大小
+        window.addEventListener('resize', () => {
+            setTimeout(() => {
+                this.gridCells.forEach((cell, index) => {
+                    const row = Math.floor(index / 3);
+                    const col = index % 3;
+                    const cellContainer = this.gridWrapper.children[row * 3 + col];
+                    const rect = cellContainer.getBoundingClientRect();
+                    const newSize = Math.min(rect.width, rect.height);
+                    
+                    cell.size = newSize;
+                    cell.canvas.width = newSize;
+                    cell.canvas.height = newSize;
+                    cell.updateDisplay();
+                });
+            }, 100);
+        });
     }
 
+    // 在createControls方法中修改，添加属性选择按钮
     createControls() {
         const container = this.container;
         const controls = document.createElement('div');
@@ -935,34 +1485,410 @@ class VisualGame {
         controls.style.left = '0';
         controls.style.right = '0';
         controls.style.display = 'flex';
-        controls.style.justifyContent = 'center';
-        controls.style.gap = '20px';
+        controls.style.flexDirection = 'column';
+        controls.style.alignItems = 'center';
+        controls.style.gap = '15px';
         controls.style.padding = '0 20px';
         container.appendChild(controls);
         
+        // 命定属性选择行
+        const typeRow = document.createElement('div');
+        typeRow.style.display = 'flex';
+        typeRow.style.justifyContent = 'center';
+        typeRow.style.gap = '10px';
+        typeRow.style.width = '100%';
+        typeRow.style.marginBottom = '5px';
+        controls.appendChild(typeRow);
+        
+        // 命定属性标签
+        const typeLabel = document.createElement('span');
+        typeLabel.textContent = '命定属性：';
+        typeLabel.style.color = 'white';
+        typeLabel.style.fontSize = '16px';
+        typeLabel.style.fontWeight = 'bold';
+        typeLabel.style.textShadow = '1px 1px 2px rgba(0,0,0,0.5)';
+        typeLabel.style.padding = '10px 0';
+        typeRow.appendChild(typeLabel);
+        
+        // 属性选择按钮
+        this.typeSelectBtn = this.createTypeSelectButton();
+        typeRow.appendChild(this.typeSelectBtn);
+        
+        // 游戏控制按钮行
+        const buttonRow = document.createElement('div');
+        buttonRow.style.display = 'flex';
+        buttonRow.style.justifyContent = 'center';
+        buttonRow.style.gap = '20px';
+        buttonRow.style.width = '100%';
+        controls.appendChild(buttonRow);
+        
+        // 扔球按钮
         const throwBtn = this.createButton('扔球', () => this.summonPokemon());
-        controls.appendChild(throwBtn);
+        buttonRow.appendChild(throwBtn);
         
+        // 扔所有球按钮
         const throwAllBtn = this.createButton('扔所有球', () => this.summonAllBalls());
-        controls.appendChild(throwAllBtn);
+        buttonRow.appendChild(throwAllBtn);
         
+        // 重新开始按钮
         const restartBtn = this.createButton('重新开始', () => this.restartGame());
-        controls.appendChild(restartBtn);
+        buttonRow.appendChild(restartBtn);
+        
+        // 保存按钮引用
+        this.throwBtn = throwBtn;
+        this.throwAllBtn = throwAllBtn;
+        this.restartBtn = restartBtn;
+        
+        // 初始状态：游戏未开始，属性可选择
+        this.setGameStartState(false);
     }
 
-    createButton(text, onClick) {
+    // 新增：创建属性选择按钮
+    createTypeSelectButton() {
+        // 宝可梦属性列表
+        const types = [
+            { name: '草', color: '#c0d631' },
+            { name: '水', color: '#9dd7f5' },
+            { name: '火', color: '#f2a057' },
+            { name: '雷', color: '#ffe26e' },
+            { name: '恶', color: '#00586e' },
+            { name: '斗', color: '#f7b816' },
+            { name: '钢', color: '#d4d5d6' },
+            { name: '龙', color: '#dbc051' },
+            { name: '无', color: '#edeceb' },
+            { name: '超', color: '#e3a1c5' },
+        ];
+        
         const button = document.createElement('button');
-        button.textContent = text;
-        button.style.padding = '15px 30px';
+        button.textContent = this.selectedType ? `✨ 命定属性：${this.selectedType}` : '⚡ 点击选择命定属性';
+        button.style.padding = '12px 25px';
         button.style.fontSize = '16px';
         button.style.fontWeight = 'bold';
         button.style.color = 'white';
-        button.style.background = 'linear-gradient(45deg, #2196F3, #21CBF3)';
-        button.style.border = 'none';
-        button.style.borderRadius = '25px';
+        button.style.border = '2px solid white';
+        button.style.borderRadius = '30px';
         button.style.cursor = 'pointer';
         button.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.3)';
-        button.style.transition = 'transform 0.2s';
+        button.style.transition = 'transform 0.2s, box-shadow 0.2s';
+        button.style.minWidth = '200px';
+        button.style.letterSpacing = '1px';
+        
+        if (this.selectedType) {
+            const typeColor = types.find(t => t.name === this.selectedType)?.color || '#757575';
+            button.style.background = `linear-gradient(45deg, ${typeColor}, ${this.lightenColor(typeColor, 20)})`;
+            button.style.boxShadow = `0 4px 15px ${typeColor}80`;
+        } else {
+            button.style.background = 'linear-gradient(45deg, #757575, #9E9E9E)';
+        }
+        
+        button.addEventListener('mouseenter', () => {
+            button.style.transform = 'translateY(-2px)';
+            button.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.4)';
+        });
+        
+        button.addEventListener('mouseleave', () => {
+            button.style.transform = 'translateY(0)';
+            if (this.selectedType) {
+                const typeColor = types.find(t => t.name === this.selectedType)?.color || '#757575';
+                button.style.boxShadow = `0 4px 15px ${typeColor}80`;
+            } else {
+                button.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.3)';
+            }
+        });
+        
+        button.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.showTypeSelectionDialog(types, button);
+        });
+        
+        return button;
+    }
+
+    // main.js - 修改showTypeSelectionDialog方法，优化竖屏显示
+    showTypeSelectionDialog(types, buttonElement) {
+        // 如果游戏已经开始，不能选择属性
+        if (this.gameStarted) {
+            this.logMessage('系统', '游戏已开始，不能更改命定属性');
+            return;
+        }
+        
+        console.log('[属性] 打开属性选择对话框');
+        
+        // 创建遮罩层
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.85)';
+        overlay.style.display = 'flex';
+        overlay.style.justifyContent = 'center';
+        overlay.style.alignItems = 'center';
+        overlay.style.zIndex = '2000';
+        overlay.style.backdropFilter = 'blur(5px)';
+        
+        // 创建对话框 - 更适配竖屏
+        const dialog = document.createElement('div');
+        dialog.style.backgroundColor = 'rgba(30, 30, 40, 0.98)';
+        dialog.style.borderRadius = '20px';
+        dialog.style.padding = '20px 15px';
+        dialog.style.maxWidth = '400px';
+        dialog.style.width = '90%';
+        dialog.style.maxHeight = '90vh';
+        dialog.style.overflowY = 'auto'; // 允许滚动
+        dialog.style.boxShadow = '0 10px 30px rgba(0,0,0,0.5)';
+        dialog.style.border = '2px solid #FFD700';
+        
+        // 标题
+        const title = document.createElement('h2');
+        title.textContent = '选择命定属性';
+        title.style.color = '#FFD700';
+        title.style.textAlign = 'center';
+        title.style.marginTop = '0';
+        title.style.marginBottom = '10px';
+        title.style.fontSize = '22px';
+        title.style.fontWeight = 'bold';
+        title.style.textShadow = '0 0 10px rgba(255,215,0,0.3)';
+        dialog.appendChild(title);
+        
+        // 说明文字
+        const desc = document.createElement('p');
+        desc.textContent = '命定属性宝可梦出现时，会额外获得1个精灵球';
+        desc.style.color = '#CCCCCC';
+        desc.style.textAlign = 'center';
+        desc.style.marginBottom = '15px';
+        desc.style.fontSize = '13px';
+        desc.style.padding = '0 5px';
+        dialog.appendChild(desc);
+        
+        // 属性网格 - 修改为更适合竖屏的布局
+        const grid = document.createElement('div');
+        grid.style.display = 'grid';
+        grid.style.gridTemplateColumns = 'repeat(3, 1fr)'; // 改为3列
+        grid.style.gap = '8px';
+        grid.style.marginBottom = '15px';
+        dialog.appendChild(grid);
+        
+        // 添加属性按钮
+        types.forEach(type => {
+            const typeBtn = document.createElement('button');
+            typeBtn.textContent = type.name;
+            typeBtn.style.padding = '10px 5px';
+            typeBtn.style.fontSize = '14px';
+            typeBtn.style.fontWeight = 'bold';
+            typeBtn.style.color = 'white';
+            typeBtn.style.background = type.color;
+            typeBtn.style.border = '2px solid rgba(255,255,255,0.3)';
+            typeBtn.style.borderRadius = '12px';
+            typeBtn.style.cursor = 'pointer';
+            typeBtn.style.transition = 'transform 0.2s, border-color 0.2s, box-shadow 0.2s';
+            typeBtn.style.textShadow = '1px 1px 2px rgba(0,0,0,0.5)';
+            typeBtn.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+            
+            // 如果是当前选中的属性，高亮显示
+            if (this.selectedType === type.name) {
+                typeBtn.style.border = '3px solid white';
+                typeBtn.style.boxShadow = `0 0 15px ${type.color}`;
+                typeBtn.style.transform = 'scale(1.05)';
+            }
+            
+            typeBtn.addEventListener('mouseenter', () => {
+                typeBtn.style.transform = 'scale(1.05)';
+                typeBtn.style.borderColor = 'white';
+                typeBtn.style.boxShadow = `0 0 15px ${type.color}`;
+            });
+            
+            typeBtn.addEventListener('mouseleave', () => {
+                if (this.selectedType === type.name) {
+                    typeBtn.style.border = '3px solid white';
+                    typeBtn.style.transform = 'scale(1.05)';
+                } else {
+                    typeBtn.style.transform = 'scale(1)';
+                    typeBtn.style.borderColor = 'rgba(255,255,255,0.3)';
+                    typeBtn.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+                }
+            });
+            
+            typeBtn.addEventListener('click', () => {
+                // 选择属性
+                this.selectedType = type.name;
+                this.selectedTypeColor = type.color;
+                
+                // 更新按钮显示
+                buttonElement.textContent = `命定属性：${type.name}`;
+                buttonElement.style.background = `linear-gradient(45deg, ${type.color}, ${this.lightenColor(type.color, 20)})`;
+                buttonElement.style.border = '2px solid white';
+                buttonElement.style.boxShadow = `0 4px 15px ${type.color}80`;
+                
+                // 关闭对话框
+                document.body.removeChild(overlay);
+                
+                // 记录选择
+                console.log(`[属性] 选择命定属性: ${type.name}`);
+                this.logMessage('系统', `命定属性已设为【${type.name}】`);
+                
+                // 如果有游戏板，更新命定属性
+                if (this.gameBoard) {
+                    this.gameBoard.playerChosenType = type.name;
+                    console.log(`[属性] 游戏板命定属性已更新: ${type.name}`);
+                }
+            });
+            
+            grid.appendChild(typeBtn);
+        });
+        
+        // 操作按钮行
+        const actionRow = document.createElement('div');
+        actionRow.style.display = 'flex';
+        actionRow.style.gap = '10px';
+        actionRow.style.marginTop = '5px';
+        dialog.appendChild(actionRow);
+        
+        // 取消按钮
+        const cancelBtn = document.createElement('button');
+        cancelBtn.textContent = '取消';
+        cancelBtn.style.flex = '1';
+        cancelBtn.style.padding = '12px 10px';
+        cancelBtn.style.fontSize = '16px';
+        cancelBtn.style.fontWeight = 'bold';
+        cancelBtn.style.color = 'white';
+        cancelBtn.style.background = 'linear-gradient(45deg, #666, #888)';
+        cancelBtn.style.border = 'none';
+        cancelBtn.style.borderRadius = '25px';
+        cancelBtn.style.cursor = 'pointer';
+        cancelBtn.style.transition = 'transform 0.2s';
+        
+        cancelBtn.addEventListener('mouseenter', () => {
+            cancelBtn.style.transform = 'scale(1.02)';
+        });
+        
+        cancelBtn.addEventListener('mouseleave', () => {
+            cancelBtn.style.transform = 'scale(1)';
+        });
+        
+        cancelBtn.addEventListener('click', () => {
+            document.body.removeChild(overlay);
+        });
+        
+        actionRow.appendChild(cancelBtn);
+        
+        // 如果有当前选中的属性，添加重置按钮
+        if (this.selectedType) {
+            const resetBtn = document.createElement('button');
+            resetBtn.textContent = '重置选择';
+            resetBtn.style.flex = '1';
+            resetBtn.style.padding = '12px 10px';
+            resetBtn.style.fontSize = '16px';
+            resetBtn.style.fontWeight = 'bold';
+            resetBtn.style.color = 'white';
+            resetBtn.style.background = 'linear-gradient(45deg, #8B4513, #A0522D)';
+            resetBtn.style.border = 'none';
+            resetBtn.style.borderRadius = '25px';
+            resetBtn.style.cursor = 'pointer';
+            resetBtn.style.transition = 'transform 0.2s';
+            
+            resetBtn.addEventListener('mouseenter', () => {
+                resetBtn.style.transform = 'scale(1.02)';
+            });
+            
+            resetBtn.addEventListener('mouseleave', () => {
+                resetBtn.style.transform = 'scale(1)';
+            });
+            
+            resetBtn.addEventListener('click', () => {
+                // 重置属性选择
+                this.selectedType = null;
+                this.selectedTypeColor = null;
+                
+                // 更新按钮显示
+                buttonElement.textContent = '点击选择属性';
+                buttonElement.style.background = 'linear-gradient(45deg, #757575, #9E9E9E)';
+                buttonElement.style.border = '2px solid white';
+                buttonElement.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
+                
+                // 关闭对话框
+                document.body.removeChild(overlay);
+                
+                // 记录重置
+                console.log(`[属性] 重置命定属性选择`);
+                this.logMessage('系统', '命定属性已重置');
+            });
+            
+            actionRow.appendChild(resetBtn);
+        }
+        
+        // 添加滚动条样式
+        const style = document.createElement('style');
+        style.textContent = `
+            ::-webkit-scrollbar {
+                width: 6px;
+            }
+            ::-webkit-scrollbar-track {
+                background: rgba(255,255,255,0.1);
+                border-radius: 3px;
+            }
+            ::-webkit-scrollbar-thumb {
+                background: rgba(255,255,255,0.3);
+                border-radius: 3px;
+            }
+            ::-webkit-scrollbar-thumb:hover {
+                background: rgba(255,255,255,0.5);
+            }
+        `;
+        dialog.appendChild(style);
+        
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+    }
+
+    // 新增：辅助方法，提亮颜色
+    lightenColor(color, percent) {
+        // 简化版，实际项目中可以使用完整的颜色处理
+        return color;
+    }
+
+    // 修改setGameStartState方法，更新按钮状态
+    setGameStartState(started) {
+        this.gameStarted = started;
+        
+        if (this.typeSelectBtn) {
+            if (started) {
+                this.typeSelectBtn.style.opacity = '0.8';
+                this.typeSelectBtn.style.cursor = 'not-allowed';
+                this.typeSelectBtn.style.pointerEvents = 'none';
+                this.typeSelectBtn.style.filter = 'grayscale(30%)';
+            } else {
+                this.typeSelectBtn.style.opacity = '1';
+                this.typeSelectBtn.style.cursor = 'pointer';
+                this.typeSelectBtn.style.pointerEvents = 'auto';
+                this.typeSelectBtn.style.filter = 'none';
+                
+                if (!this.selectedType) {
+                    this.typeSelectBtn.textContent = '⚡ 点击选择命定属性';
+                    this.typeSelectBtn.style.background = 'linear-gradient(45deg, #757575, #9E9E9E)';
+                }
+            }
+        }
+    }
+
+    // 修改createButton方法，优化按钮样式
+    createButton(text, onClick) {
+        const button = document.createElement('button');
+        button.textContent = text;
+        button.style.padding = '12px 20px';
+        button.style.fontSize = '16px';
+        button.style.fontWeight = 'bold';
+        button.style.color = 'white';
+        button.style.border = 'none';
+        button.style.borderRadius = '30px';
+        button.style.cursor = 'pointer';
+        button.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.3)';
+        button.style.transition = 'transform 0.2s, box-shadow 0.2s';
+        button.style.display = 'flex';
+        button.style.alignItems = 'center';
+        button.style.justifyContent = 'center';
+        button.style.gap = '5px';
         
         button.addEventListener('click', onClick);
         button.addEventListener('mousedown', () => {
@@ -978,16 +1904,29 @@ class VisualGame {
         return button;
     }
 
+    // 修改summonAllBalls方法，在第一次召唤时锁定属性
     async summonAllBalls() {
+        // 检查是否选择了命定属性
+        if (!this.selectedType) {
+            this.logMessage('错误', '请先选择命定属性！');
+            return;
+        }
+        
         if (this.isSummoning || this.isGameOver) return;
         if (this.gameBoard.ballsRemaining <= 0) {
             this.logMessage('错误', '没有精灵球了！');
             return;
         }
         
+        // 第一次召唤时锁定属性选择
+        if (!this.gameStarted) {
+            this.setGameStartState(true);
+            this.logMessage('系统', `游戏开始，命定属性已锁定为【${this.selectedType}】`);
+        }
+        
         this.isSummoning = true;
         this.logMessage('系统', '开始批量投放所有精灵球...');
-        
+
         try {
             const results = await this.gameBoard.summonAllBalls();
             
@@ -1051,26 +1990,52 @@ class VisualGame {
         }
     }
 
+    // main.js - 正确的restartGame方法
     restartGame() {
         console.log('重新开始游戏');
         
         this.isGameOver = false;
         this.isSummoning = false;
+        this.gameStarted = false; // 重置游戏开始状态
         
+        // 清空消息
         this.messageBoard.clear();
         
+        // 重新初始化游戏板，保留选中的属性
         const allTypes = this.pokemonData.getAllTypes();
-        const chosenType = allTypes[0];
-        this.gameBoard = new GameBoard(this.pokemonData, chosenType, 9);
+        const chosenType = this.selectedType || allTypes[0]; // 如果已选则使用，否则默认
         
-        this.gridCells.forEach(cell => {
-            cell.clear();
-            cell.updateDisplay();
-        });
+        this.gameBoard = new GameBoard(
+            this.pokemonData, 
+            chosenType, 
+            9,
+            (type, message) => this.immediateLogMessage(type, message)
+        );
         
+        // 设置游戏板的命定属性
+        if (this.selectedType) {
+            this.gameBoard.playerChosenType = this.selectedType;
+        }
+        
+        // 重新设置事件监听器
+        this.setupEventHandlers();
+        
+        // 使用initializeGridCells方法（已经在loadGame中定义）
+        this.initializeGridCells();
+        
+        // 更新UI
         this.updateBallCounter();
         
+        // 启用属性选择
+        this.setGameStartState(false);
+        
         this.logMessage('系统', '游戏已重新开始！');
+        
+        if (this.selectedType) {
+            this.logMessage('系统', `当前命定属性为【${this.selectedType}】`);
+        } else {
+            this.logMessage('系统', '请选择命定属性开始游戏');
+        }
     }
 
     // main.js - 修复setupEventHandlers
@@ -1101,51 +2066,44 @@ class VisualGame {
         };
     }
 
-    // main.js - 修复immediateLogMessage方法
+    // 修改immediateLogMessage方法，确保消息颜色鲜艳
     immediateLogMessage(type, message) {
         console.log(`[UI显示] ${type}: ${message}`);
         
-        // 设置不同类型的显示样式
         let displayType = type;
         let color = '#FFFFFF';
         
         switch(type) {
             case '奖励':
-                color = '#81C784'; // 绿色
+                color = '#81C784';
                 break;
             case '规则':
-                color = '#4FC3F7'; // 蓝色
+                color = '#4FC3F7';
                 break;
             case '进化':
-                color = '#BA68C8'; // 紫色
+                color = '#BA68C8';
                 break;
             case '召唤':
-                color = '#64B5F6'; // 浅蓝色
-                displayType = '召唤'; // 确保类型正确
+                color = '#64B5F6';
                 break;
             case '变身':
-                color = '#9575CD'; // 紫色
+                color = '#9575CD';
                 break;
             case '游戏结束':
-                color = '#FF5252'; // 红色
+                color = '#FF5252';
                 break;
             case '错误':
-                color = '#F44336'; // 红色
+                color = '#F44336';
+                break;
+            case '系统':
+                color = '#FFD700';
                 break;
             case '统计':
-                color = '#FFD700'; // 金色
-                break;
-            case '行动':
-                color = '#A0A0A0'; // 灰色
+                color = '#FFD700';
                 break;
         }
         
-        // 立即添加到消息板
-        try {
-            this.messageBoard.addMessage(displayType, message, color);
-        } catch (error) {
-            console.error('添加消息到消息板失败:', error);
-        }
+        this.messageBoard.addMessage(displayType, message, color);
     }
 
     // 修改logMessage方法，也使用immediateLogMessage
@@ -1155,6 +2113,19 @@ class VisualGame {
 
     delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // main.js - 添加initializeGridCells方法（如果还没有）
+    initializeGridCells() {
+        console.log('[初始化] 初始化格子状态');
+        if (this.gridCells && this.gridCells.length > 0) {
+            this.gridCells.forEach(cell => {
+                if (cell && typeof cell.clear === 'function') {
+                    cell.clear();
+                    cell.updateDisplay();
+                }
+            });
+        }
     }
 }
 
