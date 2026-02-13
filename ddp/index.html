@@ -2,12 +2,107 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>宝可梦对对碰</title>
-    <link rel="stylesheet" href="style.css">
+    <!-- 关键：适配iOS和移动端显示 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <!-- PWA 配置 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="宝可梦对对碰">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#764ba2">
+    <meta name="application-name" content="宝可梦对对碰">
+
+    <!-- 暂时注释掉manifest，避免图标错误 -->
+    <!-- <link rel="manifest" href="./manifest.json"> -->
+
+    <!-- 只保留iOS全屏支持 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+    <title>宝可梦对对碰 - PWA版</title>
+    
+    <style>
+        /* 全局样式优化，适配全屏 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent; /* 移除点击高亮 */
+            -webkit-touch-callout: none; /* 禁止长按菜单 */
+            -webkit-user-select: none; /* 禁止选中文字 */
+            user-select: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            overflow: hidden;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            min-height: -webkit-fill-available; /* 适配iOS视口 */
+            height: 100%;
+            position: fixed; /* 固定位置，防止滚动 */
+            width: 100%;
+        }
+
+        html {
+            height: -webkit-fill-available;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* 隐藏滚动条 */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* 适配iPhone刘海屏 */
+        #game-container {
+            padding-top: env(safe-area-inset-top, 0);
+            padding-bottom: env(safe-area-inset-bottom, 0);
+            padding-left: env(safe-area-inset-left, 0);
+            padding-right: env(safe-area-inset-right, 0);
+            height: 100vh;
+            height: -webkit-fill-available;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch; /* iOS平滑滚动 */
+        }
+
+        /* 按钮优化，增大点击区域 */
+        button {
+            min-height: 44px; /* iOS 最小点击高度 */
+            position: relative;
+        }
+
+        button::after {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+        }
+    </style>
 </head>
 <body>
-    <!-- 游戏将通过main.js动态创建 -->
+    <div id="game-container"></div>
+    
+    <!-- Service Worker 注册 -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker 注册成功:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('ServiceWorker 注册失败:', error);
+                    });
+            });
+        }
+    </script>
+    
     <script type="module" src="main.js"></script>
 </body>
 </html>

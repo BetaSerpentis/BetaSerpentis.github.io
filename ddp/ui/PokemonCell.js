@@ -187,12 +187,23 @@ class PokemonCell {
         return canvas;
     }
 
+    // ui/PokemonCell.js - 修复clear方法
     clear() {
         console.log(`[格子${this.index}] 清除内容`);
         this.pokemon = null;
         this.sprite = null;
         this.isActive = false;
-        this.drawEmpty();
+        
+        // 完全清除画布
+        this.ctx.clearRect(0, 0, this.size, this.size);
+        
+        // 重新绘制空格子背景
+        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+        this.ctx.fillRect(0, 0, this.size, this.size);
+        
+        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        this.ctx.lineWidth = Math.max(1, this.size * 0.005);
+        this.ctx.strokeRect(2, 2, this.size - 4, this.size - 4);
     }
 
     getElement() {

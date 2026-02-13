@@ -24,7 +24,7 @@ class VisualGame {
         this.loadGame();
     }
 
-    // main.js - 修复loadGame方法，移除对ballCounter的引用
+    // main.js - 在loadGame方法中预加载精灵球图片
     async loadGame() {
         this.logMessage('系统', '正在加载宝可梦数据...');
         
@@ -35,23 +35,20 @@ class VisualGame {
                 return;
             }
             
-            // 移除ballCounter相关的代码，因为我们不再使用它
-            // const ballImage = await this.imageLoader.loadBallImage();
-            // this.ballCounter.setBallImage(ballImage);
+            // 预加载精灵球图片
+            await this.imageLoader.loadBallImage();
+            console.log('[加载] 精灵球图片预加载完成');
             
             const allTypes = this.pokemonData.getAllTypes();
             
-            // 默认选择第一个属性作为初始值
             this.selectedType = allTypes[0];
             this.selectedTypeColor = this.pokemonData.typeColors?.[allTypes[0]] || '#A8A878';
             
-            // 更新属性选择按钮
             if (this.typeSelectBtn) {
                 this.typeSelectBtn.textContent = `✨ 命定属性：${this.selectedType}`;
                 this.typeSelectBtn.style.background = `linear-gradient(45deg, ${this.selectedTypeColor}, ${this.lightenColor(this.selectedTypeColor, 20)})`;
             }
             
-            // 初始化游戏板
             this.gameBoard = new GameBoard(
                 this.pokemonData, 
                 this.selectedType, 
@@ -59,10 +56,8 @@ class VisualGame {
                 (type, message) => this.immediateLogMessage(type, message)
             );
             
-            // 设置游戏板的命定属性
             this.gameBoard.playerChosenType = this.selectedType;
             
-            // 设置UI回调
             this.gameBoard.setUICallback((type, message) => {
                 this.immediateLogMessage(type, message);
             });
@@ -71,10 +66,8 @@ class VisualGame {
                 cell.typeColors = this.pokemonData.typeColors;
             });
             
-            // 初始化格子
             this.initializeGridCells();
             
-            // 游戏未开始状态
             this.gameStarted = false;
             this.setGameStartState(false);
             
@@ -86,9 +79,8 @@ class VisualGame {
         }
     }
 
-    // 修改summonPokemon方法，在第一次召唤时锁定属性
+    // 修改summonPokemon方法，在召唤动画完成后处理奖励
     async summonPokemon() {
-        // 检查是否选择了命定属性
         if (!this.selectedType) {
             this.logMessage('错误', '请先选择命定属性！');
             return;
@@ -100,7 +92,11 @@ class VisualGame {
             return;
         }
         
-        // 第一次召唤时锁定属性选择
+        // 按下瞬间减球
+        this.gameBoard.ballsRemaining--;
+        this.updateBallCounter();
+        this.logMessage('行动', `使用1个精灵球，剩余: ${this.gameBoard.ballsRemaining}`);
+        
         if (!this.gameStarted) {
             this.setGameStartState(true);
             this.logMessage('系统', `游戏开始，命定属性已锁定为【${this.selectedType}】`);
@@ -110,8 +106,7 @@ class VisualGame {
         console.log('=== 开始召唤 ===');
         
         try {
-            // 执行召唤逻辑
-            const result = this.gameBoard.summonPokemon();
+            const result = this.gameBoard.summonPokemonWithoutBallConsume();
             
             if (result) {
                 const index = result.gridIndex;
@@ -119,36 +114,32 @@ class VisualGame {
                 
                 console.log(`召唤宝可梦: ${result.data.name}, 格子 ${index}`);
                 
-                // 预加载当前宝可梦图片
                 await this.imageLoader.loadPokemonImage(result.data.id);
-                
-                // 设置宝可梦到格子
                 cell.setPokemon(result, this.imageLoader);
                 
                 // 播放召唤动画
                 await this.playDirectSummonAnimation(cell, result);
                 
+                // 召唤动画完成后，处理所有待处理的奖励（包括特殊奖励、命定属性等）
+                await this.processPendingRewards();
+                
                 // 检查是否为变身者
                 if (result.data.isTransformer && result.transformInfo) {
                     console.log(`[变身流程] 开始变身动画`);
                     
-                    // 播放变身动画
                     await this.playTransformAnimation(cell, result.transformInfo);
                     
-                    // 变身完成后执行游戏逻辑的变身
                     const transformedPokemon = this.gameBoard.executeTransform(result.transformInfo);
                     
                     if (transformedPokemon) {
-                        // 更新格子显示为变身后的宝可梦
                         await this.imageLoader.loadPokemonImage(transformedPokemon.data.id);
                         cell.setPokemon(transformedPokemon, this.imageLoader);
                         cell.updateDisplay();
                         
-                        // 关键：等待规则检查完成
-                        console.log(`[变身流程] 等待规则检查...`);
                         await this.delay(500);
                         
-                        // 检查是否有规则触发，如果有，立即同步
+                        // 变身完成后处理可能的新奖励
+                        await this.processPendingRewards();
                         await this.checkAndProcessTransformRules();
                     }
                 }
@@ -156,15 +147,11 @@ class VisualGame {
                 // 预加载所有场上宝可梦的图片
                 await this.preloadAllPokemonImages();
                 
-                // 正常的同步（如果有规则触发，上面的checkAndProcessTransformRules已经处理了）
+                // 正常的同步
                 setTimeout(async () => {
                     await this.syncGridWithGameBoard();
                 }, 100);
                 
-                // 更新计数器
-                this.updateBallCounter();
-                
-                // 检查游戏结束
                 if (this.gameBoard.checkGameEnd()) {
                     this.gameOver();
                 }
@@ -178,14 +165,12 @@ class VisualGame {
         console.log('=== 召唤结束 ===');
     }
 
-    // 新增：检查和处理变身触发的规则
+    // main.js - 修复checkAndProcessTransformRules方法
     async checkAndProcessTransformRules() {
         console.log(`[规则检查] 检查变身触发的规则`);
         
-        // 等待一点时间，确保GameBoard的规则检查完成
         await this.delay(100);
         
-        // 检查是否有需要消除的格子
         const cellsToClear = [];
         
         for (let i = 0; i < 9; i++) {
@@ -199,103 +184,54 @@ class VisualGame {
             }
         }
         
-        // 如果有需要消除的格子，播放动画
         if (cellsToClear.length > 0) {
             console.log(`[规则检查] 发现 ${cellsToClear.length} 个格子需要消除`);
             
+            // 先播放消失动画
             if (cellsToClear.length === 2) {
-                // 播放对对碰消除动画
                 await this.playPairEliminationAnimation(
                     cellsToClear[0].cell,
                     cellsToClear[1].cell
                 );
+                // playPairEliminationAnimation内部已经处理了精灵球飞行
             } else if (cellsToClear.length === 3) {
-                // 播放三连消除动画
                 await this.playTripleEliminationAnimation(
                     cellsToClear[0].cell,
                     cellsToClear[1].cell,
                     cellsToClear[2].cell
                 );
+                await this.playBallFlyAnimation(cellsToClear[0].cell);
             } else {
-                // 单个消除
                 for (const { cell } of cellsToClear) {
                     await this.playDisappearAnimation(cell);
                 }
+                if (cellsToClear.length > 0) {
+                    await this.playBallFlyAnimation(cellsToClear[0].cell);
+                }
             }
             
-            // 更新球计数器（因为消除会获得精灵球）
             this.updateBallCounter();
         }
     }
 
-    // 新增：三连消除动画
     async playTripleEliminationAnimation(cell1, cell2, cell3) {
         console.log(`[动画] 播放三连消除动画，格子 ${cell1.index}, ${cell2.index}, ${cell3.index}`);
         
-        return new Promise((resolve) => {
-            const duration = 800;
-            const startTime = performance.now();
-            
-            const originalPositions = [
-                { x: cell1.x + cell1.size / 2, y: cell1.y + cell1.size / 2 },
-                { x: cell2.x + cell2.size / 2, y: cell2.y + cell2.size / 2 },
-                { x: cell3.x + cell3.size / 2, y: cell3.y + cell3.size / 2 }
-            ];
-            
-            // 计算飞向的目标位置（屏幕上方中间）
-            const targetX = window.innerWidth / 2;
-            const targetY = 50;
-            
-            const animate = () => {
-                const elapsed = performance.now() - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                
-                // 清空三个格子
-                cell1.ctx.clearRect(0, 0, cell1.size, cell1.size);
-                cell2.ctx.clearRect(0, 0, cell2.size, cell2.size);
-                cell3.ctx.clearRect(0, 0, cell3.size, cell3.size);
-                
-                if (progress < 0.7) {
-                    // 缩小并飞向目标
-                    const scale = 1 - progress * 0.7;
-                    
-                    [cell1, cell2, cell3].forEach((cell, idx) => {
-                        const pos = originalPositions[idx];
-                        const currentPos = {
-                            x: pos.x + (targetX - pos.x) * progress,
-                            y: pos.y + (targetY - pos.y) * progress
-                        };
-                        
-                        cell.ctx.save();
-                        cell.ctx.translate(currentPos.x - cell.x, currentPos.y - cell.y);
-                        cell.ctx.scale(scale, scale);
-                        
-                        // 绘制宝可梦
-                        if (cell.pokemon && cell.sprite) {
-                            cell.ctx.drawImage(
-                                cell.sprite,
-                                -cell.sprite.width / 2,
-                                -cell.sprite.height / 2
-                            );
-                        }
-                        
-                        cell.ctx.restore();
-                    });
-                }
-                
-                if (progress < 1) {
-                    requestAnimationFrame(animate);
-                } else {
-                    // 动画完成，清除格子
-                    cell1.clear();
-                    cell2.clear();
-                    cell3.clear();
-                    resolve();
-                }
-            };
-            
-            animate();
-        });
+        await Promise.all([
+            this.playDisappearAnimation(cell1),
+            this.playDisappearAnimation(cell2),
+            this.playDisappearAnimation(cell3)
+        ]);
+        
+        // 消除奖励已经在GameBoard.processRuleRewards中加入pendingRewards
+        // 不需要在这里飞球
+    }
+
+    // 修改单个消除
+    async playSingleEliminationAnimation(cell) {
+        await this.playDisappearAnimation(cell);
+        // 单个消除通常没有奖励，或者根据规则可能有
+        await this.playBallFlyAnimation(cell, 1);
     }
 
     // main.js - 修改playTransformAnimation方法
@@ -491,7 +427,7 @@ class VisualGame {
             }
         }
         
-        // 处理消除
+        // main.js - 修改syncGridWithGameBoard中的消除处理
         if (cellsToClear.length > 0) {
             console.log(`[同步] 发现 ${cellsToClear.length} 个格子需要消除`);
             
@@ -529,7 +465,7 @@ class VisualGame {
         console.log('[同步] 同步完成');
     }
 
-    // 新增：专门检查和处理进化
+    // main.js - 修改checkAndProcessEvolutions
     async checkAndProcessEvolutions() {
         let hasEvolution = false;
         
@@ -542,13 +478,15 @@ class VisualGame {
                 if (this.isEvolution(cellPokemon, gamePokemon)) {
                     console.log(`[进化检测] 发现进化: 格子 ${i}, ${cellPokemon.data.name} -> ${gamePokemon.data.name}`);
                     
-                    // 预加载新宝可梦图片
                     await this.imageLoader.loadPokemonImage(gamePokemon.data.id);
                     
                     // 播放进化动画
                     await this.playEvolutionAnimation(cell, gamePokemon);
                     
                     hasEvolution = true;
+                    
+                    // 进化完成后处理奖励
+                    await this.processPendingRewards();
                 }
             }
         }
@@ -712,13 +650,17 @@ class VisualGame {
         });
     }
 
-    // 新增方法：播放消失动画
+    // main.js - 平滑消失动画版本
     async playDisappearAnimation(cell) {
         console.log(`[动画] 播放消失动画，格子 ${cell.index}`);
         
         return new Promise((resolve) => {
-            const duration = 400;
+            const duration = 350;
             const startTime = performance.now();
+            
+            // 保存原始精灵和宝可梦数据
+            const originalPokemon = cell.pokemon;
+            const originalSprite = cell.sprite;
             
             const animate = () => {
                 const elapsed = performance.now() - startTime;
@@ -727,46 +669,40 @@ class VisualGame {
                 // 清空画布
                 cell.ctx.clearRect(0, 0, cell.size, cell.size);
                 
-                // 淡出效果
-                if (progress < 0.8) {
-                    // 在消失过程中绘制宝可梦
-                    cell.ctx.globalAlpha = 1 - (progress / 0.8);
+                // 先绘制空格子背景作为底层
+                cell.ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                cell.ctx.fillRect(0, 0, cell.size, cell.size);
+                
+                cell.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                cell.ctx.lineWidth = 2;
+                cell.ctx.strokeRect(2, 2, cell.size - 4, cell.size - 4);
+                
+                // 在上面绘制宝可梦，并让它淡出
+                if (originalSprite) {
+                    // 缩放从1到0.2
+                    const scale = 1 - progress * 0.8;
+                    // 透明度从0.9到0（比背景稍亮）
+                    const alpha = 0.9 * (1 - progress);
                     
-                    // 绘制背景
-                    if (cell.pokemon && cell.pokemon.currentTypes && cell.pokemon.currentTypes[0]) {
-                        const mainType = cell.pokemon.currentTypes[0];
-                        const typeColor = cell.typeColors[mainType] || '#A8A878';
-                        
-                        cell.ctx.fillStyle = `${typeColor}66`;
-                        cell.ctx.fillRect(0, 0, cell.size, cell.size);
-                        
-                        cell.ctx.strokeStyle = typeColor;
-                        cell.ctx.lineWidth = 3;
-                        cell.ctx.strokeRect(2, 2, cell.size - 4, cell.size - 4);
-                    }
+                    const maxSize = cell.size * 0.7;
+                    const baseScale = maxSize / Math.max(originalSprite.width, originalSprite.height);
                     
-                    // 绘制宝可梦（缩小）
-                    if (cell.sprite) {
-                        const scale = 1 - (progress / 0.8) * 0.5; // 缩小50%
-                        
-                        cell.ctx.save();
-                        cell.ctx.translate(cell.size / 2, cell.size / 2);
-                        cell.ctx.scale(scale, scale);
-                        cell.ctx.drawImage(
-                            cell.sprite,
-                            -cell.sprite.width / 2,
-                            -cell.sprite.height / 2
-                        );
-                        cell.ctx.restore();
-                    }
-                    
-                    cell.ctx.globalAlpha = 1.0;
+                    cell.ctx.save();
+                    cell.ctx.translate(cell.size / 2, cell.size / 2);
+                    cell.ctx.scale(scale * baseScale, scale * baseScale);
+                    cell.ctx.globalAlpha = alpha;
+                    cell.ctx.drawImage(
+                        originalSprite,
+                        -originalSprite.width / 2,
+                        -originalSprite.height / 2
+                    );
+                    cell.ctx.restore();
                 }
                 
                 if (progress < 1) {
                     requestAnimationFrame(animate);
                 } else {
-                    // 动画完成，清除格子
+                    // 动画完成，完全清除格子
                     cell.clear();
                     resolve();
                 }
@@ -776,135 +712,57 @@ class VisualGame {
         });
     }
 
-    // 新增方法：播放对对碰消除动画
+    // 修改消除动画，不再直接飞球
     async playPairEliminationAnimation(cell1, cell2) {
         console.log(`[动画] 播放对对碰消除动画，格子 ${cell1.index} 和 ${cell2.index}`);
         
-        return new Promise((resolve) => {
-            const duration = 600;
-            const startTime = performance.now();
-            
-            // 记录原始位置
-            const originalPos1 = { x: cell1.x + cell1.size / 2, y: cell1.y + cell1.size / 2 };
-            const originalPos2 = { x: cell2.x + cell2.size / 2, y: cell2.y + cell2.size / 2 };
-            
-            // 计算飞向的目标位置（屏幕上方）
-            const targetX = window.innerWidth / 2;
-            const targetY = 50;
-            
-            const animate = () => {
-                const elapsed = performance.now() - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                
-                // 清空两个格子
-                cell1.ctx.clearRect(0, 0, cell1.size, cell1.size);
-                cell2.ctx.clearRect(0, 0, cell2.size, cell2.size);
-                
-                if (progress < 0.7) {
-                    // 第一阶段：缩小并飞向目标
-                    const scale = 1 - progress * 0.7;
-                    const pos1 = {
-                        x: originalPos1.x + (targetX - originalPos1.x) * progress,
-                        y: originalPos1.y + (targetY - originalPos1.y) * progress
-                    };
-                    const pos2 = {
-                        x: originalPos2.x + (targetX - originalPos2.x) * progress,
-                        y: originalPos2.y + (targetY - originalPos2.y) * progress
-                    };
-                    
-                    // 绘制第一个宝可梦
-                    cell1.ctx.save();
-                    cell1.ctx.translate(pos1.x - cell1.x, pos1.y - cell1.y);
-                    cell1.ctx.scale(scale, scale);
-                    
-                    if (cell1.pokemon && cell1.pokemon.currentTypes && cell1.pokemon.currentTypes[0]) {
-                        const typeColor = cell1.typeColors[cell1.pokemon.currentTypes[0]] || '#A8A878';
-                        cell1.ctx.fillStyle = typeColor;
-                        cell1.ctx.fillRect(-20, -20, 40, 40);
-                    }
-                    
-                    if (cell1.sprite) {
-                        cell1.ctx.drawImage(
-                            cell1.sprite,
-                            -cell1.sprite.width / 2,
-                            -cell1.sprite.height / 2
-                        );
-                    }
-                    cell1.ctx.restore();
-                    
-                    // 绘制第二个宝可梦
-                    cell2.ctx.save();
-                    cell2.ctx.translate(pos2.x - cell2.x, pos2.y - cell2.y);
-                    cell2.ctx.scale(scale, scale);
-                    
-                    if (cell2.pokemon && cell2.pokemon.currentTypes && cell2.pokemon.currentTypes[0]) {
-                        const typeColor = cell2.typeColors[cell2.pokemon.currentTypes[0]] || '#A8A878';
-                        cell2.ctx.fillStyle = typeColor;
-                        cell2.ctx.fillRect(-20, -20, 40, 40);
-                    }
-                    
-                    if (cell2.sprite) {
-                        cell2.ctx.drawImage(
-                            cell2.sprite,
-                            -cell2.sprite.width / 2,
-                            -cell2.sprite.height / 2
-                        );
-                    }
-                    cell2.ctx.restore();
-                }
-                
-                if (progress < 1) {
-                    requestAnimationFrame(animate);
-                } else {
-                    // 动画完成，清除格子
-                    cell1.clear();
-                    cell2.clear();
-                    resolve();
-                }
-            };
-            
-            animate();
-        });
+        await Promise.all([
+            this.playDisappearAnimation(cell1),
+            this.playDisappearAnimation(cell2)
+        ]);
+        
+        // 消除奖励已经在GameBoard.processRuleRewards中加入pendingRewards
+        // 不需要在这里飞球
     }
 
-    // main.js - 修改syncGridWithGameBoard，确保变身后的规则能正确检查
+    // main.js - 修改syncGridWithGameBoard，确保能检测到消除
     async syncGridWithGameBoard() {
         console.log('[同步] ========== 开始同步 ==========');
         
         if (!this.gameBoard) return;
         
-        // 先等待一下，确保所有动画完成
+        // 打印当前游戏板状态
+        console.log('[同步] 当前游戏板状态:');
+        const gridState = this.gameBoard.grid.map((p, i) => 
+            `${i}:${p?.data?.name || '空'}`
+        ).join(' ');
+        console.log(`[同步] ${gridState}`);
+        
         await this.delay(200);
         
-        // 检查是否有进化事件
+        // 检查进化
         const hasEvolution = await this.checkAndProcessEvolutions();
-        
         if (hasEvolution) {
-            await this.delay(800); // 等待进化动画
+            await this.delay(800);
+            await this.processPendingRewards();
         }
         
-        // 同步所有格子状态
+        // 找出需要消除的格子
         const cellsToClear = [];
-        const cellsToAdd = [];
-        
         for (let i = 0; i < 9; i++) {
             const cell = this.gridCells[i];
             const gamePokemon = this.gameBoard.grid[i];
             const cellPokemon = cell.pokemon;
             
+            if (!cell.isActive) continue;
+            
             if (!gamePokemon && cellPokemon) {
+                console.log(`[同步] 格子 ${i} 需要消除: ${cellPokemon.data.name}`);
                 cellsToClear.push({ index: i, cell, pokemon: cellPokemon });
-            } else if (gamePokemon && !cellPokemon) {
-                cellsToAdd.push({ index: i, cell, pokemon: gamePokemon });
-            } else if (gamePokemon && cellPokemon && gamePokemon !== cellPokemon) {
-                // 如果是变身，已经在动画中处理了，跳过
-                if (!gamePokemon.data.isTransformer || !cellPokemon.data.isTransformer) {
-                    cellsToAdd.push({ index: i, cell, pokemon: gamePokemon });
-                }
             }
         }
         
-        // 处理消除
+        // 消除宝可梦
         if (cellsToClear.length > 0) {
             console.log(`[同步] 发现 ${cellsToClear.length} 个格子需要消除`);
             
@@ -913,24 +771,24 @@ class VisualGame {
                     cellsToClear[0].cell,
                     cellsToClear[1].cell
                 );
+            } else if (cellsToClear.length === 3) {
+                await this.playTripleEliminationAnimation(
+                    cellsToClear[0].cell,
+                    cellsToClear[1].cell,
+                    cellsToClear[2].cell
+                );
             } else {
                 for (const { cell } of cellsToClear) {
                     await this.playDisappearAnimation(cell);
                 }
             }
+            
+            // 消除后处理奖励
+            await this.processPendingRewards();
+        } else {
+            console.log('[同步] 没有格子需要消除');
         }
         
-        // 处理添加/更新
-        if (cellsToAdd.length > 0) {
-            console.log(`[同步] 发现 ${cellsToAdd.length} 个格子需要更新`);
-            for (const { cell, pokemon } of cellsToAdd) {
-                await this.imageLoader.loadPokemonImage(pokemon.data.id);
-                cell.setPokemon(pokemon, this.imageLoader);
-                cell.updateDisplay();
-            }
-        }
-        
-        // 更新球计数器
         this.updateBallCounter();
         
         console.log('[同步] 同步完成');
@@ -1214,30 +1072,38 @@ class VisualGame {
         }
     }
 
-    // main.js - 修改initUI方法，简化布局
+    // main.js - 修改initUI方法，适配PWA全屏
     initUI() {
+        // 设置页面样式 - 使用fixed定位防止滚动
         document.body.style.margin = '0';
+        document.body.style.padding = '0';
         document.body.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+        document.body.style.height = '100%';
         document.body.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
         document.body.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
         
+        // 创建游戏容器 - 使用env()适配刘海屏
         const container = document.createElement('div');
         container.id = 'game-container';
-        container.style.width = '100vw';
-        container.style.height = '100vh';
+        container.style.width = '100%';
+        container.style.height = '100%';
         container.style.position = 'relative';
         container.style.maxWidth = '500px';
         container.style.margin = '0 auto';
         container.style.background = 'rgba(0, 0, 0, 0.2)';
         container.style.display = 'flex';
         container.style.flexDirection = 'column';
-        container.style.padding = '0 15px';
+        container.style.padding = 'env(safe-area-inset-top, 15px) 15px env(safe-area-inset-bottom, 15px) 15px';
         container.style.boxSizing = 'border-box';
         container.style.overflowY = 'auto';
+        container.style.overflowX = 'hidden';
+        container.style.WebkitOverflowScrolling = 'touch'; // iOS平滑滚动
         document.body.appendChild(container);
         
         this.container = container;
-        
+
         // 标题
         const title = document.createElement('div');
         title.textContent = '宝可梦对对碰';
@@ -2066,8 +1932,8 @@ class VisualGame {
         };
     }
 
-    // 修改immediateLogMessage方法，确保消息颜色鲜艳
-    immediateLogMessage(type, message) {
+    // main.js - 修改immediateLogMessage方法，处理带触发位置的规则奖励
+    immediateLogMessage(type, message, triggerIndex = null) {
         console.log(`[UI显示] ${type}: ${message}`);
         
         let displayType = type;
@@ -2075,7 +1941,9 @@ class VisualGame {
         
         switch(type) {
             case '奖励':
+            case '规则奖励':
                 color = '#81C784';
+                displayType = '奖励';
                 break;
             case '规则':
                 color = '#4FC3F7';
@@ -2104,6 +1972,16 @@ class VisualGame {
         }
         
         this.messageBoard.addMessage(displayType, message, color);
+        
+        // 如果是规则奖励且有触发位置，播放精灵球飞行动画
+        if (type === '规则奖励' && triggerIndex !== null) {
+            const triggerCell = this.gridCells[triggerIndex];
+            if (triggerCell) {
+                setTimeout(() => {
+                    this.playBallFlyAnimation(triggerCell);
+                }, 100); // 稍微延迟，让消息先显示
+            }
+        }
     }
 
     // 修改logMessage方法，也使用immediateLogMessage
@@ -2126,6 +2004,181 @@ class VisualGame {
                 }
             });
         }
+    }
+
+    // main.js - 修复playBallFlyAnimation，只加一次球
+    async playBallFlyAnimation(startCell, rewardBalls = 1) {
+        if (!startCell) {
+            console.error('[动画] 无法播放精灵球飞行：起始格子为空');
+            return;
+        }
+        
+        const ballImage = await this.imageLoader.loadBallImage();
+        
+        const startPos = startCell.getCenterPosition();
+        
+        const ballCounterElement = this.ballCountSpan;
+        if (!ballCounterElement) {
+            console.error('[动画] 无法播放精灵球飞行：找不到计数元素');
+            return;
+        }
+        
+        const counterRect = ballCounterElement.getBoundingClientRect();
+        const endPos = {
+            x: counterRect.left + counterRect.width / 2,
+            y: counterRect.top + counterRect.height / 2
+        };
+        
+        console.log(`[动画] 精灵球飞行: +${rewardBalls}球, (${startPos.x}, ${startPos.y}) -> (${endPos.x}, ${endPos.y})`);
+        
+        return new Promise((resolve) => {
+            const duration = 800;
+            const startTime = performance.now();
+            const ballScale = 1.2;
+            
+            const flyCanvas = document.createElement('canvas');
+            flyCanvas.width = 50;
+            flyCanvas.height = 50;
+            flyCanvas.style.position = 'fixed';
+            flyCanvas.style.left = '0';
+            flyCanvas.style.top = '0';
+            flyCanvas.style.pointerEvents = 'none';
+            flyCanvas.style.zIndex = '1000';
+            document.body.appendChild(flyCanvas);
+            
+            const flyCtx = flyCanvas.getContext('2d');
+            
+            // 标记是否已经加过球
+            let ballAdded = false;
+            
+            const animate = () => {
+                const elapsed = performance.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                const easeProgress = 1 - Math.pow(1 - progress, 2);
+                
+                const controlX = (startPos.x + endPos.x) / 2;
+                const controlY = Math.min(startPos.y, endPos.y) - 80;
+                
+                const x = Math.pow(1 - easeProgress, 2) * startPos.x +
+                        2 * (1 - easeProgress) * easeProgress * controlX +
+                        Math.pow(easeProgress, 2) * endPos.x;
+                
+                const y = Math.pow(1 - easeProgress, 2) * startPos.y +
+                        2 * (1 - easeProgress) * easeProgress * controlY +
+                        Math.pow(easeProgress, 2) * endPos.y;
+                
+                const rotation = progress * 1080;
+                const scale = ballScale * (1 - progress * 0.5);
+                const alpha = progress > 0.8 ? 1 - (progress - 0.8) * 5 : 1;
+                
+                flyCtx.clearRect(0, 0, 50, 50);
+                
+                flyCtx.save();
+                flyCtx.translate(25, 25);
+                flyCtx.rotate(rotation * Math.PI / 180);
+                flyCtx.globalAlpha = alpha;
+                flyCtx.drawImage(
+                    ballImage,
+                    -ballImage.width * scale / 2,
+                    -ballImage.height * scale / 2,
+                    ballImage.width * scale,
+                    ballImage.height * scale
+                );
+                
+                if (rewardBalls > 1) {
+                    flyCtx.font = 'bold 16px Arial';
+                    flyCtx.fillStyle = 'white';
+                    flyCtx.strokeStyle = 'black';
+                    flyCtx.lineWidth = 3;
+                    flyCtx.textAlign = 'center';
+                    flyCtx.textBaseline = 'middle';
+                    flyCtx.strokeText(`+${rewardBalls}`, 25, -20);
+                    flyCtx.fillText(`+${rewardBalls}`, 25, -20);
+                }
+                
+                flyCtx.restore();
+                
+                flyCanvas.style.left = `${x - 25}px`;
+                flyCanvas.style.top = `${y - 25}px`;
+                
+                // 在精灵球接近终点时加球
+                if (!ballAdded && progress > 0.9) {
+                    ballAdded = true;
+                    if (this.gameBoard) {
+                        // 只在这里加球！
+                        this.gameBoard.ballsRemaining += rewardBalls;
+                        this.gameBoard.totalBallsAdded += rewardBalls;
+                        this.updateBallCounter();
+                        
+                        this.ballCountSpan.style.transform = 'scale(1.5)';
+                        this.ballCountSpan.style.transition = 'transform 0.2s';
+                        setTimeout(() => {
+                            this.ballCountSpan.style.transform = 'scale(1)';
+                        }, 200);
+                        
+                        console.log(`[计数] 精灵球+${rewardBalls}，当前剩余: ${this.gameBoard.ballsRemaining}`);
+                    }
+                }
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    document.body.removeChild(flyCanvas);
+                    resolve();
+                }
+            };
+            
+            animate();
+        });
+    }
+
+    // main.js - 修改processPendingRewards，按顺序处理所有奖励
+    async processPendingRewards() {
+        if (!this.gameBoard || !this.gameBoard.pendingRewards) return;
+        
+        // 按时间戳排序，确保顺序
+        const rewards = [...this.gameBoard.pendingRewards].sort((a, b) => a.order - b.order);
+        this.gameBoard.pendingRewards = [];
+        
+        console.log(`[奖励] 开始顺序处理 ${rewards.length} 个奖励`);
+        
+        for (let i = 0; i < rewards.length; i++) {
+            const reward = rewards[i];
+            const ballCount = parseInt(reward.balls) || 1;
+            
+            // 所有奖励都飞球
+            if (reward.triggerIndex !== null && reward.triggerIndex !== undefined) {
+                const triggerCell = this.gridCells[reward.triggerIndex];
+                if (triggerCell && triggerCell.isActive) {
+                    console.log(`[奖励] [${i+1}/${rewards.length}] 从格子 ${reward.triggerIndex} 飞出 ${ballCount} 个精灵球 (${reward.type})`);
+                    await this.playBallFlyAnimation(triggerCell, ballCount);
+                    await this.delay(200); // 增加延迟，让动画更清晰
+                } else {
+                    // 如果触发格子已消除，找其他格子
+                    console.warn(`[奖励] 触发格子 ${reward.triggerIndex} 已消除，寻找替代格子`);
+                    for (let j = 0; j < this.gridCells.length; j++) {
+                        if (this.gridCells[j].pokemon) {
+                            await this.playBallFlyAnimation(this.gridCells[j], ballCount);
+                            await this.delay(200);
+                            break;
+                        }
+                    }
+                }
+            } else {
+                // 没有触发位置，找第一个有宝可梦的格子
+                console.warn(`[奖励] 奖励没有触发位置: ${reward.message}`);
+                for (let j = 0; j < this.gridCells.length; j++) {
+                    if (this.gridCells[j].pokemon) {
+                        await this.playBallFlyAnimation(this.gridCells[j], ballCount);
+                        await this.delay(200);
+                        break;
+                    }
+                }
+            }
+        }
+        
+        console.log(`[奖励] 所有奖励处理完成`);
     }
 }
 
