@@ -1,9 +1,8 @@
 // ui/PokemonCell.js - 简化版本
 class PokemonCell {
-    constructor(index, x, y, size) {
+    constructor(index, container, size) {
         this.index = index;
-        this.x = x;
-        this.y = y;
+        this.container = container;
         this.size = size;
         this.pokemon = null;
         this.isActive = true;
@@ -13,13 +12,23 @@ class PokemonCell {
     }
 
     createCanvas() {
+        // 移除已有的canvas
+        while (this.container.firstChild) {
+            this.container.removeChild(this.container.firstChild);
+        }
+        
+        // 创建新的canvas
         this.canvas = document.createElement('canvas');
         this.canvas.width = this.size;
         this.canvas.height = this.size;
-        this.canvas.style.position = 'absolute';
-        this.canvas.style.left = `${this.x}px`;
-        this.canvas.style.top = `${this.y}px`;
+        this.canvas.style.width = '100%';
+        this.canvas.style.height = '100%';
+        this.canvas.style.display = 'block';
+        this.canvas.style.borderRadius = '8px';
+        this.container.appendChild(this.canvas);
         this.ctx = this.canvas.getContext('2d');
+        
+        this.drawEmpty();
     }
 
     setPokemon(pokemon, imageLoader) {
@@ -30,7 +39,6 @@ class PokemonCell {
         
         if (pokemon) {
             try {
-                // 尝试获取精灵图片
                 const sprite = imageLoader.getPokemonSprite(
                     pokemon.data.id,
                     pokemon.isShiny,
@@ -43,7 +51,6 @@ class PokemonCell {
                     console.warn(`[格子${this.index}] 无法获取宝可梦图片: ${pokemon.data.id}，使用占位符`);
                     this.sprite = this.createSimplePlaceholder(pokemon.data.id);
                     
-                    // 异步尝试加载真实图片
                     setTimeout(() => {
                         imageLoader.loadPokemonImage(pokemon.data.id)
                             .then(() => {
@@ -69,118 +76,136 @@ class PokemonCell {
         } else {
             this.sprite = null;
         }
-    }
-
-    createSimplePlaceholder(id) {
-        const canvas = document.createElement('canvas');
-        canvas.width = this.size;
-        canvas.height = this.size;
-        const ctx = canvas.getContext('2d');
         
-        // 根据ID生成不同的颜色
-        const hue = (id * 137) % 360; // 黄金角度
-        ctx.fillStyle = `hsl(${hue}, 70%, 50%)`;
-        ctx.fillRect(0, 0, this.size, this.size);
-        
-        // 边框
-        ctx.strokeStyle = 'white';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(2, 2, this.size - 4, this.size - 4);
-        
-        // ID文字
-        ctx.fillStyle = 'white';
-        ctx.font = 'bold 14px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(`${id}`, this.size/2, this.size/2);
-        
-        return canvas;
+        this.updateDisplay();
     }
 
     updateDisplay() {
         if (!this.ctx || !this.canvas) return;
+        
+        // 确保canvas尺寸正确
+        if (this.canvas.width !== this.size || this.canvas.height !== this.size) {
+            this.canvas.width = this.size;
+            this.canvas.height = this.size;
+        }
         
         // 清除画布
         this.ctx.clearRect(0, 0, this.size, this.size);
         
         // 如果有宝可梦
         if (this.pokemon && this.pokemon.currentTypes && this.pokemon.currentTypes[0]) {
-            const mainType = this.pokemon.currentTypes[0];
-            const typeColor = this.typeColors[mainType] || '#A8A878';
-            
-            console.log(`[格子${this.index}] 更新显示: ${this.pokemon.data.name}, 属性: ${mainType}, 颜色: ${typeColor}`);
-            
-            // 绘制属性背景色
-            this.ctx.fillStyle = `${typeColor}66`;
-            this.ctx.fillRect(0, 0, this.size, this.size);
-            
-            // 边框
-            this.ctx.strokeStyle = typeColor;
-            this.ctx.lineWidth = 3;
-            this.ctx.strokeRect(2, 2, this.size - 4, this.size - 4);
-            
-            // 绘制宝可梦
-            if (this.sprite) {
-                this.ctx.drawImage(
-                    this.sprite,
-                    (this.size - this.sprite.width) / 2,
-                    (this.size - this.sprite.height) / 2
-                );
-            }
-            
-            // 绘制特殊标记
-            this.ctx.fillStyle = 'white';
-            this.ctx.font = 'bold 14px Arial';
-            this.ctx.textAlign = 'center';
-            this.ctx.textBaseline = 'bottom';
-            
-            let text = '';
-            if (this.pokemon.data.isTransformer) text += '变';
-            if (this.pokemon.data.isLegendary) text += '传';
-            if (this.pokemon.data.isMythical) text += '幻';
-            
-            if (text) {
-                this.ctx.fillText(text, this.size / 2, this.size - 8);
-            }
-            
-            // 如果是异色，添加星星标记
-            if (this.pokemon.isShiny) {
-                this.ctx.fillStyle = 'gold';
-                this.ctx.font = 'bold 16px Arial';
-                this.ctx.fillText('★', this.size - 15, 20);
-            }
+            this.drawPokemon();
         } else {
-            // 空格子
-            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-            this.ctx.fillRect(0, 0, this.size, this.size);
-            
-            this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-            this.ctx.lineWidth = 2;
-            this.ctx.strokeRect(2, 2, this.size - 4, this.size - 4);
+            this.drawEmpty();
         }
     }
 
-    // 在ui/PokemonCell.js中添加clear方法（如果还没有的话）
+    drawPokemon() {
+        const mainType = this.pokemon.currentTypes[0];
+        const typeColor = this.typeColors[mainType] || '#A8A878';
+        
+        // 绘制属性背景色
+        this.ctx.fillStyle = `${typeColor}66`;
+        this.ctx.fillRect(0, 0, this.size, this.size);
+        
+        // 边框
+        this.ctx.strokeStyle = typeColor;
+        this.ctx.lineWidth = Math.max(2, this.size * 0.01);
+        this.ctx.strokeRect(2, 2, this.size - 4, this.size - 4);
+        
+        // 绘制宝可梦
+        if (this.sprite) {
+            // 计算缩放比例，让图片适应格子大小（留出20%边距）
+            const maxSize = this.size * 0.7;
+            const scale = maxSize / Math.max(this.sprite.width, this.sprite.height);
+            
+            this.ctx.save();
+            this.ctx.translate(this.size / 2, this.size / 2);
+            this.ctx.scale(scale, scale);
+            this.ctx.drawImage(
+                this.sprite,
+                -this.sprite.width / 2,
+                -this.sprite.height / 2
+            );
+            this.ctx.restore();
+        }
+        
+        // 绘制特殊标记
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = `bold ${Math.floor(this.size * 0.16)}px Arial`;
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'bottom';
+        
+        let text = '';
+        if (this.pokemon.data.isTransformer) text += '变';
+        if (this.pokemon.data.isLegendary) text += '传';
+        if (this.pokemon.data.isMythical) text += '幻';
+        
+        if (text) {
+            this.ctx.fillText(text, this.size / 2, this.size - 8);
+        }
+        
+        // 如果是异色，添加星星标记
+        if (this.pokemon.isShiny) {
+            this.ctx.fillStyle = 'gold';
+            this.ctx.font = `bold ${Math.floor(this.size * 0.2)}px Arial`;
+            this.ctx.fillText('★', this.size - 15, 20);
+        }
+    }
+
+    drawEmpty() {
+        // 空格子背景
+        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+        this.ctx.fillRect(0, 0, this.size, this.size);
+        
+        // 边框
+        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        this.ctx.lineWidth = Math.max(1, this.size * 0.005);
+        this.ctx.strokeRect(2, 2, this.size - 4, this.size - 4);
+    }
+
+    createSimplePlaceholder(id) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 64;
+        canvas.height = 64;
+        const ctx = canvas.getContext('2d');
+        
+        const hue = (id * 137) % 360;
+        ctx.fillStyle = `hsl(${hue}, 70%, 50%)`;
+        ctx.fillRect(0, 0, 64, 64);
+        
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(2, 2, 60, 60);
+        
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 20px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`${id}`, 32, 32);
+        
+        return canvas;
+    }
+
     clear() {
         console.log(`[格子${this.index}] 清除内容`);
         this.pokemon = null;
         this.sprite = null;
-        this.isActive = true;
-        
-        // 清除画布
-        this.ctx.clearRect(0, 0, this.size, this.size);
-        
-        // 绘制空格子背景
-        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-        this.ctx.fillRect(0, 0, this.size, this.size);
-        
-        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-        this.ctx.lineWidth = 2;
-        this.ctx.strokeRect(2, 2, this.size - 4, this.size - 4);
+        this.isActive = false;
+        this.drawEmpty();
     }
 
     getElement() {
         return this.canvas;
+    }
+    
+    // 获取格子中心点的屏幕坐标
+    getCenterPosition() {
+        const rect = this.container.getBoundingClientRect();
+        return {
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2
+        };
     }
 }
 

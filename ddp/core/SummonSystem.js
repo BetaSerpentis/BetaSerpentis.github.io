@@ -8,6 +8,7 @@ class PokemonInstance {
     this.isShiny = false;
     this.isTransformed = false;
     this.transformedFrom = null;
+    this.hasTriggeredChosenType = false; // 新增：标记是否已经触发过命定属性奖励
   }
 
   // 变身方法
@@ -16,6 +17,7 @@ class PokemonInstance {
     this.data = targetInstance.data;
     this.currentTypes = [...targetInstance.currentTypes];
     this.isTransformed = true;
+    this.hasTriggeredChosenType = false; // 变身后重置标记
     console.log(`${this.transformedFrom.name} 变身成了 ${this.data.name}!`);
   }
 }
