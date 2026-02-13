@@ -4,25 +4,28 @@ import RuleEngine from './RuleEngine.js';
 import EvolutionManager from './EvolutionManager.js';
 
 class GameBoard {
-  constructor(pokemonData, playerChosenType = '火', initialBalls = 9) {
-    this.pokemonData = pokemonData;
-    this.playerChosenType = playerChosenType;
-    this.grid = new Array(9).fill(null);
-    this.ballsRemaining = initialBalls;
-    
-    this.summonSystem = new SummonSystem(pokemonData, this);
-    this.ruleEngine = new RuleEngine(this);
-    this.evolutionManager = new EvolutionManager(pokemonData, this);
-    
-    this.summonedLegendaryIds = new Set();
-    this.summonedMythicalIds = new Set();
-    this.totalBallsAdded = 0;
-    this.gameLog = [];
-    
-    // 允许外部设置UI回调
-    this.uiCallback = null;
-    
-    console.log(`游戏初始化: 选择属性[${playerChosenType}], 初始精灵球: ${initialBalls}`);
+    // GameBoard.js - 在构造函数中添加
+    constructor(pokemonData, playerChosenType = '火', initialBalls = 9, uiCallback = null) {
+        this.pokemonData = pokemonData;
+        this.playerChosenType = playerChosenType;
+        this.grid = new Array(9).fill(null);
+        this.ballsRemaining = initialBalls;
+        
+        this.summonSystem = new SummonSystem(pokemonData, this);
+        this.ruleEngine = new RuleEngine(this);
+        this.evolutionManager = new EvolutionManager(pokemonData, this);
+        
+        this.summonedLegendaryIds = new Set();
+        this.summonedMythicalIds = new Set();
+        this.totalBallsAdded = 0;
+        this.gameLog = [];
+        
+        // 初始化待处理奖励数组
+        this.pendingRewards = [];
+        
+        this.uiCallback = uiCallback;
+        
+        console.log(`游戏初始化: 选择属性[${playerChosenType}], 初始精灵球: ${initialBalls}`);
     }
 
     // 添加设置命定属性的方法
@@ -170,7 +173,7 @@ class GameBoard {
         return null;
     }
 
-    // GameBoard.js - 修改executeTransform方法，立即检查规则
+    // 修改executeTransform，变身奖励也加入pendingRewards
     executeTransform(transformInfo) {
         if (!transformInfo) return;
         
@@ -178,13 +181,10 @@ class GameBoard {
         
         console.log(`[变身] 执行变身: ${transformer.data.name} -> ${targetPokemon.data.name}`);
         
-        // 执行变身
         transformer.transformInto(targetPokemon);
         
-        // 更友好的变身消息
         let transformMessage = `${transformer.transformedFrom.name}变身成了${targetPokemon.data.name}`;
         
-        // 检查变身是否会导致凑对
         const wouldFormPair = this.checkWouldFormPair(transformerIndex, targetPokemon.currentTypes[0]);
         const wouldFormThree = this.ruleEngine.wouldFormThreeInRow(transformerIndex, targetPokemon.currentTypes[0]);
         
@@ -196,19 +196,12 @@ class GameBoard {
         
         this.logGameEvent('变身', transformMessage);
         
-        // 关键修复：变身完成后立即检查规则
-        console.log(`[变身] 立即检查规则...`);
+        // 变身奖励已经在processSpecialRewards中处理了
         
-        // 检查所有规则（包括凑对、三连等）
+        // 立即检查规则
         const ruleRewards = this.ruleEngine.checkAllRules();
-        
         if (ruleRewards.length > 0) {
-            console.log(`[变身] 发现 ${ruleRewards.length} 个规则被触发`);
-            
-            // 立即处理规则奖励（不要延迟）
-            this.processImmediateRuleRewardsForTransform(ruleRewards);
-        } else {
-            console.log(`[变身] 没有规则被触发`);
+            this.processRuleRewards(ruleRewards);
         }
         
         return transformer;
@@ -256,97 +249,99 @@ class GameBoard {
         }
     }
 
-  // 新增：立即处理规则奖励（不延迟）
-  processImmediateRuleRewards(rewards) {
-      rewards.forEach(reward => {
-          this.ballsRemaining += reward.balls;
-          this.totalBallsAdded += reward.balls;
-          
-          // 根据规则类型显示不同的消息
-          let message = '';
-          switch(reward.ruleName) {
-              case '命定属性':
-                  message = `属性一致，精灵球+${reward.balls}`;
-                  break;
-              default:
-                  message = `${reward.ruleName}，精灵球+${reward.balls}`;
-          }
-          
-          this.logGameEvent('规则', message);
-      });
-  }
+    // 修改processImmediateRuleRewards（命定属性）
+    processImmediateRuleRewards(rewards, triggerIndex = null) {
+        rewards.forEach(reward => {
+            let message = `属性一致，精灵球+${reward.balls}`;
+            this.logGameEvent('规则', message);
+            
+            this.pendingRewards = this.pendingRewards || [];
+            this.pendingRewards.push({
+                balls: reward.balls,
+                triggerIndex: triggerIndex,
+                message: message,
+                type: 'chosen',
+                order: Date.now()
+            });
+        });
+    }
 
-  // 在processSpecialRewards方法中添加变身奖励检查
-  processSpecialRewards(pokemonInstance) {
-      let balls = 0;
-      let description = '';
-      const rewards = [];
-      
-      // 异色奖励
-      if (pokemonInstance.isShiny && !pokemonInstance.isTransformed) {
-          balls += 2;
-          description += `异色${pokemonInstance.data.name} +2球 `;
-          rewards.push({
-              type: '异色奖励',
-              message: `异色${pokemonInstance.data.name}出现，精灵球+2`,
-              balls: 2
-          });
-      }
-      
-      // 传说宝可梦奖励
-      if (pokemonInstance.data.isLegendary && !pokemonInstance.isTransformed) {
-          balls += 1;
-          description += `传说宝可梦 +1球 `;
-          rewards.push({
-              type: '传说奖励',
-              message: `传说宝可梦${pokemonInstance.data.name}出现，精灵球+1`,
-              balls: 1
-          });
-      }
-      
-      // 幻之宝可梦奖励
-      if (pokemonInstance.data.isMythical && !pokemonInstance.isTransformed) {
-          balls += 2;
-          description += `幻之宝可梦 +2球 `;
-          rewards.push({
-              type: '幻之奖励',
-              message: `幻之宝可梦${pokemonInstance.data.name}出现，精灵球+2`,
-              balls: 2
-          });
-      }
-      
-      // 新增：变身成传说/幻之宝可梦的奖励
-      if (pokemonInstance.isTransformed && pokemonInstance.transformedFrom) {
-          const originalName = pokemonInstance.transformedFrom.name;
-          const newName = pokemonInstance.data.name;
-          
-          if (pokemonInstance.data.isLegendary) {
-              balls += 1;
-              description += `变身传说 +1球 `;
-              rewards.push({
-                  type: '变身奖励',
-                  message: `${originalName}变身成了传说宝可梦${newName}，精灵球+1`,
-                  balls: 1
-              });
-          }
-          
-          if (pokemonInstance.data.isMythical) {
-              balls += 2;
-              description += `变身幻之 +2球 `;
-              rewards.push({
-                  type: '变身奖励',
-                  message: `${originalName}变身成了幻之宝可梦${newName}，精灵球+2`,
-                  balls: 2
-              });
-          }
-      }
-      
-      return { 
-          balls, 
-          description: description.trim(),
-          rewards
-      };
-  }
+    // 修改processSpecialRewards，只返回奖励信息不加球
+    processSpecialRewards(pokemonInstance, index) {
+        let balls = 0;
+        let description = '';
+        const rewards = [];
+        
+        // 异色奖励
+        if (pokemonInstance.isShiny && !pokemonInstance.isTransformed) {
+            balls += 2;
+            description += `异色${pokemonInstance.data.name} +2球 `;
+            rewards.push({
+                type: '异色奖励',
+                message: `异色${pokemonInstance.data.name}出现，精灵球+2`,
+                balls: 2,
+                triggerIndex: index
+            });
+        }
+        
+        // 传说宝可梦奖励
+        if (pokemonInstance.data.isLegendary && !pokemonInstance.isTransformed) {
+            balls += 1;
+            description += `传说宝可梦 +1球 `;
+            rewards.push({
+                type: '传说奖励',
+                message: `传说宝可梦${pokemonInstance.data.name}出现，精灵球+1`,
+                balls: 1,
+                triggerIndex: index
+            });
+        }
+        
+        // 幻之宝可梦奖励
+        if (pokemonInstance.data.isMythical && !pokemonInstance.isTransformed) {
+            balls += 2;
+            description += `幻之宝可梦 +2球 `;
+            rewards.push({
+                type: '幻之奖励',
+                message: `幻之宝可梦${pokemonInstance.data.name}出现，精灵球+2`,
+                balls: 2,
+                triggerIndex: index
+            });
+        }
+        
+        // 变身奖励
+        if (pokemonInstance.isTransformed && pokemonInstance.transformedFrom) {
+            const originalName = pokemonInstance.transformedFrom.name;
+            const newName = pokemonInstance.data.name;
+            
+            if (pokemonInstance.data.isLegendary) {
+                balls += 1;
+                description += `变身传说 +1球 `;
+                rewards.push({
+                    type: '变身奖励',
+                    message: `${originalName}变身成了传说宝可梦${newName}，精灵球+1`,
+                    balls: 1,
+                    triggerIndex: index
+                });
+            }
+            
+            if (pokemonInstance.data.isMythical) {
+                balls += 2;
+                description += `变身幻之 +2球 `;
+                rewards.push({
+                    type: '变身奖励',
+                    message: `${originalName}变身成了幻之宝可梦${newName}，精灵球+2`,
+                    balls: 2,
+                    triggerIndex: index
+                });
+            }
+        }
+        
+        return { 
+            balls, 
+            description: description.trim(),
+            rewards
+        };
+    }
 
   // 修改handleTransformer，确保变身事件立即显示
   handleTransformer(transformerInstance, index) {
@@ -405,85 +400,102 @@ class GameBoard {
     return false;
   }
 
-  // 修改processRuleRewards，确保规则触发时立即显示
-  processRuleRewards(rewards) {
-      let totalBallsFromRules = 0;
-      
-      rewards.forEach(reward => {
-          this.ballsRemaining += reward.balls;
-          this.totalBallsAdded += reward.balls;
-          totalBallsFromRules += reward.balls;
-          
-          // 根据规则类型显示不同的消息（立即显示）
-          let message = '';
-          switch(reward.ruleName) {
-              case '命定属性':
-                  message = `属性一致，精灵球+${reward.balls}`;
-                  break;
-              case '对对碰':
-                  message = `宝可梦凑对，精灵球+${reward.balls}`;
-                  break;
-              case '三连消除':
-                  message = `三连消除，精灵球+${reward.balls}`;
-                  break;
-              case '全图鉴':
-                  message = `全图鉴达成，精灵球+${reward.balls}`;
-                  break;
-              default:
-                  message = `${reward.ruleName}，精灵球+${reward.balls}`;
-          }
-          
-          this.logGameEvent('规则', message);
-          
-          // 消除宝可梦（命定属性除外）
-          if (reward.indexes && reward.indexes.length > 0) {
-              reward.indexes.forEach(idx => {
-                  this.grid[idx] = null;
-              });
-          }
-      });
-      
-      if (totalBallsFromRules > 0) {
-          // 延迟一点再检查进化，让规则动画完成
-          setTimeout(() => {
-              const evolutionEvents = this.evolutionManager.checkEvolutions();
-              this.processEvolutionEvents(evolutionEvents);
-          }, 200);
-      }
-  }
+    // 修改processRuleRewards，确保正确记录消除
+    processRuleRewards(rewards) {
+        console.log(`[规则] 处理 ${rewards.length} 个规则奖励`);
+        let totalBallsFromRules = 0;
+        
+        rewards.forEach(reward => {
+            totalBallsFromRules += reward.balls;
+            
+            let message = '';
+            switch(reward.ruleName) {
+                case '对对碰':
+                    message = `宝可梦凑对，精灵球+${reward.balls}`;
+                    break;
+                case '三连消除':
+                    message = `三连消除，精灵球+${reward.balls}`;
+                    break;
+                case '全图鉴':
+                    message = `全图鉴达成，精灵球+${reward.balls}`;
+                    break;
+                default:
+                    message = `${reward.ruleName}，精灵球+${reward.balls}`;
+            }
+            
+            this.logGameEvent('规则', message);
+            
+            // 存储奖励信息
+            const triggerIndex = reward.indexes?.[0] || null;
+            this.pendingRewards = this.pendingRewards || [];
+            this.pendingRewards.push({
+                balls: reward.balls,
+                triggerIndex: triggerIndex,
+                message: message,
+                type: 'rule',
+                order: Date.now()
+            });
+            
+            // 消除宝可梦 - 重要！这里要实际消除
+            if (reward.indexes && reward.indexes.length > 0) {
+                console.log(`[规则] 消除格子: ${reward.indexes}`);
+                reward.indexes.forEach(idx => {
+                    this.grid[idx] = null;
+                });
+            }
+        });
+        
+        // 打印当前场地状态
+        console.log('[规则] 规则处理后的场地状态:');
+        this.displayGrid();
+        
+        if (totalBallsFromRules > 0) {
+            // 延迟一点检查进化
+            setTimeout(() => {
+                const evolutionEvents = this.evolutionManager.checkEvolutions();
+                if (evolutionEvents.length > 0) {
+                    this.processEvolutionEvents(evolutionEvents);
+                }
+            }, 200);
+        }
+    }
 
-  // 修改processEvolutionEvents，确保进化事件立即显示
-  processEvolutionEvents(evolutionEvents) {
-      evolutionEvents.forEach(event => {
-          this.ballsRemaining += event.rewardBalls;
-          this.totalBallsAdded += event.rewardBalls;
-          
-          // 进化事件本身
-          let desc = `${event.oldPokemon}进化为${event.newPokemon}`;
-          if (event.isShiny) desc += ' (异色)';
-          this.logGameEvent('进化', desc);
-          
-          // 进化奖励（如果有）
-          if (event.rewardBalls > 0) {
-              let rewardMessage = '';
-              if (event.stage === '一阶进化') {
-                  rewardMessage = `一阶进化，精灵球+${event.rewardBalls}`;
-              } else if (event.stage === '二阶进化') {
-                  rewardMessage = `二阶进化，精灵球+${event.rewardBalls}`;
-              }
-              
-              if (rewardMessage) {
-                  this.logGameEvent('奖励', rewardMessage);
-              }
-          }
-          
-          // 进化后重新检查规则（延迟一点）
-          setTimeout(() => {
-              const ruleRewards = this.ruleEngine.checkAllRules();
-              this.processRuleRewards(ruleRewards);
-          }, 300);
-      });
-  }
+    // 修改processEvolutionEvents
+    processEvolutionEvents(evolutionEvents) {
+        evolutionEvents.forEach(event => {
+            let desc = `${event.oldPokemon}进化为${event.newPokemon}`;
+            if (event.isShiny) desc += ' (异色)';
+            this.logGameEvent('进化', desc);
+            
+            if (event.rewardBalls > 0) {
+                let rewardMessage = '';
+                if (event.stage === '一阶进化') {
+                    rewardMessage = `一阶进化，精灵球+${event.rewardBalls}`;
+                } else if (event.stage === '二阶进化') {
+                    rewardMessage = `二阶进化，精灵球+${event.rewardBalls}`;
+                }
+                
+                if (rewardMessage) {
+                    this.logGameEvent('奖励', rewardMessage);
+                    
+                    this.pendingRewards = this.pendingRewards || [];
+                    this.pendingRewards.push({
+                        balls: event.rewardBalls,
+                        triggerIndex: event.index,
+                        message: rewardMessage,
+                        type: 'evolution',
+                        order: Date.now()
+                    });
+                }
+            }
+            
+            // 进化后重新检查规则
+            setTimeout(() => {
+                const ruleRewards = this.ruleEngine.checkAllRules();
+                this.processRuleRewards(ruleRewards);
+            }, 300);
+        });
+    }
 
   checkGameEnd() {
     const emptySlots = this.grid.filter(cell => cell === null).length;
@@ -566,6 +578,71 @@ class GameBoard {
     };
     return stats;
   }
+
+    // GameBoard.js - 修改summonPokemonWithoutBallConsume方法
+    summonPokemonWithoutBallConsume() {
+        const emptySlots = [];
+        this.grid.forEach((cell, index) => {
+            if (cell === null) emptySlots.push(index);
+        });
+        
+        if (emptySlots.length === 0) {
+            this.logGameEvent('错误', '场地已满！');
+            return null;
+        }
+        
+        const targetIndex = emptySlots[Math.floor(Math.random() * emptySlots.length)];
+        const summonedPokemon = this.summonSystem.summonPokemon(targetIndex);
+        this.grid[targetIndex] = summonedPokemon;
+        
+        let summonMessage = `召唤了${summonedPokemon.data.name}`;
+        if (summonedPokemon.isShiny) summonMessage += ' (异色✨)';
+        if (summonedPokemon.data.isLegendary) summonMessage += ' (传说🌟)';
+        if (summonedPokemon.data.isMythical) summonMessage += ' (幻之💫)';
+        if (summonedPokemon.data.isTransformer) summonMessage += ' (变身者🌀)';
+        
+        this.logGameEvent('召唤', summonMessage);
+        
+        // 处理特殊奖励
+        const specialRewards = this.processSpecialRewards(summonedPokemon, targetIndex);
+        if (specialRewards.balls > 0) {
+            specialRewards.rewards.forEach(reward => {
+                this.logGameEvent('奖励', reward.message);
+                this.pendingRewards = this.pendingRewards || [];
+                this.pendingRewards.push({
+                    balls: reward.balls,
+                    triggerIndex: targetIndex,
+                    message: reward.message,
+                    type: 'special',
+                    order: Date.now()
+                });
+            });
+        }
+        
+        // 命定属性奖励
+        const chosenTypeRewards = this.ruleEngine.checkChosenType();
+        if (chosenTypeRewards.length > 0) {
+            this.processImmediateRuleRewards(chosenTypeRewards, targetIndex);
+        }
+        
+        // 关键修复：立即检查所有规则（对对碰、三连等）
+        console.log('[规则] 立即检查所有规则');
+        const allRuleRewards = this.ruleEngine.checkAllRules();
+        if (allRuleRewards.length > 0) {
+            console.log(`[规则] 发现 ${allRuleRewards.length} 个规则被触发`);
+            this.processRuleRewards(allRuleRewards);
+        } else {
+            console.log('[规则] 没有规则被触发');
+        }
+        
+        // 处理变身者
+        if (summonedPokemon.data.isTransformer) {
+            const transformInfo = this.prepareTransform(summonedPokemon, targetIndex);
+            summonedPokemon.transformInfo = transformInfo;
+        }
+        
+        return summonedPokemon;
+    }
 
   // 批量召唤方法
   async summonAllBalls() {

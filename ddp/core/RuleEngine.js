@@ -60,45 +60,45 @@ class RuleEngine {
       return rewards;
   }
 
+  // RuleEngine.js - 修改checkPairs方法，确保能正确找到对子
   checkPairs() {
-    const rewards = [];
-    const pairsFound = new Set(); // 防止重复检测
-    
-    for (let i = 0; i < this.board.grid.length; i++) {
-      const pokemon1 = this.board.grid[i];
-      if (!pokemon1) continue;
+      const rewards = [];
+      const pairsFound = new Set();
       
-      for (let j = i + 1; j < this.board.grid.length; j++) {
-        const pokemon2 = this.board.grid[j];
-        if (!pokemon2) continue;
-        
-        // 检查是否有共同属性（考虑双属性）
-        const commonTypes = this.getCommonTypes(pokemon1, pokemon2);
-        
-        if (commonTypes.length > 0 && !pairsFound.has(i) && !pairsFound.has(j)) {
-          // 找到一对可消除的
-          rewards.push({
-            ruleName: '对对碰',
-            balls: 1,
-            indexes: [i, j],
-            description: `${pokemon1.data.name}和${pokemon2.data.name}都是${commonTypes[0]}属性`
-          });
+      console.log('[规则] 开始检查对对碰');
+      
+      for (let i = 0; i < this.board.grid.length; i++) {
+          const pokemon1 = this.board.grid[i];
+          if (!pokemon1) continue;
           
-          // 标记已找到
-          pairsFound.add(i);
-          pairsFound.add(j);
-          
-          // 从格子上移除
-          this.board.grid[i] = null;
-          this.board.grid[j] = null;
-          
-          // 找到一对后跳出内层循环
-          break;
-        }
+          for (let j = i + 1; j < this.board.grid.length; j++) {
+              const pokemon2 = this.board.grid[j];
+              if (!pokemon2) continue;
+              
+              // 检查是否有共同属性
+              const commonTypes = this.getCommonTypes(pokemon1, pokemon2);
+              
+              if (commonTypes.length > 0 && !pairsFound.has(i) && !pairsFound.has(j)) {
+                  console.log(`[规则] 发现对对碰: 格子${i}(${pokemon1.data.name}) 和 格子${j}(${pokemon2.data.name}) 共同属性: ${commonTypes[0]}`);
+                  
+                  rewards.push({
+                      ruleName: '对对碰',
+                      balls: 1,
+                      indexes: [i, j],
+                      description: `${pokemon1.data.name}和${pokemon2.data.name}都是${commonTypes[0]}属性`
+                  });
+                  
+                  pairsFound.add(i);
+                  pairsFound.add(j);
+                  
+                  // 找到一对后跳出内层循环
+                  break;
+              }
+          }
       }
-    }
-    
-    return rewards;
+      
+      console.log(`[规则] 对对碰检查完成，找到 ${rewards.length} 对`);
+      return rewards;
   }
 
   checkThreeInRow() {
