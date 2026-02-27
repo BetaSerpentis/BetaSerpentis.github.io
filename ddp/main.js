@@ -56,7 +56,7 @@ class VisualGame {
             
             // 更新属性选择按钮（如果已创建）
             if (this.typeSelectBtn) {
-                this.typeSelectBtn.textContent = `✨ 命定属性：${this.selectedType}`;
+                this.typeSelectBtn.textContent = `命定属性：${this.selectedType}`;
                 this.typeSelectBtn.style.background = `linear-gradient(45deg, ${this.selectedTypeColor}, ${this.lightenColor(this.selectedTypeColor, 20)})`;
             }
             
@@ -1122,7 +1122,7 @@ class VisualGame {
         infoBar.appendChild(ballRow);
         
         const ballIcon = document.createElement('span');
-        ballIcon.textContent = '⚽';
+        ballIcon.textContent = '';
         ballIcon.style.fontSize = 'min(24px, 6vw)';
         ballIcon.style.marginRight = '10px';
         ballIcon.style.color = '#FF4444';
@@ -1150,7 +1150,7 @@ class VisualGame {
         infoBar.appendChild(captureRow);
         
         const captureIcon = document.createElement('span');
-        captureIcon.textContent = '🏆';
+        captureIcon.textContent = '';
         captureIcon.style.fontSize = 'min(20px, 5vw)';
         captureIcon.style.marginRight = '10px';
         captureIcon.style.color = '#FFD700';
@@ -1222,11 +1222,12 @@ class VisualGame {
         messageElement.style.backdropFilter = 'blur(5px)';
         logContainer.appendChild(messageElement);
         
+        // main.js - 在initUI方法中修改按钮栏的margin
         // ========== 操作按钮 ==========
         const buttonBar = document.createElement('div');
         buttonBar.style.width = '100%';
         buttonBar.style.maxWidth = 'min(400px, 90vw)';
-        buttonBar.style.margin = 'min(15px, 2vh) auto min(25px, 4vh) auto';
+        buttonBar.style.margin = 'min(15px, 2vh) auto max(env(safe-area-inset-bottom, 25px), 25px) auto'; // 使用max确保底部边距
         buttonBar.style.display = 'flex';
         buttonBar.style.justifyContent = 'center';
         buttonBar.style.gap = 'min(20px, 4vw)';
@@ -1234,13 +1235,13 @@ class VisualGame {
         buttonBar.style.boxSizing = 'border-box';
         container.appendChild(buttonBar);
         
-        const throwBtn = this.createButton('🎯 扔球', () => this.summonPokemon());
+        const throwBtn = this.createButton('扔球', () => this.summonPokemon());
         throwBtn.style.flex = '1';
         throwBtn.style.maxWidth = 'min(160px, 40vw)';
         throwBtn.style.background = 'linear-gradient(45deg, #2196F3, #21CBF3)';
         buttonBar.appendChild(throwBtn);
         
-        const restartBtn = this.createButton('🔄 重新开始', () => this.restartGame());
+        const restartBtn = this.createButton('重新开始', () => this.restartGame());
         restartBtn.style.flex = '1';
         restartBtn.style.maxWidth = 'min(160px, 40vw)';
         restartBtn.style.background = 'linear-gradient(45deg, #FF6B6B, #FF8E8E)';
@@ -1425,7 +1426,7 @@ createGameGrid() {
         ];
         
         const button = document.createElement('button');
-        button.textContent = this.selectedType ? `✨ 命定属性：${this.selectedType}` : '⚡ 点击选择命定属性';
+        button.textContent = this.selectedType ? `命定属性：${this.selectedType}` : '点击选择命定属性';
         button.style.padding = '12px 25px';
         button.style.fontSize = '16px';
         button.style.fontWeight = 'bold';
@@ -1730,7 +1731,7 @@ createGameGrid() {
                 this.typeSelectBtn.style.filter = 'none';
                 
                 if (!this.selectedType) {
-                    this.typeSelectBtn.textContent = '⚡ 点击选择命定属性';
+                    this.typeSelectBtn.textContent = '点击选择命定属性';
                     this.typeSelectBtn.style.background = 'linear-gradient(45deg, #757575, #9E9E9E)';
                 }
             }
