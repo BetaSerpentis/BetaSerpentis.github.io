@@ -8,6 +8,7 @@ import BallCounter from './ui/BallCounter.js';
 import MessageBoard from './ui/MessageBoard.js';
 
 class VisualGame {
+    // main.js - 修改构造函数
     constructor() {
         this.pokemonData = new PokemonData();
         this.gameBoard = null;
@@ -19,19 +20,28 @@ class VisualGame {
         
         this.isSummoning = false;
         this.isGameOver = false;
+        this.isInitialized = false;
         
+        this.eventLog = [];
+        
+        // 先创建UI
         this.initUI();
+        
+        // 再加载游戏数据
         this.loadGame();
     }
 
-    // main.js - 在loadGame方法中预加载精灵球图片
+    // main.js - 修改loadGame方法
     async loadGame() {
-        this.logMessage('系统', '正在加载宝可梦数据...');
+        console.log('[系统] 开始加载游戏...');
         
         try {
+            // 先加载宝可梦数据
             const loaded = await this.pokemonData.loadData('./data/pokemon_config.json');
             if (!loaded) {
-                this.logMessage('错误', '无法加载宝可梦数据');
+                console.error('无法加载宝可梦数据');
+                // 使用alert提示用户，因为messageBoard可能还没创建
+                alert('无法加载宝可梦数据，请刷新页面重试');
                 return;
             }
             
@@ -44,11 +54,13 @@ class VisualGame {
             this.selectedType = allTypes[0];
             this.selectedTypeColor = this.pokemonData.typeColors?.[allTypes[0]] || '#A8A878';
             
+            // 更新属性选择按钮（如果已创建）
             if (this.typeSelectBtn) {
                 this.typeSelectBtn.textContent = `✨ 命定属性：${this.selectedType}`;
                 this.typeSelectBtn.style.background = `linear-gradient(45deg, ${this.selectedTypeColor}, ${this.lightenColor(this.selectedTypeColor, 20)})`;
             }
             
+            // 初始化游戏板
             this.gameBoard = new GameBoard(
                 this.pokemonData, 
                 this.selectedType, 
@@ -62,26 +74,30 @@ class VisualGame {
                 this.immediateLogMessage(type, message);
             });
             
+            // 设置格子颜色
             this.gridCells.forEach(cell => {
                 cell.typeColors = this.pokemonData.typeColors;
             });
             
+            // 初始化格子
             this.initializeGridCells();
             
+            // 游戏未开始状态
             this.gameStarted = false;
             this.setGameStartState(false);
             
-            this.logMessage('系统', '游戏准备就绪！请选择命定属性开始游戏');
+            // 数据加载完成后才显示消息
+            console.log('[系统] 游戏准备就绪！请选择命定属性开始游戏');
+            
+            // 如果messageBoard已经存在，才显示消息
+            if (this.messageBoard) {
+                this.logMessage('系统', '游戏准备就绪！请选择命定属性开始游戏');
+            }
             
         } catch (error) {
-            this.logMessage('错误', `加载失败: ${error.message}`);
-            console.error(error);
+            console.error('加载失败:', error);
+            alert('游戏加载失败，请刷新页面重试');
         }
-
-            // 确保格子大小正确
-    setTimeout(() => {
-        this.updateGridSize();
-    }, 200);
     }
 
     // 修改summonPokemon方法，在召唤动画完成后处理奖励
@@ -1077,183 +1093,192 @@ class VisualGame {
         }
     }
 
-// main.js - 修改initUI方法
-initUI() {
-    const container = document.getElementById('game-container');
-    if (!container) return;
-    
-    this.container = container;
-    
-    // 清空容器
-    container.innerHTML = '';
-    
-    // ========== 顶部标题 ==========
-    const title = document.createElement('div');
-    title.className = 'game-title';
-    title.textContent = '宝可梦对对碰';
-    container.appendChild(title);
-    
-    // ========== 信息栏 ==========
-    const infoBar = document.createElement('div');
-    infoBar.className = 'info-bar';
-    container.appendChild(infoBar);
-    
-    // 精灵球数量行
-    const ballRow = document.createElement('div');
-    ballRow.style.display = 'flex';
-    ballRow.style.alignItems = 'center';
-    ballRow.style.marginBottom = '8px';
-    infoBar.appendChild(ballRow);
-    
-    const ballIcon = document.createElement('span');
-    ballIcon.textContent = '⚽';
-    ballIcon.style.fontSize = 'min(24px, 6vw)';
-    ballIcon.style.marginRight = '10px';
-    ballIcon.style.color = '#FF4444';
-    ballRow.appendChild(ballIcon);
-    
-    const ballLabel = document.createElement('span');
-    ballLabel.textContent = '精灵球：';
-    ballLabel.style.color = 'white';
-    ballLabel.style.fontSize = 'min(16px, 4vw)';
-    ballLabel.style.fontWeight = '500';
-    ballRow.appendChild(ballLabel);
-    
-    this.ballCountSpan = document.createElement('span');
-    this.ballCountSpan.textContent = '9';
-    this.ballCountSpan.style.color = '#FFD700';
-    this.ballCountSpan.style.fontSize = 'min(20px, 5vw)';
-    this.ballCountSpan.style.fontWeight = 'bold';
-    this.ballCountSpan.style.marginLeft = '5px';
-    ballRow.appendChild(this.ballCountSpan);
-    
-    // 累计捕获行
-    const captureRow = document.createElement('div');
-    captureRow.style.display = 'flex';
-    captureRow.style.alignItems = 'center';
-    infoBar.appendChild(captureRow);
-    
-    const captureIcon = document.createElement('span');
-    captureIcon.textContent = '🏆';
-    captureIcon.style.fontSize = 'min(20px, 5vw)';
-    captureIcon.style.marginRight = '10px';
-    captureIcon.style.color = '#FFD700';
-    captureRow.appendChild(captureIcon);
-    
-    const captureLabel = document.createElement('span');
-    captureLabel.textContent = '累计获得：';
-    captureLabel.style.color = 'white';
-    captureLabel.style.fontSize = 'min(15px, 4vw)';
-    captureLabel.style.fontWeight = '500';
-    captureRow.appendChild(captureLabel);
-    
-    this.totalBallsSpan = document.createElement('span');
-    this.totalBallsSpan.textContent = '0';
-    this.totalBallsSpan.style.color = '#81C784';
-    this.totalBallsSpan.style.fontSize = 'min(18px, 4.5vw)';
-    this.totalBallsSpan.style.fontWeight = 'bold';
-    this.totalBallsSpan.style.marginLeft = '5px';
-    captureRow.appendChild(this.totalBallsSpan);
-    
-    // ========== 九宫格场地 ==========
-    this.createGameGrid();
-    
-    // ========== 命定属性栏 ==========
-    const typeBar = document.createElement('div');
-    typeBar.style.width = '100%';
-    typeBar.style.maxWidth = 'min(400px, 90vw)';
-    typeBar.style.margin = 'min(15px, 2vh) auto';
-    typeBar.style.display = 'flex';
-    typeBar.style.justifyContent = 'center';
-    typeBar.style.alignItems = 'center';
-    container.appendChild(typeBar);
-    
-    this.typeSelectBtn = this.createTypeSelectButton();
-    typeBar.appendChild(this.typeSelectBtn);
-    
-    // ========== 游戏日志 ==========
-    const logContainer = document.createElement('div');
-    logContainer.style.width = '100%';
-    logContainer.style.maxWidth = 'min(400px, 90vw)';
-    logContainer.style.margin = '0 auto';
-    logContainer.style.flex = '1';
-    logContainer.style.minHeight = '0';
-    logContainer.style.display = 'flex';
-    logContainer.style.flexDirection = 'column';
-    container.appendChild(logContainer);
-    
-    const logTitle = document.createElement('div');
-    logTitle.textContent = '📋 游戏日志';
-    logTitle.style.color = '#FFD700';
-    logTitle.style.fontSize = 'min(16px, 4vw)';
-    logTitle.style.fontWeight = 'bold';
-    logTitle.style.marginBottom = '5px';
-    logTitle.style.paddingLeft = '5px';
-    logContainer.appendChild(logTitle);
-    
-    this.messageBoard = new MessageBoard(0, 0, 400, 140);
-    const messageElement = this.messageBoard.getElement();
-    messageElement.style.position = 'relative';
-    messageElement.style.width = '100%';
-    messageElement.style.height = 'min(140px, 20vh)';
-    messageElement.style.left = '0';
-    messageElement.style.top = '0';
-    messageElement.style.background = 'rgba(0, 0, 0, 0.7)';
-    messageElement.style.borderRadius = '12px';
-    messageElement.style.border = '1px solid rgba(255, 255, 255, 0.2)';
-    messageElement.style.backdropFilter = 'blur(5px)';
-    logContainer.appendChild(messageElement);
-    
-    // ========== 操作按钮 ==========
-    const buttonBar = document.createElement('div');
-    buttonBar.style.width = '100%';
-    buttonBar.style.maxWidth = 'min(400px, 90vw)';
-    buttonBar.style.margin = 'min(15px, 2vh) auto';
-    buttonBar.style.display = 'flex';
-    buttonBar.style.justifyContent = 'center';
-    buttonBar.style.gap = 'min(20px, 4vw)';
-    buttonBar.style.padding = '0 min(10px, 2vw)';
-    buttonBar.style.boxSizing = 'border-box';
-    container.appendChild(buttonBar);
-    
-    const throwBtn = this.createButton('🎯 扔球', () => this.summonPokemon());
-    throwBtn.style.flex = '1';
-    throwBtn.style.maxWidth = 'min(160px, 40vw)';
-    throwBtn.style.background = 'linear-gradient(45deg, #2196F3, #21CBF3)';
-    buttonBar.appendChild(throwBtn);
-    
-    const restartBtn = this.createButton('🔄 重新开始', () => this.restartGame());
-    restartBtn.style.flex = '1';
-    restartBtn.style.maxWidth = 'min(160px, 40vw)';
-    restartBtn.style.background = 'linear-gradient(45deg, #FF6B6B, #FF8E8E)';
-    buttonBar.appendChild(restartBtn);
-    
-    this.throwBtn = throwBtn;
-    this.restartBtn = restartBtn;
-    
-    this.setGameStartState(false);
-}
-
-// 添加更新格子大小的方法
-updateGridSize() {
-    if (!this.gridWrapper || !this.gridCells) return;
-    
-    this.gridCells.forEach((cell, index) => {
-        const row = Math.floor(index / 3);
-        const col = index % 3;
-        const cellContainer = this.gridWrapper.children[row * 3 + col];
-        if (cellContainer) {
-            const rect = cellContainer.getBoundingClientRect();
-            const newSize = Math.min(rect.width, rect.height);
-            if (newSize > 0) {
-                cell.size = newSize;
-                cell.canvas.width = newSize;
-                cell.canvas.height = newSize;
-                cell.updateDisplay();
+    // main.js - 在initUI方法中调整顺序
+    initUI() {
+        const container = document.getElementById('game-container');
+        if (!container) return;
+        
+        this.container = container;
+        
+        // 清空容器
+        container.innerHTML = '';
+        
+        // ========== 顶部标题 ==========
+        const title = document.createElement('div');
+        title.className = 'game-title';
+        title.textContent = '宝可梦对对碰';
+        container.appendChild(title);
+        
+        // ========== 信息栏 ==========
+        const infoBar = document.createElement('div');
+        infoBar.className = 'info-bar';
+        container.appendChild(infoBar);
+        
+        // 精灵球数量行
+        const ballRow = document.createElement('div');
+        ballRow.style.display = 'flex';
+        ballRow.style.alignItems = 'center';
+        ballRow.style.marginBottom = '8px';
+        infoBar.appendChild(ballRow);
+        
+        const ballIcon = document.createElement('span');
+        ballIcon.textContent = '⚽';
+        ballIcon.style.fontSize = 'min(24px, 6vw)';
+        ballIcon.style.marginRight = '10px';
+        ballIcon.style.color = '#FF4444';
+        ballRow.appendChild(ballIcon);
+        
+        const ballLabel = document.createElement('span');
+        ballLabel.textContent = '精灵球：';
+        ballLabel.style.color = 'white';
+        ballLabel.style.fontSize = 'min(16px, 4vw)';
+        ballLabel.style.fontWeight = '500';
+        ballRow.appendChild(ballLabel);
+        
+        this.ballCountSpan = document.createElement('span');
+        this.ballCountSpan.textContent = '9';
+        this.ballCountSpan.style.color = '#FFD700';
+        this.ballCountSpan.style.fontSize = 'min(20px, 5vw)';
+        this.ballCountSpan.style.fontWeight = 'bold';
+        this.ballCountSpan.style.marginLeft = '5px';
+        ballRow.appendChild(this.ballCountSpan);
+        
+        // 累计捕获行
+        const captureRow = document.createElement('div');
+        captureRow.style.display = 'flex';
+        captureRow.style.alignItems = 'center';
+        infoBar.appendChild(captureRow);
+        
+        const captureIcon = document.createElement('span');
+        captureIcon.textContent = '🏆';
+        captureIcon.style.fontSize = 'min(20px, 5vw)';
+        captureIcon.style.marginRight = '10px';
+        captureIcon.style.color = '#FFD700';
+        captureRow.appendChild(captureIcon);
+        
+        const captureLabel = document.createElement('span');
+        captureLabel.textContent = '累计获得：';
+        captureLabel.style.color = 'white';
+        captureLabel.style.fontSize = 'min(15px, 4vw)';
+        captureLabel.style.fontWeight = '500';
+        captureRow.appendChild(captureLabel);
+        
+        this.totalBallsSpan = document.createElement('span');
+        this.totalBallsSpan.textContent = '0';
+        this.totalBallsSpan.style.color = '#81C784';
+        this.totalBallsSpan.style.fontSize = 'min(18px, 4.5vw)';
+        this.totalBallsSpan.style.fontWeight = 'bold';
+        this.totalBallsSpan.style.marginLeft = '5px';
+        captureRow.appendChild(this.totalBallsSpan);
+        
+        // ========== 九宫格场地 ==========
+        this.createGameGrid();
+        
+        // ========== 命定属性栏 ==========
+        const typeBar = document.createElement('div');
+        typeBar.style.width = '100%';
+        typeBar.style.maxWidth = 'min(400px, 90vw)';
+        typeBar.style.margin = 'min(15px, 2vh) auto';
+        typeBar.style.display = 'flex';
+        typeBar.style.justifyContent = 'center';
+        typeBar.style.alignItems = 'center';
+        container.appendChild(typeBar);
+        
+        this.typeSelectBtn = this.createTypeSelectButton();
+        typeBar.appendChild(this.typeSelectBtn);
+        
+        // ========== 游戏日志（暂时创建但隐藏）==========
+        const logContainer = document.createElement('div');
+        logContainer.style.width = '100%';
+        logContainer.style.maxWidth = 'min(400px, 90vw)';
+        logContainer.style.margin = '0 auto';
+        logContainer.style.flex = '1';
+        logContainer.style.minHeight = '0';
+        logContainer.style.display = 'flex';
+        logContainer.style.flexDirection = 'column';
+        logContainer.style.display = 'none'; // 隐藏
+        container.appendChild(logContainer);
+        
+        const logTitle = document.createElement('div');
+        logTitle.textContent = '📋 游戏日志';
+        logTitle.style.color = '#FFD700';
+        logTitle.style.fontSize = 'min(16px, 4vw)';
+        logTitle.style.fontWeight = 'bold';
+        logTitle.style.marginBottom = '5px';
+        logTitle.style.paddingLeft = '5px';
+        logContainer.appendChild(logTitle);
+        
+        // 创建messageBoard，即使隐藏也要创建，避免空指针
+        this.messageBoard = new MessageBoard(0, 0, 400, 140);
+        const messageElement = this.messageBoard.getElement();
+        messageElement.style.position = 'relative';
+        messageElement.style.width = '100%';
+        messageElement.style.height = 'min(140px, 20vh)';
+        messageElement.style.left = '0';
+        messageElement.style.top = '0';
+        messageElement.style.background = 'rgba(0, 0, 0, 0.7)';
+        messageElement.style.borderRadius = '12px';
+        messageElement.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+        messageElement.style.backdropFilter = 'blur(5px)';
+        logContainer.appendChild(messageElement);
+        
+        // ========== 操作按钮 ==========
+        const buttonBar = document.createElement('div');
+        buttonBar.style.width = '100%';
+        buttonBar.style.maxWidth = 'min(400px, 90vw)';
+        buttonBar.style.margin = 'min(15px, 2vh) auto min(25px, 4vh) auto';
+        buttonBar.style.display = 'flex';
+        buttonBar.style.justifyContent = 'center';
+        buttonBar.style.gap = 'min(20px, 4vw)';
+        buttonBar.style.padding = '0 min(10px, 2vw)';
+        buttonBar.style.boxSizing = 'border-box';
+        container.appendChild(buttonBar);
+        
+        const throwBtn = this.createButton('🎯 扔球', () => this.summonPokemon());
+        throwBtn.style.flex = '1';
+        throwBtn.style.maxWidth = 'min(160px, 40vw)';
+        throwBtn.style.background = 'linear-gradient(45deg, #2196F3, #21CBF3)';
+        buttonBar.appendChild(throwBtn);
+        
+        const restartBtn = this.createButton('🔄 重新开始', () => this.restartGame());
+        restartBtn.style.flex = '1';
+        restartBtn.style.maxWidth = 'min(160px, 40vw)';
+        restartBtn.style.background = 'linear-gradient(45deg, #FF6B6B, #FF8E8E)';
+        buttonBar.appendChild(restartBtn);
+        
+        this.throwBtn = throwBtn;
+        this.restartBtn = restartBtn;
+        
+        this.setGameStartState(false);
+        
+        // UI创建完成后，可以安全地显示消息
+        setTimeout(() => {
+            if (this.messageBoard) {
+                this.logMessage('系统', '界面加载完成');
             }
-        }
-    });
-}
+        }, 500);
+    }
+
+    // 添加更新格子大小的方法
+    updateGridSize() {
+        if (!this.gridWrapper || !this.gridCells) return;
+        
+        this.gridCells.forEach((cell, index) => {
+            const row = Math.floor(index / 3);
+            const col = index % 3;
+            const cellContainer = this.gridWrapper.children[row * 3 + col];
+            if (cellContainer) {
+                const rect = cellContainer.getBoundingClientRect();
+                const newSize = Math.min(rect.width, rect.height);
+                if (newSize > 0) {
+                    cell.size = newSize;
+                    cell.canvas.width = newSize;
+                    cell.canvas.height = newSize;
+                    cell.updateDisplay();
+                }
+            }
+        });
+    }
 
 // main.js - 修复createGameGrid方法
 createGameGrid() {
@@ -1906,9 +1931,15 @@ createGameGrid() {
         };
     }
 
-    // main.js - 修改immediateLogMessage方法，处理带触发位置的规则奖励
+    // main.js - 修改immediateLogMessage方法，添加空值检查
     immediateLogMessage(type, message, triggerIndex = null) {
         console.log(`[UI显示] ${type}: ${message}`);
+        
+        // 如果messageBoard不存在，只输出到控制台
+        if (!this.messageBoard) {
+            console.log(`[MessageBoard未创建] ${type}: ${message}`);
+            return;
+        }
         
         let displayType = type;
         let color = '#FFFFFF';
@@ -1943,9 +1974,16 @@ createGameGrid() {
             case '统计':
                 color = '#FFD700';
                 break;
+            case '行动':
+                color = '#A0A0A0';
+                break;
         }
         
-        this.messageBoard.addMessage(displayType, message, color);
+        try {
+            this.messageBoard.addMessage(displayType, message, color);
+        } catch (error) {
+            console.error('添加消息到消息板失败:', error);
+        }
         
         // 如果是规则奖励且有触发位置，播放精灵球飞行动画
         if (type === '规则奖励' && triggerIndex !== null) {
@@ -1953,14 +1991,19 @@ createGameGrid() {
             if (triggerCell) {
                 setTimeout(() => {
                     this.playBallFlyAnimation(triggerCell);
-                }, 100); // 稍微延迟，让消息先显示
+                }, 100);
             }
         }
     }
 
-    // 修改logMessage方法，也使用immediateLogMessage
+    // main.js - 修改logMessage方法
     logMessage(type, message) {
-        this.immediateLogMessage(type, message);
+        // 如果messageBoard存在，才显示
+        if (this.messageBoard) {
+            this.immediateLogMessage(type, message);
+        } else {
+            console.log(`[日志暂存] ${type}: ${message}`);
+        }
     }
 
     delay(ms) {
