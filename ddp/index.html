@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <!-- 关键：使用viewport-fit=cover适配刘海屏，但不要用100vh -->
+    <!-- 关键：使用viewport-fit=cover适配刘海屏，并设置背景色 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <!-- PWA 配置 -->
@@ -28,6 +28,7 @@
             height: 100%;
             overflow: hidden;
             position: fixed;
+            /* 关键：背景色延伸到整个屏幕，包括安全区域 */
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
@@ -42,15 +43,19 @@
             -webkit-overflow-scrolling: touch;
             display: flex;
             flex-direction: column;
+            /* 关键：使用env()处理安全区域，确保背景色覆盖 */
             padding: env(safe-area-inset-top, 10px) 
                      env(safe-area-inset-right, 10px) 
-                     env(safe-area-inset-bottom, 10px) 
+                     env(safe-area-inset-bottom, 20px) 
                      env(safe-area-inset-left, 10px);
+            /* 确保背景色延伸到padding区域 */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
-        /* 确保所有内容都在容器内 */
+        /* 确保所有内容都有正确的背景 */
         #game-container > * {
             flex-shrink: 0;
+            background: transparent;
         }
 
         /* 标题样式 */
@@ -83,24 +88,23 @@
             max-width: min(400px, 90vw);
             margin: 0 auto;
             aspect-ratio: 1 / 1;
-            position: relative;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(5px);
-            padding: 5px;
-            box-sizing: border-box;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             grid-template-rows: repeat(3, 1fr);
             gap: 5px;
+            padding: 5px;
+            box-sizing: border-box;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
         }
 
         /* 按钮容器 */
         .button-bar {
             width: 100%;
             max-width: min(400px, 90vw);
-            margin: min(15px, 2vh) auto;
+            margin: min(15px, 2vh) auto min(25px, 4vh) auto;
             display: flex;
             justify-content: center;
             gap: min(20px, 4vw);
@@ -128,32 +132,8 @@
             gap: 5px;
         }
 
-        /* 消息板容器 */
-        .log-container {
-            width: 100%;
-            max-width: min(400px, 90vw);
-            margin: 0 auto;
-            flex: 1;
-            min-height: 0;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .log-title {
-            color: #FFD700;
-            font-size: min(16px, 4vw);
-            font-weight: bold;
-            margin-bottom: 5px;
-            padding-left: 5px;
-        }
-
-        .message-board {
-            width: 100%;
-            height: min(140px, 20vh);
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(5px);
+        .game-button:active {
+            transform: scale(0.95);
         }
     </style>
 </head>
@@ -161,7 +141,7 @@
     <div id="game-container"></div>
     
     <script>
-        // 动态调整容器大小
+        // 动态调整容器大小，确保背景色覆盖
         function adjustContainer() {
             const container = document.getElementById('game-container');
             if (container) {
@@ -176,6 +156,9 @@
         window.addEventListener('resize', adjustContainer);
         // iOS键盘弹出时调整
         window.addEventListener('orientationchange', adjustContainer);
+        
+        // 立即执行一次
+        adjustContainer();
     </script>
     
     <script type="module" src="main.js"></script>
