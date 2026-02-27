@@ -172,6 +172,21 @@
             align-items: center;
             background: transparent;
         }
+        /* 在index.html的style末尾添加 */
+        body {
+            /* 强制背景延伸到所有区域 */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) fixed !important;
+        }
+
+        /* 移除所有可能有白边的地方 */
+        #game-container {
+            background: transparent !important;
+        }
+
+        /* 确保没有元素有白色背景 */
+        div, section, article {
+            background: transparent;
+        }
     </style>
 </head>
 <body>
