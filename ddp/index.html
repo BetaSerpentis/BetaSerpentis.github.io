@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <!-- 关键：使用viewport-fit=cover适配刘海屏，并设置背景色 -->
+    <!-- 关键：使用viewport-fit=cover适配刘海屏 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <!-- PWA 配置 -->
@@ -23,16 +23,40 @@
             user-select: none;
         }
 
+        /* 强制所有元素继承背景色 */
         html, body {
             width: 100%;
             height: 100%;
             overflow: hidden;
             position: fixed;
-            /* 关键：背景色延伸到整个屏幕，包括安全区域 */
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed; /* 固定背景 */
         }
 
-        /* 使用flex布局确保内容在可视区域内 */
+        /* 使用多个层确保背景覆盖 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: -2;
+        }
+
+        /* 专门处理底部安全区域 */
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: env(safe-area-inset-bottom, 0);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: -1;
+        }
+
         #game-container {
             position: absolute;
             top: 0;
@@ -43,16 +67,16 @@
             -webkit-overflow-scrolling: touch;
             display: flex;
             flex-direction: column;
-            /* 关键：使用env()处理安全区域，确保背景色覆盖 */
+            /* 使用安全区域padding，但确保背景色覆盖 */
             padding: env(safe-area-inset-top, 10px) 
                      env(safe-area-inset-right, 10px) 
-                     env(safe-area-inset-bottom, 20px) 
+                     max(env(safe-area-inset-bottom, 20px), 20px) 
                      env(safe-area-inset-left, 10px);
-            /* 确保背景色延伸到padding区域 */
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            /* 透明背景，让body的背景显示 */
+            background: transparent;
         }
 
-        /* 确保所有内容都有正确的背景 */
+        /* 确保所有内容容器也是透明的 */
         #game-container > * {
             flex-shrink: 0;
             background: transparent;
@@ -67,9 +91,10 @@
             padding: min(15px, 3vh) 0 min(10px, 2vh) 0;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
             letter-spacing: 2px;
+            background: transparent;
         }
 
-        /* 信息栏样式 */
+        /* 信息栏样式 - 保持半透明 */
         .info-bar {
             width: 100%;
             max-width: min(400px, 90vw);
@@ -110,6 +135,7 @@
             gap: min(20px, 4vw);
             padding: 0 min(10px, 2vw);
             box-sizing: border-box;
+            background: transparent;
         }
 
         /* 按钮样式 */
@@ -135,6 +161,17 @@
         .game-button:active {
             transform: scale(0.95);
         }
+
+        /* 命定属性按钮容器 */
+        .type-bar {
+            width: 100%;
+            max-width: min(400px, 90vw);
+            margin: min(15px, 2vh) auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: transparent;
+        }
     </style>
 </head>
 <body>
@@ -159,6 +196,11 @@
         
         // 立即执行一次
         adjustContainer();
+        
+        // 额外处理：监听安全区域变化（iOS特有）
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', adjustContainer);
+        }
     </script>
     
     <script type="module" src="main.js"></script>
