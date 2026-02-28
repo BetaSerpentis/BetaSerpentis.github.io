@@ -867,7 +867,7 @@
       "evolvesTo": null,
       "evolutionProb": 0,
       "shinyProb": 0.01,
-      "isLegendary": true,
+      "isLegendary": false,
       "isMythical": false,
       "isTransformer": false
     },
