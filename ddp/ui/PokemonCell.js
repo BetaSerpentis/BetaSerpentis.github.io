@@ -1,45 +1,46 @@
 // ui/PokemonCell.js - 简化版本
 class PokemonCell {
-constructor(index, container, size) {
-    this.index = index;
-    this.container = container;
-    this.size = size;
-    this.pokemon = null;
-    this.isActive = true;
-    this.typeColors = {};
-    
-    this.createCanvas();
-}
-
-updateSize(newSize) {
-    if (newSize && newSize !== this.size) {
-        this.size = newSize;
-        this.canvas.width = newSize;
-        this.canvas.height = newSize;
-        this.updateDisplay();
+    constructor(index, container, size) {
+        this.index = index;
+        this.container = container;
+        this.size = size;
+        this.pokemon = null;
+        this.isActive = true;
+        this.typeColors = {};
+        
+        this.createCanvas();
     }
-}
 
-createCanvas() {
-    // 移除已有的canvas
-    while (this.container.firstChild) {
-        this.container.removeChild(this.container.firstChild);
+    updateSize(newSize) {
+        if (newSize && newSize !== this.size) {
+            this.size = newSize;
+            this.canvas.width = newSize;
+            this.canvas.height = newSize;
+            this.updateDisplay();
+        }
     }
-    
-    // 创建新的canvas
-    this.canvas = document.createElement('canvas');
-    this.canvas.width = this.size || 100;
-    this.canvas.height = this.size || 100;
-    this.canvas.style.width = '100%';
-    this.canvas.style.height = '100%';
-    this.canvas.style.display = 'block';
-    this.canvas.style.borderRadius = '8px';
-    this.container.appendChild(this.canvas);
-    this.ctx = this.canvas.getContext('2d');
-    
-    this.drawEmpty();
-}
 
+    createCanvas() {
+        // 移除已有的canvas
+        while (this.container.firstChild) {
+            this.container.removeChild(this.container.firstChild);
+        }
+        
+        // 创建新的canvas
+        this.canvas = document.createElement('canvas');
+        this.canvas.width = this.size || 100;
+        this.canvas.height = this.size || 100;
+        this.canvas.style.width = '100%';
+        this.canvas.style.height = '100%';
+        this.canvas.style.display = 'block';
+        this.canvas.style.borderRadius = '8px';
+        this.container.appendChild(this.canvas);
+        this.ctx = this.canvas.getContext('2d');
+        
+        this.drawEmpty();
+    }
+
+    // ui/PokemonCell.js - 修改setPokemon方法
     setPokemon(pokemon, imageLoader) {
         console.log(`[格子${this.index}] 设置宝可梦:`, pokemon?.data?.name);
         
@@ -59,24 +60,6 @@ createCanvas() {
                 } else {
                     console.warn(`[格子${this.index}] 无法获取宝可梦图片: ${pokemon.data.id}，使用占位符`);
                     this.sprite = this.createSimplePlaceholder(pokemon.data.id);
-                    
-                    setTimeout(() => {
-                        imageLoader.loadPokemonImage(pokemon.data.id)
-                            .then(() => {
-                                const newSprite = imageLoader.getPokemonSprite(
-                                    pokemon.data.id,
-                                    pokemon.isShiny,
-                                    false
-                                );
-                                if (newSprite && this.pokemon === pokemon) {
-                                    this.sprite = newSprite;
-                                    this.updateDisplay();
-                                }
-                            })
-                            .catch(error => {
-                                console.error(`[格子${this.index}] 异步加载图片失败:`, error);
-                            });
-                    }, 0);
                 }
             } catch (error) {
                 console.error(`[格子${this.index}] 设置宝可梦图片时出错:`, error);
@@ -86,7 +69,9 @@ createCanvas() {
             this.sprite = null;
         }
         
-        this.updateDisplay();
+        // 清除画布，准备播放动画
+        this.ctx.clearRect(0, 0, this.size, this.size);
+        this.drawEmpty(); // 显示空格子
     }
 
     updateDisplay() {
@@ -162,6 +147,7 @@ createCanvas() {
         }
     }
 
+    // ui/PokemonCell.js - 添加drawEmpty方法
     drawEmpty() {
         // 空格子背景
         this.ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
@@ -196,23 +182,15 @@ createCanvas() {
         return canvas;
     }
 
-    // ui/PokemonCell.js - 修复clear方法
+    // ui/PokemonCell.js - 修改clear方法
     clear() {
         console.log(`[格子${this.index}] 清除内容`);
         this.pokemon = null;
         this.sprite = null;
         this.isActive = false;
         
-        // 完全清除画布
         this.ctx.clearRect(0, 0, this.size, this.size);
-        
-        // 重新绘制空格子背景
-        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-        this.ctx.fillRect(0, 0, this.size, this.size);
-        
-        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-        this.ctx.lineWidth = Math.max(1, this.size * 0.005);
-        this.ctx.strokeRect(2, 2, this.size - 4, this.size - 4);
+        this.drawEmpty();
     }
 
     getElement() {

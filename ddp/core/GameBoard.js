@@ -20,7 +20,7 @@ class GameBoard {
         this.totalBallsAdded = 0;
         this.gameLog = [];
         
-        // 初始化待处理奖励数组
+        // 确保pendingRewards是数组
         this.pendingRewards = [];
         
         this.uiCallback = uiCallback;
@@ -249,7 +249,6 @@ class GameBoard {
         }
     }
 
-    // 修改processImmediateRuleRewards（命定属性）
     processImmediateRuleRewards(rewards, triggerIndex = null) {
         rewards.forEach(reward => {
             let message = `属性一致，精灵球+${reward.balls}`;
@@ -260,7 +259,7 @@ class GameBoard {
                 balls: reward.balls,
                 triggerIndex: triggerIndex,
                 message: message,
-                type: 'chosen',
+                type: 'chosen', // 命定属性类型
                 order: Date.now()
             });
         });
@@ -277,7 +276,7 @@ class GameBoard {
             balls += 2;
             description += `异色${pokemonInstance.data.name} +2球 `;
             rewards.push({
-                type: '异色奖励',
+                type: 'special', // 特殊奖励类型
                 message: `异色${pokemonInstance.data.name}出现，精灵球+2`,
                 balls: 2,
                 triggerIndex: index
@@ -428,11 +427,12 @@ class GameBoard {
             // 存储奖励信息
             const triggerIndex = reward.indexes?.[0] || null;
             this.pendingRewards = this.pendingRewards || [];
+            // GameBoard.js - 在添加奖励时添加时间戳
             this.pendingRewards.push({
                 balls: reward.balls,
                 triggerIndex: triggerIndex,
                 message: message,
-                type: 'rule',
+                type: 'rule', // 消除类型
                 order: Date.now()
             });
             
@@ -460,7 +460,7 @@ class GameBoard {
         }
     }
 
-    // 修改processEvolutionEvents
+    // GameBoard.js - 修改processEvolutionEvents方法
     processEvolutionEvents(evolutionEvents) {
         evolutionEvents.forEach(event => {
             let desc = `${event.oldPokemon}进化为${event.newPokemon}`;
@@ -478,10 +478,11 @@ class GameBoard {
                 if (rewardMessage) {
                     this.logGameEvent('奖励', rewardMessage);
                     
+                    // 确保使用event.index作为triggerIndex
                     this.pendingRewards = this.pendingRewards || [];
                     this.pendingRewards.push({
                         balls: event.rewardBalls,
-                        triggerIndex: event.index,
+                        triggerIndex: event.index,  // 确保这里是event.index
                         message: rewardMessage,
                         type: 'evolution',
                         order: Date.now()
@@ -581,6 +582,10 @@ class GameBoard {
 
     // GameBoard.js - 修改summonPokemonWithoutBallConsume方法
     summonPokemonWithoutBallConsume() {
+        // 确保pendingRewards存在
+        if (!this.pendingRewards) {
+            this.pendingRewards = [];
+        }
         const emptySlots = [];
         this.grid.forEach((cell, index) => {
             if (cell === null) emptySlots.push(index);
