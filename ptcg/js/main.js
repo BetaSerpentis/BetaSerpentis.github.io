@@ -10,7 +10,7 @@ import { StatsManager } from './ui/StatsManager.js';
 
 import { CardBrowser } from './features/CardBrowser.js';
 
-import { initThreeJS, showSaveSuccess } from './utils/helpers.js';
+//import { initThreeJS, showSaveSuccess } from './utils/helpers.js';
 
 import { DeckManager } from './core/DeckManager.js';
 import { DeckEditor } from './features/DeckEditor.js';
@@ -28,7 +28,7 @@ class PTCGApp {
     async init() {
         try {
             // 初始化Three.js背景
-            initThreeJS();
+            //initThreeJS();
             
             // 初始化核心服务
             const touchManager = new TouchManager();
