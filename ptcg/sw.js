@@ -22,6 +22,7 @@ const urlsToCache = [
   '/ptcg/js/utils/helpers.js',
   '/ptcg/js/utils/ButtonManager.js',
   '/ptcg/js/utils/constants.js',
+  '/ptcg/js/utils/TouchManager.js',
   // 可以根据需要继续添加其他核心JS文件
   // 例如：'/ptcg/data/pokemon-cards.json' （如果数据量不大且关键）
 ];

@@ -125,8 +125,7 @@ export class CardBrowser {
                 this.cardManager.applyGenerationFilter();
             }
             
-            this.cardGrid.hideLoading();
-            
+            // hideLoading 已移至 CardGrid.render() 内部，消除闪烁
             const displayCards = this.cardManager.getDisplayCards();
             const displayCount = displayCards.length;
             
