@@ -149,6 +149,7 @@ export class CardBrowser {
         } catch (error) {
             console.error(`❌ 加载 ${cardType} 数据失败:`, error);
             this.loadingStatus.textContent = `加载失败: ${error.message}`;
+            this.cardGrid.hideLoading();
         }
     }
 
