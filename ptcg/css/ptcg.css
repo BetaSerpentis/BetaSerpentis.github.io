@@ -886,7 +886,7 @@
     z-index: 99 !important;
     background: rgba(255, 255, 255, 0.95) !important;
     backdrop-filter: blur(10px) !important;
-    display: flex !important;
+    display: flex;
     flex-wrap: nowrap !important;
     gap: 10px !important;
     padding: 15px 20px !important;
@@ -1415,9 +1415,8 @@
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
-/* 隐藏所有旧的按钮容器 */
-.deck-init-button-container,
-.deck-button-container {
+/* 隐藏旧的初始化按钮容器 */
+.deck-init-button-container {
     display: none !important;
 }
 

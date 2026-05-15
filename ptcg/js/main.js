@@ -154,15 +154,13 @@ class PTCGApp {
             return;
         }
         
-        // 检查是否是卡组模式
-        const isDeckMode = !!document.querySelector('.deck-tabs-container');
+        // 检查是否是卡组模式（显式状态，不再查 DOM）
+        const isDeckMode = this.deckEditor && this.deckEditor.mode !== 'browse';
         
         if (isDeckMode) {
-            // 卡组模式：分发到 DeckEditor
             console.log('🎴 Main: 分发到卡组编辑模式');
             this.deckEditor.handleCardClick(index, button);
         } else {
-            // 普通浏览模式：打开模态框
             console.log('🌐 Main: 分发到模态框');
             this.modalView.show(index);
         }
@@ -182,8 +180,8 @@ class PTCGApp {
             return;
         }
         
-        // 卡组模式处理
-        const isDeckMode = !!document.querySelector('.deck-tabs-container');
+        // 卡组模式处理（显式状态）
+        const isDeckMode = this.deckEditor && this.deckEditor.mode !== 'browse';
         if (isDeckMode) {
             console.log('🎴 Main: 卡组模式数量变化');
             this.deckEditor.handleQuantityChange(index, change);

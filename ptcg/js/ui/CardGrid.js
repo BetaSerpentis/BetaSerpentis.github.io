@@ -12,6 +12,7 @@ export class CardGrid {
         this.batchSize = 50;
         this.currentBatch = 0;
         this.isLoadingBatch = false;
+        this.currentMode = 'browse'; // 由外部 setMode() 更新
         
         // 触摸状态变量
         this.touchState = {
@@ -58,6 +59,8 @@ export class CardGrid {
             }
             
             this.loadNextBatch();
+            // 第一批量渲染完成后立即隐藏 loading，消除闪烁
+            this.hideLoading();
         }
     }
 
@@ -119,15 +122,12 @@ export class CardGrid {
         const svgPlaceholder = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="252" height="352" viewBox="0 0 252 352"><rect width="252" height="352" fill="%23f0f0f0"/><text x="126" y="176" font-family="Arial" font-size="14" text-anchor="middle" fill="%23666">加载中...</text></svg>`;
         img.src = svgPlaceholder;
         
-        // 简化的数量显示逻辑
+        // 简化的数量显示逻辑（使用显式模式状态）
         let displayQuantity = 0;
         let shouldDisplayQuantity = false;
         
-        const isDeckMode = !!document.querySelector('.deck-tabs-container');
-        const hasSearchHeader = document.querySelector('.search-header').style.display !== 'none';
-        
-        const isDeckAddMode = !!document.querySelector('.deck-complete-button') || 
-                            (isDeckMode && hasSearchHeader);
+        const isDeckMode = this.currentMode !== 'browse';
+        const isDeckAddMode = this.currentMode === 'deck-add' || this.currentMode === 'cover-select';
         
         if (isDeckMode) {
             if (this.deckManager) {
@@ -350,8 +350,19 @@ export class CardGrid {
             }, false);
             
         } else {
-            // 桌面端代码保持不变...
-            // [保持之前的桌面端代码]
+            // 桌面端鼠标事件
+            cardElement.addEventListener('click', (e) => {
+                console.log('🖱️ CardGrid: 桌面端左键点击');
+                this.handleCardAction(index, 'increment');
+            });
+            
+            cardElement.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('🖱️ CardGrid: 桌面端右键点击');
+                this.handleCardAction(index, 'decrement');
+                return false;
+            });
         }
         
         return cardElement;
@@ -460,26 +471,18 @@ export class CardGrid {
     }
 
     isStatsModeActive() {
-        const statsButton = document.querySelector('.stats-button');
-        if (statsButton && statsButton.classList.contains('active')) {
-            return true;
-        }
-        
+        // 统一使用 StatsManager 作为唯一真实来源
         if (window.statsManager && window.statsManager.isStatModeActive) {
             return window.statsManager.isStatModeActive();
         }
-        
         return false;
     }
 
     updateCardQuantityDisplay(cardId, quantity) {
         const cardElements = document.querySelectorAll('.card');
         
-        const isDeckMode = !!document.querySelector('.deck-tabs-container');
-        const hasSearchHeader = document.querySelector('.search-header').style.display !== 'none';
-        
-        const isDeckAddMode = !!document.querySelector('.deck-complete-button') || 
-                            (isDeckMode && hasSearchHeader);
+        const isDeckMode = this.currentMode !== 'browse';
+        const isDeckAddMode = this.currentMode === 'deck-add' || this.currentMode === 'cover-select';
         
         cardElements.forEach(cardElement => {
             const elementCardId = cardElement.dataset.cardId;
@@ -491,7 +494,8 @@ export class CardGrid {
                 
                 if (isDeckAddMode) {
                     shouldDisplay = quantity > 0;
-                } else if (isDeckMode && !hasSearchHeader) {
+                } else if (isDeckMode && this.currentMode !== 'deck-add' && this.currentMode !== 'cover-select') {
+                    // deck-view 或 deck-edit 模式：已有数量>1才显示角标
                     shouldDisplay = quantity > 1;
                 } else {
                     shouldDisplay = quantity > 0;
@@ -511,6 +515,10 @@ export class CardGrid {
         });
     }
     
+    setMode(mode) {
+        this.currentMode = mode;
+    }
+
     showLoading() {
         this.loadingSection.style.display = 'block';
         this.cardGrid.style.display = 'none';
