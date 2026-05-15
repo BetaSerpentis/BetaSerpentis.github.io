@@ -133,8 +133,6 @@ class PTCGApp {
             }, 2000);
 
         } catch (error) {
-            
-        } catch (error) {
             console.error('应用初始化失败:', error);
         }
     }
