@@ -137,15 +137,19 @@ class PTCGApp {
         }
     }
 
-    // 逐批后台预加载其他卡牌类型，每批间隔 2s，避免 JSON parse 风暴
+    // 逐批后台预加载其他卡牌类型（不污染当前 cardManager 展示状态）
     async _lazyPreloadAllTypes() {
-        const allTypes = this.cardManager.getAllCardTypes ? this.cardManager.getAllCardTypes() 
-            : ['宝可梦', '支援者', '物品', '宝可梦道具', '竞技场', '基本能量', '特殊能量'];
+        const allTypes = ['宝可梦', '支援者', '物品', '宝可梦道具', '竞技场', '基本能量', '特殊能量'];
         for (const cardType of allTypes) {
-            if (cardType === this.cardManager.getCurrentTab()) continue; // 跳过已加载的
+            if (cardType === this.cardManager.getCurrentTab()) continue;
             try {
+                // 保存当前状态，预加载后恢复
+                const savedCards = this.cardManager.cards;
+                const savedTab = this.cardManager.currentTab;
                 await this.cardManager.loadCardData(cardType);
-                await new Promise(r => setTimeout(r, 2000)); // 间隔 2s
+                this.cardManager.cards = savedCards;
+                this.cardManager.currentTab = savedTab;
+                await new Promise(r => setTimeout(r, 2000));
             } catch (e) {
                 console.warn('预加载跳过:', cardType, e.message);
             }

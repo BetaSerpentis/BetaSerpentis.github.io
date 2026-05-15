@@ -131,8 +131,8 @@ export class DeckEditor {
         // 保存当前标签页
         this.originalCurrentTab = this.cardManager.currentTab;
         
-        // 保存卡牌数据引用（用于验证）
-        this.originalCardsLength = this.cardManager.cards.length;
+        // 保存卡牌数据完整副本（预加载可能污染 cardManager.cards）
+        this.originalCards = [...this.cardManager.cards];
         
         console.log('✅ 原始状态保存完成:', {
             filteredCardsCount: this.originalFilteredCards.length,
@@ -1376,7 +1376,10 @@ export class DeckEditor {
             // console.log('✅ 恢复当前标签页:', this.originalCurrentTab);
         }
         
-        // 数据已在内存，直接过滤并渲染，不重新 fetch（消除闪烁）
+        // 恢复保存的 cards（防止预加载污染），然后过滤并渲染
+        if (this.originalCards) {
+            this.cardManager.cards = this.originalCards;
+        }
         const tabName = this.originalCurrentTab || '宝可梦';
         this.cardManager.filteredCards = this.cardManager.cards.filter(card =>
             card.type === tabName

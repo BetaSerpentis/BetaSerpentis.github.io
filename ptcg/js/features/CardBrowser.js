@@ -109,18 +109,11 @@ export class CardBrowser {
         // console.log(`🔄 CardBrowser: 加载 ${cardType} 数据`);
         
         this.cardGrid.showLoading();
-        this.loadingStatus.textContent = `正在加载${cardType}数据...`;
+        if (this.loadingStatus) this.loadingStatus.textContent = `正在加载${cardType}数据...`;
         
-        // 安全超时：如果 15 秒内未完成，强制关闭 loading
-        const safetyTimer = setTimeout(() => {
-            console.warn('卡牌数据加载超时，强制关闭 loading');
-            this.cardGrid.hideLoading();
-        }, 15000);
-
         try {
             // 先加载卡牌数据
             await this.cardManager.loadCardData(cardType);
-            clearTimeout(safetyTimer);
             
             // 关键：确保 filteredCards 包含所有该类型的卡牌
             this.cardManager.filteredCards = this.cardManager.cards.filter(card => 
@@ -155,14 +148,14 @@ export class CardBrowser {
             
         } catch (error) {
             console.error(`❌ 加载 ${cardType} 数据失败:`, error);
-            this.loadingStatus.textContent = `加载失败: ${error.message}`;
+            if (this.loadingStatus) this.loadingStatus.textContent = `加载失败: ${error.message}`;
             this.cardGrid.hideLoading();
         }
     }
 
     // 显示加载状态
     showLoading(message = '正在加载卡牌数据...') {
-        this.loadingStatus.textContent = message;
+        if (this.loadingStatus) this.loadingStatus.textContent = message;
         this.cardGrid.showLoading();
     }
 
