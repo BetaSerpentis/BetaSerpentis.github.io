@@ -10,6 +10,10 @@
     backdrop-filter: blur(10px);
     flex-shrink: 0;
     width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    box-sizing: border-box;
+    padding-top: max(15px, env(safe-area-inset-top, 0px));
 }
 
 /* 搜索容器 */
@@ -39,7 +43,7 @@
     background: rgba(20, 20, 28, 0.92);
     padding: 15px 20px;
     border-radius: 15px;
-    margin: 8px auto 10px auto;
+    margin: 8px auto 8px auto;
     box-shadow: 0 5px 20px rgba(0,0,0,0.35);
     backdrop-filter: blur(10px);
     width: 100%;
@@ -75,10 +79,10 @@
 }
 
 .tab.active {
-    background: #FFD700;
-    border-color: #FFD700;
-    color: #d4d4d8;
-    box-shadow: 0 3px 10px rgba(255,215,0,0.18);
+    background: rgba(129,140,248,0.15);
+    border-color: rgba(129,140,248,0.3);
+    color: #c7d2fe;
+    box-shadow: 0 3px 10px rgba(129,140,248,0.15);
 }
 
 /* 新增：世代筛选栏 - 与功能切换区域样式一致 */
@@ -88,7 +92,7 @@
     background: rgba(20, 20, 28, 0.92);
     padding: 12px 20px;
     border-radius: 15px;
-    margin: 0 auto 10px auto;
+    margin: 0 auto 8px auto;
     box-shadow: 0 3px 15px rgba(0,0,0,0.35);
     backdrop-filter: blur(10px);
     width: 100%;
@@ -118,10 +122,10 @@
 }
 
 .generation-tab.active {
-    background: #FFD700;
-    border-color: #e6c200;
-    color: #0d0d0f;
-    box-shadow: 0 2px 8px rgba(255,215,0,0.25);
+    background: rgba(129,140,248,0.18);
+    border-color: rgba(129,140,248,0.35);
+    color: #c7d2fe;
+    box-shadow: 0 2px 8px rgba(129,140,248,0.2);
 }
 
 /* 世代筛选栏显示动画 */
@@ -229,7 +233,7 @@
 .search-input {
     flex: 1;
     padding: 12px 18px;
-    border: 1px solid #FFD700;
+    border: 1px solid rgba(255,255,255,0.08);
     border-radius: 25px;
     font-size: 1rem;
     outline: none;
@@ -239,15 +243,15 @@
 }
 
 .search-input:focus {
-    border-color: #FFD700;
-    box-shadow: 0 0 0 3px rgba(255,215,0,0.12);
+    border-color: rgba(129,140,248,0.4);
+    box-shadow: 0 0 0 3px rgba(129,140,248,0.12);
 }
 
 /* 搜索按钮也统一圆角 */
 .search-button {
     padding: 12px 25px;
-    background: #FFD700;
-    border: none;
+    background: rgba(129,140,248,0.12);
+    border: 1px solid rgba(129,140,248,0.2);
     border-radius: 20px; /* 统一圆角 */
     color: #d4d4d8;
     font-weight: bold;
@@ -259,7 +263,7 @@
 }
 
 .search-button:hover {
-    background: #FFDD44;
+    background: rgba(129,140,248,0.2);
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(0,0,0,0.35);
 }
@@ -270,8 +274,8 @@
     position: static;
     /* 其他样式保持不变 */
     padding: 12px 24px;
-    background: #FFD700;
-    border: none;
+    background: rgba(129,140,248,0.12);
+    border: 1px solid rgba(129,140,248,0.2);
     border-radius: 20px;
     color: #e4e4e7;
     font-weight: bold;
@@ -332,8 +336,8 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 10px;
-    margin: 10px auto 20px auto;
-    padding-bottom: 20px;
+    margin: 8px auto 8px auto;
+    padding-bottom: 80px;
     align-content: start;
     width: 100%;
     max-width: 1200px;
@@ -394,7 +398,7 @@
 
 .stat-mode .card:hover {
     transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 8px 15px rgba(255,215,0,0.25);
+    box-shadow: 0 8px 15px rgba(129,140,248,0.2);
 }
 
 /* 移动端统计模式的视觉反馈 */
@@ -423,7 +427,7 @@
 
 .card-img.error {
     opacity: 1;
-    background: linear-gradient(45deg, #ffcc00, #ffdd44);
+    background: linear-gradient(45deg, #1a1a24, #2a2a35);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -884,13 +888,15 @@
     position: sticky !important;
     top: 0 !important;
     z-index: 99 !important;
+    max-width: 1200px !important;
+    margin: 0 auto !important;
     background: rgba(20, 20, 28, 0.92) !important;
     backdrop-filter: blur(10px) !important;
     display: flex;
     flex-wrap: nowrap !important;
     gap: 10px !important;
     padding: 15px 20px !important;
-    border-radius: 0 0 15px 15px !important;
+    border-radius: 15px !important;
     box-shadow: 0 5px 20px rgba(0,0,0,0.35) !important;
     margin: 0 !important;
     width: 100% !important;
@@ -946,7 +952,7 @@
 
 .deck-tab.active {
     border-color: #FF9800;
-    background: rgba(255,215,0,0.08);
+    background: rgba(129,140,248,0.12);
 }
 
 /* 修复卡组页签在编辑模式下的样式 */
@@ -1000,7 +1006,7 @@
 }
 
 .deck-tab.active .deck-cover:hover {
-    background: rgba(255,215,0,0.08);
+    background: rgba(129,140,248,0.12);
 }
 
 /* 编辑模式下当前卡组封面可点击样式 */
@@ -1079,7 +1085,7 @@
 
 .deck-tab-add:hover {
     border-color: #FF9800;
-    background: rgba(255,215,0,0.08);
+    background: rgba(129,140,248,0.12);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0,0,0,0.35);
 }
@@ -1175,7 +1181,7 @@
 }
 
 .deck-add-button {
-    background: #FFD700;
+    background: rgba(129,140,248,0.15); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.25);
 }
 
 .deck-save-button {
@@ -1183,7 +1189,7 @@
 }
 
 .deck-complete-button {
-    background: #FFD700;
+    background: rgba(129,140,248,0.15); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.25);
 }
 
 .deck-save-in-add-button {
@@ -1202,7 +1208,7 @@
 
 .deck-add-mode .card:hover {
     transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 8px 15px rgba(255,215,0,0.25);
+    box-shadow: 0 8px 15px rgba(129,140,248,0.2);
 }
 
 /* 选择封面提示 */
@@ -1371,14 +1377,14 @@
 }
 
 /* 具体按钮颜色 */
-.deck-button { background: #9C27B0; }
-.stats-button { background: #FFD700; }
-.stats-button.active { background: #FF6B00; }
+.deck-button { background: rgba(168,85,247,0.15); color: #d8b4fe; border: 1px solid rgba(168,85,247,0.25); }
+.stats-button { background: rgba(129,140,248,0.15); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.25); }
+.stats-button.active { background: rgba(129,140,248,0.25); border-color: rgba(129,140,248,0.45); }
 .deck-search-button { background: #2196F3; }
 .deck-edit-button { background: #FF9800; }
-.deck-add-button { background: #FFD700; }
-.deck-save-button { background: #FF6B00; }
-.deck-complete-button { background: #FFD700; }
+.deck-add-button { background: rgba(129,140,248,0.15); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.25); }
+.deck-save-button { background: rgba(129,140,248,0.2); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.3); }
+.deck-complete-button { background: rgba(129,140,248,0.15); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.25); }
 .import-button { background: #2196F3; }
 .export-button { background: #FF9800; }
 
