@@ -3,10 +3,10 @@
     position: sticky;
     top: 0;
     z-index: 1000;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(20, 20, 28, 0.92);
     padding: 15px 20px;
     border-radius: 0 0 15px 15px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.35);
     backdrop-filter: blur(10px);
     flex-shrink: 0;
     width: 100%;
@@ -36,11 +36,11 @@
 .feature-tabs {
     position: relative;
     z-index: 99;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(20, 20, 28, 0.92);
     padding: 15px 20px;
     border-radius: 15px;
     margin: 8px auto 10px auto;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.35);
     backdrop-filter: blur(10px);
     width: 100%;
     max-width: 1200px;
@@ -58,8 +58,8 @@
 
 .tab {
     padding: 8px 16px;
-    background: #f0f0f0;
-    border: 2px solid #ddd;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
     border-radius: 20px;
     cursor: pointer;
     font-size: 0.9rem;
@@ -70,26 +70,26 @@
 }
 
 .tab:hover {
-    background: #e0e0e0;
+    background: rgba(255,255,255,0.10);
     transform: translateY(-2px);
 }
 
 .tab.active {
-    background: #FFCC00;
-    border-color: #FF6B00;
-    color: #333;
-    box-shadow: 0 3px 10px rgba(255, 107, 0, 0.3);
+    background: #FFD700;
+    border-color: #FFD700;
+    color: #d4d4d8;
+    box-shadow: 0 3px 10px rgba(255,215,0,0.18);
 }
 
 /* 新增：世代筛选栏 - 与功能切换区域样式一致 */
 .generation-tabs {
     position: relative;
     z-index: 98; /* 比功能切换区域低一层 */
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(20, 20, 28, 0.92);
     padding: 12px 20px;
     border-radius: 15px;
     margin: 0 auto 10px auto;
-    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 3px 15px rgba(0,0,0,0.35);
     backdrop-filter: blur(10px);
     width: 100%;
     max-width: 1200px;
@@ -100,8 +100,8 @@
 /* 世代页签样式 */
 .generation-tab {
     padding: 6px 14px;
-    background: #f0f0f0;
-    border: 2px solid #ddd;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
     border-radius: 16px;
     cursor: pointer;
     font-size: 0.85rem;
@@ -109,19 +109,19 @@
     transition: all 0.3s ease;
     white-space: nowrap;
     flex-shrink: 0;
-    color: #333;
+    color: #d4d4d8;
 }
 
 .generation-tab:hover {
-    background: #e0e0e0;
+    background: rgba(255,255,255,0.10);
     transform: translateY(-1px);
 }
 
 .generation-tab.active {
-    background: #4CAF50;
-    border-color: #388E3C;
-    color: white;
-    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.4);
+    background: #FFD700;
+    border-color: #e6c200;
+    color: #0d0d0f;
+    box-shadow: 0 2px 8px rgba(255,215,0,0.25);
 }
 
 /* 世代筛选栏显示动画 */
@@ -229,27 +229,27 @@
 .search-input {
     flex: 1;
     padding: 12px 18px;
-    border: 3px solid #FFCC00;
+    border: 1px solid #FFD700;
     border-radius: 25px;
     font-size: 1rem;
     outline: none;
     transition: all 0.3s ease;
-    background: white;
+    background: rgba(255,255,255,0.04);
     min-width: 0;
 }
 
 .search-input:focus {
-    border-color: #FF6B00;
-    box-shadow: 0 0 15px rgba(255, 107, 0, 0.3);
+    border-color: #FFD700;
+    box-shadow: 0 0 0 3px rgba(255,215,0,0.12);
 }
 
 /* 搜索按钮也统一圆角 */
 .search-button {
     padding: 12px 25px;
-    background: #FFCC00;
+    background: #FFD700;
     border: none;
     border-radius: 20px; /* 统一圆角 */
-    color: #333;
+    color: #d4d4d8;
     font-weight: bold;
     font-size: 1rem;
     cursor: pointer;
@@ -261,7 +261,7 @@
 .search-button:hover {
     background: #FFDD44;
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.35);
 }
 
 /* 确保统计按钮也在统一容器中 */
@@ -270,22 +270,22 @@
     position: static;
     /* 其他样式保持不变 */
     padding: 12px 24px;
-    background: #4CAF50;
+    background: #FFD700;
     border: none;
     border-radius: 20px;
-    color: white;
+    color: #e4e4e7;
     font-weight: bold;
     font-size: 1rem;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.45);
     min-width: 100px;
     text-align: center;
 }
 
 .stats-button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.5);
 }
 
 .stats-button.active {
@@ -308,19 +308,19 @@
     background: #2196F3;
     border: none;
     border-radius: 20px; /* 统一圆角 */
-    color: white;
+    color: #e4e4e7;
     font-weight: bold;
     font-size: 0.9rem;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.45);
     min-width: 100px; /* 统一最小宽度 */
     text-align: center;
 }
 
 .import-button:hover, .export-button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.5);
 }
 
 .export-button {
@@ -371,10 +371,10 @@
 
 /* 卡牌容器 - 修复：使用flexible宽度和aspect-ratio */
 .card {
-    background: white;
+    background: rgba(255,255,255,0.04);
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.35);
     transition: all 0.3s ease;
     cursor: pointer;
     position: relative;
@@ -389,12 +389,12 @@
 
 .card:hover {
     transform: translateY(-5px) scale(1.03);
-    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 12px 20px rgba(0,0,0,0.45);
 }
 
 .stat-mode .card:hover {
     transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 8px 15px rgba(76, 175, 80, 0.4);
+    box-shadow: 0 8px 15px rgba(255,215,0,0.25);
 }
 
 /* 移动端统计模式的视觉反馈 */
@@ -427,7 +427,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #333;
+    color: #d4d4d8;
     font-size: 0.8rem;
     text-align: center;
     padding: 10px;
@@ -437,7 +437,7 @@
     position: absolute;
     top: 5px;
     right: 5px;
-    color: white;
+    color: #e4e4e7;
     border-radius: 50%;
     width: 20px;
     height: 20px;
@@ -460,7 +460,7 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(20, 20, 28, 0.92);
     border-radius: 50%;
     width: 30px;
     height: 30px;
@@ -469,7 +469,7 @@
     justify-content: center;
     font-weight: bold;
     font-size: 0.8rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.45);
     z-index: 3;
 }
 
@@ -515,7 +515,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255,255,255,0.03);
     border-radius: 12px;
     margin-bottom: 10px;
     overflow: hidden;
@@ -561,7 +561,7 @@
     position: absolute;
     top: 20px;
     right: 20px;
-    color: white;
+    color: #e4e4e7;
     font-size: 2rem;
     background: none;
     border: none;
@@ -574,8 +574,8 @@
     top: 50%;
     transform: translateY(-50%);
     font-size: 2.5rem;
-    color: white;
-    background: rgba(0, 0, 0, 0.4);
+    color: #e4e4e7;
+    background: rgba(0,0,0,0.5);
     width: 50px;
     height: 50px;
     border-radius: 50%;
@@ -588,7 +588,7 @@
 }
 
 .nav-arrow:hover {
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(20,20,28,0.88);
 }
 
 .arrow-left {
@@ -600,7 +600,7 @@
 }
 
 .card-info {
-    color: white;
+    color: #e4e4e7;
     text-align: center;
     position: relative;
     z-index: 2;
@@ -611,13 +611,13 @@
 .card-name {
     font-size: 1.8rem;
     margin-bottom: 5px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    text-shadow: 2px 2px 4px rgba(20,20,28,0.85);
     transition: none !important;
 }
 
 .no-results {
     text-align: center;
-    color: white;
+    color: #e4e4e7;
     font-size: 1.2rem;
     margin-top: 50px;
     padding: 20px;
@@ -863,19 +863,19 @@
     padding: 12px 24px;
     border: none;
     border-radius: 20px;
-    color: white;
+    color: #e4e4e7;
     font-weight: bold;
     font-size: 1rem;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.45);
     min-width: 100px;
     text-align: center;
 }
 
 .deck-button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.5);
     background: #8E24AA;
 }
 
@@ -884,14 +884,14 @@
     position: sticky !important;
     top: 0 !important;
     z-index: 99 !important;
-    background: rgba(255, 255, 255, 0.95) !important;
+    background: rgba(20, 20, 28, 0.92) !important;
     backdrop-filter: blur(10px) !important;
     display: flex;
     flex-wrap: nowrap !important;
     gap: 10px !important;
     padding: 15px 20px !important;
     border-radius: 0 0 15px 15px !important;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2) !important;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.35) !important;
     margin: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
@@ -927,11 +927,11 @@
     display: flex;
     align-items: center;
     padding: 10px;
-    border: 1px solid #ddd;
+    border: 1px solid rgba(255,255,255,0.08);
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
-    background: white;
+    background: rgba(255,255,255,0.04);
     width: auto;
     height: auto;
     min-width: 200px;
@@ -941,12 +941,12 @@
 
 .deck-tab:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.35);
 }
 
 .deck-tab.active {
     border-color: #FF9800;
-    background: #fff8e1;
+    background: rgba(255,215,0,0.08);
 }
 
 /* 修复卡组页签在编辑模式下的样式 */
@@ -957,14 +957,14 @@
 
 .deck-tab.disabled:hover {
     transform: none;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.45);
 }
 
 /* 卡组封面样式 */
 .deck-cover {
     width: 80px;
     height: 112px;
-    border: 1px solid #ddd;
+    border: 1px solid rgba(255,255,255,0.08);
     border-radius: 8px;
     overflow: hidden;
     display: flex;
@@ -1000,7 +1000,7 @@
 }
 
 .deck-tab.active .deck-cover:hover {
-    background: #fff8e1;
+    background: rgba(255,215,0,0.08);
 }
 
 /* 编辑模式下当前卡组封面可点击样式 */
@@ -1048,14 +1048,14 @@
     border-radius: 3px;
     padding: 2px 5px;
     font-size: 0.9rem;
-    background: white;
-    color: #333;
+    background: rgba(255,255,255,0.04);
+    color: #d4d4d8;
     outline: none;
 }
 
 .deck-count {
     font-size: 0.8rem;
-    color: #666;
+    color: #999;
 }
 
 /* 新建卡组按钮 */
@@ -1064,12 +1064,12 @@
     align-items: center;
     justify-content: center;
     padding: 10px;
-    border: 1px solid #ddd;
+    border: 1px solid rgba(255,255,255,0.08);
     border-radius: 8px;
     margin: 0;
     cursor: pointer;
     transition: all 0.2s ease;
-    background: white;
+    background: rgba(255,255,255,0.04);
     width: 80px;
     height: 134px;
     flex-shrink: 0;
@@ -1079,9 +1079,9 @@
 
 .deck-tab-add:hover {
     border-color: #FF9800;
-    background: #fff8e1;
+    background: rgba(255,215,0,0.08);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.35);
 }
 
 .deck-tab-add::before {
@@ -1145,12 +1145,12 @@
     padding: 12px 24px; /* 完全统一内边距 */
     border: none;
     border-radius: 20px; /* 完全统一圆角 */
-    color: white;
+    color: #e4e4e7;
     font-weight: bold;
     font-size: 1rem; /* 完全统一字体大小 */
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.45);
     min-width: 100px; /* 完全统一最小宽度 */
     text-align: center;
 }
@@ -1162,7 +1162,7 @@
 .deck-complete-button:hover,
 .deck-save-in-add-button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.5);
 }
 
 /* 具体按钮颜色 */
@@ -1175,7 +1175,7 @@
 }
 
 .deck-add-button {
-    background: #4CAF50;
+    background: #FFD700;
 }
 
 .deck-save-button {
@@ -1183,7 +1183,7 @@
 }
 
 .deck-complete-button {
-    background: #4CAF50;
+    background: #FFD700;
 }
 
 .deck-save-in-add-button {
@@ -1197,12 +1197,12 @@
 
 .deck-edit-mode .card:hover {
     transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 8px 15px rgba(255, 107, 0, 0.4);
+    box-shadow: 0 8px 15px rgba(255,215,0,0.2);
 }
 
 .deck-add-mode .card:hover {
     transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 8px 15px rgba(76, 175, 80, 0.4);
+    box-shadow: 0 8px 15px rgba(255,215,0,0.25);
 }
 
 /* 选择封面提示 */
@@ -1213,13 +1213,13 @@
     left: 50%;
     transform: translateX(-50%);
     background: rgba(0, 0, 0, 0.9);
-    color: white;
+    color: #e4e4e7;
     padding: 20px 30px;
     border-radius: 10px;
     z-index: 1001;
     font-size: 1.2rem;
     text-align: center;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 20px rgba(20,20,28,0.85);
     animation: pulse-hint 2s infinite;
 }
 
@@ -1321,8 +1321,8 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
+    background: rgba(20,20,28,0.92);
+    color: #e4e4e7;
     padding: 10px 20px;
     border-radius: 5px;
     z-index: 1001;
@@ -1342,7 +1342,7 @@
 /* 统一的全局按钮容器 - 左下角 */
 .global-button-container {
     position: fixed;
-    bottom: 20px;
+    bottom: max(20px, env(safe-area-inset-bottom, 0px));
     left: 20px;
     display: flex;
     flex-direction: column;
@@ -1355,37 +1355,37 @@
     padding: 12px 24px;
     border: none;
     border-radius: 20px;
-    color: white;
+    color: #e4e4e7;
     font-weight: bold;
     font-size: 1rem;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.45);
     min-width: 100px;
     text-align: center;
 }
 
 .global-button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.5);
 }
 
 /* 具体按钮颜色 */
 .deck-button { background: #9C27B0; }
-.stats-button { background: #4CAF50; }
+.stats-button { background: #FFD700; }
 .stats-button.active { background: #FF6B00; }
 .deck-search-button { background: #2196F3; }
 .deck-edit-button { background: #FF9800; }
-.deck-add-button { background: #4CAF50; }
+.deck-add-button { background: #FFD700; }
 .deck-save-button { background: #FF6B00; }
-.deck-complete-button { background: #4CAF50; }
+.deck-complete-button { background: #FFD700; }
 .import-button { background: #2196F3; }
 .export-button { background: #FF9800; }
 
 /* 导入导出按钮容器 - 右下角 */
 .import-export-buttons {
     position: fixed;
-    bottom: 20px;
+    bottom: max(20px, env(safe-area-inset-bottom, 0px));
     right: 20px;
     display: flex;
     flex-direction: column;
@@ -1397,12 +1397,12 @@
     padding: 12px 24px;
     border: none;
     border-radius: 20px;
-    color: white;
+    color: #e4e4e7;
     font-weight: bold;
     font-size: 1rem;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.45);
     min-width: 100px;
     text-align: center;
 }
@@ -1412,7 +1412,7 @@
 
 .import-button:hover, .export-button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.5);
 }
 
 /* 隐藏旧的初始化按钮容器 */
@@ -1479,9 +1479,9 @@
     width: 22px;
     height: 22px;
     background: #ff4444;
-    border: 2px solid white;
+    border: 1px solid rgba(255,255,255,0.12);
     border-radius: 50%;
-    color: white;
+    color: #e4e4e7;
     font-size: 14px;
     font-weight: bold;
     cursor: pointer;
@@ -1489,7 +1489,7 @@
     align-items: center;
     justify-content: center;
     z-index: 10;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.45);
     transition: all 0.3s ease;
 }
 
@@ -1510,7 +1510,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(20,20,28,0.88);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -1526,26 +1526,26 @@
 }
 
 .delete-confirm-content {
-    background: white;
+    background: rgba(255,255,255,0.04);
     padding: 30px;
     border-radius: 15px;
     text-align: center;
     max-width: 400px;
     width: 90%;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45);
 }
 
 .delete-confirm-title {
     font-size: 1.5rem;
     font-weight: bold;
     margin-bottom: 15px;
-    color: #333;
+    color: #d4d4d8;
 }
 
 .delete-confirm-message {
     font-size: 1.1rem;
     margin-bottom: 25px;
-    color: #666;
+    color: #999;
     line-height: 1.5;
 }
 
@@ -1568,7 +1568,7 @@
 
 .delete-confirm-cancel {
     background: #6c757d;
-    color: white;
+    color: #e4e4e7;
 }
 
 .delete-confirm-cancel:hover {
@@ -1577,7 +1577,7 @@
 
 .delete-confirm-delete {
     background: #dc3545;
-    color: white;
+    color: #e4e4e7;
 }
 
 .delete-confirm-delete:hover {
