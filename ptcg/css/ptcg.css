@@ -4,7 +4,7 @@
     top: 0;
     z-index: 1000;
     background: rgba(20, 20, 28, 0.92);
-    padding: 0 20px 8px 20px;
+    padding: 4px 20px 8px 20px;
     border-radius: 0 0 12px 12px;
     box-shadow: 0 4px 16px rgba(0,0,0,0.3);
     backdrop-filter: blur(10px);
@@ -148,8 +148,8 @@
 /* 响应式设计 - 世代筛选栏 */
 @media (max-width: 768px) {
     .generation-tabs {
-        padding: 10px 15px;
-        margin: 0 0 8px 0;
+        padding: 6px 15px;
+        margin: 0 0 4px 0;
         width: 100%;
         max-width: 100%;
     }
@@ -170,8 +170,8 @@
 
 @media (max-width: 480px) {
     .generation-tabs {
-        padding: 8px 12px;
-        margin: 0 0 6px 0;
+        padding: 5px 12px;
+        margin: 0 0 4px 0;
     }
     
     #generation-tabs-container {
@@ -709,15 +709,15 @@
     
     /* 移动端调整功能切换区域 */
     .feature-tabs {
-        margin: 15px 0 8px 0;
-        padding: 10px 15px;
+        margin: 0 0 6px 0;
+        padding: 6px 15px;
         width: 100%;
         max-width: 100%;
     }
     
     /* 移动端调整卡牌网格 */
     .card-grid {
-        margin: 8px 0 15px 0;
+        margin: 6px 0 80px 0;
         width: 100%;
         max-width: 100%;
         gap: 8px;
@@ -820,7 +820,7 @@
     
     /* 手机端调整卡牌网格 */
     .card-grid {
-        margin: 6px 0 12px 0;
+        margin: 4px 0 80px 0;
         gap: 6px;
         grid-template-columns: repeat(4, 1fr);
     }
