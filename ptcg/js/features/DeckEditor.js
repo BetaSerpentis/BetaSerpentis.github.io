@@ -1374,8 +1374,14 @@ export class DeckEditor {
             // console.log('✅ 恢复当前标签页:', this.originalCurrentTab);
         }
         
-        // 通过 CardBrowser 重新加载当前标签页
-        this.reloadCurrentTabViaCardBrowser();
+        // 数据已在内存，直接过滤并渲染，不重新 fetch（消除闪烁）
+        const tabName = this.originalCurrentTab || '宝可梦';
+        this.cardManager.filteredCards = this.cardManager.cards.filter(card =>
+            card.type === tabName
+        );
+        if (this.cardGrid && this.cardGrid.render) {
+            this.cardGrid.render();
+        }
     }
 
     // 在 DeckEditor.js 中彻底修复退出卡组模式的问题
@@ -1398,13 +1404,8 @@ export class DeckEditor {
             window.buttonManager.showBrowseMode();
         }
         
-        // 恢复卡牌管理器状态
+        // 恢复卡牌管理器状态并直接渲染（不再 fetch，数据已在内存）
         this.simpleCardManagerReset();
-        
-        // 强制重新渲染，确保统计模式能正常工作
-        setTimeout(() => {
-            this.reloadCurrentTabViaCardBrowser();
-        }, 100);
         
         console.log('✅ 卡组模式退出完成');
     }
