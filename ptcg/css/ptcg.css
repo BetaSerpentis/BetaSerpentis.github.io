@@ -4,16 +4,16 @@
     top: 0;
     z-index: 1000;
     background: rgba(20, 20, 28, 0.92);
-    padding: 4px 20px 8px 20px;
-    border-radius: 0 0 12px 12px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    padding: 15px 20px 10px 20px;
+    border-radius: 12px 12px 0 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     backdrop-filter: blur(10px);
     flex-shrink: 0;
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
     box-sizing: border-box;
-    padding-top: max(12px, env(safe-area-inset-top, 0px));
+    padding-top: max(15px, env(safe-area-inset-top, 0px));
 }
 
 /* 搜索容器 */
@@ -42,8 +42,8 @@
     z-index: 99;
     background: rgba(20, 20, 28, 0.92);
     padding: 8px 20px;
-    border-radius: 0 0 12px 12px;
-    margin: 0 auto 6px auto;
+    border-radius: 12px;
+    margin: 6px auto 6px auto;
     box-shadow: 0 4px 16px rgba(0,0,0,0.3);
     backdrop-filter: blur(10px);
     width: 100%;
@@ -697,8 +697,8 @@
         right: 0;
         width: 100%;
         z-index: 1001;
-        padding: 0 15px 6px 15px;
-        padding-top: max(10px, env(safe-area-inset-top, 0px));
+        padding: 12px 15px 8px 15px;
+        padding-top: max(12px, env(safe-area-inset-top, 0px));
     }
     
     /* 内容区域给固定的卡组页签留空间 */
@@ -709,7 +709,7 @@
     
     /* 移动端调整功能切换区域 */
     .feature-tabs {
-        margin: 0 0 6px 0;
+        margin: 4px 0 6px 0;
         padding: 6px 15px;
         width: 100%;
         max-width: 100%;
@@ -804,7 +804,7 @@
     
     /* 手机端搜索栏调整 */
     .search-header {
-        padding: 0 12px 4px 12px;
+        padding: 10px 12px 6px 12px;
     }
     
     .content-wrapper {
@@ -814,7 +814,7 @@
     
     /* 手机端调整功能切换区域 */
     .feature-tabs {
-        margin: 0 0 4px 0;
+        margin: 3px 0 4px 0;
         padding: 6px 12px;
     }
     
