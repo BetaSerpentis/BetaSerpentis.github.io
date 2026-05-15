@@ -4,16 +4,16 @@
     top: 0;
     z-index: 1000;
     background: rgba(20, 20, 28, 0.92);
-    padding: 15px 20px;
-    border-radius: 0 0 15px 15px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.35);
+    padding: 0 20px 8px 20px;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
     backdrop-filter: blur(10px);
     flex-shrink: 0;
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
     box-sizing: border-box;
-    padding-top: max(15px, env(safe-area-inset-top, 0px));
+    padding-top: max(12px, env(safe-area-inset-top, 0px));
 }
 
 /* 搜索容器 */
@@ -36,15 +36,15 @@
     padding: 0;
 }
 
-/* 功能切换区域 - 修改为与搜索栏相同宽度 */
+/* 功能切换区域 - 与搜索栏紧贴 */
 .feature-tabs {
     position: relative;
     z-index: 99;
     background: rgba(20, 20, 28, 0.92);
-    padding: 15px 20px;
-    border-radius: 15px;
-    margin: 8px auto 8px auto;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.35);
+    padding: 8px 20px;
+    border-radius: 0 0 12px 12px;
+    margin: 0 auto 6px auto;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
     backdrop-filter: blur(10px);
     width: 100%;
     max-width: 1200px;
@@ -55,8 +55,8 @@
 .tabs-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
+    gap: 6px;
+    justify-content: flex-start;
     width: 100%;
 }
 
@@ -85,15 +85,15 @@
     box-shadow: 0 3px 10px rgba(129,140,248,0.15);
 }
 
-/* 新增：世代筛选栏 - 与功能切换区域样式一致 */
+/* 世代筛选栏 */
 .generation-tabs {
     position: relative;
-    z-index: 98; /* 比功能切换区域低一层 */
+    z-index: 98;
     background: rgba(20, 20, 28, 0.92);
-    padding: 12px 20px;
-    border-radius: 15px;
-    margin: 0 auto 8px auto;
-    box-shadow: 0 3px 15px rgba(0,0,0,0.35);
+    padding: 8px 20px;
+    border-radius: 12px;
+    margin: 0 auto 6px auto;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
     backdrop-filter: blur(10px);
     width: 100%;
     max-width: 1200px;
