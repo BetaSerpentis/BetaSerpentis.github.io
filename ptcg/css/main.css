@@ -26,7 +26,7 @@ body {
 
 .loading-spinner {
     border: 3px solid rgba(255,255,255,0.08);
-    border-top-color: #FFD700;
+    border-top-color: #818cf8;
     border-radius: 50%;
     width: 36px;
     height: 36px;
@@ -83,18 +83,18 @@ body {
 
 .search-input::placeholder { color: #52525b; }
 .search-input:focus {
-    border-color: #FFD700;
-    box-shadow: 0 0 0 3px rgba(255,215,0,0.12);
+    border-color: rgba(129,140,248,0.4);
+    box-shadow: 0 0 0 3px rgba(129,140,248,0.12);
 }
 
 .search-button {
     padding: 11px 22px;
-    background: #FFD700;
-    color: #0d0d0f;
-    border: none;
+    background: rgba(129,140,248,0.15);
+    color: #c7d2fe;
+    border: 1px solid rgba(129,140,248,0.25);
     border-radius: 12px;
     font-size: 0.95rem;
-    font-weight: 600;
+    font-weight: 500;
     cursor: pointer;
     white-space: nowrap;
     flex-shrink: 0;
