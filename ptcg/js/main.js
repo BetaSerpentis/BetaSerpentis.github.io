@@ -53,13 +53,6 @@ class PTCGApp {
             this.deckManager = new DeckManager(this.storageService, this.cardManager);
             this.deckManager.init();
             
-            // 预加载所有卡牌基础信息（在后台进行）
-            this.cardManager.preloadAllCardBaseInfo().then(() => {
-                // console.log('✅ 所有卡牌基础信息预加载完成');
-            }).catch(error => {
-                console.warn('⚠️ 卡牌基础信息预加载失败:', error);
-            });
-
             // 先初始化基础的UI组件
             this.modalView = new ModalView(this.cardManager, this.imageLoader);
             this.statsManager = new StatsManager(this.cardManager, this.onStatsChange.bind(this));
@@ -133,6 +126,15 @@ class PTCGApp {
             await this.cardBrowser.loadCardData('宝可梦');
             
             console.log('✅ 应用初始化完成');
+            
+            // 首屏渲染完成后，后台预加载其他卡牌类型（不抢占首屏带宽）
+            setTimeout(() => {
+                this.cardManager.preloadAllCardBaseInfo().then(() => {
+                    // console.log('✅ 所有卡牌基础信息预加载完成');
+                }).catch(error => {
+                    console.warn('⚠️ 卡牌基础信息预加载失败:', error);
+                });
+            }, 500);
             
         } catch (error) {
             console.error('应用初始化失败:', error);
