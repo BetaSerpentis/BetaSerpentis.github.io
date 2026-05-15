@@ -293,7 +293,7 @@
 }
 
 .stats-button.active {
-    background: #FF6B00;
+    background: #6366f1;
 }
 
 /* 导入导出按钮样式 - 也统一尺寸 */
@@ -697,7 +697,8 @@
         right: 0;
         width: 100%;
         z-index: 1001;
-        padding: 12px 15px;
+        padding: 0 15px 6px 15px;
+        padding-top: max(10px, env(safe-area-inset-top, 0px));
     }
     
     /* 内容区域给固定的卡组页签留空间 */
@@ -803,7 +804,7 @@
     
     /* 手机端搜索栏调整 */
     .search-header {
-        padding: 10px 12px;
+        padding: 0 12px 4px 12px;
     }
     
     .content-wrapper {
@@ -813,8 +814,8 @@
     
     /* 手机端调整功能切换区域 */
     .feature-tabs {
-        margin: 12px 0 6px 0;
-        padding: 8px 12px;
+        margin: 0 0 4px 0;
+        padding: 6px 12px;
     }
     
     /* 手机端调整卡牌网格 */
@@ -869,6 +870,7 @@
     border-radius: 20px;
     color: #e4e4e7;
     font-weight: bold;
+    background: #4f46e5;
     font-size: 1rem;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -880,7 +882,7 @@
 .deck-button:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0,0,0,0.5);
-    background: #8E24AA;
+    background: #6d28d9;
 }
 
 /* 卡组页签容器 - 固定在顶部，与搜索栏样式一致 */
@@ -951,7 +953,7 @@
 }
 
 .deck-tab.active {
-    border-color: #FF9800;
+    border-color: rgba(129,140,248,0.4);
     background: rgba(129,140,248,0.12);
 }
 
@@ -1002,7 +1004,7 @@
 }
 
 .deck-tab.active .deck-cover {
-    border: 2px solid #FF9800;
+    border: 2px solid rgba(129,140,248,0.4);
 }
 
 .deck-tab.active .deck-cover:hover {
@@ -1011,13 +1013,13 @@
 
 /* 编辑模式下当前卡组封面可点击样式 */
 .deck-tab.active .deck-cover.editable {
-    border: 2px dashed #FF9800 !important;
+    border: 2px dashed rgba(129,140,248,0.4) !important;
     cursor: pointer;
 }
 
 .deck-tab.active .deck-cover.editable:hover {
-    border-color: #FF5722 !important;
-    background: rgba(255, 152, 0, 0.1);
+    border-color: #818cf8 !important;
+    background: rgba(129,140,248,0.1);
 }
 
 /* 卡组信息 */
@@ -1037,20 +1039,20 @@
 /* 可点击的卡组名称样式 */
 .deck-name.editable {
     cursor: pointer;
-    border-bottom: 1px dashed #FF9800;
+    border-bottom: 1px dashed rgba(129,140,248,0.4);
     padding: 2px;
     transition: all 0.2s ease;
 }
 
 .deck-name.editable:hover {
-    background: rgba(255, 152, 0, 0.1);
-    border-bottom-color: #FF5722;
+    background: rgba(129,140,248,0.1);
+    border-bottom-color: #818cf8;
 }
 
 /* 名称输入框样式 */
 .deck-name-input {
     width: 100%;
-    border: 1px solid #FF9800 !important;
+    border: 1px solid rgba(129,140,248,0.5) !important;
     border-radius: 3px;
     padding: 2px 5px;
     font-size: 0.9rem;
@@ -1084,7 +1086,7 @@
 }
 
 .deck-tab-add:hover {
-    border-color: #FF9800;
+    border-color: rgba(129,140,248,0.4);
     background: rgba(129,140,248,0.12);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0,0,0,0.35);
@@ -1102,7 +1104,7 @@
 }
 
 .deck-tab-add:hover::before {
-    color: #FF9800;
+    color: #a5b4fc;
 }
 
 /* 移除内部的加号容器，直接在按钮上显示加号 */
@@ -1111,9 +1113,9 @@
 }
 
 .deck-tab-add:hover .add-icon {
-    border-color: #FF9800; /* 悬停时与封面边框一致 */
-    color: #FF9800; /* 悬停时与封面颜色一致 */
-    background: rgba(255, 152, 0, 0.1); /* 悬停时轻微背景色 */
+    border-color: rgba(129,140,248,0.4); /* 悬停时与封面边框一致 */
+    color: #a5b4fc; /* 悬停时与封面颜色一致 */
+    background: rgba(129,140,248,0.1); /* 悬停时轻微背景色 */
 }
 
 /* 完全移除信息区域 */
@@ -1127,7 +1129,7 @@
 }
 
 .deck-tab-add:hover .add-text {
-    color: #FF9800;
+    color: #a5b4fc;
 }
 
 /* 统一的按钮容器 */
@@ -1171,13 +1173,13 @@
     box-shadow: 0 6px 20px rgba(0,0,0,0.5);
 }
 
-/* 具体按钮颜色 */
-.deck-search-button {
-    background: #2196F3;
+/* 具体按钮颜色（旧） */
+.deck-search-button-old {
+    background: #2563eb;
 }
 
-.deck-edit-button {
-    background: #FF9800;
+.deck-edit-button-old {
+    background: #7c3aed;
 }
 
 .deck-add-button {
@@ -1185,7 +1187,7 @@
 }
 
 .deck-save-button {
-    background: #FF6B00;
+    background: #6366f1;
 }
 
 .deck-complete-button {
@@ -1193,7 +1195,7 @@
 }
 
 .deck-save-in-add-button {
-    background: #FF6B00;
+    background: #6366f1;
 }
 
 /* 编辑模式下的特殊样式 */
@@ -1244,14 +1246,14 @@
 
 /* 可编辑的封面样式 */
 .deck-cover.editable {
-    border: 2px dashed #FF9800 !important;
+    border: 2px dashed rgba(129,140,248,0.4) !important;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .deck-cover.editable:hover {
-    border-color: #FF5722 !important;
-    background: rgba(255, 152, 0, 0.1);
+    border-color: #818cf8 !important;
+    background: rgba(129,140,248,0.1);
     transform: scale(1.02);
 }
 
@@ -1377,16 +1379,16 @@
 }
 
 /* 具体按钮颜色 */
-.deck-button { background: rgba(168,85,247,0.15); color: #d8b4fe; border: 1px solid rgba(168,85,247,0.25); }
-.stats-button { background: rgba(129,140,248,0.15); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.25); }
-.stats-button.active { background: rgba(129,140,248,0.25); border-color: rgba(129,140,248,0.45); }
-.deck-search-button { background: #2196F3; }
-.deck-edit-button { background: #FF9800; }
-.deck-add-button { background: rgba(129,140,248,0.15); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.25); }
-.deck-save-button { background: rgba(129,140,248,0.2); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.3); }
-.deck-complete-button { background: rgba(129,140,248,0.15); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.25); }
-.import-button { background: #2196F3; }
-.export-button { background: #FF9800; }
+.deck-button { background: #7c3aed; color: #e4e4e7; border: none; }
+.stats-button { background: #4f46e5; color: #e4e4e7; border: none; }
+.stats-button.active { background: #6366f1; border: none; }
+.deck-search-button { background: #2563eb; }
+.deck-edit-button { background: #7c3aed; }
+.deck-add-button { background: #4f46e5; color: #e4e4e7; }
+.deck-save-button { background: #059669; color: #e4e4e7; }
+.deck-complete-button { background: #4f46e5; color: #e4e4e7; }
+.import-button { background: #2563eb; }
+.export-button { background: #7c3aed; }
 
 /* 导入导出按钮容器 - 右下角 */
 .import-export-buttons {
@@ -1413,8 +1415,8 @@
     text-align: center;
 }
 
-.import-button { background: #2196F3; }
-.export-button { background: #FF9800; }
+.import-button { background: #2563eb; }
+.export-button { background: #7c3aed; }
 
 .import-button:hover, .export-button:hover {
     transform: translateY(-2px);
