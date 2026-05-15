@@ -520,13 +520,13 @@ export class CardGrid {
     }
 
     showLoading() {
-        this.loadingSection.style.display = 'block';
+        if (this.loadingSection) this.loadingSection.style.display = 'block';
         this.cardGrid.style.display = 'none';
-        this.noResults.style.display = 'none';
+        if (this.noResults) this.noResults.style.display = 'none';
     }
 
     hideLoading() {
-        this.loadingSection.style.display = 'none';
+        if (this.loadingSection) this.loadingSection.style.display = 'none';
         this.cardGrid.style.display = 'grid';
     }
 
