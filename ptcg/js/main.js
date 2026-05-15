@@ -127,17 +127,30 @@ class PTCGApp {
             
             console.log('✅ 应用初始化完成');
             
-            // 首屏渲染完成后，后台预加载其他卡牌类型（不抢占首屏带宽）
+            // 首屏渲染完成后，后台逐批预加载（间隔 2s，避免连续 JSON parse 阻塞主线程）
             setTimeout(() => {
-                this.cardManager.preloadAllCardBaseInfo().then(() => {
-                    // console.log('✅ 所有卡牌基础信息预加载完成');
-                }).catch(error => {
-                    console.warn('⚠️ 卡牌基础信息预加载失败:', error);
-                });
-            }, 500);
+                this._lazyPreloadAllTypes();
+            }, 2000);
+
+        } catch (error) {
             
         } catch (error) {
             console.error('应用初始化失败:', error);
+        }
+    }
+
+    // 逐批后台预加载其他卡牌类型，每批间隔 2s，避免 JSON parse 风暴
+    async _lazyPreloadAllTypes() {
+        const allTypes = this.cardManager.getAllCardTypes ? this.cardManager.getAllCardTypes() 
+            : ['宝可梦', '支援者', '物品', '宝可梦道具', '竞技场', '基本能量', '特殊能量'];
+        for (const cardType of allTypes) {
+            if (cardType === this.cardManager.getCurrentTab()) continue; // 跳过已加载的
+            try {
+                await this.cardManager.loadCardData(cardType);
+                await new Promise(r => setTimeout(r, 2000)); // 间隔 2s
+            } catch (e) {
+                console.warn('预加载跳过:', cardType, e.message);
+            }
         }
     }
 

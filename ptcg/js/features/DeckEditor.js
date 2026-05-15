@@ -53,9 +53,11 @@ export class DeckEditor {
         // 保存原始状态
         this.saveOriginalState();
         
-        // 隐藏搜索栏，显示卡组页签
+        // 隐藏搜索栏和筛选栏，显示卡组页签
         document.querySelector('.search-header').style.display = 'none';
         document.querySelector('.feature-tabs').style.display = 'none';
+        const genTabs = document.getElementById('generation-tabs');
+        if (genTabs) genTabs.style.display = 'none';
         
         // 通知 ButtonManager 切换到卡组模式
         if (window.buttonManager) {
@@ -1392,6 +1394,11 @@ export class DeckEditor {
         // 显示卡牌浏览相关元素
         document.querySelector('.search-header').style.display = 'block';
         document.querySelector('.feature-tabs').style.display = 'block';
+        // 如果当前是宝可梦标签页，恢复世代筛选栏
+        const genTabs2 = document.getElementById('generation-tabs');
+        if (genTabs2 && this.originalCurrentTab === '宝可梦') {
+            genTabs2.style.display = 'block';
+        }
         
         // 移除卡组界面元素
         this.deckTabsContainer?.remove();
