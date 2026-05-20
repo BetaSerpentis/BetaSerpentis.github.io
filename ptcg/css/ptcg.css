@@ -4,7 +4,7 @@
     top: 0;
     z-index: 1000;
     background: rgba(20, 20, 28, 0.92);
-    padding: 15px 20px 10px 20px;
+    padding: 15px 20px 0 20px;
     border-radius: 12px 12px 0 0;
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     backdrop-filter: blur(10px);
@@ -38,7 +38,8 @@
 
 /* 功能切换区域 - 与搜索栏紧贴 */
 .feature-tabs {
-    position: relative;
+    position: sticky;
+    top: 0;
     z-index: 99;
     background: rgba(20, 20, 28, 0.92);
     padding: 8px 20px;
@@ -337,7 +338,7 @@
     grid-template-columns: repeat(4, 1fr);
     gap: 10px;
     margin: 8px auto 8px auto;
-    padding-bottom: 80px;
+    padding: 0 20px 80px 20px;
     align-content: start;
     width: 100%;
     max-width: 1200px;
@@ -417,7 +418,7 @@
     object-fit: contain; /* 修改：使用contain确保完整显示 */
     object-position: center;
     border-radius: 8px;
-    background: #f5f5f5; /* 添加背景色避免空白 */
+    background: #1a1a24; /* 添加背景色避免空白 */
 }
 
 .card-img.loaded {
@@ -697,14 +698,14 @@
         right: 0;
         width: 100%;
         z-index: 1001;
-        padding: 12px 15px 8px 15px;
+        padding: 12px 15px 0 15px;
         padding-top: max(12px, env(safe-area-inset-top, 0px));
     }
     
     /* 内容区域给固定的卡组页签留空间 */
     .content-wrapper {
-        margin-top: 140px !important;
-        height: calc(100vh - 140px) !important;
+        margin-top: 60px !important;
+
     }
     
     /* 移动端调整功能切换区域 */
@@ -718,6 +719,7 @@
     /* 移动端调整卡牌网格 */
     .card-grid {
         margin: 6px 0 80px 0;
+        padding: 0 15px;
         width: 100%;
         max-width: 100%;
         gap: 8px;
@@ -804,12 +806,12 @@
     
     /* 手机端搜索栏调整 */
     .search-header {
-        padding: 10px 12px 6px 12px;
+        padding: 10px 12px 0 12px;
     }
     
     .content-wrapper {
-        margin-top: 130px !important;
-        height: calc(100vh - 130px) !important;
+        margin-top: 52px !important;
+
     }
     
     /* 手机端调整功能切换区域 */
@@ -821,6 +823,7 @@
     /* 手机端调整卡牌网格 */
     .card-grid {
         margin: 4px 0 80px 0;
+        padding: 0 12px;
         gap: 6px;
         grid-template-columns: repeat(4, 1fr);
     }
@@ -978,7 +981,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f5f5f5;
+    background: #1a1a24;
     flex-shrink: 0;
     margin-right: 10px;
 }
@@ -994,7 +997,7 @@
 /* 无封面时的样式 */
 .deck-cover.no-cover {
     font-size: 0.7rem;
-    color: #999;
+    color: #52525b;
     text-align: center;
     padding: 5px;
     display: flex;
@@ -1095,7 +1098,7 @@
 .deck-tab-add::before {
     content: '+';
     font-size: 3rem;
-    color: #999;
+    color: #52525b;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1104,7 +1107,7 @@
 }
 
 .deck-tab-add:hover::before {
-    color: #a5b4fc;
+    color: #818cf8;
 }
 
 /* 移除内部的加号容器，直接在按钮上显示加号 */
@@ -1356,6 +1359,12 @@
     flex-direction: column;
     gap: 8px;
     z-index: 1000;
+    background: rgba(13,13,15,0.55);
+    border-radius: 16px;
+    padding: 6px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.06);
 }
 
 /* 统一的按钮基础样式 */
@@ -1379,16 +1388,16 @@
 }
 
 /* 具体按钮颜色 */
-.deck-button { background: #7c3aed; color: #e4e4e7; border: none; }
-.stats-button { background: #4f46e5; color: #e4e4e7; border: none; }
-.stats-button.active { background: #6366f1; border: none; }
-.deck-search-button { background: #2563eb; }
-.deck-edit-button { background: #7c3aed; }
-.deck-add-button { background: #4f46e5; color: #e4e4e7; }
-.deck-save-button { background: #059669; color: #e4e4e7; }
-.deck-complete-button { background: #4f46e5; color: #e4e4e7; }
-.import-button { background: #2563eb; }
-.export-button { background: #7c3aed; }
+.deck-button { background: rgba(129,140,248,0.2); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.35); }
+.stats-button { background: rgba(129,140,248,0.2); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.35); }
+.stats-button.active { background: rgba(129,140,248,0.38); border: 1px solid rgba(129,140,248,0.5); }
+.deck-search-button { background: rgba(129,140,248,0.2); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.35); }
+.deck-edit-button { background: rgba(129,140,248,0.2); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.35); }
+.deck-add-button { background: rgba(129,140,248,0.2); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.35); }
+.deck-save-button { background: rgba(129,140,248,0.2); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.35); }
+.deck-complete-button { background: rgba(129,140,248,0.2); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.35); }
+.import-button { background: rgba(129,140,248,0.15); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.25); }
+.export-button { background: rgba(129,140,248,0.15); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.25); }
 
 /* 导入导出按钮容器 - 右下角 */
 .import-export-buttons {
@@ -1399,6 +1408,12 @@
     flex-direction: column;
     gap: 8px;
     z-index: 1000;
+    background: rgba(13,13,15,0.55);
+    border-radius: 16px;
+    padding: 6px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.06);
 }
 
 .import-button, .export-button {
@@ -1415,8 +1430,8 @@
     text-align: center;
 }
 
-.import-button { background: #2563eb; }
-.export-button { background: #7c3aed; }
+.import-button { background: rgba(129,140,248,0.15); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.25); }
+.export-button { background: rgba(129,140,248,0.15); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.25); }
 
 .import-button:hover, .export-button:hover {
     transform: translateY(-2px);
@@ -1904,13 +1919,6 @@ input, textarea, .search-input, [contenteditable="true"] {
     }
 }
 
-/* === 修复内容区域高度 === */
-
-/* 正常模式（有搜索栏） */
-.search-header:not([style*="display: none"]) ~ .content-wrapper {
-    margin-top: 80px !important;
-    height: calc(100vh - 80px) !important;
-}
 
 /* 卡组模式（没有搜索栏，有卡组页签） */
 .deck-tabs-container:not([style*="display: none"]) ~ .content-wrapper {
@@ -1922,5 +1930,6 @@ input, textarea, .search-input, [contenteditable="true"] {
     .deck-tabs-container:not([style*="display: none"]) ~ .content-wrapper {
         margin-top: 130px !important;
         height: calc(100vh - 130px) !important;
+
     }
 }

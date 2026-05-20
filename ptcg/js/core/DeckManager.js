@@ -122,8 +122,8 @@ export class DeckManager {
             const cardA = this.getCardDetails(a.id);
             const cardB = this.getCardDetails(b.id);
             
-            const typeA = cardA ? cardA.type : '未知';
-            const typeB = cardB ? cardB.type : '未知';
+            const typeA = (cardA && cardA.type) || a.type || '未知';
+            const typeB = (cardB && cardB.type) || b.type || '未知';
             
             const orderA = typeOrder[typeA] || 999;
             const orderB = typeOrder[typeB] || 999;
@@ -172,8 +172,8 @@ export class DeckManager {
     // 宝可梦卡排序规则
     sortPokemonCards(cardA, cardB, deckCardA, deckCardB) {
         // 按编号排序
-        const numberA = cardA ? (cardA.number || '') : '';
-        const numberB = cardB ? (cardB.number || '') : '';
+        const numberA = (cardA && cardA.number) || deckCardA.number || '';
+        const numberB = (cardB && cardB.number) || deckCardB.number || '';
         
         if (numberA !== numberB) {
             const numberCompare = this.compareNumbers(numberA, numberB);
@@ -201,8 +201,8 @@ export class DeckManager {
     // 按编号排序（用于竞技场和特殊能量）
     sortByNumber(cardA, cardB, deckCardA, deckCardB) {
         // 按编号排序
-        const numberA = cardA ? (cardA.number || '') : '';
-        const numberB = cardB ? (cardB.number || '') : '';
+        const numberA = (cardA && cardA.number) || deckCardA.number || '';
+        const numberB = (cardB && cardB.number) || deckCardB.number || '';
         
         if (numberA !== numberB) {
             const numberCompare = this.compareNumbers(numberA, numberB);
@@ -293,6 +293,8 @@ export class DeckManager {
                     id: cardId,
                     name: cardData.name,
                     image: cardData.image,
+                    type: cardData.type || '未知',
+                    number: cardData.number || '',
                     quantity: change
                 };
                 deck.cards.push(newCard);

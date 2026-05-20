@@ -47,10 +47,12 @@ export class DeckEditor {
 
     // 进入卡组模式
     // 修改 enterDeckMode 方法
-    enterDeckMode() {
+    async enterDeckMode() {
         // console.log('🔍 进入卡组模式');
         
         // 保存原始状态
+        // 预加载所有卡牌基础信息，确保排序时能获取到 type/number
+        await this.cardManager.preloadAllCardBaseInfo();
         this.saveOriginalState();
         
         // 隐藏搜索栏和筛选栏，显示卡组页签
