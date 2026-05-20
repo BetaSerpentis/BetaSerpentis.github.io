@@ -119,7 +119,7 @@ export class CardGrid {
         img.alt = card.name;
         img.dataset.loading = 'false';
         
-        const svgPlaceholder = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="252" height="352" viewBox="0 0 252 352"><rect width="252" height="352" fill="%231a1a24"/><text x="126" y="176" font-family="Arial" font-size="14" text-anchor="middle" fill="%23555">加载中...</text></svg>`;
+        const svgPlaceholder = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="252" height="352" viewBox="0 0 252 352"><rect width="252" height="352" fill="%231a1a24"/><text x="126" y="176" font-family="Arial" font-size="14" text-anchor="middle" fill="%233a3a45">加载中...</text></svg>`;
         img.src = svgPlaceholder;
         
         // 简化的数量显示逻辑（使用显式模式状态）
