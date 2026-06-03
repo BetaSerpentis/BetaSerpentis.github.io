@@ -6,6 +6,8 @@ class ImageLoader {
         this.ballImage = null;
         this.pokemonSize = 64;
         this.loadingPromises = new Map();
+        // 性能优化：缓存提取的精灵图，避免每次 getPokemonSprite 创建新 Canvas
+        this.extractedSprites = new Map();
     }
 
     async loadPokemonImage(id) {
@@ -208,29 +210,32 @@ class ImageLoader {
     }
 
     getPokemonSprite(id, isShiny = false, isBack = false) {
-        console.log(`[ImageLoader] 获取宝可梦精灵: ID=${id}, 异色=${isShiny}, 背面=${isBack}`);
-        
+        // 性能优化：缓存 key，避免每次都创建新 Canvas 对象
+        const cacheKey = `${id}_${isShiny ? 's' : 'n'}_${isBack ? 'b' : 'f'}`;
+
+        if (this.extractedSprites.has(cacheKey)) {
+            return this.extractedSprites.get(cacheKey);
+        }
+
         if (!this.pokemonSprites.has(id)) {
             console.warn(`[ImageLoader] 宝可梦 ${id} 的图片未加载`);
             return null;
         }
-        
+
         const spriteSheet = this.pokemonSprites.get(id);
-        
+
         if (!spriteSheet || !spriteSheet.width || !spriteSheet.height) {
             console.error(`[ImageLoader] 宝可梦 ${id} 的spriteSheet无效`);
             return null;
         }
-        
-        console.log(`[ImageLoader] spriteSheet尺寸: ${spriteSheet.width}x${spriteSheet.height}`);
-        
+
         const canvas = document.createElement('canvas');
         canvas.width = this.pokemonSize;
         canvas.height = this.pokemonSize;
         const ctx = canvas.getContext('2d');
-        
+
         let sx = 0;
-        
+
         if (isShiny && isBack) {
             sx = this.pokemonSize * 3;
         } else if (isShiny && !isBack) {
@@ -240,14 +245,11 @@ class ImageLoader {
         } else {
             sx = 0;
         }
-        
-        console.log(`[ImageLoader] 提取位置: sx=${sx}, sy=0, 尺寸=${this.pokemonSize}x${this.pokemonSize}`);
-        
+
         if (sx + this.pokemonSize > spriteSheet.width) {
-            console.error(`[ImageLoader] 提取区域超出spriteSheet范围: sx=${sx}, width=${this.pokemonSize}, sheetWidth=${spriteSheet.width}`);
             sx = 0;
         }
-        
+
         try {
             ctx.drawImage(
                 spriteSheet,
@@ -256,8 +258,9 @@ class ImageLoader {
                 0, 0,
                 this.pokemonSize, this.pokemonSize
             );
-            
-            console.log(`[ImageLoader] 成功提取精灵图: ID=${id}`);
+
+            // 缓存提取结果
+            this.extractedSprites.set(cacheKey, canvas);
             return canvas;
         } catch (error) {
             console.error(`[ImageLoader] 提取精灵图失败:`, error);

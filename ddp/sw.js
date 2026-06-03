@@ -1,9 +1,13 @@
-// sw.js - Service Worker 缓存策略
-const CACHE_NAME = 'pokemon-match-v1';
+// sw.js - Service Worker 缓存策略（带条目上限，防止 iOS Safari 配额溢出）
+const CACHE_NAME = 'pokemon-match-v2';
+// 性能优化：限制运行时图片缓存上限，防止超出 iOS Safari ~50MB 配额
+const MAX_RUNTIME_CACHE = 150;
+
 const urlsToCache = [
   './',
   './index.html',
   './main.js',
+  './style.css',
   './manifest.json',
   './core/PokemonData.js',
   './core/GameBoard.js',
@@ -11,58 +15,70 @@ const urlsToCache = [
   './core/RuleEngine.js',
   './core/EvolutionManager.js',
   './utils/ImageLoader.js',
-  './utils/AnimationManager.js',
   './ui/PokemonCell.js',
   './ui/BallCounter.js',
-  './ui/MessageBoard.js'
+  './ui/MessageBoard.js',
+  './utils/AudioManager.js'
 ];
 
-// 安装 Service Worker
+// 安装 Service Worker — 只预缓存核心 JS/CSS/HTML
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('缓存已打开');
+        console.log('[SW] 缓存已打开');
         return cache.addAll(urlsToCache);
       })
   );
 });
 
-// 拦截请求，返回缓存
+// 拦截请求
 self.addEventListener('fetch', event => {
+  // 只处理同源请求
+  if (!event.request.url.startsWith(self.location.origin)) return;
+
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        // 如果找到缓存，返回缓存
         if (response) {
           return response;
         }
-        
-        // 否则发起网络请求
-        return fetch(event.request).then(
-          response => {
-            // 检查是否是有效的响应
-            if(!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-            
-            // 缓存图片资源
-            if (event.request.url.match(/\.(png|jpg|jpeg|svg|gif)$/)) {
-              const responseToCache = response.clone();
-              caches.open(CACHE_NAME)
-                .then(cache => {
-                  cache.put(event.request, responseToCache);
-                });
-            }
-            
+
+        return fetch(event.request).then(response => {
+          if (!response || response.status !== 200 || response.type !== 'basic') {
             return response;
           }
-        );
+
+          // 仅缓存图片资源，限制条目数
+          if (event.request.url.match(/\.(png|jpg|jpeg|svg|gif|webp)$/)) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then(cache => {
+              // 性能优化：检查当前缓存条目数，超出上限时清理最旧的
+              cache.keys().then(keys => {
+                if (keys.length >= MAX_RUNTIME_CACHE) {
+                  // 删除最旧的 20 条缓存
+                  const toDelete = keys.slice(0, 20);
+                  Promise.all(toDelete.map(k => cache.delete(k)));
+                }
+              }).then(() => {
+                cache.put(event.request, responseToCache);
+              });
+            });
+          }
+
+          return response;
+        }).catch(() => {
+          // 网络请求失败且无缓存时，对图片返回空响应
+          if (event.request.url.match(/\.(png|jpg|jpeg|svg|gif|webp)$/)) {
+            return new Response('', { status: 204 });
+          }
+          return new Response('Network error', { status: 408 });
+        });
       })
   );
 });
 
-// 清理旧缓存
+// 清理旧版本缓存
 self.addEventListener('activate', event => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
@@ -70,6 +86,7 @@ self.addEventListener('activate', event => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheWhitelist.indexOf(cacheName) === -1) {
+            console.log('[SW] 删除旧缓存:', cacheName);
             return caches.delete(cacheName);
           }
         })

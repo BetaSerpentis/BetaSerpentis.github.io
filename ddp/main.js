@@ -1,8 +1,31 @@
-// main.js - 修复版本
+// main.js - 修复版本（含性能优化）
+// 生产环境检测：非 localhost 或 127.0.0.1 时禁用详细日志
+const __DEV__ = (() => {
+    try {
+        const h = location.hostname;
+        // 允许通过 URL 参数 ?debug=1 强制开启
+        if (new URLSearchParams(location.search).get('debug') === '1') return true;
+        return h === 'localhost' || h === '127.0.0.1' || h.startsWith('192.168.');
+    } catch (e) { return false; }
+})();
+
+// 保存原始 console 引用
+const _console = {
+    log: console.log.bind(console),
+    warn: console.warn.bind(console),
+    error: console.error.bind(console)
+};
+
+// 非开发模式下禁用 log/warn（保留 error）
+if (!__DEV__) {
+    console.log = function() {};
+    console.warn = function() {};
+}
+
 import PokemonData from './core/PokemonData.js';
 import GameBoard from './core/GameBoard.js';
 import ImageLoader from './utils/ImageLoader.js';
-import AnimationManager from './utils/AnimationManager.js';
+// AnimationManager removed (unused, dead code elimination)
 import PokemonCell from './ui/PokemonCell.js';
 import BallCounter from './ui/BallCounter.js';
 import MessageBoard from './ui/MessageBoard.js';
@@ -15,31 +38,86 @@ class VisualGame {
         this.gameBoard = null;
         this.imageLoader = new ImageLoader();
         this.audioManager = new AudioManager(); // 添加音效管理器
-        
+
         this.gridCells = [];
         this.ballCounter = null;
         this.messageBoard = null;
-        
+
         this.isSummoning = false;
         this.isGameOver = false;
         this.isInitialized = false;
-        
+
         this.eventLog = [];
-        
+
         // 先创建UI
         this.initUI();
-        
+
         // 再加载游戏数据
         this.loadGame();
 
         // 新增：动画队列系统
         this.animationQueue = [];
         this.isAnimating = false;
-        this.pendingRewards = []; // 待处理的奖励        
+        this.pendingRewards = []; // 待处理的奖励
         // 新增：实时奖励队列（用于立即触发的奖励）
         this.immediateRewards = [];
         this.bgmStarted = false;
         this.bgmEnabled = true;
+
+        // 性能优化：动画追踪 — 所有 rAF ID 注册在此，restartGame 时统一取消
+        this._activeAnimations = new Set();
+        // 性能优化：飞球 Canvas 复用池，避免每次创建新 Canvas 产生 GPU 纹理泄漏
+        this._flyCanvas = null;
+        this._flyCtx = null;
+    }
+
+    // ===== 性能优化：动画生命周期管理 =====
+
+    /** 注册一个 rAF ID，使其可被统一取消 */
+    _trackRaf(rafId) {
+        this._activeAnimations.add(rafId);
+        return rafId;
+    }
+
+    /** 移除已完成的 rAF ID */
+    _untrackRaf(rafId) {
+        this._activeAnimations.delete(rafId);
+    }
+
+    /** 取消所有正在运行的动画（restartGame 时调用） */
+    _cancelAllAnimations() {
+        for (const rafId of this._activeAnimations) {
+            cancelAnimationFrame(rafId);
+        }
+        this._activeAnimations.clear();
+        // 清理可能遗留的飞球 Canvas
+        this._releaseFlyCanvas();
+    }
+
+    /** 获取复用的飞球 Canvas（延迟挂载到 DOM） */
+    _getFlyCanvas() {
+        if (!this._flyCanvas) {
+            this._flyCanvas = document.createElement('canvas');
+            this._flyCanvas.width = 50;
+            this._flyCanvas.height = 50;
+            this._flyCanvas.style.position = 'fixed';
+            this._flyCanvas.style.left = '0';
+            this._flyCanvas.style.top = '0';
+            this._flyCanvas.style.pointerEvents = 'none';
+            this._flyCanvas.style.zIndex = '1000';
+            this._flyCtx = this._flyCanvas.getContext('2d');
+        }
+        if (!this._flyCanvas.parentNode) {
+            document.body.appendChild(this._flyCanvas);
+        }
+        return { canvas: this._flyCanvas, ctx: this._flyCtx };
+    }
+
+    /** 从 DOM 移除飞球 Canvas（但保留引用供复用） */
+    _releaseFlyCanvas() {
+        if (this._flyCanvas && this._flyCanvas.parentNode) {
+            document.body.removeChild(this._flyCanvas);
+        }
     }
 
     // main.js - 修复triggerImmediateReward方法
@@ -193,23 +271,30 @@ class VisualGame {
 
     // 新增：设置BGM自动播放（需要用户交互）
     setupBGMAutoPlay() {
-        // 监听第一次点击扔球按钮时播放BGM
-        const startBGM = () => {
+        // 性能修复：先移除可能残留的旧监听器，防止 restart 累积
+        if (this._bgmStartHandler) {
+            this.throwBtn.removeEventListener('click', this._bgmStartHandler);
+            this.typeSelectBtn.removeEventListener('click', this._bgmStartHandler);
+        }
+
+        // 创建新 handler 并保存引用
+        this._bgmStartHandler = () => {
             if (!this.bgmStarted) {
                 this.audioManager.fadeInBGM(2000, 0.5);
                 this.bgmStarted = true;
                 console.log('[BGM] 游戏开始，播放背景音乐');
-                
-                // 移除监听器
-                this.throwBtn.removeEventListener('click', startBGM);
-                this.typeSelectBtn.removeEventListener('click', startBGM);
+
+                // 移除自身
+                this.throwBtn.removeEventListener('click', this._bgmStartHandler);
+                this.typeSelectBtn.removeEventListener('click', this._bgmStartHandler);
+                this._bgmStartHandler = null;
             }
         };
-        
+
         // 监听扔球按钮和属性选择按钮
-        this.throwBtn.addEventListener('click', startBGM);
-        this.typeSelectBtn.addEventListener('click', startBGM);
-        
+        this.throwBtn.addEventListener('click', this._bgmStartHandler);
+        this.typeSelectBtn.addEventListener('click', this._bgmStartHandler);
+
         // 标记BGM是否已启动
         this.bgmStarted = false;
     }
@@ -391,42 +476,44 @@ class VisualGame {
         await this.playBallFlyAnimation(cell, 1);
     }
 
-    // 修改playTransformAnimation，添加summon音效
+    // 修改playTransformAnimation，添加summon音效 + rAF 追踪 + 移除 blur 滤镜
     async playTransformAnimation(cell, transformInfo) {
         const { transformer, targetPokemon } = transformInfo;
-        
+
         console.log(`[动画] 播放变身动画，格子 ${cell.index}: ${transformer.data.name} -> ${targetPokemon.data.name}`);
-        
+
         await this.imageLoader.loadPokemonImage(targetPokemon.data.id);
-        
+
         return new Promise((resolve) => {
             const duration = 1000;
             const startTime = performance.now();
-            
+            let rafId;
+
             const targetSprite = this.imageLoader.getPokemonSprite(
                 targetPokemon.data.id,
                 transformer.isShiny,
                 false
             );
-            
+
             const animate = () => {
                 const elapsed = performance.now() - startTime;
                 const progress = Math.min(elapsed / duration, 1);
-                
+
                 cell.ctx.clearRect(0, 0, cell.size, cell.size);
-                
+
                 if (progress < 0.3) {
                     cell.updateDisplay();
                 } else if (progress < 0.5) {
+                    // 性能优化：用 globalAlpha 淡出代替 ctx.filter = 'blur()'
                     cell.ctx.save();
-                    const blurAmount = (progress - 0.3) / 0.2 * 5;
-                    cell.ctx.filter = `blur(${blurAmount}px)`;
+                    const blurAlpha = 1 - ((progress - 0.3) / 0.2) * 0.5;
                     if (cell.sprite) {
                         const maxSize = cell.size * 0.7;
                         const scale = maxSize / Math.max(cell.sprite.width, cell.sprite.height);
+                        cell.ctx.globalAlpha = blurAlpha;
                         cell.ctx.save();
                         cell.ctx.translate(cell.size / 2, cell.size / 2);
-                        cell.ctx.scale(scale, scale);
+                        cell.ctx.scale(scale * (1 + (progress - 0.3) * 0.1), scale * (1 + (progress - 0.3) * 0.1));
                         cell.ctx.drawImage(
                             cell.sprite,
                             -cell.sprite.width / 2,
@@ -439,7 +526,7 @@ class VisualGame {
                     cell.ctx.save();
                     const distortion = Math.sin((progress - 0.5) / 0.2 * Math.PI) * 0.3;
                     cell.ctx.transform(1 + distortion, 0, 0, 1 - distortion, 0, 0);
-                    
+
                     if (cell.sprite) {
                         cell.ctx.globalAlpha = 0.5;
                         const maxSize = cell.size * 0.7;
@@ -454,7 +541,7 @@ class VisualGame {
                         );
                         cell.ctx.restore();
                     }
-                    
+
                     if (targetSprite) {
                         cell.ctx.globalAlpha = 0.5;
                         const maxSize = cell.size * 0.7;
@@ -469,25 +556,25 @@ class VisualGame {
                         );
                         cell.ctx.restore();
                     }
-                    
+
                     cell.ctx.restore();
                 } else if (progress < 0.9) {
                     const targetAlpha = (progress - 0.7) / 0.2;
-                    
+
                     if (targetPokemon.currentTypes && targetPokemon.currentTypes[0]) {
                         const mainType = targetPokemon.currentTypes[0];
                         const typeColor = cell.typeColors[mainType] || '#A8A878';
-                        
+
                         cell.ctx.fillStyle = `${typeColor}66`;
                         cell.ctx.globalAlpha = targetAlpha * 0.4;
                         cell.ctx.fillRect(0, 0, cell.size, cell.size);
-                        
+
                         cell.ctx.strokeStyle = typeColor;
                         cell.ctx.lineWidth = 3;
                         cell.ctx.globalAlpha = targetAlpha;
                         cell.ctx.strokeRect(2, 2, cell.size - 4, cell.size - 4);
                     }
-                    
+
                     if (targetSprite) {
                         cell.ctx.globalAlpha = targetAlpha;
                         const maxSize = cell.size * 0.7;
@@ -502,21 +589,21 @@ class VisualGame {
                         );
                         cell.ctx.restore();
                     }
-                    
+
                     cell.ctx.globalAlpha = 1.0;
                 } else {
                     if (targetPokemon.currentTypes && targetPokemon.currentTypes[0]) {
                         const mainType = targetPokemon.currentTypes[0];
                         const typeColor = cell.typeColors[mainType] || '#A8A878';
-                        
+
                         cell.ctx.fillStyle = `${typeColor}66`;
                         cell.ctx.fillRect(0, 0, cell.size, cell.size);
-                        
+
                         cell.ctx.strokeStyle = typeColor;
                         cell.ctx.lineWidth = 3;
                         cell.ctx.strokeRect(2, 2, cell.size - 4, cell.size - 4);
                     }
-                    
+
                     if (targetSprite) {
                         const maxSize = cell.size * 0.7;
                         const scale = maxSize / Math.max(targetSprite.width, targetSprite.height);
@@ -531,17 +618,21 @@ class VisualGame {
                         cell.ctx.restore();
                     }
                 }
-                
+
                 if (progress < 1) {
-                    requestAnimationFrame(animate);
+                    rafId = requestAnimationFrame(animate);
+                    this._trackRaf(rafId);
                 } else {
+                    this._untrackRaf(rafId);
                     // 变身完成时播放summon音效
                     this.audioManager.playSummon(0.7);
+                    cell.ctx.globalAlpha = 1.0;
                     resolve();
                 }
             };
-            
-            animate();
+
+            rafId = requestAnimationFrame(animate);
+            this._trackRaf(rafId);
         });
     }
 
@@ -729,19 +820,19 @@ class VisualGame {
         }
     }
 
-    // 修改playEvolutionAnimation，添加summon音效
+    // 修改playEvolutionAnimation，添加summon音效 + rAF 追踪
     async playEvolutionAnimation(cell, newPokemon) {
         console.log(`[动画] 播放进化动画，格子 ${cell.index}: ${cell.pokemon?.data?.name} -> ${newPokemon.data.name}`);
-        
+
         return new Promise(async (resolve) => {
             await this.imageLoader.loadPokemonImage(newPokemon.data.id);
-            
+
             const newSprite = this.imageLoader.getPokemonSprite(
                 newPokemon.data.id,
                 newPokemon.isShiny,
                 false
             );
-            
+
             if (!newSprite) {
                 console.error(`[动画] 无法获取新宝可梦精灵: ${newPokemon.data.id}`);
                 cell.setPokemon(newPokemon, this.imageLoader);
@@ -749,16 +840,17 @@ class VisualGame {
                 resolve();
                 return;
             }
-            
+
             const duration = 1200;
             const startTime = performance.now();
-            
+            let rafId;
+
             const animate = () => {
                 const elapsed = performance.now() - startTime;
                 const progress = Math.min(elapsed / duration, 1);
-                
+
                 cell.ctx.clearRect(0, 0, cell.size, cell.size);
-                
+
                 if (progress < 0.3) {
                     if (Math.floor(progress * 20) % 2 === 0) {
                         cell.updateDisplay();
@@ -770,7 +862,7 @@ class VisualGame {
                     const intensity = 0.8 - ((progress - 0.3) / 0.3) * 0.8;
                     cell.ctx.fillStyle = `rgba(255, 255, 255, ${intensity})`;
                     cell.ctx.fillRect(0, 0, cell.size, cell.size);
-                    
+
                     if (cell.sprite) {
                         cell.ctx.globalAlpha = 0.3;
                         const maxSize = cell.size * 0.7;
@@ -790,25 +882,25 @@ class VisualGame {
                     const whiteIntensity = 0.8 - ((progress - 0.6) / 0.2) * 0.8;
                     cell.ctx.fillStyle = `rgba(255, 255, 255, ${whiteIntensity})`;
                     cell.ctx.fillRect(0, 0, cell.size, cell.size);
-                    
+
                     if (newSprite) {
                         const newAlpha = ((progress - 0.6) / 0.2);
                         cell.ctx.globalAlpha = newAlpha;
-                        
+
                         if (newPokemon.currentTypes && newPokemon.currentTypes[0]) {
                             const mainType = newPokemon.currentTypes[0];
                             const typeColor = cell.typeColors[mainType] || '#A8A878';
                             cell.ctx.fillStyle = `${typeColor}66`;
                             cell.ctx.globalAlpha = newAlpha * 0.4;
                             cell.ctx.fillRect(0, 0, cell.size, cell.size);
-                            
+
                             cell.ctx.strokeStyle = typeColor;
                             cell.ctx.lineWidth = 3;
                             cell.ctx.globalAlpha = newAlpha;
                             cell.ctx.strokeRect(2, 2, cell.size - 4, cell.size - 4);
                             cell.ctx.globalAlpha = newAlpha;
                         }
-                        
+
                         const maxSize = cell.size * 0.7;
                         const scale = maxSize / Math.max(newSprite.width, newSprite.height);
                         cell.ctx.save();
@@ -827,17 +919,19 @@ class VisualGame {
                     cell.sprite = newSprite;
                     cell.updateDisplay();
                 }
-                
+
                 if (progress < 1) {
-                    requestAnimationFrame(animate);
+                    rafId = requestAnimationFrame(animate);
+                    this._trackRaf(rafId);
                 } else {
+                    this._untrackRaf(rafId);
                     cell.pokemon = newPokemon;
                     cell.sprite = newSprite;
                     cell.updateDisplay();
-                    
+
                     // 进化完成时播放summon音效
                     this.audioManager.playSummon(0.7);
-                    
+
                     if (newPokemon.isShiny) {
                         setTimeout(() => {
                             this.playShinyEffect(cell, resolve);
@@ -847,47 +941,48 @@ class VisualGame {
                     }
                 }
             };
-            
-            animate();
+
+            rafId = requestAnimationFrame(animate);
+            this._trackRaf(rafId);
         });
     }
 
-    // 修改playDisappearAnimation，添加clear音效
+    // 修改playDisappearAnimation，添加clear音效 + rAF 追踪
     async playDisappearAnimation(cell) {
         console.log(`[动画] 播放消失动画，格子 ${cell.index}`);
-        
+
         // 播放消除音效
         this.audioManager.playClear(0.6);
-        
+
         return new Promise((resolve) => {
             const duration = 350;
             const startTime = performance.now();
-            
-            const originalPokemon = cell.pokemon;
+
             const originalSprite = cell.sprite;
-            
+            let rafId;
+
             const animate = () => {
                 const elapsed = performance.now() - startTime;
                 const progress = Math.min(elapsed / duration, 1);
-                
+
                 cell.ctx.clearRect(0, 0, cell.size, cell.size);
-                
+
                 // 先绘制空格子背景
                 cell.ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
                 cell.ctx.fillRect(0, 0, cell.size, cell.size);
-                
+
                 cell.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
                 cell.ctx.lineWidth = 2;
                 cell.ctx.strokeRect(2, 2, cell.size - 4, cell.size - 4);
-                
+
                 // 在上面绘制宝可梦，并让它淡出
                 if (originalSprite) {
                     const scale = 1 - progress * 0.8;
                     const alpha = 0.9 * (1 - progress);
-                    
+
                     const maxSize = cell.size * 0.7;
                     const baseScale = maxSize / Math.max(originalSprite.width, originalSprite.height);
-                    
+
                     cell.ctx.save();
                     cell.ctx.translate(cell.size / 2, cell.size / 2);
                     cell.ctx.scale(scale * baseScale, scale * baseScale);
@@ -899,16 +994,19 @@ class VisualGame {
                     );
                     cell.ctx.restore();
                 }
-                
+
                 if (progress < 1) {
-                    requestAnimationFrame(animate);
+                    rafId = requestAnimationFrame(animate);
+                    this._trackRaf(rafId);
                 } else {
+                    this._untrackRaf(rafId);
                     cell.clear();
                     resolve();
                 }
             };
-            
-            animate();
+
+            rafId = requestAnimationFrame(animate);
+            this._trackRaf(rafId);
         });
     }
 
@@ -995,63 +1093,54 @@ class VisualGame {
         console.log('[同步] 同步完成');
     }
 
-    // main.js - 修复playDirectSummonAnimation方法
+    // main.js - 修复playDirectSummonAnimation方法（Canvas 复用池 + rAF 追踪）
     async playDirectSummonAnimation(cell, pokemonInstance) {
         const ballImage = await this.imageLoader.loadBallImage();
-        
+
         console.log(`播放召唤动画，格子 ${cell.index}`);
-        
+
         return new Promise((resolve) => {
             // 获取扔球按钮的位置
             const throwBtn = this.throwBtn;
             const btnRect = throwBtn.getBoundingClientRect();
-            
+
             // 精灵球起始位置（扔球按钮的中心）
             const startX = btnRect.left + btnRect.width / 2;
             const startY = btnRect.top + btnRect.height / 2;
-            
+
             // 目标位置是格子中心
             const endPos = cell.getCenterPosition();
-            
-            // 创建独立的飞球canvas
-            const flyCanvas = document.createElement('canvas');
-            flyCanvas.width = 50;
-            flyCanvas.height = 50;
-            flyCanvas.style.position = 'fixed';
-            flyCanvas.style.left = '0';
-            flyCanvas.style.top = '0';
-            flyCanvas.style.pointerEvents = 'none';
-            flyCanvas.style.zIndex = '1000';
-            document.body.appendChild(flyCanvas);
-            
-            const flyCtx = flyCanvas.getContext('2d');
-            
+
+            // 性能优化：使用复用的飞球 Canvas 代替每次创建
+            const { canvas: flyCanvas, ctx: flyCtx } = this._getFlyCanvas();
+
             const duration = 800;
             const startTime = performance.now();
             const ballScale = 1.5;
-            
+            let rafId;
+
             const animate = () => {
                 const elapsed = performance.now() - startTime;
                 const progress = Math.min(elapsed / duration, 1);
-                
+
                 const easeProgress = 1 - Math.pow(1 - progress, 2);
-                
+
                 const controlX = (startX + endPos.x) / 2;
                 const controlY = Math.min(startY, endPos.y) - 100;
-                
+
                 const x = Math.pow(1 - easeProgress, 2) * startX +
                         2 * (1 - easeProgress) * easeProgress * controlX +
                         Math.pow(easeProgress, 2) * endPos.x;
-                
+
                 const y = Math.pow(1 - easeProgress, 2) * startY +
                         2 * (1 - easeProgress) * easeProgress * controlY +
                         Math.pow(easeProgress, 2) * endPos.y;
-                
+
                 const rotation = progress * 720;
                 const scale = ballScale * (1 - progress * 0.3);
-                
+
                 flyCtx.clearRect(0, 0, 50, 50);
-                
+
                 flyCtx.save();
                 flyCtx.translate(25, 25);
                 flyCtx.rotate(rotation * Math.PI / 180);
@@ -1063,32 +1152,35 @@ class VisualGame {
                     ballImage.height * scale
                 );
                 flyCtx.restore();
-                
+
                 flyCanvas.style.left = `${x - 25}px`;
                 flyCanvas.style.top = `${y - 25}px`;
-                
+
                 if (progress < 1) {
-                    requestAnimationFrame(animate);
+                    rafId = requestAnimationFrame(animate);
+                    this._trackRaf(rafId);
                 } else {
-                    document.body.removeChild(flyCanvas);
-                    
+                    this._untrackRaf(rafId);
+                    this._releaseFlyCanvas();
+
                     // 召唤完成时播放summon音效
                     this.audioManager.playSummon(0.7);
-                    
+
                     // 重要：先设置宝可梦数据，再播放出现动画
                     cell.setPokemon(pokemonInstance, this.imageLoader);
-                    
+
                     // 确保格子是空的，然后播放出现动画
                     cell.ctx.clearRect(0, 0, cell.size, cell.size);
-                    
+
                     // 播放宝可梦出现动画
                     this.playPokemonAppearAnimation(cell, () => {
                         resolve();
                     });
                 }
             };
-            
-            animate();
+
+            rafId = requestAnimationFrame(animate);
+            this._trackRaf(rafId);
         });
     }
 
@@ -1185,10 +1277,10 @@ class VisualGame {
         this.drawEmpty(); // 显示空格子
     }
 
-    // main.js - 不使用setTimeout的版本
+    // main.js - 不使用setTimeout的版本 + rAF 追踪
     playPokemonAppearAnimation(cell, onComplete) {
         console.log(`[动画] 宝可梦出现动画，格子 ${cell.index}`);
-        
+
         // 检查sprite是否已设置
         if (!cell.sprite) {
             console.warn(`[动画] 格子 ${cell.index} 没有精灵图片，直接显示`);
@@ -1196,41 +1288,42 @@ class VisualGame {
             if (onComplete) onComplete();
             return;
         }
-        
+
         const sprite = cell.sprite;
         const duration = 500;
         const startTime = performance.now();
-        
+        let rafId;
+
         const animate = () => {
             const elapsed = performance.now() - startTime;
             const progress = Math.min(elapsed / duration, 1);
-            
+
             const easeProgress = 1 - Math.pow(1 - progress, 2);
             const scale = 0.1 + (0.9 * easeProgress);
-            
+
             cell.ctx.clearRect(0, 0, cell.size, cell.size);
-            
+
             // 绘制背景
             if (cell.pokemon && cell.pokemon.currentTypes && cell.pokemon.currentTypes[0]) {
                 const mainType = cell.pokemon.currentTypes[0];
                 const typeColor = cell.typeColors[mainType] || '#A8A878';
-                
+
                 const r = parseInt(typeColor.slice(1, 3), 16);
                 const g = parseInt(typeColor.slice(3, 5), 16);
                 const b = parseInt(typeColor.slice(5, 7), 16);
-                
+
                 cell.ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${easeProgress * 0.4})`;
                 cell.ctx.fillRect(0, 0, cell.size, cell.size);
-                
+
                 cell.ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${easeProgress})`;
                 cell.ctx.lineWidth = 3;
                 cell.ctx.strokeRect(2, 2, cell.size - 4, cell.size - 4);
             }
-            
+
             // 绘制宝可梦
             const maxSize = cell.size * 0.7;
             const baseScale = maxSize / Math.max(sprite.width, sprite.height);
-            
+
             cell.ctx.save();
             cell.ctx.translate(cell.size / 2, cell.size / 2);
             cell.ctx.scale(scale * baseScale, scale * baseScale);
@@ -1241,22 +1334,25 @@ class VisualGame {
                 -sprite.height / 2
             );
             cell.ctx.restore();
-            
+
             if (progress < 1) {
-                requestAnimationFrame(animate);
+                rafId = requestAnimationFrame(animate);
+                this._trackRaf(rafId);
             } else {
+                this._untrackRaf(rafId);
                 cell.updateDisplay();
                 if (onComplete) onComplete();
             }
         };
-        
-        animate();
+
+        rafId = requestAnimationFrame(animate);
+        this._trackRaf(rafId);
     }
 
-    // 修改现有的playShinyEffect方法，确保它可以被复用
+    // 修改现有的playShinyEffect方法 + rAF 追踪
     playShinyEffect(cell, onComplete) {
         console.log(`[动画] 播放异色特效，格子 ${cell.index}`);
-        
+
         const stars = [];
         for (let i = 0; i < 6; i++) {
             stars.push({
@@ -1265,68 +1361,72 @@ class VisualGame {
                 scale: 0
             });
         }
-        
+
         const duration = 1000;
         const startTime = performance.now();
-        
+        let rafId;
+
         const animate = () => {
             const elapsed = performance.now() - startTime;
             const progress = Math.min(elapsed / duration, 1);
-            
+
             // 清空并重新绘制宝可梦
             cell.ctx.clearRect(0, 0, cell.size, cell.size);
             cell.updateDisplay();
-            
+
             // 绘制星星
             stars.forEach(star => {
                 star.distance = progress * 50;
                 star.scale = progress < 0.5 ? progress * 2 : (1 - progress) * 2;
-                
+
                 const x = cell.size / 2 + Math.cos(star.angle) * star.distance;
                 const y = cell.size / 2 + Math.sin(star.angle) * star.distance;
-                
+
                 cell.ctx.save();
                 cell.ctx.translate(x, y);
                 cell.ctx.scale(star.scale, star.scale);
-                
+
                 cell.ctx.fillStyle = 'gold';
                 cell.ctx.beginPath();
-                
+
                 // 绘制五角星
                 for (let i = 0; i < 5; i++) {
                     const outerAngle = (i * 2 * Math.PI) / 5 - Math.PI / 2;
                     const innerAngle = outerAngle + Math.PI / 5;
-                    
+
                     const outerX = 10 * Math.cos(outerAngle);
                     const outerY = 10 * Math.sin(outerAngle);
-                    
+
                     const innerX = 5 * Math.cos(innerAngle);
                     const innerY = 5 * Math.sin(innerAngle);
-                    
+
                     if (i === 0) {
                         cell.ctx.moveTo(outerX, outerY);
                     } else {
                         cell.ctx.lineTo(outerX, outerY);
                     }
-                    
+
                     cell.ctx.lineTo(innerX, innerY);
                 }
-                
+
                 cell.ctx.closePath();
                 cell.ctx.fill();
                 cell.ctx.restore();
             });
-            
+
             if (progress < 1) {
-                requestAnimationFrame(animate);
+                rafId = requestAnimationFrame(animate);
+                this._trackRaf(rafId);
             } else {
+                this._untrackRaf(rafId);
                 // 特效完成
                 cell.updateDisplay();
                 if (onComplete) onComplete();
             }
         };
-        
-        animate();
+
+        rafId = requestAnimationFrame(animate);
+        this._trackRaf(rafId);
     }
 
     // 修改updateBallCounter方法，更新新的计数显示
@@ -2113,47 +2213,56 @@ createGameGrid() {
     // main.js - 修改restartGame方法
     restartGame() {
         console.log('重新开始游戏');
-        
+
+        // 性能优化：取消所有正在运行的动画
+        this._cancelAllAnimations();
+
         this.isGameOver = false;
         this.isSummoning = false;
         this.gameStarted = false;
         this.bgmStarted = false; // 重置BGM标记
-        
+
+        // 清空动画队列
+        this.animationQueue = [];
+        this.isAnimating = false;
+        this.pendingRewards = [];
+        this.immediateRewards = [];
+
         // 清空消息
         this.messageBoard.clear();
-        
+
         // 重新初始化游戏板
         const allTypes = this.pokemonData.getAllTypes();
         const chosenType = this.selectedType || allTypes[0];
-        
+
         this.gameBoard = new GameBoard(
-            this.pokemonData, 
-            chosenType, 
+            this.pokemonData,
+            chosenType,
             9,
             (type, message) => this.immediateLogMessage(type, message)
         );
-        
+
         if (this.selectedType) {
             this.gameBoard.playerChosenType = this.selectedType;
         }
-        
+
         this.gameBoard.setUICallback((type, message) => {
             this.immediateLogMessage(type, message);
         });
-        
+
         this.initializeGridCells();
         this.updateBallCounter();
-        
+
         this.setGameStartState(false);
-        
+
         // 停止当前BGM
         this.audioManager.stopBGM();
-        
-        // 重新设置BGM自动播放
+
+        // 重新设置BGM自动播放（内部会先移除旧监听器）
         this.setupBGMAutoPlay();
-        
+
         this.logMessage('系统', '游戏已重新开始！');
-        
+
         if (this.selectedType) {
             this.logMessage('系统', `当前命定属性为【${this.selectedType}】`);
         } else {
@@ -2281,74 +2390,66 @@ createGameGrid() {
         }
     }
 
-    // 修改playBallFlyAnimation，添加point音效
+    // 修改playBallFlyAnimation，添加point音效（Canvas 复用池 + rAF 追踪）
     async playBallFlyAnimation(startCell, rewardBalls = 1) {
         if (!startCell) {
             console.error('[动画] 无法播放精灵球飞行：起始格子为空');
             return;
         }
-        
+
         const ballImage = await this.imageLoader.loadBallImage();
-        
+
         const startPos = startCell.getCenterPosition();
-        
+
         const ballCounterElement = this.ballCountSpan;
         if (!ballCounterElement) {
             console.error('[动画] 无法播放精灵球飞行：找不到计数元素');
             return;
         }
-        
+
         const counterRect = ballCounterElement.getBoundingClientRect();
         const endPos = {
             x: counterRect.left + counterRect.width / 2,
             y: counterRect.top + counterRect.height / 2
         };
-        
+
         console.log(`[动画] 精灵球飞行: +${rewardBalls}球, 从格子 ${startCell.index}`);
-        
+
         return new Promise((resolve) => {
             const duration = 800;
             const startTime = performance.now();
             const ballScale = 1.2;
-            
-            const flyCanvas = document.createElement('canvas');
-            flyCanvas.width = 50;
-            flyCanvas.height = 50;
-            flyCanvas.style.position = 'fixed';
-            flyCanvas.style.left = '0';
-            flyCanvas.style.top = '0';
-            flyCanvas.style.pointerEvents = 'none';
-            flyCanvas.style.zIndex = '1000';
-            document.body.appendChild(flyCanvas);
-            
-            const flyCtx = flyCanvas.getContext('2d');
-            
+
+            // 性能优化：使用复用的飞球 Canvas
+            const { canvas: flyCanvas, ctx: flyCtx } = this._getFlyCanvas();
+
             // 标记是否已经加过球
             let ballAdded = false;
-            
+            let rafId;
+
             const animate = () => {
                 const elapsed = performance.now() - startTime;
                 const progress = Math.min(elapsed / duration, 1);
-                
+
                 const easeProgress = 1 - Math.pow(1 - progress, 2);
-                
+
                 const controlX = (startPos.x + endPos.x) / 2;
                 const controlY = Math.min(startPos.y, endPos.y) - 80;
-                
+
                 const x = Math.pow(1 - easeProgress, 2) * startPos.x +
                          2 * (1 - easeProgress) * easeProgress * controlX +
                          Math.pow(easeProgress, 2) * endPos.x;
-                
+
                 const y = Math.pow(1 - easeProgress, 2) * startPos.y +
                          2 * (1 - easeProgress) * easeProgress * controlY +
                          Math.pow(easeProgress, 2) * endPos.y;
-                
+
                 const rotation = progress * 1080;
                 const scale = ballScale * (1 - progress * 0.5);
                 const alpha = progress > 0.8 ? 1 - (progress - 0.8) * 5 : 1;
-                
+
                 flyCtx.clearRect(0, 0, 50, 50);
-                
+
                 flyCtx.save();
                 flyCtx.translate(25, 25);
                 flyCtx.rotate(rotation * Math.PI / 180);
@@ -2360,7 +2461,7 @@ createGameGrid() {
                     ballImage.width * scale,
                     ballImage.height * scale
                 );
-                
+
                 if (rewardBalls > 1) {
                     flyCtx.font = 'bold 16px Arial';
                     flyCtx.fillStyle = 'white';
@@ -2371,45 +2472,46 @@ createGameGrid() {
                     flyCtx.strokeText(`+${rewardBalls}`, 25, -20);
                     flyCtx.fillText(`+${rewardBalls}`, 25, -20);
                 }
-                
+
                 flyCtx.restore();
-                
+
                 flyCanvas.style.left = `${x - 25}px`;
                 flyCanvas.style.top = `${y - 25}px`;
-                
+
                 // 在精灵球接近终点时加球并播放音效
                 if (!ballAdded && progress > 0.9) {
                     ballAdded = true;
-                    
+
                     // 播放point音效（精灵球飞到计数点）
                     this.audioManager.playPoint(0.5);
-                    
+
                     if (this.gameBoard) {
                         this.gameBoard.ballsRemaining += rewardBalls;
                         this.gameBoard.totalBallsAdded += rewardBalls;
                         this.updateBallCounter();
-                        
+
                         this.ballCountSpan.style.transform = 'scale(1.5)';
                         this.ballCountSpan.style.transition = 'transform 0.2s';
                         setTimeout(() => {
                             this.ballCountSpan.style.transform = 'scale(1)';
                         }, 200);
-                        
+
                         console.log(`[计数] 精灵球+${rewardBalls}，当前剩余: ${this.gameBoard.ballsRemaining}`);
                     }
                 }
-                
+
                 if (progress < 1) {
-                    requestAnimationFrame(animate);
+                    rafId = requestAnimationFrame(animate);
+                    this._trackRaf(rafId);
                 } else {
-                    if (flyCanvas.parentNode) {
-                        document.body.removeChild(flyCanvas);
-                    }
+                    this._untrackRaf(rafId);
+                    this._releaseFlyCanvas();
                     resolve();
                 }
             };
-            
-            animate();
+
+            rafId = requestAnimationFrame(animate);
+            this._trackRaf(rafId);
         });
     }
 
