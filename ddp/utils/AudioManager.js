@@ -57,6 +57,14 @@ class AudioManager {
             console.warn('[BGM] 背景音乐加载失败:', e);
         });
 
+        // 性能优化：5 秒超时兜底，防止音频加载阻塞游戏
+        const markLoadedTimeout = setTimeout(() => {
+            if (!this.isLoaded) {
+                this.isLoaded = true;
+                console.log('[音效] 加载超时兜底');
+            }
+        }, 5000);
+
         Promise.all(
             Array.from(this.sounds.values()).map(
                 audio => new Promise(resolve => {
@@ -68,10 +76,15 @@ class AudioManager {
                 })
             )
         ).then(() => {
-            this.isLoaded = true;
-            console.log('[音效] 所有音效加载完成');
+            clearTimeout(markLoadedTimeout);
+            if (!this.isLoaded) {
+                this.isLoaded = true;
+                console.log('[音效] 所有音效加载完成');
+            }
         }).catch(error => {
+            clearTimeout(markLoadedTimeout);
             console.warn('[音效] 部分音效加载失败:', error);
+            this.isLoaded = true; // 失败也放行
         });
     }
 
@@ -146,10 +159,10 @@ class AudioManager {
         }, 50);
     }
 
-    // 播放音效
+    // 播放音效（使用 new Audio() 代替 cloneNode，避免 iOS Safari 内存泄漏）
     play(soundName, volume = 0.5) {
         if (this.isMuted) return;
-        
+
         const sound = this.sounds.get(soundName);
         if (!sound) {
             console.warn(`[音效] 未找到音效: ${soundName}`);
@@ -157,18 +170,35 @@ class AudioManager {
         }
 
         try {
-            const soundClone = sound.cloneNode();
+            // 性能优化：使用 new Audio() 代替 cloneNode()
+            // iOS Safari PWA 模式下 cloneNode 的 ended 事件不可靠，导致 Audio 节点泄漏
+            const soundClone = new Audio(sound.src);
             soundClone.volume = volume;
-            
+            soundClone.preload = 'auto';
+
+            // 播放完成后自动清理资源
+            const cleanup = () => {
+                soundClone.pause();
+                soundClone.src = '';
+                soundClone.load();
+                soundClone.removeEventListener('ended', cleanup);
+                soundClone.removeEventListener('error', cleanup);
+            };
+
+            soundClone.addEventListener('ended', cleanup);
+            soundClone.addEventListener('error', cleanup);
+
             soundClone.play().catch(error => {
                 if (error.name !== 'NotAllowedError') {
                     console.warn(`[音效] 播放失败 ${soundName}:`, error);
                 }
+                cleanup();
             });
 
-            soundClone.addEventListener('ended', () => {
-                soundClone.remove();
-            });
+            // 安全兜底：5 秒后强制清理
+            setTimeout(() => {
+                try { cleanup(); } catch (e) { /* ignore */ }
+            }, 5000);
         } catch (error) {
             console.warn(`[音效] 播放出错 ${soundName}:`, error);
         }
