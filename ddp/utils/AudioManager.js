@@ -44,7 +44,7 @@ class AudioManager {
         
         // 监听时间更新以实现指定区间循环
         this.bgm.addEventListener('timeupdate', () => {
-            if (this.bgm.currentTime >= this.bgmLoopEnd) {
+            if (!this.bgm.paused && this.bgm.currentTime >= this.bgmLoopEnd) {
                 this.bgm.currentTime = this.bgmLoopStart;
             }
         });

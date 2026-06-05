@@ -7,7 +7,6 @@ const urlsToCache = [
   './',
   './index.html',
   './main.js',
-  './style.css',
   './manifest.json',
   './core/PokemonData.js',
   './core/GameBoard.js',
@@ -15,10 +14,9 @@ const urlsToCache = [
   './core/RuleEngine.js',
   './core/EvolutionManager.js',
   './utils/ImageLoader.js',
+  './utils/AudioManager.js',
   './ui/PokemonCell.js',
-  './ui/BallCounter.js',
-  './ui/MessageBoard.js',
-  './utils/AudioManager.js'
+  './ui/MessageBoard.js'
 ];
 
 // 安装 Service Worker — 只预缓存核心 JS/CSS/HTML
