@@ -170,7 +170,7 @@
     </style>
 </head>
 <body>
-    <div id="game-container" style="color:rgba(255,255,255,0.8);text-align:center;padding-top:40vh;font-size:18px;font-family:sans-serif;">加载中...</div>
+    <div id="game-container">加载中...</div>
 
     <script>
         // 关键：前置错误处理器，捕获模块加载失败和运行时错误
@@ -202,32 +202,8 @@
         }, true); // capture 阶段，能拦截资源加载错误
     </script>
 
-    <script>
-        // 动态调整容器大小，确保背景色覆盖
-        function adjustContainer() {
-            const container = document.getElementById('game-container');
-            if (container) {
-                // 确保容器填满整个屏幕
-                container.style.height = window.innerHeight + 'px';
-            }
-        }
 
-        // 初始调整
-        window.addEventListener('load', adjustContainer);
-        // 旋转屏幕时调整
-        window.addEventListener('resize', adjustContainer);
-        // iOS键盘弹出时调整
-        window.addEventListener('orientationchange', adjustContainer);
-        
-        // 立即执行一次
-        adjustContainer();
-        
-        // 额外处理：监听安全区域变化（iOS特有）
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', adjustContainer);
-        }
-    </script>
-    
+
     <script type="module" src="main.js"></script>
 </body>
 </html>

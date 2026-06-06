@@ -459,17 +459,23 @@ class VisualGame {
     // 修改playTripleEliminationAnimation
     async playTripleEliminationAnimation(cell1, cell2, cell3, triggerCell = null) {
         console.log(`[动画] 播放三连消除动画，格子 ${cell1.index}, ${cell2.index}, ${cell3.index}`);
-        
+
         await Promise.all([
             this.playDisappearAnimation(cell1),
             this.playDisappearAnimation(cell2),
             this.playDisappearAnimation(cell3)
         ]);
-        
-        // 消除完成后，从触发格子飞出精灵球
+
+        // 消除奖励：精灵球 +5
         const sourceCell = triggerCell || cell1;
         console.log(`[三连奖励] 从格子 ${sourceCell.index} 飞出精灵球`);
         await this.triggerImmediateReward(sourceCell, 5);
+
+        // 捕获计数：3 只宝可梦被消除，累积获得 +3
+        if (this.gameBoard) {
+            this.gameBoard.totalBallsAdded += 3;
+            this.updateBallCounter();
+        }
     }
 
     // 修改单个消除
@@ -699,23 +705,28 @@ class VisualGame {
                 for (const { cell } of cellsToClear) {
                     await this.playDisappearAnimation(cell);
                 }
+                // 捕获计数
+                if (this.gameBoard && cellsToClear.length > 0) {
+                    this.gameBoard.totalBallsAdded += cellsToClear.length;
+                    this.updateBallCounter();
+                }
             }
         }
         
-        // 第四步：处理剩余的奖励（如果有）
+        // 第四步：仅处理未动画化的奖励（进化等），rule 类型已由动画处理
         if (this.gameBoard.pendingRewards && this.gameBoard.pendingRewards.length > 0) {
-            console.log(`[同步] 处理剩余 ${this.gameBoard.pendingRewards.length} 个奖励`);
-            
-            for (const reward of this.gameBoard.pendingRewards) {
-                if (reward.triggerIndex !== undefined) {
-                    const triggerCell = this.gridCells[reward.triggerIndex];
-                    if (triggerCell) {
-                        await this.triggerImmediateReward(triggerCell, reward.balls);
+            const remaining = this.gameBoard.pendingRewards.filter(r => r && r.type !== 'rule');
+            if (remaining.length > 0) {
+                console.log(`[同步] 处理剩余 ${remaining.length} 个非规则奖励`);
+                for (const reward of remaining) {
+                    if (reward.triggerIndex !== undefined) {
+                        const triggerCell = this.gridCells[reward.triggerIndex];
+                        if (triggerCell) {
+                            await this.triggerImmediateReward(triggerCell, reward.balls);
+                        }
                     }
                 }
             }
-            
-            // 清空奖励
             this.gameBoard.pendingRewards = [];
         }
         
@@ -1016,16 +1027,22 @@ class VisualGame {
     // main.js - 修改playPairEliminationAnimation
     async playPairEliminationAnimation(cell1, cell2, triggerCell = null) {
         console.log(`[动画] 播放对对碰消除动画，格子 ${cell1.index} 和 ${cell2.index}`);
-        
+
         await Promise.all([
             this.playDisappearAnimation(cell1),
             this.playDisappearAnimation(cell2)
         ]);
-        
-        // 消除完成后，从触发格子飞出精灵球
-        const sourceCell = triggerCell || cell1; // 使用触发格子，如果没有则用第一个
+
+        // 消除奖励：精灵球 +1
+        const sourceCell = triggerCell || cell1;
         console.log(`[消除奖励] 从格子 ${sourceCell.index} 飞出精灵球`);
         await this.triggerImmediateReward(sourceCell, 1);
+
+        // 捕获计数：2 只宝可梦被消除，累积获得 +2
+        if (this.gameBoard) {
+            this.gameBoard.totalBallsAdded += 2;
+            this.updateBallCounter();
+        }
     }
 
 
@@ -2286,7 +2303,6 @@ createGameGrid() {
 
                     if (this.gameBoard) {
                         this.gameBoard.ballsRemaining += rewardBalls;
-                        this.gameBoard.totalBallsAdded += rewardBalls;
                         this.updateBallCounter();
 
                         this.ballCountSpan.style.transform = 'scale(1.5)';
