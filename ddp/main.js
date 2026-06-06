@@ -9,14 +9,8 @@ const __DEV__ = (() => {
     } catch (e) { return false; }
 })();
 
-// 保存原始 console 引用
-const _console = {
-    log: console.log.bind(console),
-    warn: console.warn.bind(console),
-    error: console.error.bind(console)
-};
-
 // 非开发模式下禁用 log/warn（保留 error）
+// 注意：不使用 .bind() 因为 iOS Safari 宿主函数可能不支持
 if (!__DEV__) {
     console.log = function() {};
     console.warn = function() {};
