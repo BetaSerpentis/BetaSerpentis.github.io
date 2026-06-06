@@ -1,4 +1,12 @@
 // main.js - 修复版本（含性能优化）
+// IMPORTANT: iOS Safari 要求 import 必须在文件最顶部
+import PokemonData from './core/PokemonData.js';
+import GameBoard from './core/GameBoard.js';
+import ImageLoader from './utils/ImageLoader.js';
+import PokemonCell from './ui/PokemonCell.js';
+import MessageBoard from './ui/MessageBoard.js';
+import AudioManager from './utils/AudioManager.js';
+
 // 生产环境检测：非 localhost 时禁用详细日志
 const __DEV__ = (() => {
     try {
@@ -13,7 +21,7 @@ if (!__DEV__) {
     console.warn = function() {};
 }
 
-// 关键：模块级错误可视化 —— iOS Safari 无远程调试时靠这个定位问题
+// 模块级错误可视化
 window.addEventListener('error', function(e) {
     var c = document.getElementById('game-container');
     if (c) {
@@ -25,14 +33,6 @@ window.addEventListener('error', function(e) {
             + '</div>';
     }
 });
-
-import PokemonData from './core/PokemonData.js';
-import GameBoard from './core/GameBoard.js';
-import ImageLoader from './utils/ImageLoader.js';
-// AnimationManager removed (unused, dead code elimination)
-import PokemonCell from './ui/PokemonCell.js';
-import MessageBoard from './ui/MessageBoard.js';
-import AudioManager from './utils/AudioManager.js';
 
 class VisualGame {
     // main.js - 修改构造函数
