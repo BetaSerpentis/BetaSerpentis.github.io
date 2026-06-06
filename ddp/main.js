@@ -729,6 +729,7 @@ class VisualGame {
         
         if (this.gameBoard.checkGameEnd()) {
             this.gameOver();
+        }
     }
 
     // main.js - 在checkAndProcessEvolutions中添加额外的安全判断
