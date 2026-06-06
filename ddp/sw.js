@@ -1,5 +1,5 @@
 // sw.js - Service Worker 缓存策略（带条目上限，防止 iOS Safari 配额溢出）
-const CACHE_NAME = 'pokemon-match-v2';
+const CACHE_NAME = 'pokemon-match-v3';
 // 性能优化：限制运行时图片缓存上限，防止超出 iOS Safari ~50MB 配额
 const MAX_RUNTIME_CACHE = 150;
 

@@ -1,20 +1,30 @@
 // main.js - 修复版本（含性能优化）
-// 生产环境检测：非 localhost 或 127.0.0.1 时禁用详细日志
+// 生产环境检测：非 localhost 时禁用详细日志
 const __DEV__ = (() => {
     try {
         const h = location.hostname;
-        // 允许通过 URL 参数 ?debug=1 强制开启
         if (new URLSearchParams(location.search).get('debug') === '1') return true;
         return h === 'localhost' || h === '127.0.0.1' || h.startsWith('192.168.');
     } catch (e) { return false; }
 })();
 
-// 非开发模式下禁用 log/warn（保留 error）
-// 注意：不使用 .bind() 因为 iOS Safari 宿主函数可能不支持
 if (!__DEV__) {
     console.log = function() {};
     console.warn = function() {};
 }
+
+// 关键：模块级错误可视化 —— iOS Safari 无远程调试时靠这个定位问题
+window.addEventListener('error', function(e) {
+    var c = document.getElementById('game-container');
+    if (c) {
+        c.innerHTML = '<div style="color:red;background:rgba(0,0,0,0.9);padding:20px;margin:40px;border-radius:12px;font-size:14px;line-height:1.6;word-break:break-all;">'
+            + '<h2 style="color:#FF5252">⚠️ JS Error</h2>'
+            + '<p><b>File:</b> ' + (e.filename || 'unknown').replace(/.*\//, '') + '</p>'
+            + '<p><b>Line:</b> ' + (e.lineno || '?') + ':' + (e.colno || '?') + '</p>'
+            + '<p><b>Message:</b> ' + (e.message || String(e.error)) + '</p>'
+            + '</div>';
+    }
+});
 
 import PokemonData from './core/PokemonData.js';
 import GameBoard from './core/GameBoard.js';
