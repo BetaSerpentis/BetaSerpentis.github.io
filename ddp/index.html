@@ -33,12 +33,12 @@
             user-select: none;
         }
 
-        /* 背景：html 兜底纯色，body fixed 铺满全屏含安全区域 */
+        /* 背景：html + body 双保险覆盖，避免 iOS PWA 下任何一层透出底色 */
         html {
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background: #764ba2;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) fixed;
         }
         body {
             position: fixed;
@@ -170,21 +170,36 @@
     </style>
 </head>
 <body>
-    <div id="game-container" style="color:#FFD700;text-align:center;padding-top:40vh;font-size:18px;">加载中...</div>
+    <div id="game-container" style="color:#FFD700;text-align:center;padding-top:40vh;font-size:18px;font-family:sans-serif;">加载中...</div>
 
     <script>
-        // 关键：在模块脚本之前注册错误处理器，捕获模块加载失败
+        // 关键：前置错误处理器，捕获模块加载失败和运行时错误
         window.addEventListener('error', function(e) {
             var c = document.getElementById('game-container');
-            if (c) {
-                c.innerHTML = '<div style="color:#FF5252;background:rgba(0,0,0,0.9);padding:20px;margin:30px;border-radius:12px;font-size:14px;line-height:1.6;word-break:break-all;">'
-                    + '<h2 style="color:#FF5252">模块加载失败</h2>'
+            if (!c) return;
+            var msg = '';
+
+            // 区分资源加载错误 vs JS 运行时错误
+            if (e.target && e.target !== window && (e.target.src || e.target.href)) {
+                // 资源加载失败（模块脚本 404、网络错误等）
+                msg = '<div style="color:#FF5252;background:rgba(0,0,0,0.9);padding:20px;margin:30px;border-radius:12px;font-size:14px;line-height:1.6;">'
+                    + '<h2 style="color:#FF5252">⚠️ 资源加载失败</h2>'
+                    + '<p><b>URL:</b> ' + (e.target.src || e.target.href) + '</p>'
+                    + '<p><b>类型:</b> ' + (e.target.tagName || '?') + '</p>'
+                    + '<p style="color:#aaa;margin-top:12px;">可能原因：文件缺失 / SW 缓存了旧版本 / 网络错误</p>'
+                    + '</div>';
+            } else {
+                // JS 运行时错误
+                msg = '<div style="color:#FF5252;background:rgba(0,0,0,0.9);padding:20px;margin:30px;border-radius:12px;font-size:14px;line-height:1.6;">'
+                    + '<h2 style="color:#FF5252">⚠️ JS 运行时错误</h2>'
                     + '<p><b>文件:</b> ' + (e.filename || '?').replace(/.*\//, '') + '</p>'
                     + '<p><b>位置:</b> ' + (e.lineno || '?') + ':' + (e.colno || '?') + '</p>'
-                    + '<p><b>错误:</b> ' + (e.message || '') + '</p>'
+                    + '<p><b>错误:</b> ' + (e.message || String(e.error || '')) + '</p>'
                     + '</div>';
             }
-        }, true); // useCapture=true，捕获阶段拦截
+
+            if (msg) c.innerHTML = msg;
+        }, true); // capture 阶段，能拦截资源加载错误
     </script>
 
     <script>
