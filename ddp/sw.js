@@ -19,8 +19,9 @@ const urlsToCache = [
   './ui/MessageBoard.js'
 ];
 
-// 安装 Service Worker — 只预缓存核心 JS/CSS/HTML
+// 安装 Service Worker — 预缓存核心文件 + 立即激活
 self.addEventListener('install', event => {
+  self.skipWaiting(); // 关键：不等待旧 SW 释放，立即接管
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -51,10 +52,8 @@ self.addEventListener('fetch', event => {
           if (event.request.url.match(/\.(png|jpg|jpeg|svg|gif|webp)$/)) {
             const responseToCache = response.clone();
             caches.open(CACHE_NAME).then(cache => {
-              // 性能优化：检查当前缓存条目数，超出上限时清理最旧的
               cache.keys().then(keys => {
                 if (keys.length >= MAX_RUNTIME_CACHE) {
-                  // 删除最旧的 20 条缓存
                   const toDelete = keys.slice(0, 20);
                   Promise.all(toDelete.map(k => cache.delete(k)));
                 }
@@ -66,7 +65,6 @@ self.addEventListener('fetch', event => {
 
           return response;
         }).catch(() => {
-          // 网络请求失败且无缓存时，对图片返回空响应
           if (event.request.url.match(/\.(png|jpg|jpeg|svg|gif|webp)$/)) {
             return new Response('', { status: 204 });
           }
@@ -76,7 +74,7 @@ self.addEventListener('fetch', event => {
   );
 });
 
-// 清理旧版本缓存
+// 激活时：清理旧缓存 + 立即接管所有页面
 self.addEventListener('activate', event => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
@@ -89,6 +87,9 @@ self.addEventListener('activate', event => {
           }
         })
       );
+    }).then(() => {
+      // 关键：立即接管所有页面，无需手动刷新
+      return self.clients.claim();
     })
   );
 });
