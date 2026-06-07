@@ -33,24 +33,26 @@
             user-select: none;
         }
 
-        /* 背景策略：html padding-bottom 延伸到 iOS 物理屏幕底部安全区域 */
+        /* html 做背景层：padding-bottom 延伸到安全区，body fixed 锁住视口 */
         html {
             width: 100%;
-            min-height: 100vh;
-            min-height: 100dvh;
             overflow: hidden;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            /* 关键：padding-bottom 让 html 背景覆盖 Home Indicator 区域 */
+            /* 让背景覆盖 Home Indicator 区域 */
             padding-bottom: env(safe-area-inset-bottom, 0px);
         }
         body {
-            width: 100%;
-            min-height: 100vh;
-            min-height: 100dvh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             overflow: hidden;
             overscroll-behavior: none;
             -webkit-overflow-scrolling: auto;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            touch-action: none;
+            -webkit-user-select: none;
+            background: transparent;
         }
 
         #game-container {
