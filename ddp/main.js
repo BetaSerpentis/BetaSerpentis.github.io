@@ -1290,19 +1290,33 @@ class VisualGame {
         this._trackRaf(rafId);
     }
 
-    // 修改updateBallCounter方法，更新新的计数显示
+    // 修改updateBallCounter方法，更新新的计数显示（含缩放效果）
     updateBallCounter() {
         if (!this.gameBoard) return;
-        
+
         // 更新精灵球数量显示
         if (this.ballCountSpan) {
             this.ballCountSpan.textContent = this.gameBoard.ballsRemaining;
         }
-        
+
         // 更新累计获得显示
         if (this.totalBallsSpan) {
+            var prev = this.totalBallsSpan.textContent;
             this.totalBallsSpan.textContent = this.gameBoard.totalBallsAdded;
+            // 数值变化时播放缩放效果
+            if (prev !== String(this.gameBoard.totalBallsAdded)) {
+                this._pulseElement(this.totalBallsSpan);
+            }
         }
+    }
+
+    // 缩放脉冲效果
+    _pulseElement(el) {
+        el.style.transition = 'transform 0.15s ease-out';
+        el.style.transform = 'scale(1.4)';
+        setTimeout(function() {
+            el.style.transform = 'scale(1)';
+        }, 150);
     }
 
     // main.js - 在initUI方法中调整顺序
