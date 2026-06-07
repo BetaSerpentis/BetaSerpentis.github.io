@@ -47,6 +47,8 @@
             right: 0;
             bottom: 0;
             overflow: hidden;
+            overscroll-behavior: none;
+            -webkit-overflow-scrolling: auto;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) fixed;
         }
 
@@ -56,15 +58,14 @@
             left: 0;
             right: 0;
             bottom: 0;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             padding: env(safe-area-inset-top, 10px)
                      env(safe-area-inset-right, 10px)
                      max(env(safe-area-inset-bottom, 20px), 20px)
                      env(safe-area-inset-left, 10px);
-            background: transparent;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) fixed;
         }
 
         /* 确保所有内容容器也是透明的 */

@@ -159,7 +159,9 @@ class AudioManager {
         }, 50);
     }
 
-    // 播放音效（使用 new Audio() 代替 cloneNode，避免 iOS Safari 内存泄漏）
+    // 播放音效 — 直接使用预加载的 Audio 元素
+    // iOS 要求 Audio 必须在用户手势中首次 play() 才能解锁，
+    // new Audio() 创建的新元素未解锁，无法出声
     play(soundName, volume = 0.5) {
         if (this.isMuted) return;
 
@@ -170,35 +172,13 @@ class AudioManager {
         }
 
         try {
-            // 性能优化：使用 new Audio() 代替 cloneNode()
-            // iOS Safari PWA 模式下 cloneNode 的 ended 事件不可靠，导致 Audio 节点泄漏
-            const soundClone = new Audio(sound.src);
-            soundClone.volume = volume;
-            soundClone.preload = 'auto';
-
-            // 播放完成后自动清理资源
-            const cleanup = () => {
-                soundClone.pause();
-                soundClone.src = '';
-                soundClone.load();
-                soundClone.removeEventListener('ended', cleanup);
-                soundClone.removeEventListener('error', cleanup);
-            };
-
-            soundClone.addEventListener('ended', cleanup);
-            soundClone.addEventListener('error', cleanup);
-
-            soundClone.play().catch(error => {
+            sound.volume = volume;
+            sound.currentTime = 0;
+            sound.play().catch(error => {
                 if (error.name !== 'NotAllowedError') {
                     console.warn(`[音效] 播放失败 ${soundName}:`, error);
                 }
-                cleanup();
             });
-
-            // 安全兜底：5 秒后强制清理
-            setTimeout(() => {
-                try { cleanup(); } catch (e) { /* ignore */ }
-            }, 5000);
         } catch (error) {
             console.warn(`[音效] 播放出错 ${soundName}:`, error);
         }
