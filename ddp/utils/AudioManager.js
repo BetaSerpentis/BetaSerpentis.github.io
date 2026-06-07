@@ -1,14 +1,15 @@
 // utils/AudioManager.js
 class AudioManager {
     constructor() {
-        this.sounds = new Map();
+        // 每个音效预创建 2 个实例组成池，支持重叠播放
+        this.soundPools = new Map();
+        this.poolIndexes = new Map();
         this.bgm = null;
         this.isMuted = false;
         this.isLoaded = false;
         this.bgmLoopStart = 0;
-        this.bgmLoopEnd = 46; // 46秒循环点
-        
-        // 预加载音效
+        this.bgmLoopEnd = 46;
+
         this.preloadSounds();
     }
 
@@ -18,163 +19,79 @@ class AudioManager {
             'clear': './audio/clear.mp3',
             'summon': './audio/summon.mp3'
         };
+        const POOL_SIZE = 2;
 
         Object.entries(audioFiles).forEach(([key, path]) => {
-            const audio = new Audio();
-            audio.src = path;
-            audio.preload = 'auto';
-            
-            audio.addEventListener('canplaythrough', () => {
-                console.log(`[音效] ${key} 加载完成`);
-            }, { once: true });
-            
-            audio.addEventListener('error', (e) => {
-                console.warn(`[音效] ${key} 加载失败:`, e);
-            });
-            
-            this.sounds.set(key, audio);
+            const pool = [];
+            for (let i = 0; i < POOL_SIZE; i++) {
+                const audio = new Audio();
+                audio.src = path;
+                audio.preload = 'auto';
+                audio.volume = 0.5;
+                pool.push(audio);
+            }
+            this.soundPools.set(key, pool);
+            this.poolIndexes.set(key, 0);
         });
 
-        // 预加载BGM
+        // 预加载 BGM
         this.bgm = new Audio();
         this.bgm.src = './audio/background.mp3';
         this.bgm.preload = 'auto';
         this.bgm.loop = true;
         this.bgm.volume = 0.5;
-        
-        // 监听时间更新以实现指定区间循环
+
         this.bgm.addEventListener('timeupdate', () => {
             if (!this.bgm.paused && this.bgm.currentTime >= this.bgmLoopEnd) {
                 this.bgm.currentTime = this.bgmLoopStart;
             }
         });
-        
-        this.bgm.addEventListener('canplaythrough', () => {
-            console.log('[BGM] 背景音乐加载完成');
-        });
-        
-        this.bgm.addEventListener('error', (e) => {
-            console.warn('[BGM] 背景音乐加载失败:', e);
-        });
 
-        // 性能优化：5 秒超时兜底，防止音频加载阻塞游戏
-        const markLoadedTimeout = setTimeout(() => {
+        // 超时兜底：5 秒后标记已加载
+        const markLoaded = setTimeout(() => {
             if (!this.isLoaded) {
                 this.isLoaded = true;
                 console.log('[音效] 加载超时兜底');
             }
         }, 5000);
 
+        // 等待所有池中第一个元素就绪即标记可播放
+        const firstElements = [];
+        for (const [key, pool] of this.soundPools) {
+            firstElements.push(pool[0]);
+        }
         Promise.all(
-            Array.from(this.sounds.values()).map(
-                audio => new Promise(resolve => {
-                    if (audio.readyState >= 3) {
-                        resolve();
-                    } else {
-                        audio.addEventListener('canplaythrough', resolve, { once: true });
-                    }
-                })
-            )
+            firstElements.map(audio => new Promise(resolve => {
+                if (audio.readyState >= 3) resolve();
+                else audio.addEventListener('canplaythrough', resolve, { once: true });
+            }))
         ).then(() => {
-            clearTimeout(markLoadedTimeout);
-            if (!this.isLoaded) {
-                this.isLoaded = true;
-                console.log('[音效] 所有音效加载完成');
-            }
-        }).catch(error => {
-            clearTimeout(markLoadedTimeout);
-            console.warn('[音效] 部分音效加载失败:', error);
-            this.isLoaded = true; // 失败也放行
+            clearTimeout(markLoaded);
+            this.isLoaded = true;
+            console.log('[音效] 音效池就绪');
+        }).catch(() => {
+            clearTimeout(markLoaded);
+            this.isLoaded = true;
         });
     }
 
-    // 播放BGM
-    playBGM(volume = 0.5) {
-        if (this.isMuted) return;
-        
-        if (this.bgm) {
-            this.bgm.volume = volume;
-            this.bgm.currentTime = this.bgmLoopStart;
-            this.bgm.play().catch(error => {
-                console.warn('[BGM] 播放失败:', error);
-            });
-            console.log('[BGM] 开始播放');
-        }
-    }
-
-    // 停止BGM
-    stopBGM() {
-        if (this.bgm) {
-            this.bgm.pause();
-            this.bgm.currentTime = 0;
-            console.log('[BGM] 停止播放');
-        }
-    }
-
-    // 淡出BGM
-    fadeOutBGM(duration = 2000) {
-        if (!this.bgm || this.bgm.volume === 0) return;
-        
-        console.log('[BGM] 开始淡出');
-        const startVolume = this.bgm.volume;
-        const startTime = performance.now();
-        
-        const fadeInterval = setInterval(() => {
-            const elapsed = performance.now() - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            
-            if (this.bgm) {
-                this.bgm.volume = startVolume * (1 - progress);
-            }
-            
-            if (progress >= 1) {
-                clearInterval(fadeInterval);
-                this.stopBGM();
-                console.log('[BGM] 淡出完成');
-            }
-        }, 50);
-    }
-
-    // 淡入BGM
-    fadeInBGM(duration = 2000, targetVolume = 0.5) {
-        if (this.isMuted) return;
-        
-        console.log('[BGM] 开始淡入');
-        this.playBGM(0);
-        
-        const startTime = performance.now();
-        
-        const fadeInterval = setInterval(() => {
-            const elapsed = performance.now() - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            
-            if (this.bgm) {
-                this.bgm.volume = targetVolume * progress;
-            }
-            
-            if (progress >= 1) {
-                clearInterval(fadeInterval);
-                console.log('[BGM] 淡入完成');
-            }
-        }, 50);
-    }
-
-    // 播放音效 — 直接使用预加载的 Audio 元素
-    // iOS 要求 Audio 必须在用户手势中首次 play() 才能解锁，
-    // new Audio() 创建的新元素未解锁，无法出声
+    // 从池中取一个空闲元素播放，支持重叠音效
     play(soundName, volume = 0.5) {
         if (this.isMuted) return;
 
-        const sound = this.sounds.get(soundName);
-        if (!sound) {
-            console.warn(`[音效] 未找到音效: ${soundName}`);
-            return;
-        }
+        const pool = this.soundPools.get(soundName);
+        if (!pool || pool.length === 0) return;
+
+        // 轮询取下一个元素
+        let idx = this.poolIndexes.get(soundName) || 0;
+        const audio = pool[idx];
+        idx = (idx + 1) % pool.length;
+        this.poolIndexes.set(soundName, idx);
 
         try {
-            sound.volume = volume;
-            sound.currentTime = 0;
-            sound.play().catch(error => {
+            audio.volume = volume;
+            audio.currentTime = 0;
+            audio.play().catch(error => {
                 if (error.name !== 'NotAllowedError') {
                     console.warn(`[音效] 播放失败 ${soundName}:`, error);
                 }
@@ -184,43 +101,68 @@ class AudioManager {
         }
     }
 
-    playPoint(volume = 0.5) {
-        this.play('point', volume);
+    // BGM 播放
+    playBGM(volume = 0.5) {
+        if (this.isMuted) return;
+        if (this.bgm) {
+            this.bgm.volume = volume;
+            this.bgm.currentTime = this.bgmLoopStart;
+            this.bgm.play().catch(error => {
+                console.warn('[BGM] 播放失败:', error);
+            });
+        }
     }
 
-    playClear(volume = 0.6) {
-        this.play('clear', volume);
+    stopBGM() {
+        if (this.bgm) {
+            this.bgm.pause();
+            this.bgm.currentTime = 0;
+        }
     }
 
-    playSummon(volume = 0.7) {
-        this.play('summon', volume);
+    fadeOutBGM(duration = 2000) {
+        if (!this.bgm || this.bgm.volume === 0) return;
+        const startVolume = this.bgm.volume;
+        const startTime = performance.now();
+        const fadeInterval = setInterval(() => {
+            const elapsed = performance.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            if (this.bgm) this.bgm.volume = startVolume * (1 - progress);
+            if (progress >= 1) {
+                clearInterval(fadeInterval);
+                this.stopBGM();
+            }
+        }, 50);
     }
+
+    fadeInBGM(duration = 2000, targetVolume = 0.5) {
+        if (this.isMuted) return;
+        this.playBGM(0);
+        const startTime = performance.now();
+        const fadeInterval = setInterval(() => {
+            const elapsed = performance.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            if (this.bgm) this.bgm.volume = targetVolume * progress;
+            if (progress >= 1) clearInterval(fadeInterval);
+        }, 50);
+    }
+
+    playPoint(volume = 0.5) { this.play('point', volume); }
+    playClear(volume = 0.6) { this.play('clear', volume); }
+    playSummon(volume = 0.7) { this.play('summon', volume); }
 
     toggleMute() {
         this.isMuted = !this.isMuted;
-        
-        if (this.bgm) {
-            if (this.isMuted) {
-                this.bgm.volume = 0;
-            } else {
-                this.bgm.volume = 0.5;
-            }
-        }
-        
-        console.log(`[音效] ${this.isMuted ? '已静音' : '已取消静音'}`);
+        if (this.bgm) this.bgm.volume = this.isMuted ? 0 : 0.5;
         return this.isMuted;
     }
 
     setMute(muted) {
         this.isMuted = muted;
-        if (this.bgm) {
-            this.bgm.volume = muted ? 0 : 0.5;
-        }
+        if (this.bgm) this.bgm.volume = muted ? 0 : 0.5;
     }
 
-    isLoading() {
-        return !this.isLoaded;
-    }
+    isLoading() { return !this.isLoaded; }
 }
 
 export default AudioManager;
