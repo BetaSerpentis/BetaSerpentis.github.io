@@ -1,158 +1,127 @@
 // utils/AudioManager.js
 class AudioManager {
     constructor() {
-        this.sounds = new Map();
+        this.pools = new Map();       // soundName → Audio[]
+        this.poolIdx = new Map();     // soundName → next index
         this.bgm = null;
         this.isMuted = false;
         this.isLoaded = false;
         this.bgmLoopStart = 0;
         this.bgmLoopEnd = 46;
-
         this.preloadSounds();
     }
 
     preloadSounds() {
+        const POOL_SIZE = 4;
         const audioFiles = {
             'point': './audio/point.mp3',
             'clear': './audio/clear.mp3',
             'summon': './audio/summon.mp3'
         };
 
+        // 为每个音效创建池，显式 load()
         Object.entries(audioFiles).forEach(([key, path]) => {
-            const audio = new Audio();
-            audio.src = path;
-            audio.preload = 'auto';
-
-            audio.addEventListener('canplaythrough', () => {
-                console.log(`[音效] ${key} 加载完成`);
-            }, { once: true });
-
-            audio.addEventListener('error', (e) => {
-                console.warn(`[音效] ${key} 加载失败:`, e);
-            });
-
-            this.sounds.set(key, audio);
+            const pool = [];
+            for (let i = 0; i < POOL_SIZE; i++) {
+                const a = new Audio();
+                a.src = path;
+                a.preload = 'auto';
+                a.load();
+                pool.push(a);
+            }
+            this.pools.set(key, pool);
+            this.poolIdx.set(key, 0);
         });
 
-        // 预加载BGM
+        // 预加载 BGM
         this.bgm = new Audio();
         this.bgm.src = './audio/background.mp3';
         this.bgm.preload = 'auto';
         this.bgm.loop = true;
         this.bgm.volume = 0.5;
-
+        this.bgm.load();
         this.bgm.addEventListener('timeupdate', () => {
             if (!this.bgm.paused && this.bgm.currentTime >= this.bgmLoopEnd) {
                 this.bgm.currentTime = this.bgmLoopStart;
             }
         });
 
-        // 5 秒加载超时兜底
-        const markLoadedTimeout = setTimeout(() => {
-            if (!this.isLoaded) {
-                this.isLoaded = true;
-                console.log('[音效] 加载超时兜底');
-            }
+        // 等待所有池中第一个元素就绪即放行
+        const timeout = setTimeout(() => {
+            if (!this.isLoaded) { this.isLoaded = true; }
         }, 5000);
 
-        Promise.all(
-            Array.from(this.sounds.values()).map(
-                audio => new Promise(resolve => {
-                    if (audio.readyState >= 3) {
-                        resolve();
-                    } else {
-                        audio.addEventListener('canplaythrough', resolve, { once: true });
-                    }
-                })
-            )
-        ).then(() => {
-            clearTimeout(markLoadedTimeout);
-            if (!this.isLoaded) {
-                this.isLoaded = true;
-                console.log('[音效] 所有音效加载完成');
-            }
-        }).catch(error => {
-            clearTimeout(markLoadedTimeout);
-            console.warn('[音效] 部分音效加载失败:', error);
+        const firsts = [];
+        for (const pool of this.pools.values()) firsts.push(pool[0]);
+        Promise.all(firsts.map(a => new Promise(resolve => {
+            if (a.readyState >= 3) resolve();
+            else a.addEventListener('canplaythrough', resolve, { once: true });
+        }))).then(() => {
+            clearTimeout(timeout);
+            this.isLoaded = true;
+        }).catch(() => {
+            clearTimeout(timeout);
             this.isLoaded = true;
         });
     }
 
-    // 播放BGM
-    playBGM(volume = 0.5) {
+    // 从池中轮询取元素播放，支持重叠音效
+    play(soundName, volume = 0.5) {
         if (this.isMuted) return;
-        if (this.bgm) {
-            this.bgm.volume = volume;
-            this.bgm.currentTime = this.bgmLoopStart;
-            this.bgm.play().catch(error => {
-                console.warn('[BGM] 播放失败:', error);
+        const pool = this.pools.get(soundName);
+        if (!pool) return;
+
+        const idx = this.poolIdx.get(soundName) || 0;
+        const a = pool[idx];
+        this.poolIdx.set(soundName, (idx + 1) % pool.length);
+
+        try {
+            a.volume = volume;
+            a.currentTime = 0;
+            a.play().catch(e => {
+                if (e.name !== 'NotAllowedError') {
+                    console.warn('[音效] ' + soundName + ' 播放失败:', e);
+                }
             });
+        } catch (e) {
+            console.warn('[音效] ' + soundName + ' 出错:', e);
         }
     }
 
+    playBGM(volume = 0.5) {
+        if (this.isMuted || !this.bgm) return;
+        this.bgm.volume = volume;
+        this.bgm.currentTime = this.bgmLoopStart;
+        this.bgm.play().catch(() => {});
+    }
+
     stopBGM() {
-        if (this.bgm) {
-            this.bgm.pause();
-            this.bgm.currentTime = 0;
-        }
+        if (this.bgm) { this.bgm.pause(); this.bgm.currentTime = 0; }
     }
 
     fadeOutBGM(duration = 2000) {
         if (!this.bgm || this.bgm.volume === 0) return;
-        const startVolume = this.bgm.volume;
-        const startTime = performance.now();
-        const fadeInterval = setInterval(() => {
-            const elapsed = performance.now() - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            if (this.bgm) this.bgm.volume = startVolume * (1 - progress);
-            if (progress >= 1) {
-                clearInterval(fadeInterval);
-                this.stopBGM();
-            }
+        const sv = this.bgm.volume, st = performance.now();
+        const iv = setInterval(() => {
+            const p = Math.min((performance.now() - st) / duration, 1);
+            if (this.bgm) this.bgm.volume = sv * (1 - p);
+            if (p >= 1) { clearInterval(iv); this.stopBGM(); }
         }, 50);
     }
 
     fadeInBGM(duration = 2000, targetVolume = 0.5) {
         if (this.isMuted) return;
         this.playBGM(0);
-        const startTime = performance.now();
-        const fadeInterval = setInterval(() => {
-            const elapsed = performance.now() - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            if (this.bgm) this.bgm.volume = targetVolume * progress;
-            if (progress >= 1) clearInterval(fadeInterval);
+        const st = performance.now();
+        const iv = setInterval(() => {
+            const p = Math.min((performance.now() - st) / duration, 1);
+            if (this.bgm) this.bgm.volume = targetVolume * p;
+            if (p >= 1) clearInterval(iv);
         }, 50);
     }
 
-    // 播放音效 — cloneNode 方案（原始验证过，iOS 稳定）
-    // cloneNode 继承父元素的用户手势解锁状态，每次独立播放不冲突
-    play(soundName, volume = 0.5) {
-        if (this.isMuted) return;
-
-        const sound = this.sounds.get(soundName);
-        if (!sound) {
-            console.warn(`[音效] 未找到音效: ${soundName}`);
-            return;
-        }
-
-        try {
-            const soundClone = sound.cloneNode();
-            soundClone.volume = volume;
-            soundClone.play().catch(error => {
-                if (error.name !== 'NotAllowedError') {
-                    console.warn(`[音效] 播放失败 ${soundName}:`, error);
-                }
-            });
-            soundClone.addEventListener('ended', () => {
-                soundClone.remove();
-            });
-        } catch (error) {
-            console.warn(`[音效] 播放出错 ${soundName}:`, error);
-        }
-    }
-
-    playPoint(volume = 0.5) { this.play('point', volume); }
-    playClear(volume = 0.6) { this.play('clear', volume); }
+    playPoint(volume = 0.5)  { this.play('point', volume); }
+    playClear(volume = 0.6)  { this.play('clear', volume); }
     playSummon(volume = 0.7) { this.play('summon', volume); }
 
     toggleMute() {
