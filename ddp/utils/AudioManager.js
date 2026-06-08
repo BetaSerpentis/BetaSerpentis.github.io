@@ -1,9 +1,7 @@
 // utils/AudioManager.js
 class AudioManager {
     constructor() {
-        // 每个音效预创建 2 个实例组成池，支持重叠播放
-        this.soundPools = new Map();
-        this.poolIndexes = new Map();
+        this.sounds = new Map();
         this.bgm = null;
         this.isMuted = false;
         this.isLoaded = false;
@@ -19,22 +17,24 @@ class AudioManager {
             'clear': './audio/clear.mp3',
             'summon': './audio/summon.mp3'
         };
-        const POOL_SIZE = 2;
 
         Object.entries(audioFiles).forEach(([key, path]) => {
-            const pool = [];
-            for (let i = 0; i < POOL_SIZE; i++) {
-                const audio = new Audio();
-                audio.src = path;
-                audio.preload = 'auto';
-                audio.volume = 0.5;
-                pool.push(audio);
-            }
-            this.soundPools.set(key, pool);
-            this.poolIndexes.set(key, 0);
+            const audio = new Audio();
+            audio.src = path;
+            audio.preload = 'auto';
+
+            audio.addEventListener('canplaythrough', () => {
+                console.log(`[音效] ${key} 加载完成`);
+            }, { once: true });
+
+            audio.addEventListener('error', (e) => {
+                console.warn(`[音效] ${key} 加载失败:`, e);
+            });
+
+            this.sounds.set(key, audio);
         });
 
-        // 预加载 BGM
+        // 预加载BGM
         this.bgm = new Audio();
         this.bgm.src = './audio/background.mp3';
         this.bgm.preload = 'auto';
@@ -47,61 +47,38 @@ class AudioManager {
             }
         });
 
-        // 超时兜底：5 秒后标记已加载
-        const markLoaded = setTimeout(() => {
+        // 5 秒加载超时兜底
+        const markLoadedTimeout = setTimeout(() => {
             if (!this.isLoaded) {
                 this.isLoaded = true;
                 console.log('[音效] 加载超时兜底');
             }
         }, 5000);
 
-        // 等待所有池中第一个元素就绪即标记可播放
-        const firstElements = [];
-        for (const [key, pool] of this.soundPools) {
-            firstElements.push(pool[0]);
-        }
         Promise.all(
-            firstElements.map(audio => new Promise(resolve => {
-                if (audio.readyState >= 3) resolve();
-                else audio.addEventListener('canplaythrough', resolve, { once: true });
-            }))
+            Array.from(this.sounds.values()).map(
+                audio => new Promise(resolve => {
+                    if (audio.readyState >= 3) {
+                        resolve();
+                    } else {
+                        audio.addEventListener('canplaythrough', resolve, { once: true });
+                    }
+                })
+            )
         ).then(() => {
-            clearTimeout(markLoaded);
-            this.isLoaded = true;
-            console.log('[音效] 音效池就绪');
-        }).catch(() => {
-            clearTimeout(markLoaded);
+            clearTimeout(markLoadedTimeout);
+            if (!this.isLoaded) {
+                this.isLoaded = true;
+                console.log('[音效] 所有音效加载完成');
+            }
+        }).catch(error => {
+            clearTimeout(markLoadedTimeout);
+            console.warn('[音效] 部分音效加载失败:', error);
             this.isLoaded = true;
         });
     }
 
-    // 从池中取一个空闲元素播放，支持重叠音效
-    play(soundName, volume = 0.5) {
-        if (this.isMuted) return;
-
-        const pool = this.soundPools.get(soundName);
-        if (!pool || pool.length === 0) return;
-
-        // 轮询取下一个元素
-        let idx = this.poolIndexes.get(soundName) || 0;
-        const audio = pool[idx];
-        idx = (idx + 1) % pool.length;
-        this.poolIndexes.set(soundName, idx);
-
-        try {
-            audio.volume = volume;
-            audio.currentTime = 0;
-            audio.play().catch(error => {
-                if (error.name !== 'NotAllowedError') {
-                    console.warn(`[音效] 播放失败 ${soundName}:`, error);
-                }
-            });
-        } catch (error) {
-            console.warn(`[音效] 播放出错 ${soundName}:`, error);
-        }
-    }
-
-    // BGM 播放
+    // 播放BGM
     playBGM(volume = 0.5) {
         if (this.isMuted) return;
         if (this.bgm) {
@@ -145,6 +122,33 @@ class AudioManager {
             if (this.bgm) this.bgm.volume = targetVolume * progress;
             if (progress >= 1) clearInterval(fadeInterval);
         }, 50);
+    }
+
+    // 播放音效 — cloneNode 方案（原始验证过，iOS 稳定）
+    // cloneNode 继承父元素的用户手势解锁状态，每次独立播放不冲突
+    play(soundName, volume = 0.5) {
+        if (this.isMuted) return;
+
+        const sound = this.sounds.get(soundName);
+        if (!sound) {
+            console.warn(`[音效] 未找到音效: ${soundName}`);
+            return;
+        }
+
+        try {
+            const soundClone = sound.cloneNode();
+            soundClone.volume = volume;
+            soundClone.play().catch(error => {
+                if (error.name !== 'NotAllowedError') {
+                    console.warn(`[音效] 播放失败 ${soundName}:`, error);
+                }
+            });
+            soundClone.addEventListener('ended', () => {
+                soundClone.remove();
+            });
+        } catch (error) {
+            console.warn(`[音效] 播放出错 ${soundName}:`, error);
+        }
     }
 
     playPoint(volume = 0.5) { this.play('point', volume); }
