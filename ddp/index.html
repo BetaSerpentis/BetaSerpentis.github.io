@@ -33,26 +33,25 @@
             user-select: none;
         }
 
-        /* html 做背景层：padding-bottom 延伸到安全区，body fixed 锁住视口 */
+        /* 背景：body 自然流式 + padding-bottom 延伸到安全区域（Apple 推荐方式）*/
         html {
             width: 100%;
+            min-height: 100vh;
+            min-height: 100dvh;
             overflow: hidden;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            /* 让背景覆盖 Home Indicator 区域 */
-            padding-bottom: env(safe-area-inset-bottom, 0px);
+            background: #764ba2;
         }
         body {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            width: 100%;
+            min-height: 100vh;
+            min-height: 100dvh;
             overflow: hidden;
             overscroll-behavior: none;
-            -webkit-overflow-scrolling: auto;
             touch-action: none;
             -webkit-user-select: none;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            /* 背景自然延伸到 Home Indicator 下方 */
+            padding-bottom: env(safe-area-inset-bottom, 0px);
         }
 
         #game-container {
@@ -68,7 +67,7 @@
                      env(safe-area-inset-right, 10px)
                      max(env(safe-area-inset-bottom, 20px), 20px)
                      env(safe-area-inset-left, 10px);
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: transparent;
         }
 
         /* 确保所有内容容器也是透明的 */
