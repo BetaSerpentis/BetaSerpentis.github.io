@@ -1,8 +1,7 @@
 // utils/AudioManager.js
 class AudioManager {
     constructor() {
-        this.pools = new Map();       // soundName → Audio[]
-        this.poolIdx = new Map();     // soundName → next index
+        this.sounds = new Map();
         this.bgm = null;
         this.isMuted = false;
         this.isLoaded = false;
@@ -12,28 +11,22 @@ class AudioManager {
     }
 
     preloadSounds() {
-        const POOL_SIZE = 4;
         const audioFiles = {
-            'point': './audio/point.mp3',
-            'clear': './audio/clear.mp3',
+            'point':  './audio/point.mp3',
+            'clear':  './audio/clear.mp3',
             'summon': './audio/summon.mp3'
         };
 
-        // 为每个音效创建池，显式 load()
+        // 每个音效只创建一个元素，显式 load()
         Object.entries(audioFiles).forEach(([key, path]) => {
-            const pool = [];
-            for (let i = 0; i < POOL_SIZE; i++) {
-                const a = new Audio();
-                a.src = path;
-                a.preload = 'auto';
-                a.load();
-                pool.push(a);
-            }
-            this.pools.set(key, pool);
-            this.poolIdx.set(key, 0);
+            const a = new Audio();
+            a.src = path;
+            a.preload = 'auto';
+            a.load();
+            this.sounds.set(key, a);
         });
 
-        // 预加载 BGM
+        // BGM
         this.bgm = new Audio();
         this.bgm.src = './audio/background.mp3';
         this.bgm.preload = 'auto';
@@ -46,17 +39,10 @@ class AudioManager {
             }
         });
 
-        // 等待所有池中第一个元素就绪即放行
-        const timeout = setTimeout(() => {
-            if (!this.isLoaded) { this.isLoaded = true; }
-        }, 5000);
-
-        // 等待池中所有元素就绪（而不仅是第一个）
-        const all = [];
-        for (const pool of this.pools.values()) {
-            for (const a of pool) all.push(a);
-        }
-        Promise.all(all.map(a => new Promise(resolve => {
+        // 等音效就绪（10 秒超时兜底）
+        const timeout = setTimeout(() => { this.isLoaded = true; }, 10000);
+        const elements = [...this.sounds.values()];
+        Promise.all(elements.map(a => new Promise(resolve => {
             if (a.readyState >= 3) resolve();
             else a.addEventListener('canplaythrough', resolve, { once: true });
         }))).then(() => {
@@ -68,37 +54,19 @@ class AudioManager {
         });
     }
 
-    // 从池中轮询取就绪元素播放，支持重叠音效
+    // 播放音效 — 直接复用预加载元素
     play(soundName, volume = 0.5) {
         if (this.isMuted) return;
-        const pool = this.pools.get(soundName);
-        if (!pool) return;
+        const a = this.sounds.get(soundName);
+        if (!a || a.readyState < 2) return; // 未就绪就跳过
 
-        // 轮询找就绪元素，遍历整个池兜底
-        let idx = this.poolIdx.get(soundName) || 0;
-        for (let i = 0; i < pool.length; i++) {
-            const a = pool[idx];
-            idx = (idx + 1) % pool.length;
-            if (a.readyState >= 2) {
-                this.poolIdx.set(soundName, idx);
-                try {
-                    a.volume = volume;
-                    a.currentTime = 0;
-                    a.play().catch(e => {
-                        if (e.name !== 'NotAllowedError') {
-                            console.warn('[音效] ' + soundName + ' 失败:', e);
-                        }
-                    });
-                } catch (e) { /* silence */ }
-                return;
-            }
-        }
-        // 所有元素都未就绪，尝试第一个
-        const fallback = pool[0];
         try {
-            fallback.volume = volume;
-            fallback.currentTime = 0;
-            fallback.play().catch(() => {});
+            // 如果正在播放，从头重播
+            if (!a.paused) {
+                a.currentTime = 0;
+            }
+            a.volume = volume;
+            a.play().catch(() => {});
         } catch (e) { /* silence */ }
     }
 
@@ -143,12 +111,10 @@ class AudioManager {
         if (this.bgm) this.bgm.volume = this.isMuted ? 0 : 0.5;
         return this.isMuted;
     }
-
     setMute(muted) {
         this.isMuted = muted;
         if (this.bgm) this.bgm.volume = muted ? 0 : 0.5;
     }
-
     isLoading() { return !this.isLoaded; }
 }
 
