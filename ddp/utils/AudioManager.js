@@ -51,9 +51,12 @@ class AudioManager {
             if (!this.isLoaded) { this.isLoaded = true; }
         }, 5000);
 
-        const firsts = [];
-        for (const pool of this.pools.values()) firsts.push(pool[0]);
-        Promise.all(firsts.map(a => new Promise(resolve => {
+        // 等待池中所有元素就绪（而不仅是第一个）
+        const all = [];
+        for (const pool of this.pools.values()) {
+            for (const a of pool) all.push(a);
+        }
+        Promise.all(all.map(a => new Promise(resolve => {
             if (a.readyState >= 3) resolve();
             else a.addEventListener('canplaythrough', resolve, { once: true });
         }))).then(() => {
@@ -65,27 +68,38 @@ class AudioManager {
         });
     }
 
-    // 从池中轮询取元素播放，支持重叠音效
+    // 从池中轮询取就绪元素播放，支持重叠音效
     play(soundName, volume = 0.5) {
         if (this.isMuted) return;
         const pool = this.pools.get(soundName);
         if (!pool) return;
 
-        const idx = this.poolIdx.get(soundName) || 0;
-        const a = pool[idx];
-        this.poolIdx.set(soundName, (idx + 1) % pool.length);
-
-        try {
-            a.volume = volume;
-            a.currentTime = 0;
-            a.play().catch(e => {
-                if (e.name !== 'NotAllowedError') {
-                    console.warn('[音效] ' + soundName + ' 播放失败:', e);
-                }
-            });
-        } catch (e) {
-            console.warn('[音效] ' + soundName + ' 出错:', e);
+        // 轮询找就绪元素，遍历整个池兜底
+        let idx = this.poolIdx.get(soundName) || 0;
+        for (let i = 0; i < pool.length; i++) {
+            const a = pool[idx];
+            idx = (idx + 1) % pool.length;
+            if (a.readyState >= 2) {
+                this.poolIdx.set(soundName, idx);
+                try {
+                    a.volume = volume;
+                    a.currentTime = 0;
+                    a.play().catch(e => {
+                        if (e.name !== 'NotAllowedError') {
+                            console.warn('[音效] ' + soundName + ' 失败:', e);
+                        }
+                    });
+                } catch (e) { /* silence */ }
+                return;
+            }
         }
+        // 所有元素都未就绪，尝试第一个
+        const fallback = pool[0];
+        try {
+            fallback.volume = volume;
+            fallback.currentTime = 0;
+            fallback.play().catch(() => {});
+        } catch (e) { /* silence */ }
     }
 
     playBGM(volume = 0.5) {
