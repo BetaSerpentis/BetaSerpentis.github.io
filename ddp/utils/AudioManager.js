@@ -6,7 +6,7 @@ class AudioManager {
         this.isMuted = false;
         this.isLoaded = false;
         this.bgmLoopStart = 0;
-        this.bgmLoopEnd = 46;
+        this.bgmLoopEnd = 40;
         this.preloadSounds();
     }
 
@@ -54,20 +54,26 @@ class AudioManager {
         });
     }
 
-    // 播放音效 — 直接复用预加载元素
+    // 播放音效 — 未就绪则等加载完成后播放
     play(soundName, volume = 0.5) {
         if (this.isMuted) return;
         const a = this.sounds.get(soundName);
-        if (!a || a.readyState < 2) return; // 未就绪就跳过
+        if (!a) return;
 
-        try {
-            // 如果正在播放，从头重播
-            if (!a.paused) {
-                a.currentTime = 0;
-            }
-            a.volume = volume;
-            a.play().catch(() => {});
-        } catch (e) { /* silence */ }
+        const doPlay = () => {
+            try {
+                if (!a.paused) a.currentTime = 0;
+                a.volume = volume;
+                a.play().catch(() => {});
+            } catch (e) { /* silence */ }
+        };
+
+        if (a.readyState >= 2) {
+            doPlay();
+        } else {
+            // 元素未就绪，等加载完成后播放
+            a.addEventListener('canplaythrough', doPlay, { once: true });
+        }
     }
 
     playBGM(volume = 0.5) {
