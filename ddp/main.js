@@ -574,7 +574,7 @@ class VisualGame {
                         const mainType = targetPokemon.currentTypes[0];
                         const typeColor = cell.typeColors[mainType] || '#A8A878';
 
-                        cell.ctx.fillStyle = `${typeColor}66`;
+                        cell.ctx.fillStyle = `${typeColor}99`;
                         cell.ctx.globalAlpha = targetAlpha * 0.4;
                         cell.ctx.fillRect(0, 0, cell.size, cell.size);
 
@@ -605,7 +605,7 @@ class VisualGame {
                         const mainType = targetPokemon.currentTypes[0];
                         const typeColor = cell.typeColors[mainType] || '#A8A878';
 
-                        cell.ctx.fillStyle = `${typeColor}66`;
+                        cell.ctx.fillStyle = `${typeColor}99`;
                         cell.ctx.fillRect(0, 0, cell.size, cell.size);
 
                         cell.ctx.strokeStyle = typeColor;
@@ -904,7 +904,7 @@ class VisualGame {
                         if (newPokemon.currentTypes && newPokemon.currentTypes[0]) {
                             const mainType = newPokemon.currentTypes[0];
                             const typeColor = cell.typeColors[mainType] || '#A8A878';
-                            cell.ctx.fillStyle = `${typeColor}66`;
+                            cell.ctx.fillStyle = `${typeColor}99`;
                             cell.ctx.globalAlpha = newAlpha * 0.4;
                             cell.ctx.fillRect(0, 0, cell.size, cell.size);
 

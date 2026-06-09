@@ -99,7 +99,7 @@ class PokemonCell {
         const typeColor = this.typeColors[mainType] || '#A8A878';
         
         // 绘制属性背景色
-        this.ctx.fillStyle = `${typeColor}66`;
+        this.ctx.fillStyle = `${typeColor}99`;
         this.ctx.fillRect(0, 0, this.size, this.size);
         
         // 边框
