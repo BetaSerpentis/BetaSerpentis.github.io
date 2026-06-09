@@ -6,7 +6,7 @@ class AudioManager {
         this.isMuted = false;
         this.isLoaded = false;
         this.bgmLoopStart = 0;
-        this.bgmLoopEnd = 40;
+        this.bgmLoopEnd = 43;
         this.preloadSounds();
     }
 
