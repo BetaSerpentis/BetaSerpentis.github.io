@@ -5,8 +5,7 @@ class AudioManager {
         this.bgm = null;
         this.isMuted = false;
         this.isLoaded = false;
-        this.bgmLoopStart = 0;
-        this.bgmLoopEnd = 43;
+        this._waiting = new Set(); // 正在等待加载的音效
         this.preloadSounds();
     }
 
@@ -17,7 +16,6 @@ class AudioManager {
             'summon': './audio/summon.mp3'
         };
 
-        // 每个音效只创建一个元素，显式 load()
         Object.entries(audioFiles).forEach(([key, path]) => {
             const a = new Audio();
             a.src = path;
@@ -26,35 +24,29 @@ class AudioManager {
             this.sounds.set(key, a);
         });
 
-        // BGM
+        // BGM — 用原生 loop 属性自然循环，结束自动重播
         this.bgm = new Audio();
         this.bgm.src = './audio/background.mp3';
         this.bgm.preload = 'auto';
         this.bgm.loop = true;
         this.bgm.volume = 0.5;
         this.bgm.load();
-        this.bgm.addEventListener('timeupdate', () => {
-            if (!this.bgm.paused && this.bgm.currentTime >= this.bgmLoopEnd) {
-                this.bgm.currentTime = this.bgmLoopStart;
-            }
-        });
 
-        // 等音效就绪（10 秒超时兜底）
-        const timeout = setTimeout(() => { this.isLoaded = true; }, 10000);
-        const elements = [...this.sounds.values()];
-        Promise.all(elements.map(a => new Promise(resolve => {
-            if (a.readyState >= 3) resolve();
-            else a.addEventListener('canplaythrough', resolve, { once: true });
-        }))).then(() => {
-            clearTimeout(timeout);
-            this.isLoaded = true;
-        }).catch(() => {
-            clearTimeout(timeout);
-            this.isLoaded = true;
-        });
+        // 轮询等待所有音效就绪（iOS 上 canplaythrough 可能不可靠）
+        const maxWait = 15000;
+        const start = Date.now();
+        const check = () => {
+            const all = [...this.sounds.values()];
+            if (all.every(a => a.readyState >= 3) || Date.now() - start > maxWait) {
+                this.isLoaded = true;
+                return;
+            }
+            setTimeout(check, 300);
+        };
+        check();
     }
 
-    // 播放音效 — 未就绪则等加载完成后播放
+    // 播放音效 — 等就绪后触发
     play(soundName, volume = 0.5) {
         if (this.isMuted) return;
         const a = this.sounds.get(soundName);
@@ -70,16 +62,21 @@ class AudioManager {
 
         if (a.readyState >= 2) {
             doPlay();
-        } else {
-            // 元素未就绪，等加载完成后播放
-            a.addEventListener('canplaythrough', doPlay, { once: true });
+        } else if (!this._waiting.has(soundName)) {
+            // 未就绪，注册一次性监听
+            this._waiting.add(soundName);
+            const onReady = () => {
+                this._waiting.delete(soundName);
+                a.removeEventListener('canplaythrough', onReady);
+                doPlay();
+            };
+            a.addEventListener('canplaythrough', onReady, { once: false });
         }
     }
 
     playBGM(volume = 0.5) {
         if (this.isMuted || !this.bgm) return;
         this.bgm.volume = volume;
-        this.bgm.currentTime = this.bgmLoopStart;
         this.bgm.play().catch(() => {});
     }
 
