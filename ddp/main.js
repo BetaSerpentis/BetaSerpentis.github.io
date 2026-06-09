@@ -705,6 +705,13 @@ class VisualGame {
                 for (const { cell } of cellsToClear) {
                     await this.playDisappearAnimation(cell);
                 }
+                // 全图鉴等非对子/三连的规则，从 pendingRewards 取对应的精灵球奖励
+                const ruleReward = this.gameBoard.pendingRewards?.find(r => r?.type === 'rule');
+                if (ruleReward) {
+                    const rewardCell = triggerCell || cellsToClear[0].cell;
+                    await this.triggerImmediateReward(rewardCell, ruleReward.balls);
+                    this.gameBoard.pendingRewards = this.gameBoard.pendingRewards.filter(r => r !== ruleReward);
+                }
                 // 捕获计数
                 if (this.gameBoard && cellsToClear.length > 0) {
                     this.gameBoard.totalBallsAdded += cellsToClear.length;
