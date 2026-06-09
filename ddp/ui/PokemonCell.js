@@ -95,17 +95,56 @@ class PokemonCell {
     }
 
     drawPokemon() {
-        const mainType = this.pokemon.currentTypes[0];
-        const typeColor = this.typeColors[mainType] || '#A8A878';
-        
-        // 绘制属性背景色
-        this.ctx.fillStyle = `${typeColor}66`;
-        this.ctx.fillRect(0, 0, this.size, this.size);
-        
-        // 边框
-        this.ctx.strokeStyle = typeColor;
-        this.ctx.lineWidth = Math.max(2, this.size * 0.01);
-        this.ctx.strokeRect(2, 2, this.size - 4, this.size - 4);
+        const types = this.pokemon.currentTypes;
+        const s = this.size;
+
+        if (types.length >= 2) {
+            // 双属性：对角分割，左上三角形 type1，右下三角形 type2
+            const c1 = this.typeColors[types[0]] || '#A8A878';
+            const c2 = this.typeColors[types[1]] || '#A8A878';
+
+            this.ctx.fillStyle = `${c1}66`;
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, 0);
+            this.ctx.lineTo(s, 0);
+            this.ctx.lineTo(0, s);
+            this.ctx.closePath();
+            this.ctx.fill();
+
+            this.ctx.fillStyle = `${c2}66`;
+            this.ctx.beginPath();
+            this.ctx.moveTo(s, 0);
+            this.ctx.lineTo(s, s);
+            this.ctx.lineTo(0, s);
+            this.ctx.closePath();
+            this.ctx.fill();
+
+            // 边框：对角线分两种颜色各画一半
+            this.ctx.lineWidth = Math.max(2, s * 0.01);
+            this.ctx.strokeStyle = c1;
+            this.ctx.beginPath();
+            this.ctx.moveTo(2, 2);
+            this.ctx.lineTo(s - 2, 2);
+            this.ctx.lineTo(2, s - 2);
+            this.ctx.stroke();
+
+            this.ctx.strokeStyle = c2;
+            this.ctx.beginPath();
+            this.ctx.moveTo(s - 2, 2);
+            this.ctx.lineTo(s - 2, s - 2);
+            this.ctx.lineTo(2, s - 2);
+            this.ctx.stroke();
+        } else {
+            // 单属性：纯色背景
+            const typeColor = this.typeColors[types[0]] || '#A8A878';
+
+            this.ctx.fillStyle = `${typeColor}66`;
+            this.ctx.fillRect(0, 0, s, s);
+
+            this.ctx.strokeStyle = typeColor;
+            this.ctx.lineWidth = Math.max(2, s * 0.01);
+            this.ctx.strokeRect(2, 2, s - 4, s - 4);
+        }
         
         // 绘制宝可梦
         if (this.sprite) {
