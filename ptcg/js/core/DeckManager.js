@@ -320,6 +320,57 @@ export class DeckManager {
         return result;
     }
 
+    getDeckMissingCards(deck = this.getCurrentDeck()) {
+        if (!deck || !Array.isArray(deck.cards)) return [];
+
+        const ownedByKey = new Map();
+        const cache = this.cardManager.allCardsCache || [];
+        cache.forEach(card => {
+            const key = card.equivalenceKey || this.cardManager.buildCardEquivalenceKey(card);
+            ownedByKey.set(key, (ownedByKey.get(key) || 0) + (card.quantity || 0));
+        });
+
+        const requiredByKey = new Map();
+        deck.cards.forEach(deckCard => {
+            const cardInfo = this.cardManager.getCardBaseInfo(deckCard.id);
+            const key = cardInfo.equivalenceKey || deckCard.equivalenceKey || `${deckCard.type || cardInfo.type || '未知'}|${deckCard.name || cardInfo.name || deckCard.id}`;
+            const existing = requiredByKey.get(key);
+            const quantity = deckCard.quantity || 0;
+            if (existing) {
+                existing.required += quantity;
+            } else {
+                requiredByKey.set(key, {
+                    ...deckCard,
+                    name: cardInfo.name || deckCard.name,
+                    image: cardInfo.image || deckCard.image,
+                    type: cardInfo.type || deckCard.type || '未知',
+                    equivalenceKey: key,
+                    required: quantity
+                });
+            }
+        });
+
+        const missingCards = [];
+        requiredByKey.forEach(card => {
+            const owned = ownedByKey.get(card.equivalenceKey) || 0;
+            const missing = Math.max(0, card.required - owned);
+            if (missing > 0) {
+                missingCards.push({
+                    ...card,
+                    quantity: missing,
+                    requiredQuantity: card.required,
+                    ownedQuantity: owned,
+                    missingQuantity: missing,
+                    isMissingCard: true
+                });
+            }
+        });
+
+        const missingDeck = { ...deck, cards: missingCards };
+        this.sortDeckCards(missingDeck);
+        return missingDeck.cards;
+    }
+
     // 设置卡组封面
     setDeckCover(cardId) {
         const deck = this.getCurrentDeck();

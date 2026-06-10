@@ -11,6 +11,7 @@ export class DeckEditor {
                 
         this.isInAddMode = false;
         this.mode = 'browse'; // 'browse'|'deck-view'|'deck-edit'|'deck-add'|'cover-select'
+        this.isMissingMode = false;
         this.deckTabsContainer = null;
         this.defaultGetDisplayCards = cardManager.getDisplayCards.bind(cardManager);
 
@@ -202,7 +203,10 @@ export class DeckEditor {
     createDeckTab(deck, index) {
         const tab = document.createElement('div');
         tab.className = `deck-tab ${index === this.deckManager.currentDeckIndex ? 'active' : ''}`;
-        
+        if (index === this.deckManager.currentDeckIndex && this.isMissingMode) {
+            tab.classList.add('missing-mode');
+        }
+
         // 修复：只有非当前卡组页签在编辑模式下才禁用
         if (this.deckManager.isEditing && index !== this.deckManager.currentDeckIndex) {
             tab.classList.add('disabled');
@@ -273,10 +277,15 @@ export class DeckEditor {
                     return;
                 }
             } else {
-                // 非编辑模式下可以正常切换卡组
-                this.deckManager.switchDeck(index);
-                this.renderDeckTabs();
-                this.renderCurrentDeck();
+                if (index === this.deckManager.currentDeckIndex) {
+                    this.toggleMissingMode();
+                } else {
+                    // 非编辑模式下可以正常切换卡组，切换卡组时回到普通卡组内容
+                    this.isMissingMode = false;
+                    this.deckManager.switchDeck(index);
+                    this.renderDeckTabs();
+                    this.renderCurrentDeck();
+                }
             }
         });
         
@@ -315,10 +324,11 @@ export class DeckEditor {
             // 添加模式：显示所有卡牌
             return;
         }
-        
-        // 卡组模式：显示当前卡组的卡牌
-        const deckCards = this.deckManager.getDeckDisplayCards();
-        
+
+        const deckCards = this.isMissingMode
+            ? this.deckManager.getDeckMissingCards()
+            : this.deckManager.getDeckDisplayCards();
+
         // 临时修改 cardManager 的行为
         this.cardManager.getDisplayCards = () => {
             return deckCards.map(deckCard => {
@@ -333,8 +343,18 @@ export class DeckEditor {
                 };
             });
         };
-        
+
         this.cardGrid.render();
+        const currentDeck = this.deckManager.getCurrentDeck();
+        this.cardGrid.updateSearchInfo(this.isMissingMode
+            ? `缺卡清单：${deckCards.length} 种卡缺少，点击当前卡组页签返回完整卡组`
+            : `当前卡组：${currentDeck?.name || '新卡组'}（${currentDeck?.totalCount || 0}/60）`);
+    }
+
+    toggleMissingMode() {
+        this.isMissingMode = !this.isMissingMode;
+        this.renderDeckTabs();
+        this.renderCurrentDeck();
     }
 
     // 处理卡牌点击 - 修复编辑模式逻辑
@@ -659,6 +679,7 @@ export class DeckEditor {
     // 修改 enterEditMode 方法，添加删除按钮
     enterEditMode() {
         // debugLog('🔄 进入编辑模式');
+        this.isMissingMode = false;
         this.deckManager.setEditingMode(true);
         this.mode = 'deck-edit';
         if (this.cardGrid) this.cardGrid.setMode('deck-edit');
@@ -1027,6 +1048,7 @@ export class DeckEditor {
     enterAddMode() {
         // debugLog('🔍 进入添加模式');
         
+        this.isMissingMode = false;
         this.isInAddMode = true;
         this.mode = 'deck-add';
         if (this.cardGrid) this.cardGrid.setMode('deck-add');
@@ -1094,6 +1116,7 @@ export class DeckEditor {
     exitEditMode() {
         // debugLog('🚪 退出编辑模式');
         this.deckManager.setEditingMode(false);
+        this.isMissingMode = false;
         this.isInAddMode = false;
         this.deckManager.setSelectingCoverMode(false);
         this.mode = 'deck-view';
@@ -1408,6 +1431,7 @@ export class DeckEditor {
         this.deckTabsContainer = null;
 
         this.mode = 'browse';
+        this.isMissingMode = false;
         if (this.cardGrid) this.cardGrid.setMode('browse');
         
         // 通知 ButtonManager 切换回浏览模式

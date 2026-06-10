@@ -263,24 +263,74 @@ export class CardManager {
     // 修改 extractBaseCardInfo 方法，确保图片路径正确
     extractBaseCardInfo(jsonData, cardType) {
         const baseCards = [];
-        
+
         jsonData.forEach(card => {
             const cardIds = card['卡牌ID'];
             if (cardIds && cardIds.length > 0) {
+                const equivalenceKey = this.buildCardEquivalenceKeyFromRaw(card, cardType);
                 cardIds.forEach(cardId => {
                     if (cardId) {
                         baseCards.push({
                             id: cardId,
                             name: card['卡牌名字'] || card['宝可梦名字'] || '未知',
                             type: cardType,
-                            image: `images/hk${cardId.toString().padStart(8, '0')}.webp` // 直接使用固定路径
+                            quantity: parseInt(card['拥有数量']) || 0,
+                            image: `images/hk${cardId.toString().padStart(8, '0')}.webp`, // 直接使用固定路径
+                            equivalenceKey
                         });
                     }
                 });
             }
         });
-        
-        return baseCards;
+
+        return this.storageService.loadCardQuantities(baseCards, cardType);
+    }
+
+    normalizeCardText(value) {
+        if (value == null) return '';
+        if (typeof value === 'object') return JSON.stringify(value);
+        return String(value).replace(/\s+/g, '').trim();
+    }
+
+    buildCardEquivalenceKeyFromRaw(card, cardType) {
+        const name = card['卡牌名字'] || card['宝可梦名字'] || '未知';
+        const parts = [cardType, name];
+
+        if (cardType === '宝可梦') {
+            parts.push(card['特性名字'] || '');
+            parts.push(card['特性效果'] || '');
+            for (let i = 1; i <= 4; i++) {
+                const skill = card[`技能${i}`] || {};
+                parts.push(skill['名字'] || '');
+                parts.push(Array.isArray(skill['消耗']) ? skill['消耗'].join(',') : (skill['消耗'] || ''));
+                parts.push(skill['伤害'] || '');
+                parts.push(skill['效果'] || '');
+            }
+        } else {
+            parts.push(card['效果'] || '');
+        }
+
+        return parts.map(part => this.normalizeCardText(part)).join('|');
+    }
+
+    buildCardEquivalenceKey(card) {
+        const parts = [card.type || this.currentTab, card.name || '未知'];
+
+        if ((card.type || this.currentTab) === '宝可梦') {
+            parts.push(card.abilityName || '');
+            parts.push(card.abilityEffect || '');
+            for (let i = 1; i <= 4; i++) {
+                const skill = card[`skill${i}`] || {};
+                parts.push(skill['名字'] || '');
+                parts.push(Array.isArray(skill['消耗']) ? skill['消耗'].join(',') : (skill['消耗'] || ''));
+                parts.push(skill['伤害'] || '');
+                parts.push(skill['效果'] || '');
+            }
+        } else {
+            parts.push(card.effect || '');
+        }
+
+        return parts.map(part => this.normalizeCardText(part)).join('|');
     }
 
     getCardBaseInfo(cardId) {
@@ -291,7 +341,8 @@ export class CardManager {
             return {
                 name: currentCard.name,
                 image: currentCard.image,
-                type: currentCard.type
+                type: currentCard.type,
+                equivalenceKey: currentCard.equivalenceKey || this.buildCardEquivalenceKey(currentCard)
             };
         }
         
@@ -303,7 +354,8 @@ export class CardManager {
                 return {
                     name: cachedCard.name,
                     image: cachedCard.image,
-                    type: cachedCard.type
+                    type: cachedCard.type,
+                    equivalenceKey: cachedCard.equivalenceKey
                 };
             }
         }
@@ -314,7 +366,8 @@ export class CardManager {
         return {
             name: `卡牌 ${cardId}`,
             image: defaultImage,
-            type: '未知'
+            type: '未知',
+            equivalenceKey: `未知|卡牌${cardId}`
         };
     }
 
@@ -339,7 +392,8 @@ export class CardManager {
                             name: card['卡牌名字'] || card['宝可梦名字'] || '未知',
                             type: cardType,
                             quantity: parseInt(card['拥有数量']) || 0,
-                            image: this.generateDefaultImage(cardId) // 使用统一的图片路径生成
+                            image: this.generateDefaultImage(cardId), // 使用统一的图片路径生成
+                            equivalenceKey: this.buildCardEquivalenceKeyFromRaw(card, cardType)
                         };
 
                         // 宝可梦卡牌特有字段
@@ -371,9 +425,18 @@ export class CardManager {
         const card = this.cards.find(c => c.id === cardId);
         if (card) {
             card.quantity = Math.max(0, card.quantity + change);
+            this.updateCachedCardQuantity(cardId, card.quantity);
             return card.quantity;
         }
         return 0;
+    }
+
+    updateCachedCardQuantity(cardId, quantity) {
+        if (!this.allCardsCache) return;
+        const cachedCard = this.allCardsCache.find(c => c.id === cardId);
+        if (cachedCard) {
+            cachedCard.quantity = quantity;
+        }
     }
 
     // 强制显示所有卡牌

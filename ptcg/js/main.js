@@ -105,6 +105,7 @@ class PTCGApp {
 
             // 设置为全局变量便于访问
             window.buttonManager = this.buttonManager;
+            window.statsManager = this.statsManager;
 
             // 修改 StatsManager 的回调以使用 ButtonManager
             this.statsManager.onStatsChange = (isStatMode) => {

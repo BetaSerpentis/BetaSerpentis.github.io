@@ -137,9 +137,11 @@ export class CardGrid {
                 const currentDeck = this.deckManager.getCurrentDeck();
                 if (currentDeck) {
                     const deckCard = currentDeck.cards.find(c => c.id === card.id);
-                    displayQuantity = deckCard ? deckCard.quantity : 0;
-                    
-                    if (isDeckAddMode) {
+                    displayQuantity = card.missingQuantity ?? (deckCard ? deckCard.quantity : 0);
+
+                    if (card.isMissingCard) {
+                        shouldDisplayQuantity = displayQuantity > 0;
+                    } else if (isDeckAddMode) {
                         shouldDisplayQuantity = displayQuantity > 0;
                     } else {
                         const isDeckEditMode = !!document.querySelector('.deck-edit-button');
@@ -158,7 +160,7 @@ export class CardGrid {
             quantity.textContent = displayQuantity;
             cardElement.appendChild(quantity);
         }
-        
+
         cardElement.appendChild(img);
         
         // 绑定事件 - 使用改进的触摸处理
