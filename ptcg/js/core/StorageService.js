@@ -1,4 +1,4 @@
-import { STORAGE_KEYS, CARD_TYPES } from '../utils/constants.js';
+import { STORAGE_KEYS, CARD_TYPES, debugLog } from '../utils/constants.js';
 import { showSaveSuccess, showSaveError } from '../utils/helpers.js';
 
 export class StorageService {
@@ -174,7 +174,7 @@ export class StorageService {
             // console.log('📥 开始执行导入操作...');
             
             // 验证导入数据
-            console.log('导入数据验证:', {
+            debugLog('导入数据验证:', {
                 卡牌类型: Object.keys(importData.cards),
                 各类型卡牌数量: Object.keys(importData.cards).map(type => ({
                     类型: type,
@@ -189,7 +189,7 @@ export class StorageService {
             
             // 验证本地存储是否更新
             const storedData = this.getAllCardQuantities();
-            console.log('本地存储验证:', {
+            debugLog('本地存储验证:', {
                 存储的类型: Object.keys(storedData),
                 各类型存储数量: Object.keys(storedData).map(type => ({
                     类型: type,
@@ -208,7 +208,7 @@ export class StorageService {
                 deckUpdateCount = restoredDecks.length;
             }
             
-            console.log('✅ 导入操作完成:', {
+            debugLog('✅ 导入操作完成:', {
                 保存的卡牌: cardUpdateCount,
                 更新的卡组: deckUpdateCount
             });

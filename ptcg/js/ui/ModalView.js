@@ -1,3 +1,5 @@
+import { debugLog } from '../utils/constants.js';
+
 export class ModalView {
     constructor(cardManager, imageLoader) {
         this.cardManager = cardManager;
@@ -220,7 +222,7 @@ export class ModalView {
 
     // 显示模态框
     show(index) {
-        console.log('🔄 ModalView.show 被调用', {
+        debugLog('🔄 ModalView.show 被调用', {
             index: index,
             time: new Date().toISOString()
         });

@@ -11,6 +11,7 @@ export class CardManager {
         this.filteredCards = [];
         this.currentTab = '宝可梦';
         this.isShowingAllCards = true;
+        this.hasActiveSearch = false;
         
         // 新增：全局卡牌缓存，存储所有卡牌的基础信息
         this.allCardsCache = null;
@@ -99,6 +100,7 @@ export class CardManager {
     resetGenerationFilter() {
         this.currentGeneration = 'all';
         this.filteredCards = [...this.cards];
+        this.isShowingAllCards = true;
     }
 
     // 新增：获取宝可梦的世代
@@ -121,14 +123,15 @@ export class CardManager {
         if (!searchText.trim()) {
             // 空搜索时显示所有卡牌，但要考虑世代筛选
             let filtered = [...this.cards];
-            
+
             // 应用世代筛选（如果是宝可梦类型）
             if (this.currentTab === '宝可梦' && this.currentGeneration !== 'all') {
                 filtered = this.filterByGeneration(filtered, this.currentGeneration);
             }
-            
+
             this.filteredCards = filtered;
             this.isShowingAllCards = true;
+            this.hasActiveSearch = false;
             return this.filteredCards;
         }
 
@@ -167,20 +170,21 @@ export class CardManager {
 
         this.filteredCards = filtered;
         this.isShowingAllCards = false;
+        this.hasActiveSearch = true;
         return this.filteredCards;
     }
 
-    // 修改：获取当前显示的卡牌，考虑世代筛选
+    // 修改：获取当前显示的卡牌，考虑搜索和世代筛选
     getDisplayCards() {
-        if (this.filteredCards.length > 0) {
+        if (!this.isShowingAllCards || this.hasActiveSearch) {
             return this.filteredCards;
         }
-        
-        // 如果没有搜索结果，但应用了世代筛选，则返回世代筛选后的结果
+
+        // 如果应用了世代筛选，则返回世代筛选后的结果；允许结果为空
         if (this.currentTab === '宝可梦' && this.currentGeneration !== 'all') {
             return this.filterByGeneration(this.cards, this.currentGeneration);
         }
-        
+
         return this.cards;
     }
 
@@ -210,6 +214,7 @@ export class CardManager {
             // 重置筛选状态
             this.resetGenerationFilter();
             this.filteredCards = [...this.cards];
+            this.hasActiveSearch = false;
             
             // console.log(`成功加载 ${this.cards.length} 张${cardType}卡牌`);
             return this.cards;
@@ -375,6 +380,7 @@ export class CardManager {
     showAllCards() {
         this.filteredCards = [...this.cards];
         this.isShowingAllCards = true;
+        this.hasActiveSearch = false;
         return this.filteredCards;
     }
 

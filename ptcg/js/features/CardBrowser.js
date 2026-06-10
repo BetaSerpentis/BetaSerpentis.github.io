@@ -14,25 +14,23 @@ export class CardBrowser {
         this.init();
     }
 
-    // 修改 init 方法，移除事件绑定
     init() {
+        if (this._initialized) return;
+        this._initialized = true;
         this.bindEvents();
     }
 
-    // 修改 bindEvents 方法，只绑定搜索相关事件
+    // 只绑定搜索相关事件；卡牌点击由 main.js 统一处理
     bindEvents() {
-        this.searchButton.addEventListener('click', () => {
+        this.searchButton?.addEventListener('click', () => {
             this.performSearch();
         });
-        
-        this.searchInput.addEventListener('keypress', (e) => {
+
+        this.searchInput?.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 this.performSearch();
             }
         });
-        
-        // 注意：不再在这里设置 cardGrid.onCardClick
-        // 事件现在由 main.js 统一处理
     }
 
     // CardBrowser.js - 修复 handleCardClick 方法
@@ -116,9 +114,11 @@ export class CardBrowser {
             await this.cardManager.loadCardData(cardType);
             
             // 关键：确保 filteredCards 包含所有该类型的卡牌
-            this.cardManager.filteredCards = this.cardManager.cards.filter(card => 
+            this.cardManager.filteredCards = this.cardManager.cards.filter(card =>
                 card.type === cardType
             );
+            this.cardManager.isShowingAllCards = true;
+            this.cardManager.hasActiveSearch = false;
             
             // 如果是宝可梦类型，应用当前世代筛选（如果有的话）
             if (cardType === '宝可梦' && this.cardManager.getCurrentGeneration() !== 'all') {
