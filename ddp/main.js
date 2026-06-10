@@ -283,6 +283,8 @@ class VisualGame {
         // 创建新 handler 并保存引用
         this._bgmStartHandler = () => {
             if (!this.bgmStarted) {
+                // iOS 静音开关检测（首次用户手势中执行）
+                this.audioManager.detectSilentMode();
                 this.audioManager.fadeInBGM(2000, 0.5);
                 this.bgmStarted = true;
                 console.log('[BGM] 游戏开始，播放背景音乐');
