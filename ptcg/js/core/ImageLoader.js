@@ -22,7 +22,12 @@ export class ImageLoader {
                         const src = img.dataset.src;
                         const key = img.dataset.cardId || src;
 
-                        if (!this.loadedImages.has(key) && !this.failedImages.has(key)) {
+                        if (this.loadedImages.has(key)) {
+                            img.src = src;
+                            img.classList.add('loaded');
+                            img.classList.remove('error');
+                            img.dataset.loading = 'false';
+                        } else if (!this.failedImages.has(key)) {
                             this.loadImageWithRetry(img, src, key, CONFIG.imageRetryCount);
                         }
                     }

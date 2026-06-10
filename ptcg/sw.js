@@ -1,5 +1,5 @@
 // 定义缓存名称和版本，便于后续更新和管理
-const CACHE_NAME = 'ptcg-cache-v2';
+const CACHE_NAME = 'ptcg-cache-v3';
 // 需要预缓存的关键静态资源列表
 const urlsToCache = [
   '/ptcg/',
@@ -23,6 +23,7 @@ const urlsToCache = [
   '/ptcg/js/utils/ButtonManager.js',
   '/ptcg/js/utils/constants.js',
   '/ptcg/js/utils/TouchManager.js',
+  '/ptcg/data_fast/pokemon-initial.tsv',
   // 可以根据需要继续添加其他核心JS文件
   // 例如：'/ptcg/data/pokemon-cards.json' （如果数据量不大且关键）
 ];

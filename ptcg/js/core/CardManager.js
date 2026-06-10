@@ -188,37 +188,82 @@ export class CardManager {
         return this.cards;
     }
 
-    // 修改：加载卡牌数据时重置世代筛选
-    async loadCardData(cardType) {
+    unescapeTsvValue(value) {
+        return String(value ?? '').replace(/\\([\\trn])/g, (_, ch) => {
+            if (ch === 't') return '\t';
+            if (ch === 'r') return '\r';
+            if (ch === 'n') return '\n';
+            return '\\';
+        });
+    }
+
+    parseTsv(text) {
+        const lines = text.split(/\r?\n/).filter(line => line.length > 0);
+        if (lines.length === 0) return [];
+        const headers = lines[0].split('\t');
+        return lines.slice(1).map(line => {
+            const values = line.split('\t').map(value => this.unescapeTsvValue(value));
+            const row = {};
+            headers.forEach((header, index) => { row[header] = values[index] || ''; });
+            return row;
+        });
+    }
+
+    loadCardQuantitiesFromStorage(cards, cardType) {
+        return this.storageService.loadCardQuantities(cards, cardType);
+    }
+
+    async loadInitialPokemonCards() {
+        const response = await fetch('data_fast/pokemon-initial.tsv');
+        if (!response.ok) throw new Error(`HTTP错误! 状态: ${response.status}`);
+        const rows = this.parseTsv(await response.text());
+        const cards = rows.map(row => ({
+            id: row.id,
+            name: row.name || '未知',
+            type: row.type || '宝可梦',
+            number: row.number || '未知',
+            attribute: row.attribute || '未知',
+            image: row.image || this.generateDefaultImage(row.id),
+            quantity: parseInt(row.quantity) || 0,
+            equivalenceKey: row.equivalenceKey || ''
+        }));
+        return this.loadCardQuantitiesFromStorage(cards, '宝可梦');
+    }
+
+    async fetchProcessedCardData(cardType) {
         const config = CARD_TYPES[cardType];
         if (!config) {
             throw new Error(`未知的卡牌类型: ${cardType}`);
         }
 
+        const response = await fetch(config.jsonFile);
+
+        if (!response.ok) {
+            throw new Error(`HTTP错误! 状态: ${response.status}`);
+        }
+
+        const jsonData = await response.json();
+        let processedCards = this.processCardData(jsonData, cardType);
+
+        // 从本地存储加载数量数据
+        processedCards = this.storageService.loadCardQuantities(processedCards, cardType);
+        return processedCards;
+    }
+
+    // 修改：加载卡牌数据时重置世代筛选
+    async loadCardData(cardType) {
         try {
-            const response = await fetch(config.jsonFile);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP错误! 状态: ${response.status}`);
-            }
-            
-            const jsonData = await response.json();
-            let processedCards = this.processCardData(jsonData, cardType);
-            
-            // 从本地存储加载数量数据
-            processedCards = this.storageService.loadCardQuantities(processedCards, cardType);
-            
-            this.cards = processedCards;
+            this.cards = await this.fetchProcessedCardData(cardType);
             this.currentTab = cardType;
-            
+
             // 重置筛选状态
             this.resetGenerationFilter();
             this.filteredCards = [...this.cards];
             this.hasActiveSearch = false;
-            
+
             // console.log(`成功加载 ${this.cards.length} 张${cardType}卡牌`);
             return this.cards;
-            
+
         } catch (error) {
             console.error(`加载${cardType}JSON数据失败:`, error);
             throw error;
