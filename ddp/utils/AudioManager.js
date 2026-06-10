@@ -107,10 +107,6 @@ class AudioManager {
         }, 50);
     }
 
-    playPoint(volume = 0.5)  { this.play('point', volume); }
-    playClear(volume = 0.6)  { this.play('clear', volume); }
-    playSummon(volume = 0.7) { this.play('summon', volume); }
-
     toggleMute() {
         this.isMuted = !this.isMuted;
         if (this.bgm) this.bgm.volume = this.isMuted ? 0 : 0.5;
@@ -122,37 +118,24 @@ class AudioManager {
     }
     isLoading() { return !this.isLoaded; }
 
-    // iOS 静音开关检测：首次用户手势中创建 AudioContext 测试音频路由
-    detectSilentMode() {
-        if (this._silentCheckDone) return;
-        this._silentCheckDone = true;
-
-        try {
-            const AC = window.AudioContext || window.webkitAudioContext;
-            if (!AC) return;
-            const ctx = new AC();
-            const buf = ctx.createBuffer(1, 1, 22050);
-            const src = ctx.createBufferSource();
-            src.buffer = buf;
-            src.connect(ctx.destination);
-
-            // 播放极短无声片段，检测 iOS 是否因静音开关挂起上下文
-            const start = ctx.currentTime;
-            src.start(start);
-            src.stop(start + 0.001);
-
-            // 延时检查 AudioContext 状态
-            setTimeout(() => {
-                if (ctx.state === 'suspended') {
-                    this._silentModeDetected = true;
-                    this.isMuted = true;
-                }
-                ctx.close().catch(() => {});
-            }, 200);
-        } catch (e) {
-            // 不支持则忽略
-        }
+    // 解锁 iOS 音频上下文（在用户手势中调用一次）
+    _unlockAudio() {
+        if (this._unlocked) return;
+        this._unlocked = true;
+        // 静默 play() 解锁浏览器音频策略
+        const u = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=');
+        u.volume = 0.001;
+        u.play().catch(() => {}).then(() => u.remove());
     }
+
+    // 播放音效 — 延迟到手势外执行，确保 iOS 尊重静音开关
+    _playDeferred(soundName, volume) {
+        setTimeout(() => this.play(soundName, volume), 50);
+    }
+
+    playPoint(volume = 0.5)  { this._playDeferred('point', volume); }
+    playClear(volume = 0.6)  { this._playDeferred('clear', volume); }
+    playSummon(volume = 0.7) { this._playDeferred('summon', volume); }
 }
 
 export default AudioManager;
