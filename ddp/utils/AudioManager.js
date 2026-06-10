@@ -4,8 +4,10 @@ class AudioManager {
         this.sounds = new Map();
         this.bgm = null;
         this.isMuted = false;
+        this._silentModeDetected = false;
+        this._silentCheckDone = false;
         this.isLoaded = false;
-        this._waiting = new Set(); // 正在等待加载的音效
+        this._waiting = new Set();
         this.preloadSounds();
     }
 
@@ -119,6 +121,38 @@ class AudioManager {
         if (this.bgm) this.bgm.volume = muted ? 0 : 0.5;
     }
     isLoading() { return !this.isLoaded; }
+
+    // iOS 静音开关检测：首次用户手势中创建 AudioContext 测试音频路由
+    detectSilentMode() {
+        if (this._silentCheckDone) return;
+        this._silentCheckDone = true;
+
+        try {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (!AC) return;
+            const ctx = new AC();
+            const buf = ctx.createBuffer(1, 1, 22050);
+            const src = ctx.createBufferSource();
+            src.buffer = buf;
+            src.connect(ctx.destination);
+
+            // 播放极短无声片段，检测 iOS 是否因静音开关挂起上下文
+            const start = ctx.currentTime;
+            src.start(start);
+            src.stop(start + 0.001);
+
+            // 延时检查 AudioContext 状态
+            setTimeout(() => {
+                if (ctx.state === 'suspended') {
+                    this._silentModeDetected = true;
+                    this.isMuted = true;
+                }
+                ctx.close().catch(() => {});
+            }, 200);
+        } catch (e) {
+            // 不支持则忽略
+        }
+    }
 }
 
 export default AudioManager;
