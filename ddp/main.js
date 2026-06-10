@@ -284,13 +284,9 @@ class VisualGame {
         this._bgmStartHandler = () => {
             if (!this.bgmStarted) {
                 this.bgmStarted = true;
-                // iOS：在用户手势内做一次静默 play() 解锁音频上下文
-                this.audioManager._unlockAudio();
-                // 延迟到手势外再播放，这样 iOS 才会尊重静音开关
-                setTimeout(() => {
-                    this.audioManager.fadeInBGM(2000, 0.5);
-                }, 300);
-                console.log('[BGM] 游戏开始（延迟播放以适配静音开关）');
+                // Web Audio API 版：在用户手势中确保 AudioContext 创建并开始播放
+                this.audioManager.fadeInBGM(2000, 0.5);
+                console.log('[BGM] 游戏开始，播放背景音乐');
 
                 // 移除自身
                 this.throwBtn.removeEventListener('click', this._bgmStartHandler);
