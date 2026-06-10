@@ -1,4 +1,6 @@
 // ptcg/js/core/DeckManager.js
+import { debugLog } from '../utils/constants.js';
+
 export class DeckManager {
     constructor(storageService, cardManager) {
         this.storageService = storageService;
@@ -112,8 +114,8 @@ export class DeckManager {
     sortDeckCards(deck) {
         if (!deck || !deck.cards || deck.cards.length === 0) return;
         
-        console.log('🔄 开始对卡组进行排序:', deck.name);
-        console.log('排序前卡牌:', deck.cards.map(c => ({id: c.id, name: c.name})));
+        debugLog('🔄 开始对卡组进行排序:', deck.name);
+        debugLog('排序前卡牌:', deck.cards.map(c => ({id: c.id, name: c.name})));
         
         const typeOrder = this.getCardTypeOrder();
         
@@ -130,7 +132,7 @@ export class DeckManager {
             
             // 首先按类型排序
             if (orderA !== orderB) {
-                console.log(`类型排序: ${typeA}(${orderA}) vs ${typeB}(${orderB})`);
+                debugLog(`类型排序: ${typeA}(${orderA}) vs ${typeB}(${orderB})`);
                 return orderA - orderB;
             }
             
@@ -156,8 +158,8 @@ export class DeckManager {
             }
             
             if (result !== 0) {
-                console.log(`同类型(${typeA})排序结果:`, { 
-                    cardA: a.name, 
+                debugLog(`同类型(${typeA})排序结果:`, {
+                    cardA: a.name,
                     cardB: b.name, 
                     result 
                 });
@@ -166,7 +168,7 @@ export class DeckManager {
             return result;
         });
         
-        console.log('✅ 排序完成，排序后卡牌:', deck.cards.map(c => ({id: c.id, name: c.name})));
+        debugLog('✅ 排序完成，排序后卡牌:', deck.cards.map(c => ({id: c.id, name: c.name})));
     }
 
     // 宝可梦卡排序规则
@@ -178,7 +180,7 @@ export class DeckManager {
         if (numberA !== numberB) {
             const numberCompare = this.compareNumbers(numberA, numberB);
             if (numberCompare !== 0) {
-                console.log(`宝可梦编号比较: ${numberA} vs ${numberB} = ${numberCompare}`);
+                debugLog(`宝可梦编号比较: ${numberA} vs ${numberB} = ${numberCompare}`);
                 return numberCompare;
             }
         }
@@ -188,13 +190,13 @@ export class DeckManager {
         const nameB = deckCardB.name || '';
         if (nameA !== nameB) {
             const nameCompare = nameA.localeCompare(nameB, 'zh-CN');
-            console.log(`宝可梦名称比较: ${nameA} vs ${nameB} = ${nameCompare}`);
+            debugLog(`宝可梦名称比较: ${nameA} vs ${nameB} = ${nameCompare}`);
             return nameCompare;
         }
         
         // 同名称按ID排序
         const idCompare = deckCardA.id.localeCompare(deckCardB.id);
-        console.log(`宝可梦ID比较: ${deckCardA.id} vs ${deckCardB.id} = ${idCompare}`);
+        debugLog(`宝可梦ID比较: ${deckCardA.id} vs ${deckCardB.id} = ${idCompare}`);
         return idCompare;
     }
 
@@ -207,7 +209,7 @@ export class DeckManager {
         if (numberA !== numberB) {
             const numberCompare = this.compareNumbers(numberA, numberB);
             if (numberCompare !== 0) {
-                console.log(`${cardA?.type || '未知'}编号比较: ${numberA} vs ${numberB} = ${numberCompare}`);
+                debugLog(`${cardA?.type || '未知'}编号比较: ${numberA} vs ${numberB} = ${numberCompare}`);
                 return numberCompare;
             }
         }
@@ -217,7 +219,7 @@ export class DeckManager {
         const nameB = deckCardB.name || '';
         if (nameA !== nameB) {
             const nameCompare = nameA.localeCompare(nameB, 'zh-CN');
-            console.log(`${cardA?.type || '未知'}名称比较: ${nameA} vs ${nameB} = ${nameCompare}`);
+            debugLog(`${cardA?.type || '未知'}名称比较: ${nameA} vs ${nameB} = ${nameCompare}`);
             return nameCompare;
         }
         
@@ -233,7 +235,7 @@ export class DeckManager {
         const nameCompare = nameA.localeCompare(nameB, 'zh-CN');
         
         if (nameCompare !== 0) {
-            console.log(`${cardA?.type || '未知'}名称比较: ${nameA} vs ${nameB} = ${nameCompare}`);
+            debugLog(`${cardA?.type || '未知'}名称比较: ${nameA} vs ${nameB} = ${nameCompare}`);
             return nameCompare;
         }
         
@@ -268,11 +270,11 @@ export class DeckManager {
 
     // 更新卡组中的卡牌数量 - 确保排序被正确调用
     updateCardQuantity(cardId, change) {
-        console.log('🔄 DeckManager: 更新卡牌数量', { cardId, change });
+        debugLog('🔄 DeckManager: 更新卡牌数量', { cardId, change });
         
         const deck = this.getCurrentDeck();
         if (!deck) {
-            console.log('❌ 没有找到当前卡组');
+            debugLog('❌ 没有找到当前卡组');
             return null;
         }
 
@@ -280,11 +282,11 @@ export class DeckManager {
         
         if (existingCard) {
             existingCard.quantity = Math.max(0, existingCard.quantity + change);
-            console.log('更新现有卡牌数量:', { id: cardId, quantity: existingCard.quantity });
+            debugLog('更新现有卡牌数量:', { id: cardId, quantity: existingCard.quantity });
             
             if (existingCard.quantity === 0) {
                 deck.cards = deck.cards.filter(card => card.id !== cardId);
-                console.log('卡牌数量为0，从卡组移除');
+                debugLog('卡牌数量为0，从卡组移除');
             }
         } else if (change > 0) {
             const cardData = this.cardManager.cards.find(card => card.id === cardId);
@@ -298,23 +300,23 @@ export class DeckManager {
                     quantity: change
                 };
                 deck.cards.push(newCard);
-                console.log('添加新卡牌到卡组:', newCard);
+                debugLog('添加新卡牌到卡组:', newCard);
             } else {
-                console.log('❌ 没有找到卡牌数据');
+                debugLog('❌ 没有找到卡牌数据');
             }
         }
 
         deck.totalCount = deck.cards.reduce((total, card) => total + card.quantity, 0);
-        console.log('卡组总数量:', deck.totalCount);
+        debugLog('卡组总数量:', deck.totalCount);
         
         // 自动排序 - 确保每次更新后都重新排序
-        console.log('🔄 执行卡组排序...');
+        debugLog('🔄 执行卡组排序...');
         this.sortDeckCards(deck);
         
         this.saveDecks();
         
         const result = deck.cards.find(card => card.id === cardId);
-        console.log('最终结果:', result);
+        debugLog('最终结果:', result);
         return result;
     }
 
@@ -512,7 +514,7 @@ export class DeckManager {
             }
         }
         
-        console.log(`✅ 成功恢复 ${restoredDecks.length} 个卡组，并已排序`);
+        debugLog(`✅ 成功恢复 ${restoredDecks.length} 个卡组，并已排序`);
         return restoredDecks;
     }
 
@@ -548,7 +550,7 @@ export class DeckManager {
                 this.decks = this.restoreDecksFromMinimized(validatedDecks);
                 this.currentDeckIndex = 0;
                 this.saveDecks();
-                console.log(`✅ 成功导入 ${validatedDecks.length} 个卡组并排序`);
+                debugLog(`✅ 成功导入 ${validatedDecks.length} 个卡组并排序`);
                 return true;
             } else {
                 console.warn('⚠️ 没有有效的卡组数据可导入');

@@ -2,7 +2,6 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>宝可梦卡牌库</title>
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/ptcg.css">
@@ -13,14 +12,14 @@
     <meta name="apple-mobile-web-app-orientations" content="portrait">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <script>
-    if ('serviceWorker' in navigator) {
+    if ('serviceWorker' in navigator && !['localhost', '127.0.0.1'].includes(location.hostname)) {
     window.addEventListener('load', function() {
         navigator.serviceWorker.register('/ptcg/sw.js', { scope: '/ptcg/' })
         .then(function(registration) {
             console.log('ServiceWorker registered:', registration.scope);
         })
         .catch(function(error) {
-            console.log('ServiceWorker failed:', error);
+            console.warn('ServiceWorker registration skipped:', error);
         });
     });
     }

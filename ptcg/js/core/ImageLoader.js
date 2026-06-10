@@ -19,11 +19,11 @@ export class ImageLoader {
                         }
                     } else if (entry.target.classList.contains('card-img')) {
                         const img = entry.target;
-                        const index = img.dataset.index;
                         const src = img.dataset.src;
-                        
-                        if (!this.loadedImages.has(index) && !this.failedImages.has(index)) {
-                            this.loadImageWithRetry(img, src, index, CONFIG.imageRetryCount);
+                        const key = img.dataset.cardId || src;
+
+                        if (!this.loadedImages.has(key) && !this.failedImages.has(key)) {
+                            this.loadImageWithRetry(img, src, key, CONFIG.imageRetryCount);
                         }
                     }
                 }
@@ -33,11 +33,11 @@ export class ImageLoader {
 
     // 带重试的图片加载
     // ImageLoader.js - 在 loadImageWithRetry 方法中添加调试信息
-    loadImageWithRetry(img, src, index, retries) {
+    loadImageWithRetry(img, src, key, retries) {
         if (img.dataset.loading === 'true') return;
         img.dataset.loading = 'true';
-        
-        // // console.log('🖼️ 开始加载图片:', src, '索引:', index);
+
+        // // console.log('🖼️ 开始加载图片:', src, 'key:', key);
         
         const tempImg = new Image();
         
@@ -46,8 +46,8 @@ export class ImageLoader {
             img.src = src;
             img.classList.add('loaded');
             img.classList.remove('error');
-            this.loadedImages.add(index);
-            this.failedImages.delete(index);
+            this.loadedImages.add(key);
+            this.failedImages.delete(key);
             img.dataset.loading = 'false';
         }.bind(this);
         
@@ -55,13 +55,13 @@ export class ImageLoader {
             // console.log('❌ 图片加载失败:', src, '剩余重试次数:', retries);
             if (retries > 0) {
                 setTimeout(() => {
-                    this.loadImageWithRetry(img, src, index, retries - 1);
+                    this.loadImageWithRetry(img, src, key, retries - 1);
                 }, 500);
             } else {
                 const svgPlaceholder = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="252" height="352" viewBox="0 0 252 352"><rect width="252" height="352" fill="%23FFCC00"/><text x="126" y="176" font-family="Arial" font-size="14" text-anchor="middle" fill="%23000000">图片加载失败</text></svg>`;
                 img.src = svgPlaceholder;
                 img.classList.add('error');
-                this.failedImages.add(index);
+                this.failedImages.add(key);
                 img.dataset.loading = 'false';
             }
         }.bind(this);
@@ -90,12 +90,14 @@ export class ImageLoader {
     // 预加载相邻图片
     preloadAdjacentImages(centerIndex, cards, cardElements) {
         for (let i = Math.max(0, centerIndex - 2); i <= Math.min(cards.length - 1, centerIndex + 2); i++) {
-            if (!this.loadedImages.has(i.toString()) && !this.failedImages.has(i.toString())) {
+            const card = cards[i];
+            const key = card?.id || card?.image;
+            if (key && !this.loadedImages.has(key) && !this.failedImages.has(key)) {
                 const cardElement = cardElements[i];
                 if (cardElement) {
                     const img = cardElement.querySelector('.card-img');
                     if (img) {
-                        this.loadImageWithRetry(img, img.dataset.src, i, CONFIG.imageRetryCount);
+                        this.loadImageWithRetry(img, img.dataset.src, key, CONFIG.imageRetryCount);
                     }
                 }
             }

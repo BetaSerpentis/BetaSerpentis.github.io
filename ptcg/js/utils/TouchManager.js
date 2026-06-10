@@ -1,3 +1,5 @@
+import { debugLog } from './constants.js';
+
 export class TouchManager {
     constructor() {
         this.initTouchPrevention();
@@ -31,7 +33,7 @@ export class TouchManager {
         // 禁用iOS长按菜单
         document.documentElement.style.webkitTouchCallout = 'none';
         
-        console.log('✅ TouchManager: 移动端触摸事件防护已启用');
+        debugLog('✅ TouchManager: 移动端触摸事件防护已启用');
     }
     
     // 为特定元素启用触摸（用于输入框）

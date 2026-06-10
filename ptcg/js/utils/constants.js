@@ -43,8 +43,15 @@ export const CONFIG = {
     batchSize: 50,
     modalDragThreshold: 80,
     imageRetryCount: 2,
-    debounceTime: 500
+    debounceTime: 500,
+    debug: false
 };
+
+export function debugLog(...args) {
+    if (CONFIG.debug) {
+        console.log(...args);
+    }
+}
 
 // 本地存储键名 - 保持原有键名兼容，只添加新的卡组键
 export const STORAGE_KEYS = {

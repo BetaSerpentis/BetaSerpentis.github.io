@@ -15,6 +15,7 @@ import { DeckEditor } from './features/DeckEditor.js';
 
 import { ButtonManager } from './utils/ButtonManager.js';
 import { TouchManager } from './utils/TouchManager.js';
+import { debugLog } from './utils/constants.js';
 
 class PTCGApp {
     constructor() {
@@ -41,7 +42,7 @@ class PTCGApp {
             } 
 
             // 确保 ImageLoader 初始化完成
-            // console.log('初始化 ImageLoader 懒加载');
+            // debugLog('初始化 ImageLoader 懒加载');
             this.imageLoader.initLazyLoading();
             
             // 初始化卡组管理器
@@ -88,11 +89,9 @@ class PTCGApp {
             // 让 DeckEditor 可以访问 CardBrowser
             this.deckEditor.cardBrowser = this.cardBrowser;
             
-            // 初始化组件
-            this.cardGrid.init(); // 确保 CardGrid 初始化
-            this.tabManager.init();
+            // 初始化组件（CardBrowser/TabManager 在构造时绑定事件，避免重复 init）
+            this.cardGrid.init();
             this.statsManager.init();
-            this.cardBrowser.init();
 
             // 初始化 ButtonManager
             this.buttonManager = new ButtonManager(
@@ -113,14 +112,13 @@ class PTCGApp {
                 this.onStatsChange(isStatMode);
             };
             
-            // 绑定全局事件
-            this.bindGlobalEvents();
+            // 搜索事件由 CardBrowser 管理，避免重复绑定
             this.bindFeatureTabs();
                         
             // 加载初始数据
             await this.cardBrowser.loadCardData('宝可梦');
             
-            console.log('✅ 应用初始化完成');
+            debugLog('✅ 应用初始化完成');
             
             // 首屏渲染完成后，后台逐批预加载（间隔 2s，避免连续 JSON parse 阻塞主线程）
             setTimeout(() => {
@@ -153,11 +151,11 @@ class PTCGApp {
 
     // ===== 新增：统一的卡牌点击处理 =====
     handleCardClick(index, button) {
-        console.log('🔄 Main: 卡牌点击事件分发', { index, button });
+        debugLog('🔄 Main: 卡牌点击事件分发', { index, button });
         
         // 检查统计模式（最高优先级）
         if (this.statsManager.isStatModeActive()) {
-            console.log('📊 Main: 分发到统计模式');
+            debugLog('📊 Main: 分发到统计模式');
             const change = button === 'left' ? 1 : -1;
             const result = this.statsManager.updateCardQuantity(index, change);
             if (result) {
@@ -170,21 +168,21 @@ class PTCGApp {
         const isDeckMode = this.deckEditor && this.deckEditor.mode !== 'browse';
         
         if (isDeckMode) {
-            console.log('🎴 Main: 分发到卡组编辑模式');
+            debugLog('🎴 Main: 分发到卡组编辑模式');
             this.deckEditor.handleCardClick(index, button);
         } else {
-            console.log('🌐 Main: 分发到模态框');
+            debugLog('🌐 Main: 分发到模态框');
             this.modalView.show(index);
         }
     }
 
     // ===== 新增：统一的数量变化处理 =====
     handleQuantityChange(index, change) {
-        console.log('🔄 Main: 数量变化事件分发', { index, change });
+        debugLog('🔄 Main: 数量变化事件分发', { index, change });
         
         // 统计模式处理
         if (this.statsManager.isStatModeActive()) {
-            console.log('📊 Main: 统计模式数量变化');
+            debugLog('📊 Main: 统计模式数量变化');
             const result = this.statsManager.updateCardQuantity(index, change);
             if (result) {
                 this.cardGrid.updateCardQuantityDisplay(result.cardId, result.quantity);
@@ -195,7 +193,7 @@ class PTCGApp {
         // 卡组模式处理（显式状态）
         const isDeckMode = this.deckEditor && this.deckEditor.mode !== 'browse';
         if (isDeckMode) {
-            console.log('🎴 Main: 卡组模式数量变化');
+            debugLog('🎴 Main: 卡组模式数量变化');
             this.deckEditor.handleQuantityChange(index, change);
         }
     }
@@ -270,7 +268,7 @@ class PTCGApp {
     
     // 统计模式变化回调
     onStatsChange(isStatMode) {
-        console.log(`统计模式: ${isStatMode ? '开启' : '关闭'}`);
+        debugLog(`统计模式: ${isStatMode ? '开启' : '关闭'}`);
         
         // 如果切换到非统计模式且当前是宝可梦类型，确保世代筛选正确应用
         if (!isStatMode && this.cardManager && this.tabManager) {

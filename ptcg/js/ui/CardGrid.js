@@ -1,3 +1,5 @@
+import { debugLog } from '../utils/constants.js';
+
 export class CardGrid {
     constructor(cardManager, imageLoader, onCardClick, onQuantityChange) {
         this.cardManager = cardManager;
@@ -116,6 +118,7 @@ export class CardGrid {
         img.className = 'card-img';
         img.dataset.src = card.image;
         img.dataset.index = index;
+        img.dataset.cardId = card.id;
         img.alt = card.name;
         img.dataset.loading = 'false';
         
@@ -188,7 +191,7 @@ export class CardGrid {
         
         // 清理函数
         const cleanupLongPress = () => {
-            console.log('🧹 CardGrid: 清理长按计时器');
+            debugLog('🧹 CardGrid: 清理长按计时器');
             if (touchState.longPressTimer) {
                 clearTimeout(touchState.longPressTimer);
                 touchState.longPressTimer = null;
@@ -201,11 +204,11 @@ export class CardGrid {
         
         // 移动端触摸事件
         if (isMobile) {
-            console.log('📱 CardGrid: 移动端事件绑定');
+            debugLog('📱 CardGrid: 移动端事件绑定');
             
             // 触摸开始
             cardElement.addEventListener('touchstart', (e) => {
-                console.log('👆 CardGrid: 触摸开始');
+                debugLog('👆 CardGrid: 触摸开始');
                 
                 // 只处理单指触摸
                 if (e.touches.length > 1) return;
@@ -225,18 +228,18 @@ export class CardGrid {
                 touchState.longPressTimer = setTimeout(() => {
                     // 长按事件 - 但如果已经开始拖拽就不触发
                     if (!touchState.isDragging && !touchState.hasMoved) {
-                        console.log('⏳ CardGrid: 长按触发，开始持续减少');
+                        debugLog('⏳ CardGrid: 长按触发，开始持续减少');
                         
                         // 第一次立即触发减少
                         this.handleCardAction(index, 'decrement');
                         
                         // 设置持续减少间隔
                         touchState.longPressInterval = setInterval(() => {
-                            console.log('⏳ CardGrid: 长按持续减少');
+                            debugLog('⏳ CardGrid: 长按持续减少');
                             this.handleCardAction(index, 'decrement');
                         }, 1000);
                     } else {
-                        console.log('🚫 CardGrid: 长按但已拖拽或移动，不触发');
+                        debugLog('🚫 CardGrid: 长按但已拖拽或移动，不触发');
                     }
                 }, touchState.longPressThreshold);
                 
@@ -253,7 +256,7 @@ export class CardGrid {
                 
                 // 检查是否达到拖拽阈值
                 if (!touchState.hasMoved && (deltaX > touchState.dragThreshold || deltaY > touchState.dragThreshold)) {
-                    console.log('🔄 CardGrid: 开始拖拽', { deltaX, deltaY });
+                    debugLog('🔄 CardGrid: 开始拖拽', { deltaX, deltaY });
                     touchState.hasMoved = true;
                     
                     // 清除长按计时器，因为用户开始拖拽了
@@ -276,15 +279,15 @@ export class CardGrid {
             
             // 触摸结束
             cardElement.addEventListener('touchend', (e) => {
-                console.log('🖐️ CardGrid: 触摸结束');
+                debugLog('🖐️ CardGrid: 触摸结束');
                 
                 // 检查是否是同一个触摸点
                 const changedTouch = Array.from(e.changedTouches).find(t => t.identifier === touchState.touchIdentifier);
                 if (!changedTouch) return;
                 
                 const touchDuration = Date.now() - touchState.startTime;
-                console.log('📊 CardGrid: 触摸统计', { 
-                    touchDuration, 
+                debugLog('📊 CardGrid: 触摸统计', {
+                    touchDuration,
                     isDragging: touchState.isDragging, 
                     hasMoved: touchState.hasMoved,
                     hasLongPressTimer: !!touchState.longPressTimer
@@ -292,22 +295,22 @@ export class CardGrid {
                 
                 // 处理长按（如果长按计时器仍在运行，说明长按已触发）
                 if (touchState.longPressInterval) {
-                    console.log('✅ CardGrid: 长按操作完成');
+                    debugLog('✅ CardGrid: 长按操作完成');
                     // 不需要阻止默认行为，因为长按时我们已经触发了动作
                 } 
                 // 如果不是拖拽且触摸时间短于点击阈值，触发点击
                 else if (!touchState.isDragging && !touchState.hasMoved && touchDuration < touchState.tapThreshold) {
-                    console.log('✅ CardGrid: 移动端点击触发');
+                    debugLog('✅ CardGrid: 移动端点击触发');
                     // 注意：这里不要用 preventDefault()，因为可能影响其他事件
                     this.handleCardAction(index, 'increment');
                 }
                 // 如果是拖拽或者移动了，不触发点击
                 else if (touchState.isDragging || touchState.hasMoved) {
-                    console.log('🚫 CardGrid: 拖拽或移动，不触发点击');
+                    debugLog('🚫 CardGrid: 拖拽或移动，不触发点击');
                 }
                 // 其他情况（长按时长但还未触发长按）
                 else if (touchDuration >= touchState.longPressThreshold && !touchState.longPressInterval) {
-                    console.log('⚠️ CardGrid: 长按时长但未触发，可能被取消了');
+                    debugLog('⚠️ CardGrid: 长按时长但未触发，可能被取消了');
                 }
                 
                 // 清理长按状态
@@ -325,7 +328,7 @@ export class CardGrid {
             
             // 触摸取消
             cardElement.addEventListener('touchcancel', (e) => {
-                console.log('❌ CardGrid: 触摸取消');
+                debugLog('❌ CardGrid: 触摸取消');
                 
                 // 检查是否是同一个触摸点
                 const changedTouch = Array.from(e.changedTouches).find(t => t.identifier === touchState.touchIdentifier);
@@ -352,14 +355,14 @@ export class CardGrid {
         } else {
             // 桌面端鼠标事件
             cardElement.addEventListener('click', (e) => {
-                console.log('🖱️ CardGrid: 桌面端左键点击');
+                debugLog('🖱️ CardGrid: 桌面端左键点击');
                 this.handleCardAction(index, 'increment');
             });
             
             cardElement.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('🖱️ CardGrid: 桌面端右键点击');
+                debugLog('🖱️ CardGrid: 桌面端右键点击');
                 this.handleCardAction(index, 'decrement');
                 return false;
             });
@@ -376,7 +379,7 @@ export class CardGrid {
         
         // 如果和上次操作是同一张卡牌且时间间隔小于500ms，忽略
         if (index === lastActionIndex && now - lastActionTime < 500) {
-            console.log('⏱️ 防抖：忽略快速重复点击');
+            debugLog('⏱️ 防抖：忽略快速重复点击');
             return;
         }
         
@@ -386,16 +389,16 @@ export class CardGrid {
         const change = action === 'increment' ? 1 : -1;
         const buttonType = action === 'increment' ? 'left' : 'right';
         
-        console.log('🃏 CardGrid: 触发卡牌动作', { index, action, change, buttonType });
+        debugLog('🃏 CardGrid: 触发卡牌动作', { index, action, change, buttonType });
         
         if (this.onCardClick) {
-            console.log('✅ CardGrid: 使用 onCardClick 回调');
+            debugLog('✅ CardGrid: 使用 onCardClick 回调');
             this.onCardClick(index, buttonType);
             return;
         }
         
         if (this.onQuantityChange) {
-            console.log('✅ CardGrid: 使用 onQuantityChange 回调');
+            debugLog('✅ CardGrid: 使用 onQuantityChange 回调');
             this.onQuantityChange(index, change);
             return;
         }
@@ -467,7 +470,7 @@ export class CardGrid {
             }
         }, { passive: false });
         
-        console.log('✅ 触摸防护已启用（只针对卡牌）');
+        debugLog('✅ 触摸防护已启用（只针对卡牌）');
     }
 
     isStatsModeActive() {

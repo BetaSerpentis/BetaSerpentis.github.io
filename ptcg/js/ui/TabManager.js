@@ -11,6 +11,8 @@ export class TabManager {
     }
 
     init() {
+        if (this._initialized) return;
+        this._initialized = true;
         this.bindEvents();
         this.hideGenerationTabs(); // 初始时隐藏世代筛选栏
     }

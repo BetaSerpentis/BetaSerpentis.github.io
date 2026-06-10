@@ -1,4 +1,6 @@
 // ptcg/js/features/DeckEditor.js
+import { debugLog } from '../utils/constants.js';
+
 export class DeckEditor {
     constructor(deckManager, cardManager, imageLoader, cardGrid, modalView) {
         this.deckManager = deckManager;
@@ -10,7 +12,8 @@ export class DeckEditor {
         this.isInAddMode = false;
         this.mode = 'browse'; // 'browse'|'deck-view'|'deck-edit'|'deck-add'|'cover-select'
         this.deckTabsContainer = null;
-        
+        this.defaultGetDisplayCards = cardManager.getDisplayCards.bind(cardManager);
+
         this.init();
     }
 
@@ -24,7 +27,7 @@ export class DeckEditor {
             this.cardGrid.deckManager = this.deckManager;
         }
         
-        console.log('🔍 DeckEditor 初始化检查:', {
+        debugLog('🔍 DeckEditor 初始化检查:', {
             cardGrid: !!this.cardGrid,
             deckManager: !!this.deckManager
         });
@@ -33,10 +36,10 @@ export class DeckEditor {
     // 添加强制设置回调的方法
     forceSetCardGridCallbacks() {
         if (this.cardGrid) {
-            // console.log('🔧 强制设置 CardGrid 回调');
+            // debugLog('🔧 强制设置 CardGrid 回调');
             this.cardGrid.onCardClick = this.handleCardClick.bind(this);
             this.cardGrid.onQuantityChange = this.handleQuantityChange.bind(this);
-            console.log('✅ CardGrid 回调设置完成:', {
+            debugLog('✅ CardGrid 回调设置完成:', {
                 onCardClick: !!this.cardGrid.onCardClick,
                 onQuantityChange: !!this.cardGrid.onQuantityChange
             });
@@ -48,7 +51,7 @@ export class DeckEditor {
     // 进入卡组模式
     // 修改 enterDeckMode 方法
     async enterDeckMode() {
-        // console.log('🔍 进入卡组模式');
+        // debugLog('🔍 进入卡组模式');
         
         // 保存原始状态
         // 预加载所有卡牌基础信息，确保排序时能获取到 type/number
@@ -122,7 +125,7 @@ export class DeckEditor {
 
     // 在 DeckEditor.js 中优化保存原始状态的方法
     saveOriginalState() {
-        // console.log('💾 保存原始状态');
+        // debugLog('💾 保存原始状态');
         
         // 保存原始方法
         this.originalGetDisplayCards = this.cardManager.getDisplayCards;
@@ -136,7 +139,7 @@ export class DeckEditor {
         // 保存卡牌数据完整副本（预加载可能污染 cardManager.cards）
         this.originalCards = [...this.cardManager.cards];
         
-        console.log('✅ 原始状态保存完成:', {
+        debugLog('✅ 原始状态保存完成:', {
             filteredCardsCount: this.originalFilteredCards.length,
             currentTab: this.originalCurrentTab,
             totalCards: this.originalCardsLength
@@ -192,7 +195,7 @@ export class DeckEditor {
             }, 100);
         }
         
-        // console.log('✅ 卡组页签渲染完成，新增按钮已优化');
+        // debugLog('✅ 卡组页签渲染完成，新增按钮已优化');
     }
 
     // 在 createDeckTab 方法中优化封面显示逻辑
@@ -218,10 +221,10 @@ export class DeckEditor {
                 img.src = cardInfo.image;
                 img.alt = deck.name;
                 img.onload = () => {
-                    // console.log(`✅ 封面图片加载成功: ${cardInfo.name}`);
+                    // debugLog(`✅ 封面图片加载成功: ${cardInfo.name}`);
                 };
                 img.onerror = () => {
-                    // console.log(`❌ 封面图片加载失败: ${cardInfo.name}, 路径: ${cardInfo.image}`);
+                    // debugLog(`❌ 封面图片加载失败: ${cardInfo.name}, 路径: ${cardInfo.image}`);
                     // 图片加载失败时，显示占位符
                     this.showCoverPlaceholder(cover, cardInfo.name);
                 };
@@ -256,17 +259,17 @@ export class DeckEditor {
         tab.addEventListener('click', (e) => {
             // 如果点击的是封面或名称，让它们自己的事件处理
             if (e.target.closest('.deck-cover') || e.target.closest('.deck-name')) {
-                // console.log('🖼️ 点击了封面或名称，由专门的事件处理');
+                // debugLog('🖼️ 点击了封面或名称，由专门的事件处理');
                 return;
             }
             
             // 编辑模式下，只有当前卡组可以操作，其他卡组不能切换
             if (this.deckManager.isEditing) {
                 if (index === this.deckManager.currentDeckIndex) {
-                    // console.log('🔄 编辑模式下点击当前卡组的其他区域');
+                    // debugLog('🔄 编辑模式下点击当前卡组的其他区域');
                     // 当前卡组的其他区域点击不做特殊处理
                 } else {
-                    // console.log('🚫 编辑模式下不能切换卡组');
+                    // debugLog('🚫 编辑模式下不能切换卡组');
                     return;
                 }
             } else {
@@ -284,7 +287,7 @@ export class DeckEditor {
     showCoverPlaceholder(coverElement, text) {
         coverElement.textContent = text;
         coverElement.className += ' no-cover';
-        // console.log(`📝 封面占位符: ${text}`);
+        // debugLog(`📝 封面占位符: ${text}`);
     }
 
     fallbackCoverImage(coverElement, cardId, deckName) {
@@ -299,7 +302,7 @@ export class DeckEditor {
             this.cardManager.loadImageWithRetry(img, cardInfo.image, 3);
             
             img.onload = () => {
-                // console.log(`✅ 封面图片加载成功: ${cardInfo.name}`);
+                // debugLog(`✅ 封面图片加载成功: ${cardInfo.name}`);
             };
             
             cover.appendChild(img);
@@ -317,7 +320,6 @@ export class DeckEditor {
         const deckCards = this.deckManager.getDeckDisplayCards();
         
         // 临时修改 cardManager 的行为
-        this.originalGetDisplayCards = this.cardManager.getDisplayCards;
         this.cardManager.getDisplayCards = () => {
             return deckCards.map(deckCard => {
                 // 统一方式：从卡牌管理器中获取完整的卡牌信息
@@ -341,12 +343,12 @@ export class DeckEditor {
         // 添加拖拽检测
         const cardGrid = document.querySelector('.card-grid');
         if (cardGrid && cardGrid.classList.contains('dragging')) {
-            console.log('🔄 拖拽滚动中，忽略卡牌点击');
+            debugLog('🔄 拖拽滚动中，忽略卡牌点击');
             return;
         }
         
-        console.log('=== DeckEditor: 卡牌点击事件 ===');
-        console.log('索引:', index, '按钮:', button);
+        debugLog('=== DeckEditor: 卡牌点击事件 ===');
+        debugLog('索引:', index, '按钮:', button);
         
         // 检测当前模式（显式状态变量，不再依赖 DOM 查询）
         const isDeckMode = this.mode !== 'browse';
@@ -356,7 +358,7 @@ export class DeckEditor {
         // 使用 CardGrid 的统计模式检测方法
         const isStatsMode = this.cardGrid.isStatsModeActive ? this.cardGrid.isStatsModeActive() : false;
         
-        console.log('=== DeckEditor.handleCardClick ===', {
+        debugLog('=== DeckEditor.handleCardClick ===', {
             index,
             button,  // 这里改成 button
             isSelectingCover: this.deckManager.isSelectingCover,
@@ -366,20 +368,20 @@ export class DeckEditor {
         
         // 封面选择模式处理 - 最高优先级
         if (this.deckManager.isSelectingCover) {
-            console.log('🖼️ 封面选择模式处理');
+            debugLog('🖼️ 封面选择模式处理');
             const cards = this.cardManager.getDisplayCards();
             
             if (index < 0 || index >= cards.length) {
-                console.log('❌ 索引超出范围');
+                debugLog('❌ 索引超出范围');
                 return;
             }
             
             const card = cards[index];
-            console.log(`✅ 设置封面: ${card.name} (ID: ${card.id})`);
+            debugLog(`✅ 设置封面: ${card.name} (ID: ${card.id})`);
             
             // 设置封面
             const success = this.deckManager.setDeckCover(card.id);
-            console.log('封面设置结果:', success);
+            debugLog('封面设置结果:', success);
             
             // 退出封面选择模式
             this.deckManager.setSelectingCoverMode(false);
@@ -400,27 +402,27 @@ export class DeckEditor {
 
         // 统计模式处理 - 在卡组模式之前检查
         if (isStatsMode && !isDeckMode) {
-            console.log('📊 统计模式处理');
+            debugLog('📊 统计模式处理');
             
             // 获取当前显示的卡牌
             const cards = this.cardManager.getDisplayCards();
             if (index < 0 || index >= cards.length) {
-                console.log('❌ 索引超出范围');
+                debugLog('❌ 索引超出范围');
                 return;
             }
             
             const card = cards[index];
-            console.log('📊 统计模式操作卡牌:', card.name, 'ID:', card.id, '按钮:', button);
+            debugLog('📊 统计模式操作卡牌:', card.name, 'ID:', card.id, '按钮:', button);
             
             if (button === 'left') {
                 // 左键：增加数量
-                console.log('➕ 统计模式增加数量');
+                debugLog('➕ 统计模式增加数量');
                 const newQuantity = this.cardManager.updateCardQuantity(card.id, 1);
                 this.cardGrid.updateCardQuantityDisplay(card.id, newQuantity);
                 this.cardManager.debouncedSave();
             } else if (button === 'right') {
                 // 右键：减少数量
-                console.log('➖ 统计模式减少数量');
+                debugLog('➖ 统计模式减少数量');
                 const newQuantity = this.cardManager.updateCardQuantity(card.id, -1);
                 this.cardGrid.updateCardQuantityDisplay(card.id, newQuantity);
                 this.cardManager.debouncedSave();
@@ -430,12 +432,12 @@ export class DeckEditor {
 
         // 卡组添加模式
         if (isDeckAddMode || this.isInAddMode) {
-            console.log('添加模式处理 - 执行添加卡牌逻辑');
+            debugLog('添加模式处理 - 执行添加卡牌逻辑');
             if (button === 'left') {
-                console.log('左键点击 - 添加卡牌');
+                debugLog('左键点击 - 添加卡牌');
                 this.addCardToDeck(index, 1);
             } else if (button === 'right') {
-                console.log('右键点击 - 移除卡牌');
+                debugLog('右键点击 - 移除卡牌');
                 this.addCardToDeck(index, -1);
             }
             return;
@@ -443,7 +445,7 @@ export class DeckEditor {
         
         // 卡组编辑模式（非添加模式）
         if (isDeckEditMode && isDeckMode && !isDeckAddMode) {
-            console.log('编辑模式处理');
+            debugLog('编辑模式处理');
             const deckCards = this.deckManager.getDeckDisplayCards();
             if (index < deckCards.length) {
                 if (button === 'left') {
@@ -452,55 +454,55 @@ export class DeckEditor {
                     this.handleQuantityChange(index, -1);
                 }
             } else {
-                console.log('❌ 索引超出卡组范围');
+                debugLog('❌ 索引超出卡组范围');
             }
             return;
         }
         
         // 卡组浏览模式
         if (isDeckMode && !isDeckEditMode && !isDeckAddMode) {
-            console.log('卡组浏览模式 - 打开模态框');
+            debugLog('卡组浏览模式 - 打开模态框');
             this.modalView.show(index);
             return;
         }
         
         // 正常浏览模式
-        console.log('正常模式 - 打开模态框');
+        debugLog('正常模式 - 打开模态框');
         this.modalView.show(index);
     }
 
     // 新增：专门处理添加卡牌到卡组
     addCardToDeck(index, change) {
-        console.log('=== DeckEditor.addCardToDeck ===', { index, change });
+        debugLog('=== DeckEditor.addCardToDeck ===', { index, change });
         
         // 获取当前显示的卡牌
         const cards = this.cardManager.getDisplayCards();
-        console.log('总卡牌数量:', cards.length, '点击索引:', index);
+        debugLog('总卡牌数量:', cards.length, '点击索引:', index);
         
         if (index < 0 || index >= cards.length) {
-            console.log('❌ 索引超出范围');
+            debugLog('❌ 索引超出范围');
             return;
         }
         
         const card = cards[index];
-        console.log('🃏 操作卡牌:', card.name, 'ID:', card.id, '变化:', change);
+        debugLog('🃏 操作卡牌:', card.name, 'ID:', card.id, '变化:', change);
         
         // 执行添加操作
         const result = this.deckManager.updateCardQuantity(card.id, change);
-        console.log('✅ 添加操作结果:', result);
+        debugLog('✅ 添加操作结果:', result);
         
         if (result) {
             const newQuantity = result.quantity;
-            console.log('📈 卡牌数量更新:', newQuantity);
+            debugLog('📈 卡牌数量更新:', newQuantity);
             
             // 在添加模式下使用专门的更新方法
             this.updateAddModeCardDisplay(card.id, newQuantity);
         } else if (change > 0) {
-            console.log('🆕 新卡牌添加到卡组');
+            debugLog('🆕 新卡牌添加到卡组');
             // 新卡牌，显示数量为1
             this.updateAddModeCardDisplay(card.id, 1);
         } else {
-            console.log('✅ 卡牌从卡组中移除');
+            debugLog('✅ 卡牌从卡组中移除');
             // 卡牌被移除（数量减到0）
             this.updateAddModeCardDisplay(card.id, 0);
         }
@@ -538,7 +540,7 @@ export class DeckEditor {
 
     // 新增：在添加模式下更新卡牌显示
     updateAddModeCardDisplay(cardId, quantity) {
-        console.log('🔄 DeckEditor.updateAddModeCardDisplay', { cardId, quantity });
+        debugLog('🔄 DeckEditor.updateAddModeCardDisplay', { cardId, quantity });
         
         const cardElements = document.querySelectorAll('.card');
         
@@ -546,7 +548,7 @@ export class DeckEditor {
             const elementCardId = cardElement.dataset.cardId;
             
             if (elementCardId === cardId) {
-                console.log(`🎯 更新卡牌显示: ${cardId}, 数量: ${quantity}`);
+                debugLog(`🎯 更新卡牌显示: ${cardId}, 数量: ${quantity}`);
                 
                 // 移除现有的数量显示
                 const existingQuantity = cardElement.querySelector('.card-quantity');
@@ -560,9 +562,9 @@ export class DeckEditor {
                     quantityElement.className = 'card-quantity';
                     quantityElement.textContent = quantity;
                     cardElement.appendChild(quantityElement);
-                    console.log('✅ 添加模式下显示数量:', quantity);
+                    debugLog('✅ 添加模式下显示数量:', quantity);
                 } else {
-                    console.log('✅ 添加模式下移除数量显示（数量为0）');
+                    debugLog('✅ 添加模式下移除数量显示（数量为0）');
                 }
             }
         });
@@ -585,7 +587,7 @@ export class DeckEditor {
         if (result) {
             const newQuantity = result.quantity;
             
-            console.log('🔄 DeckEditor.handleQuantityChange', {
+            debugLog('🔄 DeckEditor.handleQuantityChange', {
                 cardId: card.id,
                 oldQuantity,
                 newQuantity,
@@ -597,17 +599,17 @@ export class DeckEditor {
             
             if (needsRerender) {
                 // 需要重新渲染的情况：新增卡牌或数量减到0
-                console.log('🔄 需要重新渲染: 卡牌数量从', oldQuantity, '变为', newQuantity);
+                debugLog('🔄 需要重新渲染: 卡牌数量从', oldQuantity, '变为', newQuantity);
                 this.renderCurrentDeck();
             } else {
                 // 只需要更新数量显示
-                console.log('📊 只更新数量显示: 卡牌数量从', oldQuantity, '变为', newQuantity);
+                debugLog('📊 只更新数量显示: 卡牌数量从', oldQuantity, '变为', newQuantity);
                 // 确保使用正确的更新方法
                 this.cardGrid.updateCardQuantityDisplay(card.id, newQuantity);
             }
         } else {
             // 卡牌被移除（数量减到0），需要重新渲染
-            console.log('🗑️ 卡牌被移除，重新渲染');
+            debugLog('🗑️ 卡牌被移除，重新渲染');
             this.renderCurrentDeck();
         }
     }
@@ -635,7 +637,7 @@ export class DeckEditor {
 
     // 新增：更新原始状态以反映卡组变化
     updateOriginalState() {
-        // console.log('🔄 更新原始状态以反映卡组变化');
+        // debugLog('🔄 更新原始状态以反映卡组变化');
         
         // 更新保存的过滤卡牌状态
         if (this.originalFilteredCards) {
@@ -656,7 +658,7 @@ export class DeckEditor {
 
     // 修改 enterEditMode 方法，添加删除按钮
     enterEditMode() {
-        // console.log('🔄 进入编辑模式');
+        // debugLog('🔄 进入编辑模式');
         this.deckManager.setEditingMode(true);
         this.mode = 'deck-edit';
         if (this.cardGrid) this.cardGrid.setMode('deck-edit');
@@ -678,7 +680,7 @@ export class DeckEditor {
             window.buttonManager.showEditMode();
         }
         
-        // console.log('✅ 编辑模式进入完成');
+        // debugLog('✅ 编辑模式进入完成');
     }
 
     // 使卡组页签可编辑
@@ -686,13 +688,13 @@ export class DeckEditor {
     makeDeckTabsEditable() {
         const currentDeck = this.deckManager.getCurrentDeck();
         if (!currentDeck) {
-            // console.log('❌ 没有找到当前卡组');
+            // debugLog('❌ 没有找到当前卡组');
             return;
         }
         
         const activeTab = this.deckTabsContainer.querySelector('.deck-tab.active');
         if (activeTab) {
-            // console.log('🔧 使卡组页签可编辑');
+            // debugLog('🔧 使卡组页签可编辑');
             
             // 使卡组名称可点击编辑（不自动聚焦）
             this.makeDeckNameEditable(activeTab);
@@ -701,7 +703,7 @@ export class DeckEditor {
             this.makeDeckCoverEditable(activeTab);
             
         } else {
-            // console.log('❌ 没有找到活动的卡组页签');
+            // debugLog('❌ 没有找到活动的卡组页签');
         }
     }
 
@@ -722,7 +724,7 @@ export class DeckEditor {
             e.stopPropagation();
             e.preventDefault();
             
-            // console.log('📝 卡组名被点击，进入编辑模式');
+            // debugLog('📝 卡组名被点击，进入编辑模式');
             
             // 如果已经是输入框，则忽略
             if (nameElement.querySelector('input')) return;
@@ -743,7 +745,7 @@ export class DeckEditor {
             
             // 失去焦点时保存
             nameInput.addEventListener('blur', () => {
-                // console.log('💾 保存卡组名:', nameInput.value);
+                // debugLog('💾 保存卡组名:', nameInput.value);
                 this.deckManager.updateDeckName(nameInput.value);
                 
                 // 恢复为文本显示
@@ -779,7 +781,7 @@ export class DeckEditor {
     makeDeckCoverEditable(activeTab) {
         const coverElement = activeTab.querySelector('.deck-cover');
         if (coverElement) {
-            // console.log('🖼️ 设置封面点击事件');
+            // debugLog('🖼️ 设置封面点击事件');
             
             // 直接设置样式和事件
             coverElement.style.cursor = 'pointer';
@@ -819,12 +821,12 @@ export class DeckEditor {
             
             // 封面点击事件
             const coverClickHandler = (e) => {
-                // console.log('🎯 封面点击事件触发');
+                // debugLog('🎯 封面点击事件触发');
                 e.stopPropagation();
                 e.preventDefault();
                 e.stopImmediatePropagation();
                 
-                // console.log('🎯 进入封面选择模式');
+                // debugLog('🎯 进入封面选择模式');
                 this.enterCoverSelectionMode();
             };
             
@@ -848,14 +850,14 @@ export class DeckEditor {
             
             newCoverElement.addEventListener('click', coverClickHandler);
             
-            // console.log('✅ 封面点击事件设置完成');
+            // debugLog('✅ 封面点击事件设置完成');
         }
     }
 
     // 新增：进入封面选择模式
     // 修改 enterCoverSelectionMode 方法（如果需要）
     enterCoverSelectionMode() {
-        // console.log('🎯 进入封面选择模式 - 开始');
+        // debugLog('🎯 进入封面选择模式 - 开始');
         
         // 设置模式状态
         this.deckManager.setSelectingCoverMode(true);
@@ -863,7 +865,7 @@ export class DeckEditor {
         this.mode = 'cover-select';
         if (this.cardGrid) this.cardGrid.setMode('cover-select');
         
-        console.log('✅ 模式状态设置完成:', {
+        debugLog('✅ 模式状态设置完成:', {
             isSelectingCover: this.deckManager.isSelectingCover,
             isInAddMode: this.isInAddMode
         });
@@ -872,11 +874,11 @@ export class DeckEditor {
         this.originalFilteredCards = [...this.cardManager.filteredCards];
         this.originalGetDisplayCards = this.cardManager.getDisplayCards;
         
-        // console.log('✅ 原始状态保存完成');
+        // debugLog('✅ 原始状态保存完成');
         
         // 显示当前卡组内的卡牌，而不是所有卡牌
         const deckCards = this.deckManager.getDeckDisplayCards();
-        // console.log('📊 卡组内卡牌数量:', deckCards.length);
+        // debugLog('📊 卡组内卡牌数量:', deckCards.length);
         
         this.cardManager.filteredCards = deckCards.map(deckCard => {
             const fullCard = this.cardManager.cards.find(c => c.id === deckCard.id);
@@ -895,7 +897,7 @@ export class DeckEditor {
         document.querySelector('.search-header').style.display = 'none';
         document.querySelector('.feature-tabs').style.display = 'none';
         
-        // console.log('✅ 界面元素调整完成');
+        // debugLog('✅ 界面元素调整完成');
         
         // 强制重新设置回调
         this.forceSetCardGridCallbacks();
@@ -903,7 +905,7 @@ export class DeckEditor {
         // 渲染卡组内的卡牌
         this.cardGrid.render();
         
-        // console.log('✅ 卡牌渲染完成');
+        // debugLog('✅ 卡牌渲染完成');
         
         // 显示封面选择提示
         this.showCoverSelectionHint();
@@ -917,20 +919,20 @@ export class DeckEditor {
         this.coverSelectionCancelHandler = (e) => {
             // 如果点击的不是卡牌，则取消封面选择
             if (!e.target.closest('.card')) {
-                // console.log('❌ 点击非卡牌区域，取消封面选择');
+                // debugLog('❌ 点击非卡牌区域，取消封面选择');
                 this.cancelCoverSelection();
             }
         };
         
         document.addEventListener('click', this.coverSelectionCancelHandler, true);
         
-        // console.log('🎯 进入封面选择模式 - 完成');
+        // debugLog('🎯 进入封面选择模式 - 完成');
     }
 
     // 新增：取消封面选择
     // 修改 cancelCoverSelection 方法
     cancelCoverSelection() {
-        // console.log('🚫 取消封面选择');
+        // debugLog('🚫 取消封面选择');
         this.deckManager.setSelectingCoverMode(false);
         this.isInAddMode = false;
         this.mode = 'deck-edit';
@@ -943,9 +945,7 @@ export class DeckEditor {
         }
         
         // 恢复原始状态
-        if (this.originalGetDisplayCards) {
-            this.cardManager.getDisplayCards = this.originalGetDisplayCards;
-        }
+        this.cardManager.getDisplayCards = this.defaultGetDisplayCards;
         if (this.originalFilteredCards) {
             this.cardManager.filteredCards = this.originalFilteredCards;
         }
@@ -962,7 +962,7 @@ export class DeckEditor {
         // 重新渲染当前卡组
         this.renderCurrentDeck();
         
-        // console.log('✅ 封面选择已取消');
+        // debugLog('✅ 封面选择已取消');
     }
 
     // 为选择封面进入添加模式
@@ -1025,7 +1025,7 @@ export class DeckEditor {
     // 进入添加模式 - 修复界面切换
     // 修改 enterAddMode 方法
     enterAddMode() {
-        // console.log('🔍 进入添加模式');
+        // debugLog('🔍 进入添加模式');
         
         this.isInAddMode = true;
         this.mode = 'deck-add';
@@ -1049,12 +1049,12 @@ export class DeckEditor {
             window.buttonManager.showAddMode();
         }
         
-        // console.log('🔍 进入添加模式完成');
+        // debugLog('🔍 进入添加模式完成');
     }
 
     // 修改 exitAddMode 方法
     exitAddMode() {
-        // console.log('🚪 退出添加模式');
+        // debugLog('🚪 退出添加模式');
         this.isInAddMode = false;
         this.deckManager.setSelectingCoverMode(false);
         this.mode = 'deck-edit';
@@ -1067,9 +1067,7 @@ export class DeckEditor {
         }
         
         // 恢复原始状态
-        if (this.originalGetDisplayCards) {
-            this.cardManager.getDisplayCards = this.originalGetDisplayCards;
-        }
+        this.cardManager.getDisplayCards = this.defaultGetDisplayCards;
         if (this.originalFilteredCards) {
             this.cardManager.filteredCards = this.originalFilteredCards;
         }
@@ -1089,12 +1087,12 @@ export class DeckEditor {
         // 强制重新渲染，确保数量显示规则更新
         this.renderCurrentDeck();
         
-        // console.log('✅ 添加模式退出完成');
+        // debugLog('✅ 添加模式退出完成');
     }
 
     // 修改 exitEditMode 方法，清理删除按钮
     exitEditMode() {
-        // console.log('🚪 退出编辑模式');
+        // debugLog('🚪 退出编辑模式');
         this.deckManager.setEditingMode(false);
         this.isInAddMode = false;
         this.deckManager.setSelectingCoverMode(false);
@@ -1133,7 +1131,7 @@ export class DeckEditor {
         // 使用最新的卡组状态重置显示
         this.resetToDeckCards();
         
-        // console.log('✅ 编辑模式退出完成');
+        // debugLog('✅ 编辑模式退出完成');
     }
 
     // 新增：为卡组添加删除按钮
@@ -1181,7 +1179,7 @@ export class DeckEditor {
     showDeleteConfirmation() {
         const currentDeck = this.deckManager.getCurrentDeck();
         if (!currentDeck) {
-            // console.log('❌ 没有找到当前卡组');
+            // debugLog('❌ 没有找到当前卡组');
             return;
         }
         
@@ -1240,7 +1238,7 @@ export class DeckEditor {
 
     // 新增：执行卡组删除
     executeDeckDeletion(modal) {
-        // console.log('🗑️ 执行卡组删除...');
+        // debugLog('🗑️ 执行卡组删除...');
         
         // 执行删除
         const success = this.deckManager.deleteCurrentDeck();
@@ -1335,7 +1333,7 @@ export class DeckEditor {
 
     // 新增：专门为退出编辑模式重置状态的方法
     resetCardManagerStateForEditMode() {
-        // console.log('🔄 为退出编辑模式重置卡牌管理器状态');
+        // debugLog('🔄 为退出编辑模式重置卡牌管理器状态');
         
         // 强制重置 filteredCards 为卡组内的卡牌（不是所有卡牌）
         const deckCards = this.deckManager.getDeckDisplayCards();
@@ -1351,31 +1349,24 @@ export class DeckEditor {
             };
         });
         
-        // console.log('✅ 编辑模式状态重置完成，显示卡组卡牌:', this.cardManager.filteredCards.length);
+        // debugLog('✅ 编辑模式状态重置完成，显示卡组卡牌:', this.cardManager.filteredCards.length);
     }
 
     // 在合适的位置添加这个方法（可以在 exitDeckMode 方法之前）
     simpleCardManagerReset() {
-        // console.log('🔄 简化重置卡牌管理器状态');
+        // debugLog('🔄 简化重置卡牌管理器状态');
         
         // 直接重置 filteredCards 为所有卡牌
         this.cardManager.filteredCards = [...this.cardManager.cards];
-        // console.log('✅ 重置 filteredCards，数量:', this.cardManager.filteredCards.length);
+        // debugLog('✅ 重置 filteredCards，数量:', this.cardManager.filteredCards.length);
         
-        // 恢复原始方法（如果存在）
-        if (this.originalGetDisplayCards) {
-            this.cardManager.getDisplayCards = this.originalGetDisplayCards;
-            // console.log('✅ 恢复 getDisplayCards 方法');
-        } else {
-            // 如果没有原始方法，使用默认方法
-            this.cardManager.getDisplayCards = () => this.cardManager.filteredCards;
-            // console.log('✅ 使用默认 getDisplayCards 方法');
-        }
+        // 恢复 CardManager 原型方法，避免卡组视图的临时覆盖污染搜索/筛选
+        this.cardManager.getDisplayCards = this.defaultGetDisplayCards;
         
         // 恢复当前标签页（如果存在）
         if (this.originalCurrentTab) {
             this.cardManager.currentTab = this.originalCurrentTab;
-            // console.log('✅ 恢复当前标签页:', this.originalCurrentTab);
+            // debugLog('✅ 恢复当前标签页:', this.originalCurrentTab);
         }
         
         // 恢复保存的 cards（防止预加载污染），然后过滤并渲染
@@ -1386,6 +1377,13 @@ export class DeckEditor {
         this.cardManager.filteredCards = this.cardManager.cards.filter(card =>
             card.type === tabName
         );
+        this.cardManager.isShowingAllCards = true;
+        this.cardManager.hasActiveSearch = false;
+        const activeTab = document.querySelector(`.tab[data-tab="${tabName}"]`);
+        if (activeTab) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            activeTab.classList.add('active');
+        }
         if (this.cardGrid && this.cardGrid.render) {
             this.cardGrid.render();
         }
@@ -1394,7 +1392,7 @@ export class DeckEditor {
     // 在 DeckEditor.js 中彻底修复退出卡组模式的问题
     // 修改 exitDeckMode 方法
     exitDeckMode() {
-        console.log('🔙 退出卡组模式');
+        debugLog('🔙 退出卡组模式');
         
         // 显示卡牌浏览相关元素
         document.querySelector('.search-header').style.display = 'block';
@@ -1405,9 +1403,10 @@ export class DeckEditor {
             genTabs2.style.display = 'block';
         }
         
-        // 移除卡组界面元素
-        this.deckTabsContainer?.remove();
-        
+        // 移除卡组界面元素（包括异常残留的旧容器）
+        document.querySelectorAll('.deck-tabs-container').forEach(container => container.remove());
+        this.deckTabsContainer = null;
+
         this.mode = 'browse';
         if (this.cardGrid) this.cardGrid.setMode('browse');
         
@@ -1419,12 +1418,12 @@ export class DeckEditor {
         // 恢复卡牌管理器状态并直接渲染（不再 fetch，数据已在内存）
         this.simpleCardManagerReset();
         
-        console.log('✅ 卡组模式退出完成');
+        debugLog('✅ 卡组模式退出完成');
     }
 
     // 新增：通过 CardBrowser 重新加载当前标签页
     reloadCurrentTabViaCardBrowser() {
-        // console.log('🔄 通过 CardBrowser 重新加载当前标签页');
+        // debugLog('🔄 通过 CardBrowser 重新加载当前标签页');
         
         // 获取当前标签页名称
         let tabName = '宝可梦';
@@ -1435,14 +1434,14 @@ export class DeckEditor {
             tabName = this.originalCurrentTab;
         }
         
-        // console.log('重新加载标签页:', tabName);
+        // debugLog('重新加载标签页:', tabName);
         
         // 通过 CardBrowser 重新加载数据
         if (this.cardBrowser && this.cardBrowser.loadCardData) {
-            // console.log('✅ 调用 CardBrowser.loadCardData');
+            // debugLog('✅ 调用 CardBrowser.loadCardData');
             this.cardBrowser.loadCardData(tabName);
         } else {
-            // console.log('❌ CardBrowser 不可用，手动过滤和渲染');
+            // debugLog('❌ CardBrowser 不可用，手动过滤和渲染');
             // 手动过滤当前类型的卡牌
             this.cardManager.filteredCards = this.cardManager.cards.filter(card => 
                 card.type === tabName
@@ -1456,7 +1455,7 @@ export class DeckEditor {
 
     // 修改：直接重新加载当前标签页
     directReloadCurrentTab() {
-        // console.log('🔄 直接重新加载当前标签页');
+        // debugLog('🔄 直接重新加载当前标签页');
         
         // 获取当前标签页名称
         let tabName = '宝可梦';
@@ -1467,24 +1466,24 @@ export class DeckEditor {
             tabName = this.originalCurrentTab;
         }
         
-        // console.log('加载标签页:', tabName);
+        // debugLog('加载标签页:', tabName);
         
         // 直接过滤当前类型的卡牌
         this.cardManager.filteredCards = this.cardManager.cards.filter(card => 
             card.type === tabName
         );
         
-        // console.log(`✅ 直接过滤后卡牌数量: ${this.cardManager.filteredCards.length}`);
+        // debugLog(`✅ 直接过滤后卡牌数量: ${this.cardManager.filteredCards.length}`);
         
         // 直接重新渲染网格
         if (this.cardGrid && this.cardGrid.render) {
             this.cardGrid.render();
-            // console.log('✅ 卡牌网格直接重新渲染完成');
+            // debugLog('✅ 卡牌网格直接重新渲染完成');
         }
         
         // 同时调用 CardBrowser 作为备份（但主要依赖直接重置）
         if (this.cardBrowser && this.cardBrowser.loadCardData) {
-            // console.log('🔄 同时调用 CardBrowser.loadCardData 作为备份');
+            // debugLog('🔄 同时调用 CardBrowser.loadCardData 作为备份');
             setTimeout(() => {
                 this.cardBrowser.loadCardData(tabName);
             }, 50);
@@ -1498,7 +1497,7 @@ export class DeckEditor {
         
         // 覆盖 modalView.show - 只在编辑模式下阻止模态框
         this.modalView.show = (index) => {
-            console.log('🛑 DeckEditor: ModalView.show 检查', {
+            debugLog('🛑 DeckEditor: ModalView.show 检查', {
                 isSelectingCover: this.deckManager.isSelectingCover,
                 isInAddMode: this.isInAddMode,
                 isEditing: this.deckManager.isEditing
@@ -1506,12 +1505,12 @@ export class DeckEditor {
             
             // 只在封面选择模式下阻止模态框
             if (this.deckManager.isSelectingCover) {
-                console.log('🚫 封面选择模式下阻止模态框');
+                debugLog('🚫 封面选择模式下阻止模态框');
                 return;
             }
             
             // 编辑模式其他情况下允许模态框
-            console.log('✅ 允许模态框打开');
+            debugLog('✅ 允许模态框打开');
             this.originalModalShow.call(this.modalView, index);
         };
     }
