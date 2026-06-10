@@ -105,52 +105,82 @@ export class CardBrowser {
     // 在 CardBrowser.js 中确保 loadCardData 方法正确重置状态
     async loadCardData(cardType) {
         // console.log(`🔄 CardBrowser: 加载 ${cardType} 数据`);
-        
+
         this.cardGrid.showLoading();
         if (this.loadingStatus) this.loadingStatus.textContent = `正在加载${cardType}数据...`;
-        
+
         try {
+            if (cardType === '宝可梦') {
+                await this.loadPokemonWithInitialBatch();
+                return;
+            }
+
             // 先加载卡牌数据
             await this.cardManager.loadCardData(cardType);
-            
-            // 关键：确保 filteredCards 包含所有该类型的卡牌
-            this.cardManager.filteredCards = this.cardManager.cards.filter(card =>
-                card.type === cardType
-            );
-            this.cardManager.isShowingAllCards = true;
-            this.cardManager.hasActiveSearch = false;
-            
-            // 如果是宝可梦类型，应用当前世代筛选（如果有的话）
-            if (cardType === '宝可梦' && this.cardManager.getCurrentGeneration() !== 'all') {
-                this.cardManager.applyGenerationFilter();
-            }
-            
-            // hideLoading 已移至 CardGrid.render() 内部，消除闪烁
-            const displayCards = this.cardManager.getDisplayCards();
-            const displayCount = displayCards.length;
-            
-            // 生成显示信息
-            let displayMessage = `已加载所有 ${displayCount} 张${cardType}卡牌`;
-            
-            // 如果是宝可梦类型且应用了世代筛选
-            if (cardType === '宝可梦' && this.cardManager.getCurrentGeneration() !== 'all') {
-                const generationName = this.cardManager.getGenerationName(this.cardManager.getCurrentGeneration());
-                displayMessage = `显示${generationName}: ${displayCount} 张卡牌`;
-            }
-            
-            // console.log(`✅ ${cardType} 数据加载完成，显示 ${displayCount} 张卡牌`);
-            
-            this.cardGrid.updateSearchInfo(displayMessage);
-            this.cardGrid.render();
-            
-            // 更新搜索框提示
-            this.searchInput.placeholder = this.searchEngine.getSearchPlaceholder();
-            
+
+            this.renderLoadedCards(cardType, true);
         } catch (error) {
             console.error(`❌ 加载 ${cardType} 数据失败:`, error);
             if (this.loadingStatus) this.loadingStatus.textContent = `加载失败: ${error.message}`;
             this.cardGrid.hideLoading();
         }
+    }
+
+    async loadPokemonWithInitialBatch() {
+        // 先加载 50 张轻量 TSV，尽早完成首屏渲染。
+        const initialCards = await this.cardManager.loadInitialPokemonCards();
+        this.cardManager.cards = initialCards;
+        this.cardManager.currentTab = '宝可梦';
+        this.cardManager.resetGenerationFilter();
+        this.cardManager.filteredCards = [...initialCards];
+        this.cardManager.hasActiveSearch = false;
+        this.cardGrid.updateSearchInfo(`正在加载完整宝可梦数据，已先显示 ${initialCards.length} 张`);
+        this.cardGrid.render();
+        this.searchInput.placeholder = this.searchEngine.getSearchPlaceholder();
+
+        // 后台加载完整 JSON；只在用户仍停留在宝可梦页签时替换列表。
+        this.cardManager.fetchProcessedCardData('宝可梦')
+            .then(cards => {
+                if (this.cardManager.getCurrentTab() !== '宝可梦') return;
+                this.cardManager.cards = cards;
+                this.cardManager.currentTab = '宝可梦';
+                this.renderLoadedCards('宝可梦', true);
+            })
+            .catch(error => {
+                console.error('❌ 加载完整宝可梦数据失败:', error);
+                this.cardGrid.updateSearchInfo(`已显示初始 ${initialCards.length} 张，完整宝可梦数据加载失败`);
+            });
+    }
+
+    renderLoadedCards(cardType, resetSearchState = false) {
+        // 关键：确保 filteredCards 包含所有该类型的卡牌
+        this.cardManager.filteredCards = this.cardManager.cards.filter(card =>
+            card.type === cardType
+        );
+        if (resetSearchState) {
+            this.cardManager.isShowingAllCards = true;
+            this.cardManager.hasActiveSearch = false;
+        }
+
+        // 如果是宝可梦类型，应用当前世代筛选（如果有的话）
+        if (cardType === '宝可梦' && this.cardManager.getCurrentGeneration() !== 'all') {
+            this.cardManager.applyGenerationFilter();
+        }
+
+        const displayCards = this.cardManager.getDisplayCards();
+        const displayCount = displayCards.length;
+
+        let displayMessage = `已加载所有 ${displayCount} 张${cardType}卡牌`;
+
+        if (cardType === '宝可梦' && this.cardManager.getCurrentGeneration() !== 'all') {
+            const generationName = this.cardManager.getGenerationName(this.cardManager.getCurrentGeneration());
+            displayMessage = `显示${generationName}: ${displayCount} 张卡牌`;
+        }
+
+        this.cardGrid.updateSearchInfo(displayMessage);
+        this.cardGrid.render();
+
+        this.searchInput.placeholder = this.searchEngine.getSearchPlaceholder();
     }
 
     // 显示加载状态
