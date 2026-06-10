@@ -478,6 +478,11 @@
     z-index: 3;
 }
 
+.deck-tab.missing-mode {
+    border-color: #f44336;
+    box-shadow: 0 0 0 2px rgba(244, 67, 54, 0.35), 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
 /* 模态框 */
 .modal {
     position: fixed;
@@ -883,9 +888,9 @@
 }
 
 .deck-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.5);
-    background: #6d28d9;
+    transform: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.45);
+    background: rgba(129,140,248,0.2);
 }
 
 /* 卡组页签容器 - 固定在顶部，与搜索栏样式一致 */
@@ -1385,6 +1390,12 @@
 .global-button:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+}
+
+.global-button.deck-button:hover {
+    transform: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.45);
+    background: rgba(129,140,248,0.2);
 }
 
 /* 具体按钮颜色 */
