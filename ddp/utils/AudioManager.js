@@ -1,97 +1,144 @@
-// utils/AudioManager.js
+// utils/AudioManager.js — Web Audio API 版，原生尊重 iOS 静音开关
 class AudioManager {
     constructor() {
-        this.sounds = new Map();
-        this.bgm = null;
+        this.ctx = null;            // AudioContext（首次用户手势时创建）
+        this.bgmBuffer = null;      // BGM 解码后的 AudioBuffer
+        this.bgmSource = null;      // 当前 BGM BufferSourceNode
+        this.bgmGain = null;        // BGM 音量控制
+        this.bgmStartTime = 0;      // BGM 开始时间（用于暂停恢复）
+        this.bgmLoopStart = 0;
+        this.bgmLoopEnd = 43;
+
+        this.sfxBuffers = new Map(); // SFX AudioBuffer 缓存
         this.isMuted = false;
-        this._silentModeDetected = false;
-        this._silentCheckDone = false;
         this.isLoaded = false;
-        this._waiting = new Set();
-        this.preloadSounds();
+        this._unlocked = false;
+
+        this.preloadAll();
     }
 
-    preloadSounds() {
-        const audioFiles = {
-            'point':  './audio/point.mp3',
-            'clear':  './audio/clear.mp3',
-            'summon': './audio/summon.mp3'
-        };
-
-        Object.entries(audioFiles).forEach(([key, path]) => {
-            const a = new Audio();
-            a.src = path;
-            a.preload = 'auto';
-            a.load();
-            this.sounds.set(key, a);
-        });
-
-        // BGM — 用原生 loop 属性自然循环，结束自动重播
-        this.bgm = new Audio();
-        this.bgm.src = './audio/background.mp3';
-        this.bgm.preload = 'auto';
-        this.bgm.loop = true;
-        this.bgm.volume = 0.5;
-        this.bgm.load();
-
-        // 轮询等待所有音效就绪（iOS 上 canplaythrough 可能不可靠）
-        const maxWait = 15000;
-        const start = Date.now();
-        const check = () => {
-            const all = [...this.sounds.values()];
-            if (all.every(a => a.readyState >= 3) || Date.now() - start > maxWait) {
-                this.isLoaded = true;
-                return;
-            }
-            setTimeout(check, 300);
-        };
-        check();
-    }
-
-    // 播放音效 — 等就绪后触发
-    play(soundName, volume = 0.5) {
-        if (this.isMuted) return;
-        const a = this.sounds.get(soundName);
-        if (!a) return;
-
-        const doPlay = () => {
-            try {
-                if (!a.paused) a.currentTime = 0;
-                a.volume = volume;
-                a.play().catch(() => {});
-            } catch (e) { /* silence */ }
-        };
-
-        if (a.readyState >= 2) {
-            doPlay();
-        } else if (!this._waiting.has(soundName)) {
-            // 未就绪，注册一次性监听
-            this._waiting.add(soundName);
-            const onReady = () => {
-                this._waiting.delete(soundName);
-                a.removeEventListener('canplaythrough', onReady);
-                doPlay();
+    async preloadAll() {
+        try {
+            // 预加载所有音频文件为 ArrayBuffer
+            const files = {
+                bgm:    './audio/background.mp3',
+                point:  './audio/point.mp3',
+                clear:  './audio/clear.mp3',
+                summon: './audio/summon.mp3'
             };
-            a.addEventListener('canplaythrough', onReady, { once: false });
+
+            const entries = Object.entries(files);
+            const results = await Promise.all(entries.map(([key, url]) =>
+                fetch(url).then(r => r.arrayBuffer()).then(buf => ({ key, buf }))
+            ));
+
+            // AudioContext 在用户手势中创建，这里先存原始数据
+            this._pendingBuffers = {};
+            for (const { key, buf } of results) {
+                this._pendingBuffers[key] = buf;
+            }
+            this.isLoaded = true;
+        } catch (e) {
+            console.warn('[音频] 预加载失败:', e);
+            this.isLoaded = true;
         }
     }
 
+    // 同步创建 AudioContext（必须在用户手势内执行）
+    _ensureContext() {
+        if (this.ctx) return;
+        const AC = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new AC();
+        this.bgmGain = this.ctx.createGain();
+        this.bgmGain.gain.value = 0.5;
+        this.bgmGain.connect(this.ctx.destination);
+        // 异步解码预加载的音频
+        this._decodePending();
+    }
+
+    async _decodePending() {
+        if (!this._pendingBuffers) return;
+        const pending = this._pendingBuffers;
+        this._pendingBuffers = null;
+        for (const [key, buf] of Object.entries(pending)) {
+            try {
+                const audioBuf = await this.ctx.decodeAudioData(buf.slice(0));
+                if (key === 'bgm') {
+                    this.bgmBuffer = audioBuf;
+                } else {
+                    this.sfxBuffers.set(key, audioBuf);
+                }
+            } catch (e) {
+                console.warn('[音频] 解码失败:', key, e);
+            }
+        }
+    }
+
+    // BGM 播放 — 通过 AudioContext，原生受 iOS 静音控制
     playBGM(volume = 0.5) {
-        if (this.isMuted || !this.bgm) return;
-        this.bgm.volume = volume;
-        this.bgm.play().catch(() => {});
+        if (this.isMuted) return;
+        this._ensureContext();
+        if (!this.bgmBuffer) {
+            // 解码未完成，等解码结束后自动播放
+            this._bgmPendingVolume = volume;
+            return;
+        }
+        this._stopBGM();
+        this.bgmGain.gain.value = volume;
+        const src = this.ctx.createBufferSource();
+        src.buffer = this.bgmBuffer;
+        src.loop = true;
+        src.loopStart = this.bgmLoopStart;
+        src.loopEnd = this.bgmLoopEnd;
+        src.connect(this.bgmGain);
+        src.start(0);
+        this.bgmSource = src;
+    }
+
+    // 解码完成后尝试补播 BGM
+    async _decodePending() {
+        if (!this._pendingBuffers) return;
+        const pending = this._pendingBuffers;
+        this._pendingBuffers = null;
+        for (const [key, buf] of Object.entries(pending)) {
+            try {
+                const audioBuf = await this.ctx.decodeAudioData(buf.slice(0));
+                if (key === 'bgm') {
+                    this.bgmBuffer = audioBuf;
+                } else {
+                    this.sfxBuffers.set(key, audioBuf);
+                }
+            } catch (e) {
+                console.warn('[音频] 解码失败:', key, e);
+            }
+        }
+        // 如果 BGM 在解码完成前就请求播放，现在补播
+        if (this._bgmPendingVolume !== undefined && this.bgmBuffer && !this.bgmSource) {
+            const vol = this._bgmPendingVolume;
+            this._bgmPendingVolume = undefined;
+            this.playBGM(vol);
+        }
+    }
+
+    _stopBGM() {
+        if (this.bgmSource) {
+            try { this.bgmSource.stop(); } catch (e) { /* already stopped */ }
+            this.bgmSource = null;
+        }
     }
 
     stopBGM() {
-        if (this.bgm) { this.bgm.pause(); this.bgm.currentTime = 0; }
+        this._stopBGM();
+        this.bgmStartTime = 0;
     }
 
     fadeOutBGM(duration = 2000) {
-        if (!this.bgm || this.bgm.volume === 0) return;
-        const sv = this.bgm.volume, st = performance.now();
+        if (!this.bgmGain || this.bgmGain.gain.value === 0) return;
+        const sv = this.bgmGain.gain.value;
+        const st = performance.now();
         const iv = setInterval(() => {
             const p = Math.min((performance.now() - st) / duration, 1);
-            if (this.bgm) this.bgm.volume = sv * (1 - p);
+            if (this.bgmGain) this.bgmGain.gain.value = sv * (1 - p);
             if (p >= 1) { clearInterval(iv); this.stopBGM(); }
         }, 50);
     }
@@ -99,43 +146,47 @@ class AudioManager {
     fadeInBGM(duration = 2000, targetVolume = 0.5) {
         if (this.isMuted) return;
         this.playBGM(0);
+        if (!this.bgmGain) return;
+        this.bgmGain.gain.value = 0;
         const st = performance.now();
         const iv = setInterval(() => {
             const p = Math.min((performance.now() - st) / duration, 1);
-            if (this.bgm) this.bgm.volume = targetVolume * p;
+            if (this.bgmGain) this.bgmGain.gain.value = targetVolume * p;
             if (p >= 1) clearInterval(iv);
         }, 50);
     }
 
+    // SFX 播放 — 通过 AudioContext，同受 iOS 静音控制
+    _playSFX(name, volume = 0.5) {
+        if (this.isMuted) return;
+        const buf = this.sfxBuffers.get(name);
+        if (!buf) return;
+        this._ensureContext();
+        if (!this.ctx) return;
+
+        const src = this.ctx.createBufferSource();
+        const gain = this.ctx.createGain();
+        gain.gain.value = volume;
+        src.buffer = buf;
+        src.connect(gain);
+        gain.connect(this.ctx.destination);
+        src.start(0);
+    }
+
+    playPoint(volume = 0.5)  { this._playSFX('point', volume); }
+    playClear(volume = 0.6)  { this._playSFX('clear', volume); }
+    playSummon(volume = 0.7) { this._playSFX('summon', volume); }
+
     toggleMute() {
         this.isMuted = !this.isMuted;
-        if (this.bgm) this.bgm.volume = this.isMuted ? 0 : 0.5;
+        if (this.bgmGain) this.bgmGain.gain.value = this.isMuted ? 0 : 0.5;
         return this.isMuted;
     }
     setMute(muted) {
         this.isMuted = muted;
-        if (this.bgm) this.bgm.volume = muted ? 0 : 0.5;
+        if (this.bgmGain) this.bgmGain.gain.value = muted ? 0 : 0.5;
     }
     isLoading() { return !this.isLoaded; }
-
-    // 解锁 iOS 音频上下文（在用户手势中调用一次）
-    _unlockAudio() {
-        if (this._unlocked) return;
-        this._unlocked = true;
-        // 静默 play() 解锁浏览器音频策略
-        const u = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=');
-        u.volume = 0.001;
-        u.play().catch(() => {}).then(() => u.remove());
-    }
-
-    // 播放音效 — 延迟到手势外执行，确保 iOS 尊重静音开关
-    _playDeferred(soundName, volume) {
-        setTimeout(() => this.play(soundName, volume), 50);
-    }
-
-    playPoint(volume = 0.5)  { this._playDeferred('point', volume); }
-    playClear(volume = 0.6)  { this._playDeferred('clear', volume); }
-    playSummon(volume = 0.7) { this._playDeferred('summon', volume); }
 }
 
 export default AudioManager;
