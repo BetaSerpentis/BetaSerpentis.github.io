@@ -24,6 +24,11 @@ export class ModalView {
         this.modalDragThreshold = 80;
         this.modalIsAnimating = false;
         
+        this.modalTransitionMs = 300;
+        this.modalTransition = `transform ${this.modalTransitionMs}ms ease`;
+        this.pendingSwipeDirection = 0;
+        this.pendingSwipeIndex = -1;
+
         // 新增：相邻图片跟随移动相关
         this.modalImgNext.style.transform = 'translateX(100%)';
         this.modalImgPrev.style.transform = 'translateX(-100%)';
@@ -54,6 +59,14 @@ export class ModalView {
             this.triggerSwipe(1);
         });
 
+        this.modalImgContainer.addEventListener('transitionend', (e) => {
+            if (!this.modalIsAnimating || e.propertyName !== 'transform') return;
+            const incomingImg = this.pendingSwipeDirection === 1 ? this.modalImgNext : this.modalImgPrev;
+            if (e.target === incomingImg) {
+                this.completeSwipe();
+            }
+        });
+
         document.addEventListener('keydown', (e) => {
             if (!this.modal.classList.contains('active')) return;
             
@@ -70,74 +83,74 @@ export class ModalView {
         if (this.modalIsAnimating) {
             return;
         }
-        
+
         const cards = this.cardManager.getDisplayCards();
         if (cards.length === 0) {
             return;
         }
-        
-        this.modalIsAnimating = true;
-        
+
         let newIndex = this.currentIndex + direction;
         if (newIndex < 0) newIndex = cards.length - 1;
         else if (newIndex >= cards.length) newIndex = 0;
-        
+
         const newCard = cards[newIndex];
-        
-        // 关键修复：在动画开始前预加载并设置新图片
-        if (direction === 1) {
-            // 向右切换：下一张图片移动到当前位置
-            this.modalImgNext.src = newCard.image;
-            this.modalImgCurrent.style.transform = 'translateX(-100%)';
-            this.modalImgNext.style.transform = 'translateX(0)';
-        } else {
-            // 向左切换：上一张图片移动到当前位置  
-            this.modalImgPrev.src = newCard.image;
-            this.modalImgCurrent.style.transform = 'translateX(100%)';
-            this.modalImgPrev.style.transform = 'translateX(0)';
-        }
-        
-        // 等待动画完成
-        setTimeout(() => {
-            // 关键修复：先交换图片角色，再重置位置
-            if (direction === 1) {
-                // 向右切换后：next 变成 current，current 变成 prev
-                [this.modalImgCurrent.src, this.modalImgPrev.src] = 
-                [this.modalImgNext.src, this.modalImgCurrent.src];
-            } else {
-                // 向左切换后：prev 变成 current，current 变成 next  
-                [this.modalImgCurrent.src, this.modalImgNext.src] = 
-                [this.modalImgPrev.src, this.modalImgCurrent.src];
-            }
-            
-            // 现在才重置过渡效果和位置
-            this.modalImgCurrent.style.transition = 'none';
-            this.modalImgNext.style.transition = 'none';
-            this.modalImgPrev.style.transition = 'none';
-            
-            // 重置位置（此时 modalImgCurrent 已经显示正确的新图片）
-            this.modalImgCurrent.style.transform = 'translateX(0)';
-            this.modalImgNext.style.transform = 'translateX(100%)';
-            this.modalImgPrev.style.transform = 'translateX(-100%)';
-            
-            // 强制重绘，确保样式应用
-            this.modalImgCurrent.offsetHeight;
-            this.modalImgNext.offsetHeight; 
-            this.modalImgPrev.offsetHeight;
-            
-            // 恢复过渡效果
-            setTimeout(() => {
-                this.modalImgCurrent.style.transition = 'transform 0.3s ease';
-                this.modalImgNext.style.transition = 'transform 0.3s ease';
-                this.modalImgPrev.style.transition = 'transform 0.3s ease';
-            }, 50);
-            
-            this.currentIndex = newIndex;
-            this.cardName.textContent = newCard.name;
+        const incomingImg = direction === 1 ? this.modalImgNext : this.modalImgPrev;
+        const outgoingTransform = direction === 1 ? 'translateX(-100%)' : 'translateX(100%)';
+        const incomingStartTransform = direction === 1 ? 'translateX(100%)' : 'translateX(-100%)';
+
+        this.modalIsAnimating = true;
+        this.pendingSwipeDirection = direction;
+        this.pendingSwipeIndex = newIndex;
+
+        this.setModalImageTransitions('none');
+        incomingImg.src = newCard.image;
+        incomingImg.style.transform = incomingStartTransform;
+        this.modalImgCurrent.style.transform = 'translateX(0)';
+        this.forceModalImageReflow();
+
+        this.setModalImageTransitions(this.modalTransition);
+        requestAnimationFrame(() => {
+            this.modalImgCurrent.style.transform = outgoingTransform;
+            incomingImg.style.transform = 'translateX(0)';
+        });
+    }
+
+    completeSwipe() {
+        if (!this.modalIsAnimating || this.pendingSwipeIndex < 0) return;
+
+        const cards = this.cardManager.getDisplayCards();
+        const newCard = cards[this.pendingSwipeIndex];
+        if (!newCard) {
             this.modalIsAnimating = false;
-            
-            this.preloadAdjacentImages();
-        }, 300);
+            return;
+        }
+
+        this.setModalImageTransitions('none');
+        this.modalImgCurrent.src = newCard.image;
+        this.modalImgCurrent.style.transform = 'translateX(0)';
+        this.modalImgPrev.style.transform = 'translateX(-100%)';
+        this.modalImgNext.style.transform = 'translateX(100%)';
+        this.forceModalImageReflow();
+        this.setModalImageTransitions(this.modalTransition);
+
+        this.currentIndex = this.pendingSwipeIndex;
+        this.cardName.textContent = newCard.name;
+        this.modalIsAnimating = false;
+        this.pendingSwipeDirection = 0;
+        this.pendingSwipeIndex = -1;
+        this.preloadAdjacentImages();
+    }
+
+    setModalImageTransitions(value) {
+        this.modalImgCurrent.style.transition = value;
+        this.modalImgNext.style.transition = value;
+        this.modalImgPrev.style.transition = value;
+    }
+
+    forceModalImageReflow() {
+        this.modalImgCurrent.offsetHeight;
+        this.modalImgNext.offsetHeight;
+        this.modalImgPrev.offsetHeight;
     }
 
     // 优化触摸事件处理 - 修复相邻卡牌同步移动问题
@@ -200,9 +213,7 @@ export class ModalView {
             this.modalIsDragging = false;
             
             // 恢复过渡效果
-            this.modalImgCurrent.style.transition = 'transform 0.3s ease';
-            this.modalImgNext.style.transition = 'transform 0.3s ease';
-            this.modalImgPrev.style.transition = 'transform 0.3s ease';
+            this.setModalImageTransitions(this.modalTransition);
             
             const shouldChange = Math.abs(this.modalCurrentTranslateX) > this.modalDragThreshold;
             
@@ -245,13 +256,13 @@ export class ModalView {
         this.modalImgCurrent.style.transform = 'translateX(0)';
         this.modalImgNext.style.transform = 'translateX(100%)';
         this.modalImgPrev.style.transform = 'translateX(-100%)';
-        this.modalImgCurrent.style.transition = 'transform 0.3s ease';
-        this.modalImgNext.style.transition = 'transform 0.3s ease';
-        this.modalImgPrev.style.transition = 'transform 0.3s ease';
+        this.setModalImageTransitions(this.modalTransition);
         
         this.modalIsDragging = false;
         this.modalCurrentTranslateX = 0;
         this.modalIsAnimating = false;
+        this.pendingSwipeDirection = 0;
+        this.pendingSwipeIndex = -1;
         
         const card = cards[index];
         this.modalImgCurrent.src = card.image;
