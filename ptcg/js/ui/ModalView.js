@@ -125,8 +125,24 @@ export class ModalView {
             return;
         }
 
+        const oldCurrentImg = this.modalImgCurrent;
+        const incomingImg = this.pendingSwipeDirection === 1 ? this.modalImgNext : this.modalImgPrev;
+        const idleImg = this.pendingSwipeDirection === 1 ? this.modalImgPrev : this.modalImgNext;
+
         this.setModalImageTransitions('none');
-        this.modalImgCurrent.src = newCard.image;
+
+        // 不在可见的中心图片上替换 src。直接把已经滑到中心的 incoming 元素提升为 current，
+        // 避免移动端在 src/transform 同帧切换时短暂重绘出旧卡面。
+        this.modalImgCurrent = incomingImg;
+        if (this.pendingSwipeDirection === 1) {
+            this.modalImgPrev = oldCurrentImg;
+            this.modalImgNext = idleImg;
+        } else {
+            this.modalImgNext = oldCurrentImg;
+            this.modalImgPrev = idleImg;
+        }
+
+        this.assignModalImageRoles();
         this.modalImgCurrent.style.transform = 'translateX(0)';
         this.modalImgPrev.style.transform = 'translateX(-100%)';
         this.modalImgNext.style.transform = 'translateX(100%)';
@@ -145,6 +161,15 @@ export class ModalView {
         this.modalImgCurrent.style.transition = value;
         this.modalImgNext.style.transition = value;
         this.modalImgPrev.style.transition = value;
+    }
+
+    assignModalImageRoles() {
+        this.modalImgCurrent.classList.remove('prev', 'next');
+        this.modalImgCurrent.classList.add('current');
+        this.modalImgPrev.classList.remove('current', 'next');
+        this.modalImgPrev.classList.add('prev');
+        this.modalImgNext.classList.remove('current', 'prev');
+        this.modalImgNext.classList.add('next');
     }
 
     forceModalImageReflow() {
