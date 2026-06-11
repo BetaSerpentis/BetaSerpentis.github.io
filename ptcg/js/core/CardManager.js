@@ -1,5 +1,6 @@
 import { CARD_TYPES } from '../utils/constants.js';
 import { generateImageFilename } from '../utils/helpers.js';
+import { TsvCardDataLoader } from './TsvCardDataLoader.js';
 
 // 在 CardManager.js 的导入部分添加：
 import { STORAGE_KEYS } from '../utils/constants.js';
@@ -15,6 +16,10 @@ export class CardManager {
         
         // 新增：全局卡牌缓存，存储所有卡牌的基础信息
         this.allCardsCache = null;
+        this.tsvLoader = new TsvCardDataLoader({
+            generateImage: cardId => this.generateDefaultImage(cardId)
+        });
+        this.supplementalLoadToken = 0;
         
         // 新增：世代筛选相关
         this.generationManager = null;
@@ -137,28 +142,8 @@ export class CardManager {
 
         const searchLower = searchText.toLowerCase().trim();
         let filtered = this.cards.filter(card => {
-            const searchFields = [card.name];
-            
-            // 宝可梦卡牌特有搜索字段
-            if (this.currentTab === '宝可梦') {
-                searchFields.push(
-                    card.abilityName,
-                    card.abilityEffect,
-                    card.skill1?.名字,
-                    card.skill1?.效果,
-                    card.skill2?.名字,
-                    card.skill2?.效果,
-                    card.skill3?.名字,
-                    card.skill3?.效果,
-                    card.skill4?.名字,
-                    card.skill4?.效果
-                );
-            } else {
-                // 其他卡牌类型搜索效果字段
-                searchFields.push(card.effect);
-            }
-            
-            return searchFields.some(field => 
+            const searchFields = [card.name, card.searchText];
+            return searchFields.some(field =>
                 field && field.toLowerCase().includes(searchLower)
             );
         });
@@ -214,46 +199,69 @@ export class CardManager {
     }
 
     async loadInitialPokemonCards() {
-        const response = await fetch('data_fast/pokemon-initial.tsv');
-        if (!response.ok) throw new Error(`HTTP错误! 状态: ${response.status}`);
-        const rows = this.parseTsv(await response.text());
-        const cards = rows.map(row => ({
-            id: row.id,
-            name: row.name || '未知',
-            type: row.type || '宝可梦',
-            number: row.number || '未知',
-            attribute: row.attribute || '未知',
-            image: row.image || this.generateDefaultImage(row.id),
-            quantity: parseInt(row.quantity) || 0,
-            equivalenceKey: row.equivalenceKey || ''
-        }));
-        return this.loadCardQuantitiesFromStorage(cards, '宝可梦');
+        return this.loadCardIndexData('宝可梦');
     }
 
-    async fetchProcessedCardData(cardType) {
+    async loadCardIndexData(cardType) {
         const config = CARD_TYPES[cardType];
         if (!config) {
             throw new Error(`未知的卡牌类型: ${cardType}`);
         }
 
-        const response = await fetch(config.jsonFile);
+        const cards = await this.tsvLoader.loadIndex(config, cardType);
+        return this.loadCardQuantitiesFromStorage(cards, cardType);
+    }
 
-        if (!response.ok) {
-            throw new Error(`HTTP错误! 状态: ${response.status}`);
+    async loadCardSupplementalData(cardType) {
+        const config = CARD_TYPES[cardType];
+        if (!config) {
+            throw new Error(`未知的卡牌类型: ${cardType}`);
         }
 
-        const jsonData = await response.json();
-        let processedCards = this.processCardData(jsonData, cardType);
+        const [searchMap, filterMap] = await Promise.all([
+            this.tsvLoader.loadSearch(config),
+            this.tsvLoader.loadFilter(config)
+        ]);
 
-        // 从本地存储加载数量数据
-        processedCards = this.storageService.loadCardQuantities(processedCards, cardType);
-        return processedCards;
+        return { searchMap, filterMap };
+    }
+
+    applyCardSupplementalData(cards, searchMap, filterMap) {
+        cards.forEach(card => {
+            card.searchText = searchMap.get(card.id) || '';
+            card.filter = filterMap.get(card.id) || null;
+        });
+        return cards;
+    }
+
+    startBackgroundSupplementalLoad(cardType, onComplete) {
+        const token = ++this.supplementalLoadToken;
+        return this.loadCardSupplementalData(cardType)
+            .then(({ searchMap, filterMap }) => {
+                if (token !== this.supplementalLoadToken || this.currentTab !== cardType) return false;
+                this.applyCardSupplementalData(this.cards, searchMap, filterMap);
+                if (typeof onComplete === 'function') onComplete(cardType);
+                return true;
+            })
+            .catch(error => {
+                console.error(`后台加载${cardType}搜索/筛选数据失败:`, error);
+                return false;
+            });
+    }
+
+    async fetchProcessedCardData(cardType) {
+        let processedCards = await this.loadCardIndexData(cardType);
+        const { searchMap, filterMap } = await this.loadCardSupplementalData(cardType);
+        return this.applyCardSupplementalData(processedCards, searchMap, filterMap);
     }
 
     // 修改：加载卡牌数据时重置世代筛选
-    async loadCardData(cardType) {
+    async loadCardData(cardType, options = {}) {
+        const { loadSupplemental = true, onSupplementalLoaded = null } = options;
+
         try {
-            this.cards = await this.fetchProcessedCardData(cardType);
+            this.supplementalLoadToken++;
+            this.cards = await this.loadCardIndexData(cardType);
             this.currentTab = cardType;
 
             // 重置筛选状态
@@ -261,11 +269,15 @@ export class CardManager {
             this.filteredCards = [...this.cards];
             this.hasActiveSearch = false;
 
-            // console.log(`成功加载 ${this.cards.length} 张${cardType}卡牌`);
+            if (loadSupplemental) {
+                this.startBackgroundSupplementalLoad(cardType, onSupplementalLoaded);
+            }
+
+            // console.log(`成功加载 ${this.cards.length} 张${cardType}卡牌索引`);
             return this.cards;
 
         } catch (error) {
-            console.error(`加载${cardType}JSON数据失败:`, error);
+            console.error(`加载${cardType}TSV数据失败:`, error);
             throw error;
         }
     }
@@ -283,19 +295,12 @@ export class CardManager {
         for (const cardType of cardTypes) {
             try {
                 const config = CARD_TYPES[cardType];
-                const response = await fetch(config.jsonFile);
-                
-                if (!response.ok) {
-                    console.warn(`加载${cardType}基础信息失败: HTTP ${response.status}`);
-                    continue;
-                }
-                
-                const jsonData = await response.json();
-                const baseCards = this.extractBaseCardInfo(jsonData, cardType);
-                this.allCardsCache.push(...baseCards);
-                
-                // console.log(`✅ 预加载 ${baseCards.length} 张${cardType}卡牌基础信息`);
-                
+                const baseCards = await this.tsvLoader.loadIndex(config, cardType);
+                const cardsWithQuantities = this.storageService.loadCardQuantities(baseCards, cardType);
+                this.allCardsCache.push(...cardsWithQuantities);
+
+                // console.log(`✅ 预加载 ${cardsWithQuantities.length} 张${cardType}卡牌基础信息`);
+
             } catch (error) {
                 console.error(`预加载${cardType}基础信息失败:`, error);
             }
@@ -305,31 +310,6 @@ export class CardManager {
         return this.allCardsCache;
     }
 
-    // 修改 extractBaseCardInfo 方法，确保图片路径正确
-    extractBaseCardInfo(jsonData, cardType) {
-        const baseCards = [];
-
-        jsonData.forEach(card => {
-            const cardIds = card['卡牌ID'];
-            if (cardIds && cardIds.length > 0) {
-                const equivalenceKey = this.buildCardEquivalenceKeyFromRaw(card, cardType);
-                cardIds.forEach(cardId => {
-                    if (cardId) {
-                        baseCards.push({
-                            id: cardId,
-                            name: card['卡牌名字'] || card['宝可梦名字'] || '未知',
-                            type: cardType,
-                            quantity: parseInt(card['拥有数量']) || 0,
-                            image: `images/hk${cardId.toString().padStart(8, '0')}.webp`, // 直接使用固定路径
-                            equivalenceKey
-                        });
-                    }
-                });
-            }
-        });
-
-        return this.storageService.loadCardQuantities(baseCards, cardType);
-    }
 
     normalizeCardText(value) {
         if (value == null) return '';
@@ -534,23 +514,11 @@ export class CardManager {
         
         for (const cardType of cardTypes) {
             try {
-                const config = CARD_TYPES[cardType];
-                const response = await fetch(config.jsonFile);
-                
-                if (!response.ok) {
-                    console.warn(`加载${cardType}数据失败: HTTP ${response.status}`);
-                    continue;
-                }
-                
-                const jsonData = await response.json();
-                let processedCards = this.processCardData(jsonData, cardType);
-                
-                // 从本地存储加载数量数据
-                processedCards = this.storageService.loadCardQuantities(processedCards, cardType);
-                
+                let processedCards = await this.fetchProcessedCardData(cardType);
+
                 allCards.push(...processedCards);
                 // console.log(`✅ 成功加载 ${processedCards.length} 张${cardType}卡牌`);
-                
+
             } catch (error) {
                 console.error(`❌ 加载${cardType}数据失败:`, error);
             }

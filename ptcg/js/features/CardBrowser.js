@@ -110,15 +110,12 @@ export class CardBrowser {
         if (this.loadingStatus) this.loadingStatus.textContent = `正在加载${cardType}数据...`;
 
         try {
-            if (cardType === '宝可梦') {
-                await this.loadPokemonWithInitialBatch();
-                return;
-            }
+            // 先加载 idx 索引完成首屏渲染，再后台补 search/filter。
+            await this.cardManager.loadCardData(cardType, {
+                onSupplementalLoaded: loadedType => this.handleSupplementalLoaded(loadedType)
+            });
 
-            // 先加载卡牌数据
-            await this.cardManager.loadCardData(cardType);
-
-            this.renderLoadedCards(cardType, true);
+            this.renderLoadedCards(cardType, true, true);
         } catch (error) {
             console.error(`❌ 加载 ${cardType} 数据失败:`, error);
             if (this.loadingStatus) this.loadingStatus.textContent = `加载失败: ${error.message}`;
@@ -127,32 +124,25 @@ export class CardBrowser {
     }
 
     async loadPokemonWithInitialBatch() {
-        // 先加载 50 张轻量 TSV，尽早完成首屏渲染。
-        const initialCards = await this.cardManager.loadInitialPokemonCards();
-        this.cardManager.cards = initialCards;
-        this.cardManager.currentTab = '宝可梦';
-        this.cardManager.resetGenerationFilter();
-        this.cardManager.filteredCards = [...initialCards];
-        this.cardManager.hasActiveSearch = false;
-        this.cardGrid.updateSearchInfo(`正在加载完整宝可梦数据，已先显示 ${initialCards.length} 张`);
-        this.cardGrid.render();
-        this.searchInput.placeholder = this.searchEngine.getSearchPlaceholder();
-
-        // 后台加载完整 JSON；只在用户仍停留在宝可梦页签时替换列表。
-        this.cardManager.fetchProcessedCardData('宝可梦')
-            .then(cards => {
-                if (this.cardManager.getCurrentTab() !== '宝可梦') return;
-                this.cardManager.cards = cards;
-                this.cardManager.currentTab = '宝可梦';
-                this.renderLoadedCards('宝可梦', true);
-            })
-            .catch(error => {
-                console.error('❌ 加载完整宝可梦数据失败:', error);
-                this.cardGrid.updateSearchInfo(`已显示初始 ${initialCards.length} 张，完整宝可梦数据加载失败`);
-            });
+        await this.cardManager.loadCardData('宝可梦', {
+            onSupplementalLoaded: loadedType => this.handleSupplementalLoaded(loadedType)
+        });
+        this.renderLoadedCards('宝可梦', true, true);
     }
 
-    renderLoadedCards(cardType, resetSearchState = false) {
+    handleSupplementalLoaded(cardType) {
+        if (this.cardManager.getCurrentTab() !== cardType) return;
+
+        const hasSearchText = this.searchInput && this.searchInput.value.trim();
+        if (hasSearchText) {
+            this.performSearch();
+            return;
+        }
+
+        this.renderLoadedCards(cardType, false, false);
+    }
+
+    renderLoadedCards(cardType, resetSearchState = false, isIndexOnly = false) {
         // 关键：确保 filteredCards 包含所有该类型的卡牌
         this.cardManager.filteredCards = this.cardManager.cards.filter(card =>
             card.type === cardType
@@ -170,11 +160,15 @@ export class CardBrowser {
         const displayCards = this.cardManager.getDisplayCards();
         const displayCount = displayCards.length;
 
-        let displayMessage = `已加载所有 ${displayCount} 张${cardType}卡牌`;
+        let displayMessage = isIndexOnly
+            ? `已加载 ${displayCount} 张${cardType}卡牌，正在补充搜索/筛选数据`
+            : `已加载所有 ${displayCount} 张${cardType}卡牌`;
 
         if (cardType === '宝可梦' && this.cardManager.getCurrentGeneration() !== 'all') {
             const generationName = this.cardManager.getGenerationName(this.cardManager.getCurrentGeneration());
-            displayMessage = `显示${generationName}: ${displayCount} 张卡牌`;
+            displayMessage = isIndexOnly
+                ? `显示${generationName}: ${displayCount} 张卡牌，正在补充搜索/筛选数据`
+                : `显示${generationName}: ${displayCount} 张卡牌`;
         }
 
         this.cardGrid.updateSearchInfo(displayMessage);

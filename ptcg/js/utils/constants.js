@@ -2,37 +2,51 @@
 // 卡牌类型配置
 export const CARD_TYPES = {
     '宝可梦': {
-        jsonFile: 'data/pokemon-cards.json',
+        idxFile: 'data_fast/pokemon.idx.tsv',
+        searchFile: 'data_fast/pokemon.search.tsv',
+        filterFile: 'data_fast/pokemon.filter.tsv',
         imagePath: 'images/',
         hasNumber: true
     },
     '支援者': {
-        jsonFile: 'data/Supporter-cards.json',
+        idxFile: 'data_fast/supporter.idx.tsv',
+        searchFile: 'data_fast/supporter.search.tsv',
+        filterFile: 'data_fast/supporter.filter.tsv',
         imagePath: 'images/',
         hasNumber: false
     },
     '物品': {
-        jsonFile: 'data/Item-cards.json',
+        idxFile: 'data_fast/item.idx.tsv',
+        searchFile: 'data_fast/item.search.tsv',
+        filterFile: 'data_fast/item.filter.tsv',
         imagePath: 'images/',
         hasNumber: false
     },
     '宝可梦道具': {
-        jsonFile: 'data/PokemonTool-cards.json',
+        idxFile: 'data_fast/pokemon-tool.idx.tsv',
+        searchFile: 'data_fast/pokemon-tool.search.tsv',
+        filterFile: 'data_fast/pokemon-tool.filter.tsv',
         imagePath: 'images/',
         hasNumber: false
     },
     '竞技场': {
-        jsonFile: 'data/Stadium-cards.json',
+        idxFile: 'data_fast/stadium.idx.tsv',
+        searchFile: 'data_fast/stadium.search.tsv',
+        filterFile: 'data_fast/stadium.filter.tsv',
         imagePath: 'images/',
         hasNumber: false
     },
     '基本能量': {
-        jsonFile: 'data/BasicEnergy-cards.json',
+        idxFile: 'data_fast/basic-energy.idx.tsv',
+        searchFile: 'data_fast/basic-energy.search.tsv',
+        filterFile: 'data_fast/basic-energy.filter.tsv',
         imagePath: 'images/',
         hasNumber: false
     },
     '特殊能量': {
-        jsonFile: 'data/SpecialEnergy-cards.json',
+        idxFile: 'data_fast/special-energy.idx.tsv',
+        searchFile: 'data_fast/special-energy.search.tsv',
+        filterFile: 'data_fast/special-energy.filter.tsv',
         imagePath: 'images/',
         hasNumber: false
     }
