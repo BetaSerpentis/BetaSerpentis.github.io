@@ -1,5 +1,5 @@
 // 定义缓存名称和版本，便于后续更新和管理
-const CACHE_NAME = 'ptcg-cache-v3';
+const CACHE_NAME = 'ptcg-cache-v4';
 // 需要预缓存的关键静态资源列表
 const urlsToCache = [
   '/ptcg/',
@@ -12,6 +12,7 @@ const urlsToCache = [
   '/ptcg/js/core/StorageService.js',
   '/ptcg/js/core/DeckManager.js',
   '/ptcg/js/core/ImageLoader.js',
+  '/ptcg/js/core/TsvCardDataLoader.js',
   '/ptcg/js/ui/CardGrid.js',
   '/ptcg/js/ui/ModalView.js',
   '/ptcg/js/ui/TabManager.js',
@@ -23,9 +24,16 @@ const urlsToCache = [
   '/ptcg/js/utils/ButtonManager.js',
   '/ptcg/js/utils/constants.js',
   '/ptcg/js/utils/TouchManager.js',
-  '/ptcg/data_fast/pokemon-initial.tsv',
+  '/ptcg/data_fast/pokemon.idx.tsv',
+  '/ptcg/data_fast/pokemon.search.tsv',
+  '/ptcg/data_fast/pokemon.filter.tsv',
+  '/ptcg/data_fast/supporter.idx.tsv',
+  '/ptcg/data_fast/item.idx.tsv',
+  '/ptcg/data_fast/pokemon-tool.idx.tsv',
+  '/ptcg/data_fast/stadium.idx.tsv',
+  '/ptcg/data_fast/basic-energy.idx.tsv',
+  '/ptcg/data_fast/special-energy.idx.tsv',
   // 可以根据需要继续添加其他核心JS文件
-  // 例如：'/ptcg/data/pokemon-cards.json' （如果数据量不大且关键）
 ];
 
 // 安装阶段：预缓存关键静态资源
