@@ -996,51 +996,10 @@ export class DeckEditor {
         this.showCoverSelectionHint();
     }
 
-    // 显示选择封面提示
-    // 优化 showCoverSelectionHint 方法
+    // 显示选择封面提示（保留清理入口，不再弹出遮挡视线的说明浮层）
     showCoverSelectionHint() {
-        // 移除可能存在的旧提示
         const oldHint = document.querySelector('.cover-selection-hint');
         if (oldHint) oldHint.remove();
-        
-        const hint = document.createElement('div');
-        hint.className = 'cover-selection-hint';
-        hint.innerHTML = `
-            <div style="text-align: center;">
-                <div style="font-size: 1.2rem; margin-bottom: 10px; font-weight: bold;">🎯 选择封面</div>
-                <div style="font-size: 1rem; margin-bottom: 8px;">请点击选择一张卡牌作为卡组封面</div>
-                <div style="font-size: 0.9rem; opacity: 0.8;">点击卡牌以外的区域取消选择</div>
-            </div>
-        `;
-        hint.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.95);
-            color: white;
-            padding: 25px 35px;
-            border-radius: 15px;
-            z-index: 1001;
-            font-size: 1.2rem;
-            text-align: center;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
-            border: 2px solid #FF9800;
-            max-width: 300px;
-        `;
-        
-        document.body.appendChild(hint);
-        
-        // 5秒后自动淡出
-        setTimeout(() => {
-            if (hint.parentNode) {
-                hint.style.opacity = '0';
-                hint.style.transition = 'opacity 0.5s ease';
-                setTimeout(() => {
-                    if (hint.parentNode) hint.remove();
-                }, 500);
-            }
-        }, 5000);
     }
 
     // 进入添加模式 - 修复界面切换
