@@ -1,0 +1,218 @@
+VALID	DESC	ID
+		<VI>card_ids	<S>name	<B>type	<S>effect	<S>version
+
+有效	注释	卡牌ID列表	名称	类型(I物品S支援者T竞技场E道具)	效果指令	版本
+		13083	N的ＰＰ提升剂	I	attach_energy_from_discard:count=1;filter=基本;target=bench|unparsed:"身上。	I
+		7102	阿尔宙斯手机	I	raw:查看自己的牌库上方1张卡，回复原样。若希望，选择1张自己的反面朝上的奖赏卡，与自己的牌库上方的卡维持反面朝上互换。	F
+		6892,8090,9666	暗黑修正档	I	raw:从自己的弃牌区选择1张"基本【恶】能量"卡，附于备战区的【恶】宝可梦身上。	F
+		3465,3961	暗之石	I	shuffle_deck|unparsed:若自己的场上有可进化成"梦妖魔""乌鸦头头""水晶灯火灵""坚盾剑怪"（包含GX）的宝可梦，从自己的	C
+		11982	百万吨吹风机	I	raw:将对手的所有宝可梦身上附加的"宝可梦道具"卡与"特殊能量"卡，与场上的"竞技场"卡，全部丢弃。	H
+		11979	帮忙铃	I	condition:first_turn_second|search_deck_to_hand:count=1;filter=支援者|shuffle_deck	H
+		1577,1691,1851,2014,2438,3276,3815,3959,4306,6142,6894	宝可齿轮3.0	I	raw:查看自己的牌库上方7张卡。选择其中1张支援者卡，在给对手看过后加入手牌。将剩余卡放回牌库并重洗。	C,D
+		5906	宝可领航员	I	raw:查看自己的牌库上方3张。可将其中的1张宝可梦或能量卡，在给对手看过后加入手牌。将剩余卡以任意顺序排列，放回牌库上方。	B
+		1579,1693,1853,2016,2256,2440,3091,3980,4308,4973,5908,6744,7586,7718,7740,7762,8490,8514,8849,9345,11174,12249,12250,12251,12745	宝可梦捕捉器	I	coin_flip:count=1|unparsed:若为正面，则选择对手的1只备战宝可梦，与战斗宝可梦互换。	A,D,F,G
+		3975,4301,4807,4968,5898	宝可梦超级回收	I	coin_flip:count=1|return_to_hand:target=choose;with_attachments=true|unparsed:若为正面，则。	A
+		1135,1578,1692,1852,2015,2255,2439,3090,3979,4307,4972,5907,6143,6269,6743,6872,6895,7445,7464,7561,7585,7717,7739,7761,8202,8464,8489,8513,8535,8558,8848,9344,9673,9818,9839,9899,10953,11001,11026,11173,11637,11658,11683,11705,11744,12048,12245,12246,12247,12248,12744,13137,13161	宝可梦交替	I	switch_pokemon:who=self	A,D,F,G
+		4981	宝可梦培育家	I	heal:amount=20|unparsed:从自己的牌库抽出2张。然后，。	A
+		3277,3816,3960,4309	宝可梦通信	I	search_deck_to_hand:count=1;filter=宝可梦|shuffle_deck|unparsed:从自己的手牌抽出1张宝可梦，在给对手看过后放回牌库。然后，。。	C
+		11377,12570	宝可梦旋风回收机	I	raw:选择1只自己的场上宝可梦，将那只宝可梦与附加的卡，全部放回手牌。	H
+		11506	宝可生机剂A	I	heal:amount=150|unparsed:这张卡只要在弃牌区，无法加入手牌，无法放回牌库。	H
+		8463,8488,8512,8557,8847,9343,9817,9838,11636,12047	宝可装置3.0	I	raw:查看自己的牌库上方7张卡，从其中选择1张支援者卡，在给对手看过后加入手牌。将剩余卡放回牌库并重洗。	G
+		4980	碧珂	I	raw:双方玩家各将所有手牌放回牌库并重洗。然后，双方玩家各从牌库抽出与放回张数相同数量的卡。	A
+		11880,12020,12561,12955	玻璃喇叭	I	raw:这张卡只有在自己的场上有"太晶"宝可梦时才可使用。 选择最多2只自己的备战区的【无】宝可梦，从弃牌区附给那些宝可梦各1张基本能量卡。	H
+		11378,11659,12571,12961	捕虫组合	I	raw:查看自己的牌库上方7张卡，从其中选择【草】宝可梦卡与"基本【草】能量"卡合计最多2张，在给对手看过后加入手牌。将剩余卡放回牌库并重洗。	H
+		7560	捕获香氛	I	coin_flip:count=1|search_deck_to_hand:count=1;filter=进化宝可梦卡，若为反面，则选择1张【基础】宝可梦|shuffle_deck|unparsed:若为正面，则。。	F
+		4512,5156	捕网球	I	search_deck_to_hand:count=1;filter=【草】属性的【基础】宝可梦或者【草】能量|shuffle_deck	B
+		11170	不公印章	I	raw:这张卡必须在上个对手的回合自己的宝可梦【昏厥】了才可使用。 
+ 双方玩家各自将手牌全部放回牌库并重洗。然后，从牌库抽卡，自己抽出5张，对手抽出2张。	H
+		3461	裁判口哨	I	search_deck_to_hand:count=1;filter=。 ◆从自己的弃牌区抽出1张"裁判"|unparsed:这张卡可从2种效果中选择1种使用。 ◆。	C
+		5160	彩虹笔刷	I	raw:从自己的牌库抽出1张基本能量卡，与自己的场上宝可梦身上所附加的1张能量卡互换，将先前所附加的能量放回牌库并重洗。	B
+		3487,3977,4304,4811,5903	场地吹风机	I	raw:将场上的最多2张"宝可梦道具卡"或者"竞技场卡"丢到弃牌区。	A
+		8653,9812,10271,12036,12562,12956	超级能量回收	I	recover_from_discard:count=4;filter=基本能量;target=hand|unparsed:这张卡必须将自己的2张手牌丢弃才可使用。 。（不可选择因这张卡的效果而丢弃的能量卡。）	G
+		1133,1573,1685,1847,2010,2254,2434,3086,3974,4300,4967,6141,6739,7583,7715,7737,7759,8200,8654,9339,12240,12241,12242,12243,12740	超级球	I	raw:查看自己的牌库上方7张卡。选择其中1张宝可梦卡，在给对手看过后加入手牌。将剩余卡放回牌库并重洗。	A,D,F,G
+		3301,4809,4969,5901,8362,8460,8486,8510,8554,8845,9340,9668,9814,9836,10273,10951,10999,11025,11633,11680,11702,11723,11742,12042,12741	巢穴球	I	search_deck_to_bench:count=1;filter=基础|shuffle_deck	A,G
+		791,2003,6059,8087	潮漩之扇	I	raw:选择1个对手的场上宝可梦身上附加的特殊能量，放回对手的牌库下方。	D,E
+		9020	陈旧的贝壳化石	I	fossil_place:hp=60|unparsed:这张卡可【无】属性的【基础】宝可梦放置于场上。这张卡不会陷入特殊状态，无法撤退。若在自己的回合中，则	G
+		11882	陈旧的背盖化石	I	fossil_place:hp=60|unparsed:这张卡可【无】属性的【基础】宝可梦放置于场上。这张卡不会陷入特殊状态，无法撤退。 若在自己的回合中，	H
+		11881	陈旧的根状化石	I	fossil_place:hp=60|unparsed:这张卡可【无】属性的【基础】宝可梦放置于场上。这张卡不会陷入特殊状态，无法撤退。 若在自己的回合中，	H
+		9021	陈旧的甲壳化石	I	damage_modify:amount=-30;target=self|fossil_place:hp=60|unparsed:这张卡可【无】属性的【基础】宝可梦放置于场上。这张卡不会陷入特殊状态，无法撤退。若在自己的回合中，则	G
+		9022	陈旧的秘密琥珀	I	fossil_place:hp=60|unparsed:这张卡可【无】属性的【基础】宝可梦放置于场上。这张卡不会陷入特殊状态，无法撤退。若在自己的回合中，则	G
+		4974,5909	除虫喷雾	I	switch_pokemon:who=opponent;choose=opponent|unparsed:放置于战斗场的宝可梦。]	A
+		3486,5713	打火石	I	search_deck_to_hand:count=4;filter=【火】能量|shuffle_deck|unparsed:这张卡只有在将自己的2张手牌丢到弃牌区才可使用。。。	B
+		10018,10950,11018,11678,11700,11755,11790,12038,12564,12957	大地之容器	I	search_deck_to_hand:count=2;filter=基本能量|shuffle_deck|unparsed:这张卡必须将自己的1张手牌丢弃才可使用。
+ 。。	G
+		4964	大马拉萨达	I	heal:amount=20|unparsed:并将1个特殊状态恢复。	A
+		10954	大师球	I	search_deck_to_hand:count=1;filter=宝可梦|shuffle_deck	H
+		2513,2766,6066,6265	道具拆除器	I	raw:选择最多2张双方的场上宝可梦身上附加的"宝可梦道具"卡，将其丢弃。	D
+		7369	道具箱	I	raw:查看自己的牌库上方7张卡，从其中选择任意数量的"宝可梦道具"，在给对手看过后加入手牌。将剩余卡放回牌库并重洗。	F
+		793,2018,2257,6069,6270,6747,7465,8098,8203,8576,9674	等级球	I	search_deck_to_hand:count=1;filter=HP为"90"以下的宝可梦|shuffle_deck	E
+		3275	电磁雷达	I	search_deck_to_hand:count=2;filter=【雷】属性的"宝可梦GX・EX"|shuffle_deck|unparsed:这张卡只有在将自己的2张手牌丢到弃牌区才可使用。 。。	C
+		5709	电气充电器	I	coin_flip:count=2|recover_from_discard:count=1|unparsed:并重洗。	B
+		8439,8844,9335,10270,11721	电气发生器	I	raw:查看自己的牌库上方5张卡，从其中选择最多2张"基本【雷】能量"卡，以任意方式附于备战区的【雷】宝可梦身上。将剩余卡放回牌库并重洗。	G
+		3299,5710,5895	电气力量	I	raw:在这个回合，自己的【雷】宝可梦使用的招式，对对手的战斗宝可梦造成的伤害"+30"点。	B
+		12563	钓竿MAX	I	recover_from_discard:count=1	H
+		13084	调换票	I	raw:数过自己的奖赏卡张数后，全部翻回反面并重洗，放回牌库下方。然后，从牌库上方抽出与放回张数相同数量的卡，作为奖赏卡放置。	I
+		1067,6740	掉包杯	I	raw:选择1张自己的手牌，与牌库上方的卡互换。	E
+		10930,12569	顶尖捕捉器	I	switch_pokemon:who=opponent|switch_pokemon:who=self|unparsed:然后，。	H
+		10858	订购盒	I	end_turn|search_deck_to_hand:count=2;filter=物品|shuffle_deck	H
+		5896	订购平板	I	coin_flip:count=1|search_deck_to_hand:count=1;filter=物品|shuffle_deck|unparsed:若为正面，则。。	B
+		653,6060	渡魂灯笼	I	recover_from_discard:count=1;filter="一击"支援者;target=hand	E
+		91,9670	对战VIP参加证	I	search_deck_to_bench:count=2;filter=基础|shuffle_deck|unparsed:这张卡只能在自己的最初回合使用。 。。	E
+		4650	多重置换	I	raw:将自己的备战宝可梦身上所附加的1个能量，改附于自己的战斗宝可梦身上。	A
+		4647,10083,11017,11676,11754,12035,12560,12954	反击捕捉器	I	raw:这张卡只有在自己剩余奖赏卡的张数比对手剩余奖赏卡的张数多时才可使用。选择对手的1只备战宝可梦，与战斗宝可梦互换。	G
+		11981	妨害信函	I	raw:对手数过对手自己的手牌张数后，全部翻回反面并重洗，放回牌库下方。然后，对手从牌库抽出与放回的张数相同数量的卡。	H
+		5161	放逐搅拌器	I	lost_zone|lost_zone|unparsed:从自己的手牌抽出2张，。然后，从自己的牌库抽出1张。（若无法将自己的2张手牌，则无法使用这张卡。）	B
+		7371,8099,8577,9675,11757	放逐吸尘器	I	lost_zone|lost_zone|unparsed:这张卡必须将自己的1张手牌才可使用。从双方的场上宝可梦身上附加的"宝可梦道具"卡与场上的"竞技场"卡	F
+		6968	飞羽球	I	search_deck_to_hand:count=1;filter=没有【撤退】所需的能量的宝可梦|shuffle_deck	F
+		1571,2006,2253,3085,3973,4806,4966,5897,6738,7714,8509,9338,12239,12739	粉碎之锤	I	coin_flip:count=1|discard_energy:target=opponent;count=1|unparsed:若为正面，则。	A,D,F,G
+		7255	孵化器	I	coin_flip:count=1|search_deck_to_bench:count=1;filter=基础|shuffle_deck|unparsed:若为正面，则。。若为反面，则不丢弃这个"孵化器"，而是放回牌库下方。	F
+		5905	复活草	I	coin_flip:count=1|heal:amount=60|unparsed:若为正面，则，特殊状态也全部恢复。	B
+		3300,4646,11171,12559,12953	改造之锤	I	raw:将对手的场上宝可梦身上所附加的1个特殊能量丢到弃牌区。	A,H
+		3485,3976,4303,4649,4970,5902,6240,6266,6361,6741,6871,6893,7444,7463,7584,7716,7738,7760,8093,8201,8440,8461,8487,8511,8555,8846,9341,9669,9815,9837,10275,10952,11000,11634,11656,11681,11703,11724,11743,12044,12742,13135,13159	高级球	I	search_deck_to_hand:count=1;filter=宝可梦|shuffle_deck|unparsed:这张卡只有在将自己的2张手牌丢到弃牌区才可使用。。。	A,F,G
+		11172	高级香氛	I	search_deck_to_hand:count=3;filter=【1阶进化】宝可梦|shuffle_deck	H
+		10084,10998,11019,12565,12958	高科技雷达	I	search_deck_to_hand:count=2;filter="未来"宝可梦|shuffle_deck|unparsed:这张卡必须将自己的1张手牌丢弃才可使用。。。	G
+		11374,12558	鬼之假面	I	raw:从自己的弃牌区选择1张名称中有"厄鬼椪"的"宝可梦【ex】"卡，与自己的场上的1只名称中有"厄鬼椪"的"宝可梦【ex】"互换（所附加的卡・伤害指示物・特殊状态・	H
+		4490,4513	贵重球	I	search_deck_to_hand:count=1;filter="宝可梦GX"|shuffle_deck	C
+		12046	贵重手推车	I	shuffle_deck|unparsed:从自己的牌库选择任意数量的【基础】宝可梦卡，放置于备战区。。	H
+		4979	哈乌	I	raw:从自己的牌库抽出3张。	A
+		13082	好伤药	I	heal:amount=60|unparsed:然后，选择1个恢复的宝可梦身上附加的能量，将其丢弃。	I
+		10860,11632,11655,11679,11701,11741,12041,12568,12960,13109,13134,13158	好友宝芬	I	search_deck_to_bench:count=2;filter=基础|shuffle_deck	G,H
+		13085	赫普的包包	I	shuffle_deck|unparsed:从自己的牌库选择最多2张【基础】宝可梦的"赫普的宝可梦"，放置于备战区。。	I
+		11980	黑暗球	I	raw:查看自己的牌库下方7张卡，从其中选择1张宝可梦卡，在给对手看过后加入手牌。将剩余卡放回牌库并重洗。	H
+		5153	化石发掘地图	I	shuffle_deck|unparsed:选择自己的牌库或者弃牌区。将其中的1张"谜之化石"，在给对手看过后加入手牌。若看过牌库，则。	B
+		7370,8096	幻想门	I	shuffle_deck|lost_zone_ref|unparsed:这张卡只有在自己的有7张以上的卡时才可使用。从自己的牌库选择最多2张各不同属性的基本能量卡，以任意方	F
+		1683,1844,2507,2918,6061	回收网	I	raw:选择自己的1只宝可梦（"宝可梦【V】・【GX】"除外），放回手牌。（宝可梦以外的卡全部丢弃。）	D
+		5718	混和药草	I	heal:amount=90|unparsed:"混和药草"可同时使用1张或者2张，以使用张数效果有所不同。◆若使用1张，则，特殊状态也全部恢复。（	B
+		2602,6062,6735	活力之壶	I	recover_from_discard:count=1|unparsed:并重洗。	E
+		3464	火之结晶	I	recover_from_discard:count=1	C
+		6316	机器鹕	I	coin_flip:count=1|shuffle_deck|unparsed:这张卡必须从自己的手牌将1张物品卡丢弃才可使用。若为正面，则从自己的牌库任意选择1张卡加入手牌。。	E
+		12171	急进开关	I	switch_pokemon:who=self|unparsed:然后，选择换入备战区的宝可梦身上附加的任意数量的能量卡，改附于新的战斗宝可梦身上。	H
+		4808	计时球	I	coin_flip:count=2|shuffle_deck|unparsed:以正面出现的次数为数量，从自己的牌库抽出进化宝可梦，在给对手看过后加入手牌。。	A
+		1418	加油Y型喇叭	I	inflict_status:statuses=confusion;target=both	D
+		6869,8088,8573	坚毅十字镐	I	raw:将自己的牌库上方1张卡翻到正面，若那张卡为【斗】能量卡，则附于自己的备战宝可梦身上。若不为【斗】能量卡，则在给对手看过后加入手牌。	F
+		6966,8092,9667	健行鞋	I	draw:count=1|unparsed:查看自己的牌库上方1张卡，将那张卡加入手牌。或者将那张卡丢弃，。	F
+		90	交错切换机	I	switch_pokemon:who=opponent|switch_pokemon:who=self|unparsed:"交错切换机"只可2张同时使用。（效果是2张生效1次。）。然后，。	E
+		89	交错收发机	I	recover_from_discard:count=1;filter=宝可梦卡或者支援者;target=hand|unparsed:"交错收发机"只可2张同时使用。（效果是2张生效1次。） 。	E
+		6965,11016,11719	交替推车	I	heal:amount=30	F
+		5707	交替泳圈	I	heal:amount=30	B
+		1694,1854,2017,2516,2768,6144	金属碟	I	attach_energy_from_discard:count=1;filter=【钢】;target=bench|unparsed:身上。	D
+		2764	金珠	I	draw:count=3|unparsed:这张卡是在自己的回合开始，从牌库抽出了这张卡时，在加入手牌前使用。 。	D
+		1066,1572,2009,2509,2765,6140,6264	进化熏香	I	search_deck_to_hand:count=1;filter=进化宝可梦|shuffle_deck	D
+		3463,3958	惊吓箱	I	raw:从对手的弃牌区抽出1张任意卡，放回对手的手牌。	C
+		1581,3092,4975,6362,6745,7587,7741,8534,12252,12253,12254,12255,12746	精灵球	I	coin_flip:count=1|search_deck_to_hand:count=1;filter=宝可梦|shuffle_deck|unparsed:若为正面，则。。	A,D,F,G
+		4489	竞技场导航	I	coin_flip:count=2|shuffle_deck|unparsed:以正面出现的次数为数量，从自己的牌库抽出竞技场卡，在给对手看过后加入手牌。。	C
+		5708	究极球	I	raw:查看自己的所有反面朝上的奖赏卡的正面，可将其中的1张"究极异兽"在给对手看过后，与这张"究极球"互换并加入手牌。将看过的奖赏卡与换入的卡翻回反面并重洗，当作奖赏	B
+		3303,3981,4310,4652,5910	救援担架	I	recover_from_discard:count=1|recover_from_discard:count=1|unparsed:或者并重洗。	A
+		1068,2441,8097	救援行李箱	I	recover_from_discard:count=2;filter=HP为"90"以下的宝可梦;target=hand	E
+		10859	觉醒战鼓	I	raw:从牌库抽出与自己的场上的"古代"宝可梦相同数量的卡。	H
+		10017	卡比兽娃娃	I	fossil_place:hp=120|unparsed:进行对战准备将宝可梦放置于场上时，若手牌有这张卡，则可将这张卡【无】属性的【基础】宝可梦，翻回反面放	G
+		1132,2428	可抽奖的冰棒	I	coin_flip:count=1|heal:amount=20|unparsed:然后，若为正面，则不丢弃这张"可抽奖的冰棒"，而是放回手牌。	E
+		580	空拍洛托姆	I	look_at:target=opponent_hand|unparsed:然后，查看对手的牌库上方1张卡，回复原样。	D
+		3982,4312,4978	库库伊博士	I	raw:从自己的牌库抽出2张。在这个回合，自己的宝可梦使出的招式，对对手的战斗宝可梦造成的伤害"+20"点。	A
+		4810	窥视红牌	I	look_at:target=opponent_hand|unparsed:若希望，可将对手的手牌全部放回牌库并重洗。这个情况下，对手从牌库抽出与放回张数相同数量的卡。	A
+		6336	辣味香料咖喱	I	heal:amount=40	E
+		1065,1842,2429,2601,3484,4803,6058,6730,7735,9662	离洞绳	I	switch_pokemon:who=both|unparsed:（由对手先进行互换。没有备战宝可梦的玩家不用进行互换。）	A,E
+		8728,9665,9835,10272,11631,11654,11677,11699,11722,11740,12011,12037,13133,13157	厉害钓竿	I	recover_from_discard:count=3;target=deck|unparsed:并重洗。	G,H
+		2510,2919	厉害伤药	I	heal:amount=120|unparsed:选择自己的1只宝可梦，。然后，选择2个那只宝可梦身上附加的能量，将其丢弃。（无法对身上没有附加2个能	D
+		4491	莉莉艾的皮皮玩偶	I	fossil_place:hp=30|unparsed:这张卡可【无】属性的【基础】宝可梦放置于场上。若在自己的回合中，则可将战斗场上的这张卡放回牌库下方。	C
+		3793	联手呼唤	I	search_deck_to_hand:count=2;filter="TAG TEAM"|shuffle_deck	C
+		3462	联手切换	I	raw:将自己的场上的1只"TAG TEAM"宝可梦身上所附加的最多2个能量，改附于自己的另1只宝可梦身上。	C
+		11983	龙之秘药	I	heal:amount=60	H
+		1845,2603	露营组合	I	end_turn|shuffle_deck|unparsed:从自己的牌库任意选择1张卡加入手牌。。	E
+		11392	洛拍棒	I	raw:查看自己的牌库上方4张卡，从其中选择任意数量的支援者卡，在给对手看过后加入手牌。将剩余卡放回牌库并重洗。	H
+		3489,4813	洛托姆图鉴	I	raw:将自己的奖赏卡全部放回牌库并重洗。然后，从牌库上方抽出与放回张数相同数量的卡，作为奖赏卡放置。	A
+		4653	洛托姆图鉴 宝可搜寻镜	I	raw:从自己的牌库上方抽出4张并查看。将其以任意顺序排列并放回牌库上方。或者将卡放回牌库并重洗。	A
+		1695,2517,2922	洛托姆自行车	I	end_turn|unparsed:从牌库抽卡直到自己的手牌满6张为止。	D
+		4982	马玛内	I	raw:这张卡只有在将自己的2张手牌丢到弃牌区才可使用。从自己的牌库抽出4张。	A
+		5149	慢出锤	I	raw:这张卡只有在后攻玩家的最初回合才可使用。将对手的场上宝可梦身上所附加的1个能量丢到弃牌区。	B
+		6849	慢出涡轮	I	condition:first_turn_second|end_turn|attach_energy_from_deck:count=1;filter=基本|shuffle_deck|unparsed:若使用了，则。自己的宝可梦身上。。	F
+		3814,5716	冒险包包	I	search_deck_to_hand:count=2;filter="宝可梦道具"|shuffle_deck	B
+		6239	美味之水组合	I	heal:amount=20	F
+		861	梦境球	I	shuffle_deck|unparsed:从自己的反面朝上的奖赏卡中获得这张卡时，这张卡在加入手牌前使用。 从自己的牌库选择1张宝可梦卡，放置	E
+		3794,4302,5155,6967,7033,7687	谜之化石	I	fossil_place:hp=60|unparsed:这张卡可【无】属性的【基础】宝可梦放置于场上。在自己的回合中，可将场上的这张卡丢到弃牌区。 这张卡无	B,F
+		11376	秘密箱	I	search_deck_to_hand:count=1;filter="物品""宝可梦道具""支援者""竞技场"卡|shuffle_deck|unparsed:这张卡必须将自己的3张手牌丢弃才可使用。 。。	H
+		9611,10276	勉励的信	I	search_deck_to_hand:count=3;filter=基本能量|shuffle_deck|unparsed:这张卡必须在上个对手的回合自己的宝可梦【昏厥】了才可使用。
+ 。。	G
+		5711	妙手回春药水	I	heal:amount=120	B
+		1274	哞哞乳酪	I	heal:amount=30|unparsed:选择最多2只自己的身上附有能量的宝可梦，各。	D
+		5720	哞哞鲜奶	I	coin_flip:count=2|unparsed:选择自己的1只宝可梦。，以正面出现的次数×30点伤害为数值，将该宝可梦的HP恢复。	B
+		2506	呐喊队加油毛巾	I	heal:amount=50	D
+		5150	能量搬运	I	raw:将对手的场上宝可梦身上所附加的1个特殊能量，改附于对手的另1只宝可梦身上。	B
+		1566,2430,3080,3970,4297,4962,6731,7736,8507,9332,11653,12236,12733	能量回收	I	recover_from_discard:count=2;filter=基本能量;target=hand	A,D,F,G
+		792,6734,13132,13156	能量回收器	I	recover_from_discard:count=1|unparsed:并重洗。	E,I
+		4804,7032	能量签	I	raw:从自己的牌库上方抽出7张并查看。将其中的1张能量卡，在给对手看过后加入手牌。将剩余卡放回牌库并重洗。	A,F
+		1568,2431,3082,6733,7581,8199,8459,8484,8508,9334,12736	能量输送	I	search_deck_to_hand:count=1;filter=基本能量|shuffle_deck	D,F,G
+		11978	能量输送PRO	I	search_deck_to_hand:count=1;filter=任意数量的各不同属性的基本能量卡|shuffle_deck	H
+		9018,12033,12734	能量贴纸	I	coin_flip:count=1|attach_energy_from_discard:count=1;filter=基本;target=bench|unparsed:若为正面，则身上。	G
+		5893	能量循环装置	I	recover_from_discard:count=1|recover_from_discard:count=1|unparsed:或者并重洗。	B
+		4645	能量再利用	I	recover_from_discard:count=1|unparsed:并重洗。	A
+		5151	能量指尖陀螺	I	search_deck_to_hand:count=1;filter=基本能量|shuffle_deck|unparsed:若在后攻玩家的最初回合使用，则加入手牌的基本能量卡的张数改为最多3张。	B
+		1567,1682,3081,3971,4298,4805,4963,5894,6732,7559,7713,8198,8483,8843,9333,11720,12034,12735	能量转移	I	raw:选择1个自己的场上宝可梦身上附加的基本能量，改附于自己的其他宝可梦身上。	A,D,F,G
+		10274	妮莫的背包	I	recover_from_discard:count=2;filter="妮莫";target=hand	G
+		11375	配乐之笛	I	raw:将对手的牌库上方5张卡翻到正面，从其中选择任意数量的【基础】宝可梦卡，放置于对手的备战区。将剩余卡放回牌库并重洗。	H
+		1574,3813,5900,8361,12040,13112	朋友手册	I	recover_from_discard:count=1|unparsed:并重洗。	B,D,G
+		1421,1580	破旧电脑	I	coin_flip:count=2|unparsed:若全部为正面，则从自己的弃牌区任意选择1张卡，在给对手看过后加入手牌。	D
+		1690,1850,2013,2437,2514,2767,3089,6067,6268	普通钓竿	I	recover_from_discard:count=1|unparsed:并重洗。（可只选择宝可梦卡或者只选择基本能量卡。）	D
+		12173	奇迹耳麦	I	recover_from_discard:count=2;filter=支援者;target=hand	H
+		1272,1843,2002	奇异罐头	I	heal:amount=80|unparsed:选择自己的1只宝可梦，。然后，选择1个那只宝可梦身上附加的【超】能量，将其丢弃。（无法对身上没有附加	D
+		92,8094	强力糖锭	I	raw:在这个回合，自己的"汇流"宝可梦使用的招式，对对手的战斗宝可梦造成的伤害"+30"点。	E
+		8799,9336,12737	亲送无人机	I	coin_flip:count=2|shuffle_deck|unparsed:若全部为正面，则从自己的牌库任意选择1张卡加入手牌。。	G
+		3488,4651	全满药	I	heal:amount=full|unparsed:将自己的1只宝可梦的。然后，将其身上所附加的能量全部丢到弃牌区。	A
+		9676	森林封印石	I	raw:附有这张卡的"宝可梦【V】"可使用这个【VSTAR】力量。	F
+		654,6068,6746	山谷回音喇叭	I	raw:从对手的弃牌区选择1张【基础】宝可梦卡，放置于对手的备战区。	E
+		7103,8091	伤害水泵	I	raw:选择最多2个自己的1只场上宝可梦身上放置的伤害指示物，以任意方式改放于自己的其他宝可梦身上。	F
+		4648	伤害转移器	I	raw:将自己的1只场上宝可梦身上所放置的3个伤害指示物，改放于自己的另1只宝可梦身上。	A
+		1569,2252,3083,3972,4299,4965,6736,7582,7757,8485,9337,12237,12238,12738	伤药	I	heal:amount=30|unparsed:选择自己的1只宝可梦，。	A,D,F,G
+		4514,5717	神秘珍宝	I	search_deck_to_hand:count=1;filter=【超】或者【龙】宝可梦|shuffle_deck|unparsed:这张卡只有在将自己的1张手牌丢到弃牌区才可使用。。。	B
+		1576,1689,1849,2921,3088,3978,4305,4812,4971,5904,6267,6742,7256,8442,8462,8556,9342,9672,9816,9898,10277,11391,11635,11657,11682,11704,12045,12244,12743,13136,13160	神奇糖果	I	raw:从自己的手牌选择1张【2阶进化】宝可梦卡，放置于自己的场上的可进化成那只宝可梦的【基础】宝可梦身上，跳过【1阶进化】完成进化。（无法对自己的最初回合与这个回合刚	A,D,F,G
+		929,2008	生存组合	I	raw:查看自己的牌库下方3张卡，以任意顺序排列，放回牌库上方。	E
+		10111,11111,13096,13099,13102	胜利之证(冠军)	I	coin_flip:count=1|search_deck_to_hand:count=1;filter=宝可梦|shuffle_deck|unparsed:若为正面，则。。	G
+		10113,11113,13098,13101,13104	胜利之证(季军)	I	coin_flip:count=1|search_deck_to_hand:count=1;filter=宝可梦|shuffle_deck|unparsed:若为正面，则。。	G
+		10112,11112,13097,13100,13103	胜利之证(亚军)	I	coin_flip:count=1|search_deck_to_hand:count=1;filter=宝可梦|shuffle_deck|unparsed:若为正面，则。。	G
+		10929	手部修剪器	I	raw:双方玩家各将自己的手牌丢弃直到变为5张为止。（对手先丢弃。手牌为5张以下的玩家不丢弃。）	H
+		1273,1686	手机洛托姆	I	peek_and_keep:peek=5;keep=1|unparsed:其中1张卡。将剩余卡放回牌库并重洗，将所选的卡放回牌库上方。	D
+		5157	帅哥口哨	I	search_deck_to_hand:count=2;filter="帅哥"|shuffle_deck	B
+		3298,4644,4960,5892	水补丁	I	raw:从自己的弃牌区抽出1张【水】能量卡，附于备战区的【水】宝可梦身上。	A
+		3792	水莲的钓竿	I	recover_from_discard:count=1|unparsed:并重洗。	C
+		7686	四尖石	I	heal:amount=full|heal:amount=10|unparsed:"四尖石"卡可使用1张或者4张同时使用，依据使用张数效果有所不同。◆若使用1张，则。 ◆若同时使用4	F
+		12039,12566,12959	太晶珠	I	search_deck_to_hand:count=1;filter="太晶"宝可梦|shuffle_deck	H
+		5152	特制捕捉器	I	raw:"特制捕捉器"可同时使用1张或者2张，以使用张数效果有所不同。◆若使用1张，则从牌库抽卡直到自己的手牌满3张为止。◆若同时使用2张，则选择对手的1只备战宝可梦，	B
+		11175	甜蜜球	I	search_deck_to_hand:count=1;filter=与对手的场上宝可梦名称相同的宝可梦|shuffle_deck	H
+		6850	甜甜蜜	I	raw:选择自己的1只宝可梦。掷硬币直到出现反面，将那只宝可梦恢复正面出现的次数×40点伤害相同数值的HP。	F
+		12170	推理组合	I	raw:查看自己的牌库上方3张卡，以任意顺序排列，放回牌库上方。或者将那些卡全部翻回反面并重洗，放回牌库下方。	H
+		3274	退化喷雾Z	I	raw:选择自己的1只进化宝可梦，从该宝可梦身上，移除任意数量的"进化卡"使其退化。将移除的卡放回牌库并重洗。[退化的宝可梦在该回合无法进化。]	C
+		5158	退货标签	I	raw:从对手的弃牌区抽出1张任意卡，在给对手看过后放回对手的牌库下方。	B
+		12043	完全体搅拌器	I	shuffle_deck|unparsed:从自己的牌库任意选择最多5张卡，将其丢弃。。	H
+		1134,2436	玩具捕捉器	I	raw:选择1只对手备战区剩余HP为"50"以下的宝可梦，与战斗宝可梦互换。	E
+		1575,3087	万灵药	I	raw:将自己的战斗宝可梦的特殊状态全部恢复。	D
+		11505	危险光线	I	inflict_status:statuses=burn,confusion	H
+		5154,5899	危险钻头	I	raw:这张卡只有在将自己的手牌抽出1张【恶】宝可梦丢到弃牌区才可使用。将对手的场上宝可梦身上所附加的"宝可梦道具""特殊能量"与场上的"竞技场"其中的1张卡丢到弃牌区	B
+		4488	伟大捕捉器	I	raw:这张卡只有在将自己的2张手牌丢到弃牌区才可使用。选择对手的备战区的1只"宝可梦GX・EX"，与战斗宝可梦互换。	C
+		3791	伟大药水	I	heal:amount=50	C
+		1420,1687,2511,6064	涡轮修正档	I	coin_flip:count=1|attach_energy_from_discard:count=1;filter=基本;target=any|unparsed:若为正面，则（"宝可梦【GX】" 除外）身上。	D
+		4961	无理取闹喷雾	I	raw:在不看正面的情况下，从对手的手牌选择1张看正面。若该卡为支援者卡，则丢到弃牌区。若不为支援者卡，则放回原本的手牌。	A
+		999,2004,2432,6063,6262,6737,7443,7758,8089,8574,9664,9834	雾之水晶	I	search_deck_to_hand:count=1;filter=【超】属性的【基础】宝可梦卡或者【超】能量|shuffle_deck	E
+		1422,2515	稀有化石	I	fossil_place:hp=70|unparsed:这张卡可【无】属性的【基础】宝可梦放置于场上。若在自己的回合中，则可将场上的这张卡丢弃。这张卡不会陷	D
+		7034,8095,8575,9671,11756	洗翠的沉重球	I	raw:查看自己的所有反面朝上的奖赏卡的正面。从其中选择1张【基础】宝可梦卡，在给对手看过后，与这张"洗翠的沉重球"卡互换并加入手牌。将看过的奖赏卡与换入的卡全部翻回反	F
+		1570,1684,1846,2005,2433,2508,3084,6139,6263,6360,6870,6891	先机球	I	search_deck_to_hand:count=1;filter=【基础】宝可梦|shuffle_deck|unparsed:这张卡必须将自己的1张手牌丢弃才可使用。 。。	D
+		1419	相仿铃铛	I	search_deck_to_hand:count=1;filter=与自己的弃牌区的宝可梦名称相同的宝可梦|shuffle_deck	D
+		6851,9663	消除香水	I	raw:在这个回合结束前，对手的战斗宝可梦的特性全部消除。（包含新上战斗场的宝可梦。）	F
+		860,2007	摇摇奶昔	I	end_turn|shuffle_deck|unparsed:从自己的牌库选择1张自己的1只场上宝可梦进化而来的卡，放置于那只宝可梦身上完成进化。。（对自己的最初	E
+		8441	野餐篮	I	heal:amount=30	G
+		11507,12386,12572,12962,13116,13162	夜间担架	I	recover_from_discard:count=1;filter=宝可梦卡或者基本能量;target=hand	H
+		4976	伊利马	I	coin_flip:count=1|unparsed:双方玩家各将所有手牌放回牌库并重洗。然后，双方玩家各，若为正面，则从牌库抽6张，若为反面，则从牌库抽	A
+		5719	遗失的四叶草	I	raw:"遗失的四叶草"可同时使用1张或者4张，以使用张数效果有所不同。◆若使用1张，则从自己的牌库上方抽出1张，在看过后回复原样。◆若同时使用4张，则获得1张自己的奖	B
+		3302,5714	异兽之环	I	attach_energy_from_deck:count=2;filter=基本|shuffle_deck|unparsed:这张卡只有在对手剩余奖赏卡的张数为4张或者3张时才可使用。自己的1只"究极异兽"身上。。	B
+		12172	悠哉尾草棒	I	condition:first_turn_second|unparsed:选择1个对手的场上宝可梦身上附加的能量，放回对手的手牌。	H
+		5715	友友球	I	shuffle_deck|unparsed:从自己的牌库，抽出与对手的场上宝可梦属性相同的1张宝可梦，在给对手看过后加入手牌。。	B
+		7257	诱饵模组	I	raw:双方玩家各将自己的牌库上方3张卡翻到正面，在给对手看过其中的所有宝可梦卡后，加入手牌。将剩余卡放回牌库并重洗。	F
+		5159	诱饵球	I	coin_flip:count=3|recover_from_discard:count=1	B
+		3812,5712	越野自行车	I	raw:从自己的牌库上方抽出2张并查看，选择其中的1张加入手牌。将剩余卡丢到弃牌区。	B
+		3460	凿凿冰镐	I	raw:从对手的牌库上方抽出3张并查看，选择其中的1张任意卡。将剩余卡放回牌库并重洗，将所选的卡放回牌库上方。	C
+		8729	战斗牛奶	I	heal:amount=60|unparsed:这张卡只有在自己剩余奖赏卡的张数比对手剩余奖赏卡的张数多时才可使用。 。	G
+		12419	招式学习器机	I	search_deck_to_hand:count=3;filter=名称中有"招式学习器"的"宝可梦道具"|shuffle_deck	H
+		12567	珍宝配件	I	search_deck_to_hand:count=5;filter="宝可梦道具"|shuffle_deck	H
+		10931	重新启动箱	I	raw:从弃牌区附给自己的所有"未来"宝可梦各1张基本能量卡。	H
+		3278,3962	重置印章	I	raw:对手将对手自己的手牌全部放回牌库并重洗。然后，对手从牌库抽出与对手自己剩余奖赏卡的张数相同数量的卡。	C
+		9019	抓换臂	I	look_at:target=opponent_hand|unparsed:从其中选择1张宝可梦卡，放回对手的牌库下方。	G
+		1688,1848,2011,2435,2512,2920,6065	足量水桶	I	search_deck_to_hand:count=2;filter=【水】能量|shuffle_deck	D

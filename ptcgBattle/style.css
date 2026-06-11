@@ -1,0 +1,349 @@
+/* style.css — PTCG Battle FRLG Style */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#screen {
+  width: 480px;
+  height: 320px;
+  position: relative;
+  overflow: hidden;
+  image-rendering: pixelated;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  transform-origin: center;
+}
+
+/* === 战斗场景 === */
+#battle-scene {
+  width: 100%;
+  height: 75%;
+  position: relative;
+  background: linear-gradient(180deg, #88c8f8 0%, #88c8f8 40%, #58b858 40%, #78d878 100%);
+  overflow: hidden;
+}
+
+/* 信息框 */
+.info-box {
+  position: absolute;
+  background: #f8f8e8;
+  border: 3px solid #484848;
+  border-radius: 6px;
+  padding: 6px 10px;
+  z-index: 2;
+  min-width: 160px;
+}
+.opponent-info { top: 10px; left: 10px; }
+.player-info { bottom: 10px; right: 10px; }
+.info-name { font-size: 9px; color: #383838; margin-bottom: 4px; }
+
+.hp-row { display: flex; align-items: center; gap: 4px; margin-bottom: 3px; }
+.hp-label { font-size: 7px; color: #f87818; font-weight: bold; }
+.hp-bar-bg {
+  width: 80px; height: 6px;
+  background: #484848;
+  border-radius: 1px;
+  overflow: hidden;
+}
+.hp-bar-fill {
+  height: 100%;
+  background: #58d858;
+  transition: width 0.4s ease;
+}
+.hp-bar-fill.yellow { background: #f8d030; }
+.hp-bar-fill.red { background: #f85030; }
+.hp-text { font-size: 7px; color: #383838; }
+
+.energy-icons { display: flex; gap: 3px; margin-top: 2px; flex-wrap: wrap; }
+.energy {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  border: 1px solid #282828;
+  display: inline-block;
+}
+.energy.fire { background: #f85030; }
+.energy.electric, .energy.lightning { background: #f8d030; }
+.energy.water { background: #5898f8; }
+.energy.grass { background: #58b858; }
+.energy.psychic { background: #c860c8; }
+.energy.fighting { background: #c87838; }
+.energy.dark { background: #504848; }
+.energy.metal { background: #a8a8b8; }
+.energy.colorless { background: #e8e8e8; }
+
+.status-icon {
+  display: inline-block;
+  width: 10px; height: 10px;
+  font-size: 6px;
+  line-height: 10px;
+  text-align: center;
+  border-radius: 2px;
+  color: #fff;
+  font-weight: bold;
+}
+.status-icon.poison { background: #a040c0; }
+.status-icon.burn { background: #f85030; }
+.status-icon.sleep { background: #5858a8; }
+.status-icon.paralysis { background: #c8a800; }
+.status-icon.confusion { background: #f87818; }
+
+/* 精灵 */
+.sprite-slot { position: absolute; display: flex; flex-direction: column; align-items: center; }
+.opponent-sprite { top: 24px; right: 40px; }
+.player-sprite { bottom: 36px; left: 30px; }
+
+.sprite-img {
+  width: 72px; height: 72px;
+  background: rgba(255,255,255,0.15);
+  border: 2px solid rgba(72,104,72,0.6);
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  image-rendering: pixelated;
+}
+.sprite-img.large { width: 88px; height: 88px; }
+.sprite-img img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+
+.sprite-shadow {
+  width: 60px; height: 10px;
+  background: radial-gradient(ellipse, rgba(0,0,0,0.35) 0%, transparent 70%);
+  margin-top: 2px;
+}
+.sprite-shadow.large { width: 76px; height: 12px; }
+
+/* 攻击动画 */
+.sprite-img.anim-attack { animation: atkShake 0.3s ease 2; }
+@keyframes atkShake {
+  0%,100% { transform: translateX(0); }
+  25% { transform: translateX(8px); }
+  75% { transform: translateX(-4px); }
+}
+.sprite-img.anim-hit { animation: hitFlash 0.15s linear 4; }
+@keyframes hitFlash {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+
+/* === 底部对话框 === */
+#dialog-area {
+  width: 100%;
+  height: 25%;
+  position: relative;
+  background: #f8f8e8;
+  border-top: 4px solid #484848;
+}
+
+.dialog-panel {
+  display: none;
+  width: 100%; height: 100%;
+  position: absolute; top: 0; left: 0;
+}
+.dialog-panel.active { display: flex; }
+
+.dialog-text {
+  flex: 1;
+  padding: 12px 16px;
+  font-size: 9px;
+  line-height: 2;
+  color: #383838;
+  overflow-y: auto;
+}
+.dialog-text.full { width: 100%; }
+
+/* 2x2 主菜单 */
+.dialog-menu { display: flex; flex-wrap: wrap; align-content: center; padding: 8px 12px; }
+.menu-2x2 {
+  width: 200px;
+  border-left: 3px solid #484848;
+}
+.menu-2x2 .menu-item {
+  width: 48%; padding: 8px 6px;
+  font-size: 9px; color: #383838;
+  cursor: pointer;
+}
+
+/* 列表菜单 */
+.menu-list {
+  width: 220px;
+  border-left: 3px solid #484848;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+.menu-list .menu-item {
+  padding: 5px 8px;
+  font-size: 8px; color: #383838;
+  cursor: pointer;
+}
+
+.menu-item:hover { color: #f85030; }
+.menu-item.selected { color: #000; }
+.menu-item.selected::before { content: '▶'; margin-right: 4px; }
+.menu-item.disabled { color: #a8a8a8; pointer-events: none; }
+.menu-item.back-item { color: #686868; margin-top: 4px; font-size: 8px; }
+
+/* === 全屏覆盖 === */
+.overlay-screen {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: #f8f8e8;
+  flex-direction: column;
+  z-index: 10;
+}
+.overlay-screen.active { display: flex; }
+
+.overlay-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 8px;
+  background: #4878a8;
+  color: #f8f8f8;
+  font-size: 9px;
+  border-bottom: 3px solid #284868;
+}
+.page-arrow { cursor: pointer; font-size: 11px; padding: 2px 6px; }
+.page-arrow:hover { color: #f8d030; }
+.page-indicator { font-size: 7px; color: #c8d8e8; }
+
+.overlay-footer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 16px;
+  background: #f8f8e8;
+  border-top: 3px solid #484848;
+  font-size: 8px; color: #383838;
+}
+.footer-btn { cursor: pointer; padding: 4px 8px; }
+.footer-btn:hover { color: #f85030; }
+.footer-btn.right { margin-left: auto; }
+.footer-btn.disabled { color: #a8a8a8; pointer-events: none; }
+
+/* 卡牌背包 */
+.cards-body { flex: 1; display: flex; overflow: hidden; }
+.card-preview {
+  width: 50%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 10px; gap: 6px;
+}
+.card-thumb {
+  width: 90px; height: 126px;
+  background: #d8d8c8;
+  border: 2px solid #484848;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.card-thumb img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+.card-desc { text-align: center; max-width: 160px; }
+.card-desc-name { font-size: 8px; color: #383838; margin-bottom: 4px; }
+.card-desc-text { font-size: 7px; color: #686868; line-height: 1.6; }
+.card-desc-log {
+  font-size: 7px; color: #f87818; line-height: 1.5;
+  margin-top: 6px; padding-top: 4px;
+  border-top: 1px solid #c8c8b8;
+  min-height: 18px;
+  white-space: pre-line;
+}
+
+.card-list {
+  width: 50%;
+  padding: 8px;
+  border-left: 2px solid #c8c8b8;
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.card-list-item {
+  font-size: 8px; color: #383838;
+  padding: 4px 6px; cursor: pointer;
+  border-bottom: 1px solid #e8e8d8;
+}
+.card-list-item.selected { color: #000; background: #e8e8d0; }
+.card-list-item.selected::before { content: '▶'; margin-right: 4px; }
+.card-list-item:hover { color: #f85030; }
+
+/* 宝可梦队伍 */
+.pokemon-body { flex: 1; display: flex; overflow: hidden; padding: 8px; }
+.pokemon-active {
+  width: 50%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 4px;
+}
+.pokemon-active-sprite {
+  width: 72px; height: 72px;
+  background: rgba(72,104,72,0.15);
+  border: 2px solid #486848;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.pokemon-active-sprite img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+.pokemon-active-name { font-size: 9px; color: #383838; }
+.pokemon-active-hp { font-size: 7px; color: #486848; }
+.pokemon-active-tag { font-size: 7px; color: #f87818; }
+
+.pokemon-bench {
+  width: 50%;
+  border-left: 2px solid #c8c8b8;
+  display: flex; flex-direction: column;
+  gap: 4px; padding: 4px 8px;
+  overflow-y: auto;
+}
+.bench-slot {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px; cursor: pointer;
+  border-bottom: 1px solid #e8e8d8;
+}
+.bench-slot:hover { background: #e8e8d0; }
+.bench-slot.selected { background: #d8e8c0; }
+.bench-sprite {
+  width: 32px; height: 32px;
+  background: rgba(72,104,72,0.15);
+  border: 1px solid #486848;
+  border-radius: 2px;
+  overflow: hidden; flex-shrink: 0;
+}
+.bench-sprite img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+.bench-name { font-size: 7px; color: #383838; }
+.bench-hp { font-size: 7px; color: #686868; }
+.bench-empty { font-size: 7px; color: #a8a8a8; padding: 8px; }
+
+.poke-mode-hint {
+  width: 100%;
+  text-align: center;
+  font-size: 7px;
+  color: #f87818;
+  padding: 3px 0;
+}
+.pokemon-active-sprite.selectable { cursor: pointer; border-color: #f87818; }
+.pokemon-active-sprite.selectable:hover { background: rgba(248,120,24,0.15); }
+
+/* 卡组选择 */
+.deck-select-body {
+  flex: 1; display: flex; gap: 12px;
+  padding: 10px; overflow: hidden;
+}
+.deck-column {
+  flex: 1; display: flex; flex-direction: column; gap: 4px;
+}
+.deck-column-title { font-size: 8px; color: #4878a8; text-align: center; margin-bottom: 4px; }
+.deck-option {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px; border: 2px solid #c8c8b8;
+  border-radius: 4px; cursor: pointer;
+}
+.deck-option:hover { border-color: #4878a8; }
+.deck-option.selected { border-color: #f87818; background: #f8f0e0; }
+.deck-option img { width: 28px; height: 28px; image-rendering: pixelated; }
+.deck-option span { font-size: 7px; color: #383838; }
