@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>PTCG Battle</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="screen">
+    <!-- 战斗场景 -->
+    <div id="battle-scene">
+      <div class="info-box opponent-info" id="opponent-info">
+        <div class="info-name" id="opp-name">???</div>
+        <div class="hp-row">
+          <span class="hp-label">HP</span>
+          <div class="hp-bar-bg"><div class="hp-bar-fill" id="opp-hp-bar"></div></div>
+          <span class="hp-text" id="opp-hp-text"></span>
+        </div>
+        <div class="energy-icons" id="opp-energy"></div>
+      </div>
+
+      <div class="sprite-slot opponent-sprite">
+        <div class="sprite-img" id="opp-sprite"></div>
+        <div class="sprite-shadow"></div>
+      </div>
+
+      <div class="sprite-slot player-sprite">
+        <div class="sprite-img large" id="player-sprite"></div>
+        <div class="sprite-shadow large"></div>
+      </div>
+
+      <div class="info-box player-info" id="player-info">
+        <div class="info-name" id="pl-name">???</div>
+        <div class="hp-row">
+          <span class="hp-label">HP</span>
+          <div class="hp-bar-bg"><div class="hp-bar-fill" id="pl-hp-bar"></div></div>
+          <span class="hp-text" id="pl-hp-text"></span>
+        </div>
+        <div class="energy-icons" id="pl-energy"></div>
+      </div>
+    </div>
+
+    <!-- 底部对话框 -->
+    <div id="dialog-area">
+      <div class="dialog-panel active" id="panel-main">
+        <div class="dialog-text" id="main-text">加载中...</div>
+        <div class="dialog-menu menu-2x2" id="main-menu">
+          <div class="menu-item" data-action="fight">战 斗</div>
+          <div class="menu-item" data-action="cards">卡 牌</div>
+          <div class="menu-item" data-action="pokemon">宝可梦</div>
+          <div class="menu-item" data-action="stadium">竞技场</div>
+          <div class="menu-item" data-action="end">结 束</div>
+        </div>
+      </div>
+
+      <div class="dialog-panel" id="panel-fight">
+        <div class="dialog-text" id="fight-text">选择招式！</div>
+        <div class="dialog-menu menu-list" id="fight-menu"></div>
+      </div>
+
+      <div class="dialog-panel" id="panel-message">
+        <div class="dialog-text full" id="msg-text"></div>
+      </div>
+
+      <div class="dialog-panel" id="panel-target">
+        <div class="dialog-text" id="target-text">选择目标宝可梦</div>
+        <div class="dialog-menu menu-list" id="target-menu"></div>
+      </div>
+    </div>
+
+    <!-- 卡牌背包 -->
+    <div class="overlay-screen" id="screen-cards">
+      <div class="overlay-header">
+        <span class="page-arrow left" id="cards-prev">◀</span>
+        <span class="page-title" id="cards-title">我方手牌</span>
+        <span class="page-indicator" id="cards-page">1/8</span>
+        <span class="page-arrow right" id="cards-next">▶</span>
+      </div>
+      <div class="cards-body">
+        <div class="card-preview">
+          <div class="card-thumb" id="card-thumb"></div>
+          <div class="card-desc">
+            <div class="card-desc-name" id="card-desc-name"></div>
+            <div class="card-desc-text" id="card-desc-text"></div>
+            <div class="card-desc-log" id="card-desc-log"></div>
+          </div>
+        </div>
+        <div class="card-list" id="card-list"></div>
+      </div>
+      <div class="overlay-footer">
+        <span class="footer-btn" id="cards-use">使用</span>
+        <span class="footer-btn" id="cards-confirm-setup" hidden>确认布置</span>
+        <span class="footer-btn right" id="cards-back">← 返回</span>
+      </div>
+    </div>
+
+    <!-- 宝可梦队伍 -->
+    <div class="overlay-screen" id="screen-pokemon">
+      <div class="overlay-header">
+        <span class="page-arrow left" id="poke-prev">◀</span>
+        <span class="page-title" id="poke-title">我方宝可梦</span>
+        <span class="page-indicator" id="poke-page">1/2</span>
+        <span class="page-arrow right" id="poke-next">▶</span>
+      </div>
+      <div class="pokemon-body" id="pokemon-body"></div>
+      <div class="overlay-footer">
+        <span class="footer-btn" id="poke-swap">交换</span>
+        <span class="footer-btn right" id="poke-back">← 返回</span>
+      </div>
+    </div>
+
+    <!-- 卡组选择 -->
+    <div class="overlay-screen" id="screen-deck-select">
+      <div class="overlay-header">
+        <span class="page-title">选择卡组</span>
+      </div>
+      <div class="deck-select-body" id="deck-select-body"></div>
+      <div class="overlay-footer">
+        <span class="footer-btn" id="deck-start">开始对战</span>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

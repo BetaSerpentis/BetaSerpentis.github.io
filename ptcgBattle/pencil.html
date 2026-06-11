@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>PTCG Battle - FRLG Style</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="pencil.css">
+</head>
+<body>
+  <div id="screen">
+    <!-- 战斗场景 -->
+    <div id="battle-scene">
+      <!-- 对手信息框 -->
+      <div class="info-box opponent-info">
+        <div class="info-name">喷火龙 <span class="info-lv">Lv.2</span></div>
+        <div class="hp-row">
+          <span class="hp-label">HP</span>
+          <div class="hp-bar-bg"><div class="hp-bar-fill" style="width:53%"></div></div>
+        </div>
+        <div class="energy-icons">
+          <span class="energy fire"></span>
+          <span class="energy fire"></span>
+          <span class="energy electric"></span>
+        </div>
+      </div>
+
+      <!-- 对手精灵 -->
+      <div class="sprite-slot opponent-sprite">
+        <div class="sprite-img">对手</div>
+        <div class="sprite-shadow"></div>
+      </div>
+
+      <!-- 我方精灵 -->
+      <div class="sprite-slot player-sprite">
+        <div class="sprite-img large">我方</div>
+        <div class="sprite-shadow large"></div>
+      </div>
+
+      <!-- 我方信息框 -->
+      <div class="info-box player-info">
+        <div class="info-name">皮卡丘 <span class="info-lv">Lv.1</span></div>
+        <div class="hp-row">
+          <span class="hp-label">HP</span>
+          <div class="hp-bar-bg"><div class="hp-bar-fill" style="width:100%"></div></div>
+          <span class="hp-text">60/60</span>
+        </div>
+        <div class="energy-icons">
+          <span class="energy electric"></span>
+          <span class="energy electric"></span>
+          <span class="energy electric"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部对话框区域 -->
+    <div id="dialog-area">
+      <!-- 主菜单 -->
+      <div class="dialog-panel active" id="panel-main">
+        <div class="dialog-text">皮卡丘想做什么？</div>
+        <div class="dialog-menu menu-2x2">
+          <div class="menu-item selected" data-action="fight">▶战 斗</div>
+          <div class="menu-item" data-action="cards">　卡 牌</div>
+          <div class="menu-item" data-action="pokemon">　宝可梦</div>
+          <div class="menu-item" data-action="end">　结 束</div>
+        </div>
+      </div>
+
+      <!-- 招式选择 -->
+      <div class="dialog-panel" id="panel-fight">
+        <div class="dialog-text">选择招式！<br><br>消耗: ⚡⚡⚡</div>
+        <div class="dialog-menu menu-list">
+          <div class="menu-item selected">▶十万伏特　60</div>
+          <div class="menu-item">　电光一闪　20</div>
+          <div class="menu-item back-item">　← 返回</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 卡牌背包界面（全屏覆盖） -->
+    <div class="overlay-screen" id="screen-cards">
+      <div class="overlay-header">
+        <span class="page-arrow left">◀</span>
+        <span class="page-title">我方手牌</span>
+        <span class="page-indicator">1/8</span>
+        <span class="page-arrow right">▶</span>
+      </div>
+      <div class="cards-body">
+        <div class="card-preview">
+          <div class="card-thumb"></div>
+          <div class="card-desc">
+            <div class="card-desc-name">博士的研究</div>
+            <div class="card-desc-text">弃掉手牌，抽7张卡。</div>
+          </div>
+        </div>
+        <div class="card-list">
+          <div class="card-list-item selected">▶博士的研究</div>
+          <div class="card-list-item">　伤药</div>
+          <div class="card-list-item">　精灵球</div>
+          <div class="card-list-item">　雷电能量</div>
+          <div class="card-list-item">　雷电能量</div>
+        </div>
+      </div>
+      <div class="overlay-footer">
+        <span class="footer-btn">使用</span>
+        <span class="footer-btn">详情</span>
+        <span class="footer-btn right">← 返回</span>
+      </div>
+    </div>
+
+    <!-- 宝可梦队伍界面（全屏覆盖） -->
+    <div class="overlay-screen" id="screen-pokemon">
+      <div class="overlay-header">
+        <span class="page-arrow left">◀</span>
+        <span class="page-title">我方宝可梦</span>
+        <span class="page-indicator">1/2</span>
+        <span class="page-arrow right">▶</span>
+      </div>
+      <div class="pokemon-body">
+        <div class="pokemon-active">
+          <div class="pokemon-active-sprite"></div>
+          <div class="pokemon-active-name">皮卡丘</div>
+          <div class="pokemon-active-hp">HP 60/60</div>
+          <div class="energy-icons">
+            <span class="energy electric"></span>
+            <span class="energy electric"></span>
+            <span class="energy electric"></span>
+          </div>
+          <div class="pokemon-active-tag">出战中</div>
+        </div>
+        <div class="pokemon-bench">
+          <div class="bench-slot filled">
+            <div class="bench-sprite"></div>
+            <div class="bench-name">小火龙</div>
+          </div>
+          <div class="bench-slot filled">
+            <div class="bench-sprite"></div>
+            <div class="bench-name">杰尼龟</div>
+          </div>
+          <div class="bench-slot filled">
+            <div class="bench-sprite"></div>
+            <div class="bench-name">妙蛙种子</div>
+          </div>
+          <div class="bench-slot empty"><div class="bench-empty">空位</div></div>
+          <div class="bench-slot empty"><div class="bench-empty">空位</div></div>
+        </div>
+      </div>
+      <div class="overlay-footer">
+        <span class="footer-btn">交换</span>
+        <span class="footer-btn">详情</span>
+        <span class="footer-btn right">← 返回</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="pencil.js"></script>
+</body>
+</html>

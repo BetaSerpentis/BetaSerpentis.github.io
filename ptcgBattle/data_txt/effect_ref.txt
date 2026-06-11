@@ -1,0 +1,54 @@
+VALID	DESC	ID
+		<I>id	<S>name	<S>params	<S>desc	<S>examples
+
+有效	注释	效果ID	效果名	参数	描述	示例卡牌
+		draw	抽卡	count=N	从牌库抽N张卡	博士的研究
+		draw_until	抽至满手	target=N	抽卡直到手牌满N张	可尔妮的气势
+		search_deck_to_hand	搜索牌库加手	count=N;filter=类型	搜索牌库选择N张卡加入手牌	大师球
+		search_deck_to_bench	搜索牌库放备战	count=N;filter=类型	搜索牌库放置N只宝可梦到备战区	巢穴球
+		peek_and_keep	查看牌库选牌	peek=N;keep=M	查看牌库上方N张选M张加入手牌	超级球
+		heal	恢复HP	amount=N/full	恢复N点HP或全部恢复	伤药
+		damage_place	放置伤害指示物	target=目标;count=N	在目标身上放置N个伤害指示物(每个10点)	光辉水箭龟
+		damage_move	移动伤害指示物	source=源;dest=目标;count=N	将N个伤害指示物从源移到目标	伤害水泵
+		energy_attach	附加能量	source=deck/discard/hand;target=目标;filter=类型;count=N	从指定区域附加能量	电气发生器
+		energy_discard	丢弃能量	target=self/opponent;filter=类型;count=N/all	丢弃能量卡	喷射火焰
+		energy_move	转移能量	source=源;dest=目标;count=N;filter=类型	在宝可梦间转移能量	能量转移
+		energy_provide	能量提供变更	provides=类型;count=N;condition=条件	改变能量卡提供的属性和数量	彩虹能量
+		inflict_status	施加状态	statuses=poison/burn/sleep/paralysis/confusion	施加特殊状态	剧毒之鞭
+		status_remove	消除状态	target=目标;type=状态类型	消除特殊状态	万灵药
+		status_prevent	防止状态	target=目标;type=状态类型	防止陷入特殊状态	芳香草能量
+		switch_pokemon	交替宝可梦	who=self/opponent/both	交换战斗与备战宝可梦	老大的指令
+		evolve	进化	source=hand/deck;bypass=条件	从手牌/牌库完成进化	神奇糖果
+		devolve	退化	target=目标;dest=hand/deck	移除进化卡退化	退化喷雾Z
+		return_to_hand	放回手牌	target=目标;with_attachments=bool	将卡牌放回手牌	阿塞劳拉
+		return_to_deck	放回牌库	target=目标;position=top/bottom/shuffle	将卡牌放回牌库	裁判
+		discard_hand	丢弃手牌	who=self/opponent;count=N/all;filter=类型	丢弃手牌	高级球
+		discard_all_hand	丢弃全部手牌	who=self/opponent	丢弃全部手牌	博士的研究
+		shuffle_hand_to_deck	手牌回牌库	who=self/opponent/both	手牌放回牌库重洗	玛俐
+		recover_from_discard	弃牌区回收	count=N;filter=类型;target=hand/deck	从弃牌区回收卡牌	能量回收
+		coin_flip	掷硬币	count=N;heads_effect=效果;tails_effect=效果	掷硬币决定效果	精灵球
+		damage_modify	伤害增减	target=目标;amount=+/-N;duration=持续;condition=条件	修改伤害数值	丹帝
+		prevent_damage	防止伤害	target=目标;threshold=N;condition=条件;duration=持续	防止招式伤害	天空之柱
+		prevent_effect	防止效果	target=目标;source=attack/ability/trainer	防止效果影响	铁壳蛹
+		cannot_attack	无法攻击	target=目标;duration=持续;move=招式名	无法使用招式	皮卡冲锋
+		cannot_retreat	无法撤退	target=目标;duration=持续	无法撤退	束缚
+		retreat_modify	撤退费用变更	target=目标;amount=+/-N/0	修改撤退费用	伽勒尔矿山
+		hp_modify	最大HP变更	target=目标;amount=+/-N	修改最大HP	勇气护符
+		weakness_modify	弱点变更	target=目标;action=eliminate/change;type=属性	消除或改变弱点	安全护目镜
+		ability_nullify	特性消除	target=目标;scope=范围	消除特性效果	无人发电厂
+		prize_manipulate	奖赏卡操作	action=take/return/swap/look;count=N	操作奖赏卡	格拉吉欧
+		lost_zone	放逐区操作	source=来源;count=N;filter=类型	将卡牌放入放逐区	放逐搅拌器
+		end_turn	回合结束		结束当前回合	阿枫
+		choose_effect	选择效果	options=效果列表	从多个效果中选择	枫与南
+		bench_size_modify	备战区变更	new_limit=N	修改备战区最大数量	崩塌的竞技场
+		look_at	查看信息	target=hand/deck/prize;count=N	查看隐藏信息	空拍洛托姆
+		deck_manipulate	牌库操作	action=reorder/shuffle;count=N;position=top/bottom	操控牌库顺序	生存组合
+		fossil_place	化石放置	hp=N	作为化石宝可梦放置	谜之化石
+		on_knockout	昏厥时效果	trigger=self/opponent;effect=效果	宝可梦昏厥时触发	复仇拳箱
+		vstar_power	VSTAR力量	effect=效果	每局只能使用一次	喷火龙VSTAR
+		gx_attack	GX招式	effect=效果;bonus=额外效果	每局只能使用一次GX招式	怒火中烧GX
+		self_damage	自身伤害	amount=N	对自己造成伤害	舍身冲撞
+		shuffle_deck	重洗牌库		重洗牌库	(大部分搜索效果后)
+		damage_bench	备战区伤害	target=opponent_bench;damage=N	对备战宝可梦造成伤害	超极巨轰天裂水
+		raw	原始效果	text=原文	未解析的效果保留原文	(待完善)
+		unparsed	未解析部分	text=原文	自动解析后剩余的部分	(待完善)
