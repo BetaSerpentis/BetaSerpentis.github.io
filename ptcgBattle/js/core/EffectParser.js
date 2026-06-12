@@ -34,6 +34,11 @@ function opponentDiscardEnergyHeads(text) { return { count: 1, heads: [{ action:
 const PEEK_REMAINDER = String.raw`(?:[。.]将剩余卡(?:放回牌库并重洗|以任意顺序排列[，,]放回牌库上方|(?:放回|置于).*?牌库上方)|[。.]剩余卡.*?回复原样)?`;
 
 function trainerPrerequisite(kind, raw) { return { kind, raw }; }
+function countParams(n, optional=false) { const c=+n; return { count:c, maxCount:c, minCount:optional?0:c, allowFewer:!!optional, allowEmpty:!!optional }; }
+function keepParams(n, optional=false) { const c=+n; return { keep:c, maxCount:c, minCount:optional?0:c, allowFewer:!!optional, allowEmpty:!!optional }; }
+function optionalText(text) { return /最多|合计最多|任意数量|任意选择最多|可将|若希望/.test(text); }
+function withCount(base, n, optional=false) { return { ...base, ...countParams(n, optional) }; }
+function withKeep(base, n, optional=false) { return { ...base, ...keepParams(n, optional) }; }
 function discardCostParams(text) {
   const count = +(text.match(/(\d+)张/) || [])[1] || 1;
   const type = (text.match(/【(.+?)】能量/) || [])[1];
@@ -59,7 +64,7 @@ const RULES = [
   { re: /从自己的手牌选择1张【2阶进化】宝可梦卡[，,]放置于自己的场上的可进化成那只宝可梦的【基础】宝可梦身上[，,]跳过【1阶进化】完成进化/, act:'evolve_rare_candy', p:()=>({stage:'2阶',targetStage:'基础',bypassStage:'1阶',noPlacedThisTurn:true,noFirstTurn:true}) },
   { re: /查看自己的所有反面朝上的奖赏卡的正面[。.]从其中选择1张【基础】宝可梦卡[，,]在给对手看过后[，,]与这张"?洗翠的沉重球"?卡互换并加入手牌/, act:'prize_basic_pokemon_to_hand_exchange_trainer', p:()=>({count:1,filter:'【基础】宝可梦'}) },
   { re: /从自己的牌库任意选择最多与自己的场上宝可梦属性种类数量相同数量的卡[，,]加入手牌/, act:'search_deck_to_hand', p:()=>({dynamicCount:'own_field_type_count',filter:null,allowFewer:true,allowEmpty:true}) },
-  { re: /从自己的牌库任意选择最多(\d+)张卡[，,]加入手牌/, act:'search_deck_to_hand', p:m=>({count:+m[1],filter:null,allowFewer:true,allowEmpty:true}) },
+  { re: /从自己的牌库任意选择最多(\d+)张卡[，,]加入手牌/, act:'search_deck_to_hand', p:m=>withCount({filter:null},m[1],true) },
   { re: /查看(?:自己的)?牌库上方1张卡[，,]将那张卡加入手牌[。.]或者将那张卡丢弃[，,]从自己的牌库抽出1张卡/, act:'hikers_shoes', p:()=>({peek:1,drawOnDiscard:1}) },
   { re: /将自己的战斗场的【基础】宝可梦与备战宝可梦互换[。.]然后[，,]将换入备战区的宝可梦恢复"?(\d+)"?HP/, act:'switch_active_basic_heal_bench', p:m=>({heal:+m[1]}) },
   { re: /(?:可)?从自己的弃牌区选择1张【火】能量卡[，,]附于自己的备战区的【火】宝可梦身上[。.](?:这个情况下[，,])?在附上那张卡的宝可梦身上放置(\d+)个伤害指示物/, act:'attach_energy_from_discard', p:m=>({count:1,filter:'【火】能量',target:'bench',targetType:'fire',damageCountersOnAttachedTarget:+m[1]}) },
@@ -96,22 +101,24 @@ const RULES = [
   { re: /将(?:自己的)?手牌全部放回牌库并重洗[。.]然后[，,]从牌库抽出(\d+)张卡/, act:'shuffle_hand_to_deck', p:m=>({who:'self',draw_count:+m[1]}) },
 
   // ===== 搜牌库放备战区 =====
-  { re: /从(?:自己的)?牌库(?:选择|抽出)(?:最多)?(\d+)张.*?基础.*?宝可梦(?:卡)?[,，]\s*放置于备战区/, act:'search_deck_to_bench', p:m=>({count:+m[1],filter:'【基础】宝可梦'}) },
-  { re: /从(?:自己的)?牌库选择最多(\d+)张(.+?)宝可梦(?:卡)?[,，]放置于备战区/, act:'search_deck_to_bench', p:m=>({count:+m[1],filter:m[2]}) },
-  { re: /从(?:自己的)?牌库选择1张【基础】宝可梦卡[，,]放置于备战区/, act:'search_deck_to_bench', p:()=>({count:1,filter:'【基础】宝可梦'}) },
+  { re: /从(?:自己的)?牌库(?:选择|抽出)最多(\d+)张.*?基础.*?宝可梦(?:卡)?[,，]\s*放置于备战区/, act:'search_deck_to_bench', p:m=>withCount({filter:'【基础】宝可梦'},m[1],true) },
+  { re: /从(?:自己的)?牌库(?:选择|抽出)(\d+)张.*?基础.*?宝可梦(?:卡)?[,，]\s*放置于备战区/, act:'search_deck_to_bench', p:m=>withCount({filter:'【基础】宝可梦'},m[1],false) },
+  { re: /从(?:自己的)?牌库选择最多(\d+)张(.+?)宝可梦(?:卡)?[,，]放置于备战区/, act:'search_deck_to_bench', p:m=>withCount({filter:m[2]},m[1],true) },
+  { re: /从(?:自己的)?牌库选择1张【基础】宝可梦卡[，,]放置于备战区/, act:'search_deck_to_bench', p:()=>withCount({filter:'【基础】宝可梦'},1,false) },
 
   // ===== 搜牌库加手 =====
-  { re: /从(?:自己的)?牌库(?:选择|抽出)(?:最多)?(\d+)张(.+?)(?:卡)?[,，][在给对手看过后]*加入手牌/, act:'search_deck_to_hand', p:m=>({count:+m[1]||1,filter:m[2].replace(/["“”]/g,'').trim()}) },
+  { re: /从(?:自己的)?牌库(?:选择|抽出)最多(\d+)张(.+?)(?:卡)?[,，][在给对手看过后]*加入手牌/, act:'search_deck_to_hand', p:m=>withCount({filter:m[2].replace(/["“”]/g,'').trim()},m[1]||1,true) },
+  { re: /从(?:自己的)?牌库(?:选择|抽出)(\d+)张(.+?)(?:卡)?[,，][在给对手看过后]*加入手牌/, act:'search_deck_to_hand', p:m=>withCount({filter:m[2].replace(/["“”]/g,'').trim()},m[1]||1,false) },
   { re: /从(?:自己的)?牌库选择(.+?)各(\d+)张[,，]在给对手看过后加入手牌/, act:'search_deck_to_hand', p:m=>({count:+m[2],filter:m[1].replace(/["“”]/g,'').trim()}) },
   { re: /从(?:自己的)?牌库选择1张(.+?)(?:卡)?[,，]在给对手看过后加入手牌/, act:'search_deck_to_hand', p:m=>({count:1,filter:m[1].replace(/["“”]/g,'').trim()}) },
 
   // ===== 看牌库上方选牌 =====
-  { re: new RegExp(`查看(?:自己的)?牌库上方(\\d+)张卡[，,]从其中选择(.+?)合计最多(\\d+)张[，,]在给对手看过后加入手牌${PEEK_REMAINDER}`), act:'peek_and_keep', p:m=>peekParams(m,{peek:+m[1],keep:+m[3],filter:m[2].trim()}) },
-  { re: new RegExp(`查看(?:自己的)?牌库上方(\\d+)张卡[，,]从其中选择(\\d+)张(.+?)(?:卡)?[，,]在给对手看过后加入手牌${PEEK_REMAINDER}`), act:'peek_and_keep', p:m=>peekParams(m,{peek:+m[1],keep:+m[2],filter:m[3].trim()}) },
-  { re: new RegExp(`查看(?:自己的)?牌库上方(\\d+)张[。.]可将其中的(\\d+)张(.+?)(?:卡)?[，,]在给对手看过后加入手牌${PEEK_REMAINDER}`), act:'peek_and_keep', p:m=>peekParams(m,{peek:+m[1],keep:+m[2],filter:m[3].trim(),keepOrder:true}) },
-  { re: new RegExp(`查看(?:自己的)?牌库上方(\\d+)张卡[。.]选择(?:其中)?(?:最多)?(\\d+)张(.+?)(?:卡)?[,，]在给对手看过后加入手牌${PEEK_REMAINDER}`), act:'peek_and_keep', p:m=>peekParams(m,{peek:+m[1],keep:+m[2],filter:m[3].trim()}) },
-  { re: new RegExp(`查看(?:自己的)?牌库上方(\\d+)张卡[。.]选择(?:其中)?(?:最多)?(\\d+)张.*?加入手牌${PEEK_REMAINDER}`), act:'peek_and_keep', p:m=>peekParams(m,{peek:+m[1],keep:+m[2]}) },
-  { re: new RegExp(`查看(?:自己的)?牌库上方(\\d+)张卡[,，]选择(?:其中)?(?:最多)?(\\d+)张.*?加入手牌${PEEK_REMAINDER}`), act:'peek_and_keep', p:m=>peekParams(m,{peek:+m[1],keep:+m[2]}) },
+  { re: new RegExp(`查看(?:自己的)?牌库上方(\\d+)张卡[，,]从其中选择(.+?)合计最多(\\d+)张[，,]在给对手看过后加入手牌${PEEK_REMAINDER}`), act:'peek_and_keep', p:m=>peekParams(m,withKeep({peek:+m[1],filter:m[2].trim()},m[3],true)) },
+  { re: new RegExp(`查看(?:自己的)?牌库上方(\\d+)张卡[，,]从其中选择(\\d+)张(.+?)(?:卡)?[，,]在给对手看过后加入手牌${PEEK_REMAINDER}`), act:'peek_and_keep', p:m=>peekParams(m,withKeep({peek:+m[1],filter:m[3].trim()},m[2],false)) },
+  { re: new RegExp(`查看(?:自己的)?牌库上方(\\d+)张[。.]可将其中的(\\d+)张(.+?)(?:卡)?[，,]在给对手看过后加入手牌${PEEK_REMAINDER}`), act:'peek_and_keep', p:m=>peekParams(m,withKeep({peek:+m[1],filter:m[3].trim(),keepOrder:true},m[2],true)) },
+  { re: new RegExp(`查看(?:自己的)?牌库上方(\\d+)张卡[。.]选择(?:其中)?(?:最多)?(\\d+)张(.+?)(?:卡)?[,，]在给对手看过后加入手牌${PEEK_REMAINDER}`), act:'peek_and_keep', p:m=>peekParams(m,withKeep({peek:+m[1],filter:m[3].trim()},m[2],optionalText(m[0]))) },
+  { re: new RegExp(`查看(?:自己的)?牌库上方(\\d+)张卡[。.]选择(?:其中)?(?:最多)?(\\d+)张.*?加入手牌${PEEK_REMAINDER}`), act:'peek_and_keep', p:m=>peekParams(m,withKeep({peek:+m[1]},m[2],optionalText(m[0]))) },
+  { re: new RegExp(`查看(?:自己的)?牌库上方(\\d+)张卡[,，]选择(?:其中)?(?:最多)?(\\d+)张.*?加入手牌${PEEK_REMAINDER}`), act:'peek_and_keep', p:m=>peekParams(m,withKeep({peek:+m[1]},m[2],optionalText(m[0]))) },
   { re: /查看(?:自己的)?牌库上方(\d+)张卡[,，]选择/, act:'peek_and_keep', p:m=>({peek:+m[1],keep:1}) },
 
   // ===== 抽卡 =====
@@ -186,10 +193,12 @@ const RULES = [
   { re: /对手的(?:战斗)?宝可梦无法撤退/, act:'cannot_retreat', p:()=>({target:'opponent'}) },
 
   // ===== 弃牌区附能 =====
-  { re: /从(?:自己的)?弃牌区选择(?:最多)?(\d+)张(.+?)能量卡[,，]?附于(.+?)宝可梦/, act:'attach_energy_from_discard', p:m=>({count:+m[1],filter:m[2].trim(),target:m[3].includes('备战')?'bench':'any'}) },
+  { re: /从(?:自己的)?弃牌区选择最多(\d+)张(.+?)能量卡[,，]?附于(.+?)宝可梦/, act:'attach_energy_from_discard', p:m=>withCount({filter:m[2].trim(),target:m[3].includes('备战')?'bench':'any'},m[1],true) },
+  { re: /从(?:自己的)?弃牌区选择(\d+)张(.+?)能量卡[,，]?附于(.+?)宝可梦/, act:'attach_energy_from_discard', p:m=>withCount({filter:m[2].trim(),target:m[3].includes('备战')?'bench':'any'},m[1],false) },
 
   // ===== 牌库附能 =====
-  { re: /从(?:自己的)?牌库(?:选择|抽出)(?:最多)?(\d+)张(.+?)能量卡[,，]?附于/, act:'attach_energy_from_deck', p:m=>({count:+m[1],filter:m[2].trim()}) },
+  { re: /从(?:自己的)?牌库(?:选择|抽出)最多(\d+)张(.+?)能量卡[,，]?附于/, act:'attach_energy_from_deck', p:m=>withCount({filter:m[2].trim()},m[1],true) },
+  { re: /从(?:自己的)?牌库(?:选择|抽出)(\d+)张(.+?)能量卡[,，]?附于/, act:'attach_energy_from_deck', p:m=>withCount({filter:m[2].trim()},m[1],false) },
 
   // ===== 丢弃自身能量 =====
   { re: /将这只宝可梦身上所附加的(.+?)能量全部丢弃/, act:'discard_energy', p:m=>({target:'self',filter:m[1],count:'all'}) },
@@ -212,10 +221,13 @@ const RULES = [
   { re: /将这只宝可梦与附加的卡[，,]全部放回手牌/, act:'return_to_hand', p:()=>({target:'self',with_attachments:true}) },
 
   // ===== 弃牌区回收 =====
-  { re: /从(?:自己的)?弃牌区选择(.+?)合计最多(\d+)张[，,]在给对手看过后加入手牌/, act:'recover_from_discard', p:m=>({count:+m[2],filter:m[1].trim(),target:'hand'}) },
-  { re: /从(?:自己的)?弃牌区选择(?:最多)?(\d+)张(.+?)(?:卡)?[,，]在给对手看过后加入手牌/, act:'recover_from_discard', p:m=>({count:+m[1],filter:m[2].trim(),target:'hand'}) },
-  { re: /从(?:自己的)?弃牌区选择(?:最多)?(\d+)张(.+?)(?:卡)?[,，]加入手牌/, act:'recover_from_discard', p:m=>({count:+m[1],filter:m[2].trim(),target:'hand'}) },
-  { re: /从(?:自己的)?弃牌区选择.*?合计(?:最多)?(\d+)张[,，]在给对手看过后放回牌库/, act:'recover_from_discard', p:m=>({count:+m[1],target:'deck'}) },
+  { re: /从(?:自己的)?弃牌区选择(.+?)合计最多(\d+)张[，,]在给对手看过后加入手牌/, act:'recover_from_discard', p:m=>withCount({filter:m[1].trim(),target:'hand'},m[2],true) },
+  { re: /从(?:自己的)?弃牌区选择最多(\d+)张(.+?)(?:卡)?[,，]在给对手看过后加入手牌/, act:'recover_from_discard', p:m=>withCount({filter:m[2].trim(),target:'hand'},m[1],true) },
+  { re: /从(?:自己的)?弃牌区选择(\d+)张(.+?)(?:卡)?[,，]在给对手看过后加入手牌/, act:'recover_from_discard', p:m=>withCount({filter:m[2].trim(),target:'hand'},m[1],false) },
+  { re: /从(?:自己的)?弃牌区选择最多(\d+)张(.+?)(?:卡)?[,，]加入手牌/, act:'recover_from_discard', p:m=>withCount({filter:m[2].trim(),target:'hand'},m[1],true) },
+  { re: /从(?:自己的)?弃牌区选择(\d+)张(.+?)(?:卡)?[,，]加入手牌/, act:'recover_from_discard', p:m=>withCount({filter:m[2].trim(),target:'hand'},m[1],false) },
+  { re: /从(?:自己的)?弃牌区选择.*?合计最多(\d+)张[,，]在给对手看过后放回牌库/, act:'recover_from_discard', p:m=>withCount({target:'deck'},m[1],true) },
+  { re: /从(?:自己的)?弃牌区选择.*?合计(\d+)张[,，]在给对手看过后放回牌库/, act:'recover_from_discard', p:m=>withCount({target:'deck'},m[1],false) },
   { re: /从(?:自己的)?弃牌区(?:选择|抽出).*?(?:加入手牌|放回牌库)/, act:'recover_from_discard', p:()=>({count:1,target:'hand'}) },
 
   // ===== 多获奖赏 =====

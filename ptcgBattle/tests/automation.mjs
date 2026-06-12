@@ -820,6 +820,22 @@ await test('UI宝可梦工具装备：等待引擎失败并显示失败原因', 
   assert.deepEqual(pl.hand, ['tool']);
 });
 
+await test('UI选卡器：allowFewer/allowEmpty允许少选或不选并返回顺序', async () => {
+  const app = Object.create(PTCGBattleApp.prototype);
+  app._cardMode = 'pick-cards';
+  app._cardPage = 0;
+  app._cardPickMax = 3;
+  app._cardPickMin = 0;
+  app._cardPickAllowEmpty = true;
+  app._selectedCardIndices = new Set([1]);
+  app._getCardPages = () => [{ title:'选择', cards:['A','B','C'], usable:true }];
+  app._finishCardPickMode = () => {};
+  let resolved = null;
+  app._cardModeCb = selected => { resolved = selected; };
+  await app._useSelectedCard();
+  assert.deepEqual(resolved, [1]);
+});
+
 await test('peek_and_keep：无匹配候选时记录可见原因并保留牌', async () => {
   const gs = new GameState();
   const pl = gs.player1;
@@ -928,6 +944,11 @@ await test('UI选卡器：效果pick-cards确认后恢复手牌卡牌界面且�
   assert.equal(app._cardLog.filter(msg => msg === '旧日志').length, 1);
   assert.equal(app._cardLog.filter(msg => msg === '抽了 1 张卡').length, 1);
   assert.deepEqual(app._cardLog, ['旧日志', '抽了 1 张卡']);
+});
+
+await test('UI选卡器标题：最多与精确选择标题反映min/max', () => {
+  assert.equal(cardPickerTitleFor({ cards:['A','B','C'], count:3, options:{ allowEmpty:true, allowFewer:true } }), '选择最多3张卡');
+  assert.equal(cardPickerTitleFor({ cards:['A','B','C'], count:2, options:{} }), '选择2张卡');
 });
 
 await test('UI选卡器：达到选择上限后点击新卡替换最早选择', async () => {
@@ -1091,6 +1112,10 @@ await test('水莲的照顾解析：保留合计3张与宝可梦/基本能量筛
   assert.equal(parsed.unparsed, '', `residual=${parsed.unparsed}`);
   assert.equal(parsed.effects[0]?.action, 'recover_from_discard');
   assert.equal(parsed.effects[0]?.params.count, 3);
+  assert.equal(parsed.effects[0]?.params.maxCount, 3);
+  assert.equal(parsed.effects[0]?.params.minCount, 0);
+  assert.equal(parsed.effects[0]?.params.allowFewer, true);
+  assert.equal(parsed.effects[0]?.params.allowEmpty, true);
   assert.equal(parsed.effects[0]?.params.target, 'hand');
   assert.equal(parsed.effects[0]?.params.filter, '宝可梦卡（"拥有规则的宝可梦"除外）与基本能量卡');
 });
@@ -1110,12 +1135,16 @@ await test('水莲的照顾执行：只向 picker 暴露普通宝可梦与基本
   gs._onPendingPick = pick => {
     assert.equal(pick.options?.source, 'discard');
     assert.deepEqual(pick.cards, ['普通宝可梦', '基本【水】能量']);
-    gs.resolvePick([0, 1]);
+    assert.equal(pick.options?.allowFewer, true);
+    assert.equal(pick.options?.allowEmpty, true);
+    assert.equal(pick.options?.minCount, 0);
+    gs.resolvePick([0]);
   };
 
-  await executeEffects(gs, pl, [{ action:'recover_from_discard', params:{ count:3, filter:'宝可梦卡（"拥有规则的宝可梦"除外）与基本能量卡', target:'hand' } }]);
+  await executeEffects(gs, pl, [{ action:'recover_from_discard', params:{ count:3, maxCount:3, minCount:0, allowFewer:true, allowEmpty:true, filter:'宝可梦卡（"拥有规则的宝可梦"除外）与基本能量卡', target:'hand' } }]);
 
-  assert.deepEqual(new Set(pl.hand), new Set(['normal-pokemon', 'basic-energy']));
+  assert.deepEqual(pl.hand, ['normal-pokemon']);
+  assert.equal(pl.discard.includes('basic-energy'), true);
   assert.equal(pl.discard.includes('rule-pokemon'), true);
   assert.equal(pl.discard.includes('special-energy'), true);
   assert.equal(pl.discard.includes('item-card'), true);
@@ -1722,7 +1751,7 @@ await test('UI选卡器标题：options.prompt优先且保留撤退/查看/通�
   assert.equal(cardPickerTitleFor({ cards:['A'], count:1, options:{ source:'hand-discard', prompt:'选择要丢弃的手牌' } }), '选择要丢弃的手牌');
   assert.equal(cardPickerTitleFor({ cards:['A','B'], count:2, options:{ source:'retreat-energy', cost:2 } }), '选择撤退能量（费用2）');
   assert.equal(cardPickerTitleFor({ cards:['A'], count:1, options:{ source:'peek' } }), '选择1张卡');
-  assert.equal(cardPickerTitleFor({ cards:['A'], count:1, options:{} }), '选择卡牌');
+  assert.equal(cardPickerTitleFor({ cards:['A'], count:1, options:{} }), '选择1张卡');
 });
 
 await test('UI宝可梦选择器标题：效果选择使用prompt且普通视图保留双方标题', () => {
