@@ -75,16 +75,32 @@ async function _pickCards(gs, pl, cards, count, options = {}) {
   return pick;
 }
 
+function _selectionLimit(count, available, options = {}) {
+  const requested = count === 'all' ? available : (Number.isFinite(options.maxCount) ? options.maxCount : (Number.isFinite(count) ? count : 1));
+  const max = Math.max(0, Math.min(requested, available));
+  const allowEmpty = !!options.allowEmpty || !!options.optional;
+  const allowFewer = allowEmpty || !!options.allowFewer || Number.isFinite(options.maxCount);
+  let min;
+  if (Number.isFinite(options.minCount)) min = options.minCount;
+  else if (Number.isFinite(options.requiredMin)) min = options.requiredMin;
+  else if (allowEmpty) min = 0;
+  else if (allowFewer) min = max > 0 ? 1 : 0;
+  else min = max;
+  min = Math.max(0, Math.min(min, max));
+  return { max, min, allowEmpty, allowFewer };
+}
+
 async function _pickCardsFromZone(gs, actingPlayer, owner, zoneCards, count, options = {}) {
   const filter = options.filter || null;
   const candidates = (zoneCards || []).map((card, index) => ({ card, index })).filter(item => !options.excludeIndices?.includes?.(item.index)).filter(item => _cardMatchesFilter(gs, item.card, filter));
-  const n = Math.min(count || 1, candidates.length);
-  if (n <= 0) return [];
+  const limit = _selectionLimit(count, candidates.length, options);
+  if (limit.max <= 0) return [];
   const shouldUsePicker = actingPlayer === gs.player1 && !options.auto && gs._onPendingPick;
-  const allowFewer = !!options.allowFewer || !!options.allowEmpty;
-  if (!shouldUsePicker || (candidates.length <= n && !allowFewer)) return candidates.slice(0, n);
-  const picked = await gs.waitForPick(candidates.map(c => _cardLabel(gs, c.card)), n, options);
-  return (picked || []).map(i => candidates[i]).filter(Boolean).slice(0, n);
+  if (!shouldUsePicker) return candidates.slice(0, limit.max);
+  if (candidates.length <= limit.max && !limit.allowFewer) return candidates.slice(0, limit.max);
+  const picked = await gs.waitForPick(candidates.map(c => _cardLabel(gs, c.card)), limit.max, { ...options, maxCount:limit.max, minCount:limit.min, allowFewer:limit.allowFewer, allowEmpty:limit.allowEmpty });
+  const selected = (picked || []).map(i => candidates[i]).filter(Boolean).slice(0, limit.max);
+  return selected.length >= limit.min ? selected : [];
 }
 function _resolveZoneCard(gs, card) {
   const fromObject = card && typeof card === 'object';
@@ -300,11 +316,13 @@ function _attachedEnergyItems(gs, owner, mon, slot, filter) {
   return (mon?.energy || []).map((energy, energyIndex) => ({ owner, mon, slot, energy, energyIndex })).filter(item => _isEnergyCard(gs, item.energy, filter));
 }
 async function _pickAttachedEnergy(gs, actingPlayer, items, count, options = {}) {
-  const n = count === 'all' ? items.length : Math.min(count || 1, items.length);
-  if (n <= 0) return [];
-  if (actingPlayer !== gs.player1 || options.auto || items.length <= n || !gs._onPendingPick) return items.slice(0, n);
-  const picked = await gs.waitForPick(items.map(i => _cardLabel(gs, i.energy)), n, { source:'attached-energy', ...options });
-  return (picked || []).map(i => items[i]).filter(Boolean).slice(0, n);
+  const limit = _selectionLimit(count, items.length, options);
+  if (limit.max <= 0) return [];
+  if (actingPlayer !== gs.player1 || options.auto || !gs._onPendingPick) return items.slice(0, limit.max);
+  if (items.length <= limit.max && !limit.allowFewer) return items.slice(0, limit.max);
+  const picked = await gs.waitForPick(items.map(i => _cardLabel(gs, i.energy)), limit.max, { source:'attached-energy', ...options, maxCount:limit.max, minCount:limit.min, allowFewer:limit.allowFewer, allowEmpty:limit.allowEmpty });
+  const selected = (picked || []).map(i => items[i]).filter(Boolean).slice(0, limit.max);
+  return selected.length >= limit.min ? selected : [];
 }
 function _removeAttachedEnergy(selected) {
   const byMon = new Map();
@@ -426,7 +444,10 @@ const EXECUTORS = {
       filter:p.filter || null,
       prompt:'选择加入手牌的牌库卡',
       allowFewer:!!p.allowFewer,
-      allowEmpty:!!p.allowEmpty
+      allowEmpty:!!p.allowEmpty,
+      maxCount:p.maxCount,
+      minCount:p.minCount,
+      optional:!!p.optional
     });
     if (!selected.length) { gs._shuffle(pl.deck); return; }
     const selectedCards = selected.map(item => item.card);
@@ -448,7 +469,12 @@ const EXECUTORS = {
     const selected = hasCandidates ? await _pickCardsFromZone(gs, pl, pl, cards, count, {
       source:'deck-to-bench',
       filter,
-      prompt:'选择放置到备战区的基础宝可梦'
+      prompt:'选择放置到备战区的基础宝可梦',
+      allowFewer:!!p.allowFewer,
+      allowEmpty:!!p.allowEmpty,
+      maxCount:p.maxCount,
+      minCount:p.minCount,
+      optional:!!p.optional
     }) : [];
     if (!selected.length) { gs.addLog('牌库中没有可放置的基础宝可梦'); gs._shuffle(pl.deck); return; }
     let placed = 0;
@@ -471,19 +497,20 @@ const EXECUTORS = {
     const peeked = pl.deck.splice(-peek, peek);
     const topCards = [...peeked].reverse();
     const candidates = topCards.map((card, topIndex) => ({ card, topIndex })).filter(item => _cardMatchesFilter(gs, item.card, p.filter || null));
-    const n = Math.min(keep, candidates.length);
+    const limit = _selectionLimit(keep, candidates.length, p);
     let selected = [];
     if (candidates.length === 0) {
       const filterText = p.filter ? `符合${p.filter}条件的卡` : '符合条件的卡';
       gs.addLog(`查看了 ${peek} 张，没有${filterText}`);
     }
-    if (n > 0) {
+    if (limit.max > 0) {
       const shouldUsePicker = pl === gs.player1 && !p.auto && gs._onPendingPick;
       if (!shouldUsePicker) {
-        selected = candidates.slice(0, n);
+        selected = candidates.slice(0, limit.max);
       } else {
-        const picked = await gs.waitForPick(candidates.map(c => _cardLabel(gs, c.card)), n, { source: 'peek', filter: p.filter || null });
-        selected = (picked || []).map(i => candidates[i]).filter(Boolean).slice(0, n);
+        const picked = await gs.waitForPick(candidates.map(c => _cardLabel(gs, c.card)), limit.max, { source: 'peek', filter: p.filter || null, maxCount:limit.max, minCount:limit.min, allowFewer:limit.allowFewer, allowEmpty:limit.allowEmpty });
+        selected = (picked || []).map(i => candidates[i]).filter(Boolean).slice(0, limit.max);
+        if (selected.length < limit.min) selected = [];
       }
     }
     const selectedTopPositions = new Set(selected.map(item => item.topIndex));
@@ -841,7 +868,7 @@ const EXECUTORS = {
     });
     const mon = _getMon(pl, slot);
     if (!mon) return;
-    const selected = await _pickCardsFromZone(gs, pl, pl, pl.discard, p.count || 1, { source:'discard-energy', filter:card=>_isEnergyCard(gs, card, p.filter) });
+    const selected = await _pickCardsFromZone(gs, pl, pl, pl.discard, p.count || 1, { source:'discard-energy', filter:card=>_isEnergyCard(gs, card, p.filter), allowFewer:!!p.allowFewer, allowEmpty:!!p.allowEmpty, maxCount:p.maxCount, minCount:p.minCount, optional:!!p.optional });
     if (!selected.length) return;
     for (const item of selected.sort((a,b)=>b.index-a.index)) mon.energy.push(pl.discard.splice(item.index, 1)[0]);
     if (p.damageCountersOnAttachedTarget) _applyDamageToPokemon(gs, pl, mon, p.damageCountersOnAttachedTarget * 10);
@@ -853,7 +880,7 @@ const EXECUTORS = {
     const slot = await _pickPokemonTarget(gs, pl, pl, { mode:'attach-energy', side:'self', allowActive:true, allowBench:true, prompt:'选择附能目标' });
     const mon = _getMon(pl, slot);
     if (!mon) return;
-    const selected = await _pickCardsFromZone(gs, pl, pl, pl.deck, p.count || 1, { source:'deck-energy', filter:card=>_isEnergyCard(gs, card, p.filter) });
+    const selected = await _pickCardsFromZone(gs, pl, pl, pl.deck, p.count || 1, { source:'deck-energy', filter:card=>_isEnergyCard(gs, card, p.filter), allowFewer:!!p.allowFewer, allowEmpty:!!p.allowEmpty, maxCount:p.maxCount, minCount:p.minCount, optional:!!p.optional });
     if (!selected.length) { gs._shuffle(pl.deck); return; }
     for (const item of selected.sort((a,b)=>b.index-a.index)) mon.energy.push(pl.deck.splice(item.index, 1)[0]);
     gs._shuffle(pl.deck);
@@ -885,7 +912,7 @@ const EXECUTORS = {
     }
     if (!mon || mon.energy.length === 0) return;
     const items = _attachedEnergyItems(gs, owner, mon, slot, p.filter);
-    const selected = await _pickAttachedEnergy(gs, pl, items, p.count === 'all' ? 'all' : (p.count || 1), { filter:p.filter || null });
+    const selected = await _pickAttachedEnergy(gs, pl, items, p.count === 'all' ? 'all' : (p.count || 1), { filter:p.filter || null, allowFewer:!!p.allowFewer, allowEmpty:!!p.allowEmpty, maxCount:p.maxCount, minCount:p.minCount, optional:!!p.optional });
     if (!selected.length) return;
     for (const item of _removeAttachedEnergy(selected)) _pushEnergyDiscard(item.owner, item.energy);
     gs.addLog(`丢弃 ${selected.length} 个能量`);
@@ -913,7 +940,7 @@ const EXECUTORS = {
 
   // ===== 弃牌区回收 =====
   async recover_from_discard(gs, pl, p) {
-    const selected = await _pickCardsFromZone(gs, pl, pl, pl.discard, p.count || 1, { source:'discard', filter:p.filter || null });
+    const selected = await _pickCardsFromZone(gs, pl, pl, pl.discard, p.count || 1, { source:'discard', filter:p.filter || null, allowFewer:!!p.allowFewer, allowEmpty:!!p.allowEmpty, maxCount:p.maxCount, minCount:p.minCount, optional:!!p.optional });
     if (!selected.length) return;
     for (const item of selected.sort((a,b)=>b.index-a.index)) {
       const card = pl.discard.splice(item.index, 1)[0];

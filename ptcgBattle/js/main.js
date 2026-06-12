@@ -35,11 +35,31 @@ export function pokemonPickerConfirmEnabled(selectedSlot, options = {}) {
   return pokemonPickerSlotAllowed(selectedSlot, options);
 }
 
+function derivePickBounds(pick = {}) {
+  const options = pick?.options || {};
+  const cardsLen = (pick.cards || []).length;
+  const requested = Number.isFinite(pick.count) ? pick.count : 1;
+  if (options.source === 'retreat-energy') return { min:0, max:cardsLen, allowEmpty:true, allowFewer:true };
+  const rawMax = Number.isFinite(options.maxCount) ? options.maxCount : requested;
+  let max = Math.max(0, Math.min(rawMax, cardsLen));
+  let min;
+  if (Number.isFinite(options.minCount)) min = options.minCount;
+  else if (Number.isFinite(options.requiredMin)) min = options.requiredMin;
+  else if (options.allowEmpty) min = 0;
+  else if (options.allowFewer) min = max > 0 ? 1 : 0;
+  else min = Math.min(requested, cardsLen);
+  min = Math.max(0, Math.min(min, max));
+  return { min, max, allowEmpty:min === 0, allowFewer:!!options.allowFewer || min < max };
+}
+
 export function cardPickerTitleFor(pick = {}) {
   const options = pick?.options || {};
   if (options.prompt) return options.prompt;
   if (options.source === 'retreat-energy') return `选择撤退能量（费用${options.cost ?? pick?.count}）`;
-  if (options.source === 'peek') return `选择${pick?.count}张卡`;
+  const { min, max } = derivePickBounds(pick);
+  if (min === 0 && max > 0) return `选择最多${max}张卡`;
+  if (min === max && max > 0) return `选择${max}张卡`;
+  if (min < max) return `选择${min}-${max}张卡`;
   return '选择卡牌';
 }
 
@@ -241,6 +261,7 @@ export class PTCGBattleApp {
     this._cardPickMax = Number.isFinite(cb?.max) ? cb.max : null;
     this._cardPickMin = Number.isFinite(cb?.min) ? cb.min : 1;
     this._cardPickAllowEmpty = !!cb?.allowEmpty;
+    this._cardPickAllowFewer = !!cb?.allowFewer;
     if (!options.preserveLog) this._cardLog = [];
     this._openOverlay('screen-cards');
     this._renderCardList();
@@ -267,6 +288,7 @@ export class PTCGBattleApp {
     this._cardPickMax = null;
     this._cardPickMin = 1;
     this._cardPickAllowEmpty = false;
+    this._cardPickAllowFewer = false;
     this._cardPage = Number.isInteger(state.page) ? state.page : 0;
     this._selectedCardIdx = Number.isInteger(state.selectedIdx) ? state.selectedIdx : -1;
     this._selectedCardIndices = new Set();
@@ -372,7 +394,7 @@ export class PTCGBattleApp {
       }
     } else if (['search-deck', 'search-discard', 'prize', 'pick-cards'].includes(this._cardMode)) {
       const count = this._selectedCardIndices?.size || 0;
-      $('#cards-use').textContent = this._cardMode === 'pick-cards' && this._cardPickMax !== 1 ? `选择(${count})` : '选择';
+      $('#cards-use').textContent = this._cardMode === 'pick-cards' && this._cardPickMax !== 1 ? `选择(${count}/${this._cardPickMax ?? count})` : '选择';
     }
 
     const list = $('#card-list');
@@ -429,7 +451,7 @@ export class PTCGBattleApp {
       }
       $$('.card-list-item').forEach((el, i) => el.classList.toggle('selected', this._selectedCardIndices.has(i)));
       if (page.cards[idx]) this._renderCardPreview(page.cards[idx]);
-      $('#cards-use').textContent = this._cardPickMax !== 1 ? `选择(${this._selectedCardIndices.size})` : '选择';
+      $('#cards-use').textContent = this._cardPickMax !== 1 ? `选择(${this._selectedCardIndices.size}/${this._cardPickMax ?? this._selectedCardIndices.size})` : '选择';
       return;
     }
     $$('.card-list-item').forEach((el, i) => el.classList.toggle('selected', i === idx));
@@ -521,7 +543,8 @@ export class PTCGBattleApp {
       let selected = [];
       if (this._cardMode === 'pick-cards') {
         selected = [...this._selectedCardIndices];
-        if (!this._cardPickAllowEmpty && selected.length < this._cardPickMin) return;
+        if (selected.length < (this._cardPickMin || 0)) return;
+        if (this._cardPickMax != null && selected.length > this._cardPickMax) return;
       } else {
         if (this._selectedCardIdx < 0 || !page.cards[this._selectedCardIdx]) return;
         selected = [this._selectedCardIdx];
@@ -898,9 +921,11 @@ export class PTCGBattleApp {
       this.gs.resolvePick(selectedIdx);
       if (!wasCardScreenOpen) this._refresh();
     };
-    cb.max = isRetreat ? (pick.cards || []).length : pick.count;
-    cb.min = isRetreat ? 0 : Math.min(pick.count || 1, (pick.cards || []).length);
-    cb.allowEmpty = !!pick.options?.allowEmpty;
+    const bounds = derivePickBounds(pick);
+    cb.max = bounds.max;
+    cb.min = bounds.min;
+    cb.allowEmpty = bounds.allowEmpty;
+    cb.allowFewer = bounds.allowFewer;
     this._openCardScreen('pick-cards', cb, pick.cards || [], title, { preserveLog: wasCardScreenOpen });
   }
 
