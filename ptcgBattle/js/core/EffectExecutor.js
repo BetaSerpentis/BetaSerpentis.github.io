@@ -77,11 +77,12 @@ async function _pickCards(gs, pl, cards, count, options = {}) {
 
 async function _pickCardsFromZone(gs, actingPlayer, owner, zoneCards, count, options = {}) {
   const filter = options.filter || null;
-  const candidates = (zoneCards || []).map((card, index) => ({ card, index })).filter(item => _cardMatchesFilter(gs, item.card, filter));
+  const candidates = (zoneCards || []).map((card, index) => ({ card, index })).filter(item => !options.excludeIndices?.includes?.(item.index)).filter(item => _cardMatchesFilter(gs, item.card, filter));
   const n = Math.min(count || 1, candidates.length);
   if (n <= 0) return [];
   const shouldUsePicker = actingPlayer === gs.player1 && !options.auto && gs._onPendingPick;
-  if (!shouldUsePicker || (candidates.length <= n && !options.allowEmpty)) return candidates.slice(0, n);
+  const allowFewer = !!options.allowFewer || !!options.allowEmpty;
+  if (!shouldUsePicker || (candidates.length <= n && !allowFewer)) return candidates.slice(0, n);
   const picked = await gs.waitForPick(candidates.map(c => _cardLabel(gs, c.card)), n, options);
   return (picked || []).map(i => candidates[i]).filter(Boolean).slice(0, n);
 }
@@ -352,9 +353,36 @@ function _monMatchesType(mon, type) {
   if (!type) return true;
   return mon?.element === type;
 }
+function _ownFieldTypeCount(pl) {
+  return new Set([pl.active, ...(pl.bench || [])].filter(Boolean).map(mon => mon.element || 'colorless')).size;
+}
 function _isBasicMon(gs, mon) {
   const card = mon?.cardId ? gs.cardResolver?.getCard?.(mon.cardId) : null;
   return !card || !card.evolvesFrom && (!card.stage || card.stage === '基础');
+}
+function _allResolvedCards(gs) {
+  const rawIds = Object.keys(gs.cardResolver?.raw || {});
+  return rawIds.map(id => ({ id, card:gs.cardResolver.getCard?.(id) })).filter(x => x.card);
+}
+function _basicCanRareCandyTo(gs, mon, stage2) {
+  if (!_isBasicMon(gs, mon) || !stage2?.evolvesFrom) return false;
+  for (const item of _allResolvedCards(gs)) {
+    const mid = item.card;
+    if (mid?.cardType === 'pokemon' && mid.name === stage2.evolvesFrom && mid.evolvesFrom === mon.name) return true;
+  }
+  return false;
+}
+function _applyEvolutionToMon(gs, mon, cd, evolvedThisTurn = true) {
+  const dmg = mon.maxHp - mon.hp;
+  mon.name = cd.name; mon.maxHp = cd.hp; mon.hp = Math.max(cd.hp - dmg, 10);
+  mon.attacks = cd.attacks; mon.element = cd.element; mon.weakness = cd.weakness || null; mon.resistance = cd.resistance || null;
+  mon.retreatCost = cd.retreatCost ?? 1; mon.ability = cd.ability || null; mon.abilityUsed = false; mon.abilityDisabled = false; mon.abilityDisabledBy = null;
+  mon.placedThisTurn = false; mon.evolvedThisTurn = evolvedThisTurn;
+  gs.recomputePassives?.();
+}
+function _removeFirstFromDiscard(pl, card) {
+  const idx = pl.discard.lastIndexOf(card);
+  if (idx >= 0) pl.discard.splice(idx, 1);
 }
 function _applyDamageToPokemon(gs, owner, mon, amount, logSuffix = '受到') {
   if (!mon || !amount) return false;
@@ -392,10 +420,13 @@ const EXECUTORS = {
   async search_deck_to_hand(gs, pl, p) {
     if (pl.deck.length === 0) return;
     const cards = [...pl.deck].reverse();
-    const selected = await _pickCardsFromZone(gs, pl, pl, cards, p.count || 1, {
+    const count = p.dynamicCount === 'own_field_type_count' ? _ownFieldTypeCount(pl) : (p.count || 1);
+    const selected = await _pickCardsFromZone(gs, pl, pl, cards, count, {
       source:'deck-search',
       filter:p.filter || null,
-      prompt:'选择加入手牌的牌库卡'
+      prompt:'选择加入手牌的牌库卡',
+      allowFewer:!!p.allowFewer,
+      allowEmpty:!!p.allowEmpty
     });
     if (!selected.length) { gs._shuffle(pl.deck); return; }
     const selectedCards = selected.map(item => item.card);
@@ -469,6 +500,58 @@ const EXECUTORS = {
       pl.deck.push(...remainder);
     }
     gs.addLog(`看了 ${peek} 张选了 ${selectedCards.length} 张`);
+  },
+
+  // ===== 神奇糖果：基础宝可梦跳过1阶进化为2阶 =====
+  async evolve_rare_candy(gs, pl, p, eff, options) {
+    const stage2Candidates = (pl.hand || [])
+      .map((card, index) => ({ card, index, data:gs.cardResolver?.getCard?.(card) }))
+      .filter(item => item.data?.cardType === 'pokemon' && item.data.stage === '2阶' && item.data.evolvesFrom);
+    if (!stage2Candidates.length) { gs.addLog('手牌中没有可用的2阶进化宝可梦'); return; }
+    const chosenCards = await _pickCardsFromZone(gs, pl, pl, pl.hand, 1, {
+      source:'rare-candy-evolution-card',
+      filter:card => stage2Candidates.some(item => item.card === card),
+      excludeIndices:[],
+      prompt:'选择神奇糖果进化的2阶宝可梦'
+    });
+    const chosen = chosenCards[0];
+    if (!chosen) return;
+    const cd = gs.cardResolver?.getCard?.(chosen.card);
+    const eligibleSlots = ['active', ...pl.bench.map((_, i) => `bench-${i}`)].filter(slot => {
+      const mon = _getMon(pl, slot);
+      return mon && !mon.placedThisTurn && !mon.evolvedThisTurn && _basicCanRareCandyTo(gs, mon, cd);
+    });
+    if (!eligibleSlots.length) { gs.addLog('场上没有可用神奇糖果进化的基础宝可梦'); return; }
+    const slot = await _pickPokemonTarget(gs, pl, pl, {
+      mode:'evolve', side:'self', allowActive:true, allowBench:true, selectableSlots:eligibleSlots,
+      slotFilter:candidateSlot => eligibleSlots.includes(candidateSlot),
+      prompt:'选择要使用神奇糖果进化的基础宝可梦'
+    });
+    if (!eligibleSlots.includes(slot)) return;
+    const mon = _getMon(pl, slot);
+    const handIndex = pl.hand.indexOf(chosen.card);
+    if (handIndex < 0) return;
+    pl.hand.splice(handIndex, 1);
+    _applyEvolutionToMon(gs, mon, cd, true);
+    gs.addLog(`${pl.name} 使用神奇糖果让 ${mon.name} 完成进化！`);
+  },
+
+  // ===== 洗翠的沉重球：奖赏基础宝可梦与本卡互换 =====
+  async prize_basic_pokemon_to_hand_exchange_trainer(gs, pl, p, eff, options) {
+    const selected = await _pickCardsFromZone(gs, pl, pl, pl.prizes, p.count || 1, {
+      source:'hisuian-heavy-ball-prize',
+      filter:card => _isBasicPokemonCard(gs, card),
+      prompt:'选择奖赏卡中的基础宝可梦'
+    });
+    if (!selected.length) { gs.addLog('奖赏卡中没有可选择的基础宝可梦'); return; }
+    const item = selected[0];
+    const prizeCard = pl.prizes[item.index];
+    const trainerCard = options?.trainerCard || options?.trainerCardData?.name || '洗翠的沉重球';
+    const discardedTrainer = options?.trainerCardData?.name || trainerCard;
+    pl.hand.push(prizeCard);
+    pl.prizes[item.index] = trainerCard;
+    _removeFirstFromDiscard(pl, discardedTrainer);
+    gs.addLog('洗翠的沉重球：奖赏卡与本卡互换');
   },
 
   // ===== 健行鞋：看牌库顶，加入手牌或丢弃后抽1 =====

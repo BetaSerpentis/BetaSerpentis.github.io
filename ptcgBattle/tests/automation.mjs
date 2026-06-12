@@ -225,6 +225,20 @@ await test('真实数据：宝可梦交替与宝可齿轮3.0在 Item-cards.json 
   assertHasAction(swap['效果'], 'switch_pokemon');
 });
 
+await test('真实数据：神奇糖果/洗翠沉重球/光辉伊布解析为可执行效果', () => {
+  const items = loadJson('Item-cards.json');
+  const rareCandy = items.find(c => c['卡牌名字'] === '神奇糖果');
+  const heavyBall = items.find(c => c['卡牌名字'] === '洗翠的沉重球');
+  const radiantEevee = loadJson('pokemon-cards.json').find(c => c['宝可梦名字'] === '光辉伊布');
+  assert.ok(rareCandy && heavyBall && radiantEevee);
+  assert.equal(parseEffect(rareCandy['效果']).effects.some(e => e.action === 'evolve_rare_candy'), true);
+  assert.equal(parseEffect(heavyBall['效果']).effects.some(e => e.action === 'prize_basic_pokemon_to_hand_exchange_trainer'), true);
+  const eeveeParsed = parseEffect(radiantEevee['技能1']['效果']);
+  const search = eeveeParsed.effects.find(e => e.action === 'search_deck_to_hand');
+  assert.equal(!!search, true, JSON.stringify(eeveeParsed));
+  assert.equal(search.params.dynamicCount, 'own_field_type_count');
+});
+
 await test('真实数据：健行鞋/交替推车/熔岩的瀑布深潭/小陨星解析为专用效果', () => {
   const items = loadJson('Item-cards.json');
   const stadiums = loadJson('Stadium-cards.json');
@@ -592,6 +606,60 @@ await test('小陨星飞散流星：附能到出战或其他宝可梦不触发',
   assert.equal(pl.active.name, '小陨星出战');
 });
 
+await test('光辉伊布集亮亮：按己方场上属性种类数任意搜牌', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  pl.active = mon('光辉伊布');
+  pl.active.element = 'colorless';
+  pl.bench = [mon('草'), mon('火')];
+  pl.bench[0].element = 'grass';
+  pl.bench[1].element = 'fire';
+  pl.deck = ['bottom', 'A', 'B', 'C', 'D'];
+  pl.hand = [];
+  gs._shuffle = deck => deck;
+  await executeEffects(gs, pl, [{ action:'search_deck_to_hand', params:{ dynamicCount:'own_field_type_count', allowFewer:true, allowEmpty:true } }]);
+  assert.equal(pl.hand.length, 3);
+  assert.equal(pl.deck.length, 2);
+});
+
+await test('洗翠的沉重球：奖赏基础宝可梦与本卡互换', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  pl.hand = [];
+  pl.discard = ['heavy'];
+  pl.prizes = ['basic', 'evo'];
+  gs.cardResolver = fakeResolver({
+    basic: { card:{ cardType:'pokemon', name:'基础', stage:'基础', hp:60 }, info:{ name:'基础', number:null, type:'pokemon' } },
+    evo: { card:{ cardType:'pokemon', name:'进化', stage:'1阶', evolvesFrom:'基础', hp:90 }, info:{ name:'进化', number:null, type:'pokemon' } },
+  });
+  gs._onPendingPick = pick => {
+    assert.deepEqual(pick.cards, ['基础']);
+    gs.resolvePick([0]);
+  };
+  await executeEffects(gs, pl, [{ action:'prize_basic_pokemon_to_hand_exchange_trainer', params:{ count:1, filter:'【基础】宝可梦' } }], { trainerCard:'heavy' });
+  assert.deepEqual(pl.hand, ['basic']);
+  assert.deepEqual(pl.prizes, ['heavy', 'evo']);
+  assert.deepEqual(pl.discard, []);
+});
+
+await test('神奇糖果：基础宝可梦可跳过1阶进化为2阶', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  pl.active = mon('小火龙');
+  pl.active.placedThisTurn = false;
+  pl.active.energy = ['基本【火】能量'];
+  pl.hand = ['charizard'];
+  gs.cardResolver = fakeResolver({
+    charmeleon: { card:{ cardType:'pokemon', name:'火恐龙', stage:'1阶', evolvesFrom:'小火龙', hp:90 }, info:{ name:'火恐龙', number:null, type:'pokemon' } },
+    charizard: { card:{ cardType:'pokemon', name:'喷火龙', stage:'2阶', evolvesFrom:'火恐龙', hp:150, attacks:[{ name:'火焰', damage:80, cost:[] }], element:'fire' }, info:{ name:'喷火龙', number:null, type:'pokemon' } },
+  });
+  gs.cardResolver.raw = { charmeleon:{}, charizard:{} };
+  await executeEffects(gs, pl, [{ action:'evolve_rare_candy', params:{} }]);
+  assert.equal(pl.active.name, '喷火龙');
+  assert.deepEqual(pl.active.energy, ['基本【火】能量']);
+  assert.deepEqual(pl.hand, []);
+});
+
 await test('宝可齿轮3.0效果：picker 只看到支援者且 fallback 选择首个支援者', async () => {
   const gs = new GameState();
   const pl = gs.player1;
@@ -860,6 +928,41 @@ await test('UI选卡器：效果pick-cards确认后恢复手牌卡牌界面且�
   assert.equal(app._cardLog.filter(msg => msg === '旧日志').length, 1);
   assert.equal(app._cardLog.filter(msg => msg === '抽了 1 张卡').length, 1);
   assert.deepEqual(app._cardLog, ['旧日志', '抽了 1 张卡']);
+});
+
+await test('UI选卡器：达到选择上限后点击新卡替换最早选择', async () => {
+  const app = Object.create(PTCGBattleApp.prototype);
+  app._cardMode = 'pick-cards';
+  app._cardPage = 0;
+  app._cardPickMax = 2;
+  app._selectedCardIndices = new Set();
+  app._getCardPages = () => [{ title:'选择', cards:['A','B','C'], usable:true }];
+  app._renderCardPreview = () => {};
+  globalThis.document = { querySelector: () => ({ textContent:'', classList:{ toggle:()=>{} } }), querySelectorAll: () => [{classList:{toggle:()=>{}}},{classList:{toggle:()=>{}}},{classList:{toggle:()=>{}}}] };
+
+  app._selectCardInList(0);
+  app._selectCardInList(1);
+  app._selectCardInList(2);
+
+  assert.deepEqual([...app._selectedCardIndices], [1, 2]);
+});
+
+await test('UI选卡器：pick-cards按替换后的选择顺序返回', async () => {
+  const app = Object.create(PTCGBattleApp.prototype);
+  app._cardMode = 'pick-cards';
+  app._cardPage = 0;
+  app._cardPickMax = 2;
+  app._cardPickMin = 1;
+  app._cardPickAllowEmpty = false;
+  app._selectedCardIndices = new Set([2, 0]);
+  app._getCardPages = () => [{ title:'选择', cards:['A','B','C'], usable:true }];
+  app._finishCardPickMode = () => {};
+  let resolved = null;
+  app._cardModeCb = selected => { resolved = selected; };
+
+  await app._useSelectedCard();
+
+  assert.deepEqual(resolved, [2, 0]);
 });
 
 await test('UI选卡器：效果pick-cards取消后恢复手牌日志且不重复', async () => {
@@ -2819,9 +2922,14 @@ await test('进化：继承伤害与能量，并禁止刚出场进化', () => {
   assert.deepEqual(pl.active.energy, ['基本【火】能量']);
 
   pl.hand = ['charizard'];
-  pl.active.placedThisTurn = true;
   const blocked = gs.evolve(pl, 0, { name:'喷火龙', hp:150, evolvesFrom:'火恐龙', attacks:[], element:'fire' }, 'active');
   assert.equal(blocked, false);
+  assert.equal(pl.active.name, '火恐龙');
+  gs.endTurn();
+  gs.currentPlayer = pl;
+  gs.phase = PHASE.MAIN;
+  const later = gs.evolve(pl, 0, { name:'喷火龙', hp:150, evolvesFrom:'火恐龙', attacks:[], element:'fire' }, 'active');
+  assert.equal(later, true);
 });
 
 await test('先攻玩家最初回合：不能攻击且不造成伤害、不执行效果、不结束回合、不触发AI', async () => {

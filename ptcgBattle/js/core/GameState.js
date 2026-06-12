@@ -58,12 +58,12 @@ export class GameState {
     if(this.firstPlayerFirstTurnInProgress&&this.currentPlayer===this.firstPlayer)this.firstPlayerFirstTurnInProgress=false;
     this.currentPlayer.supporterUsed=false;this.currentPlayer.energyAttached=false;this.currentPlayer.retreatUsed=false;this.currentPlayer.abilityUsedThisTurn={};this.currentPlayer.stadiumUsedThisTurn={};
     this.temporaryAbilityLocks=(this.temporaryAbilityLocks||[]).filter(lock=>lock.expires!=='turn'&&lock.owner!==this.currentPlayer);
-    for(const mon of[this.currentPlayer.active,...this.currentPlayer.bench]){if(mon)mon.placedThisTurn=false;}
+    for(const mon of[this.currentPlayer.active,...this.currentPlayer.bench]){if(mon){mon.placedThisTurn=false;mon.evolvedThisTurn=false;}}
     this.currentPlayer=(this.currentPlayer===this.player1)?this.player2:this.player1;
     this.turn++;this.setPhase(PHASE.DRAW);this.addLog(`第${this.turn}回合 — ${this.currentPlayer.name}`);this.currentPlayer.draw(1);this.recomputePassives();}
 
   _makeMon(cid,cd,n,hp){return {cardId:cid,name:n,hp,maxHp:hp,element:cd?.element||'colorless',weakness:cd?.weakness||null,resistance:cd?.resistance||null,
-    attacks:cd?.attacks||[{name:'撞击',damage:20,cost:[],effect:''}],energy:[],status:null,placedThisTurn:true,
+    attacks:cd?.attacks||[{name:'撞击',damage:20,cost:[],effect:''}],energy:[],status:null,placedThisTurn:true,evolvedThisTurn:false,
     tool:null,ability:cd?.ability||null,abilityUsed:false,abilityDisabled:false,abilityDisabledBy:null,damageMod:0,preventDamage:false,preventEffect:false,cannotAttackNext:false,cannotRetreat:false,
     ignore:[],costEliminated:false,retreatCost:cd?.retreatCost??1};}
 
@@ -157,10 +157,10 @@ export class GameState {
   evolve(pl,hi,cd,slot){const t=slot==='active'?pl.active:pl.bench[parseInt(slot.replace('bench-',''))];
     if(!t){this.addLog('目标不存在');return false;}
     if(!cd?.evolvesFrom||t.name!==cd.evolvesFrom){this.addLog(`${t.name} 不能进化为 ${cd?.name||'?'}`);return false;}
-    if(t.placedThisTurn){this.addLog(`${t.name} 刚出场，下回合才能进化`);return false;}
+    if(t.placedThisTurn||t.evolvedThisTurn){this.addLog(`${t.name} 本回合刚出场或已进化，下回合才能进化`);return false;}
     const dmg=t.maxHp-t.hp;pl.hand.splice(hi,1);
     t.name=cd.name;t.maxHp=cd.hp;t.hp=Math.max(cd.hp-dmg,10);
-    t.attacks=cd.attacks;t.element=cd.element;t.weakness=cd.weakness||null;t.resistance=cd.resistance||null;t.retreatCost=cd.retreatCost??1;t.ability=cd.ability||null;t.abilityUsed=false;t.abilityDisabled=false;t.abilityDisabledBy=null;t.placedThisTurn=false;
+    t.attacks=cd.attacks;t.element=cd.element;t.weakness=cd.weakness||null;t.resistance=cd.resistance||null;t.retreatCost=cd.retreatCost??1;t.ability=cd.ability||null;t.abilityUsed=false;t.abilityDisabled=false;t.abilityDisabledBy=null;t.placedThisTurn=false;t.evolvedThisTurn=true;
     this.addLog(`${pl.name} 的宝可梦进化成了 ${cd.name}！`);this.recomputePassives();return true;}
 
   canUseTrainer(pl, cd, targetSlot=null){

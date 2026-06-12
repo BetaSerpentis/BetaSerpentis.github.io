@@ -56,6 +56,10 @@ const RULES = [
   { re: /(?:自己的|这只)宝可梦使用的招式.*?伤害["“]?([+-]\d+)["”]?点/, act:'passive_damage_mod', p:m=>({target:/这只/.test(m[0])?'self':'own_field',amount:+m[1]}) },
   { re: /基本【(.+?)】能量.*?视为各?提供2个【\1】能量/, act:'energy_provides_multiplier', p:m=>({target:/自己的场上宝可梦|场上宝可梦/.test(m.input)?'own_field':'self',energyType:ELEM[m[1]]||m[1],multiplier:2,basicOnly:true}) },
   // ===== 典型物品/特性复合效果 =====
+  { re: /从自己的手牌选择1张【2阶进化】宝可梦卡[，,]放置于自己的场上的可进化成那只宝可梦的【基础】宝可梦身上[，,]跳过【1阶进化】完成进化/, act:'evolve_rare_candy', p:()=>({stage:'2阶',targetStage:'基础',bypassStage:'1阶',noPlacedThisTurn:true,noFirstTurn:true}) },
+  { re: /查看自己的所有反面朝上的奖赏卡的正面[。.]从其中选择1张【基础】宝可梦卡[，,]在给对手看过后[，,]与这张"?洗翠的沉重球"?卡互换并加入手牌/, act:'prize_basic_pokemon_to_hand_exchange_trainer', p:()=>({count:1,filter:'【基础】宝可梦'}) },
+  { re: /从自己的牌库任意选择最多与自己的场上宝可梦属性种类数量相同数量的卡[，,]加入手牌/, act:'search_deck_to_hand', p:()=>({dynamicCount:'own_field_type_count',filter:null,allowFewer:true,allowEmpty:true}) },
+  { re: /从自己的牌库任意选择最多(\d+)张卡[，,]加入手牌/, act:'search_deck_to_hand', p:m=>({count:+m[1],filter:null,allowFewer:true,allowEmpty:true}) },
   { re: /查看(?:自己的)?牌库上方1张卡[，,]将那张卡加入手牌[。.]或者将那张卡丢弃[，,]从自己的牌库抽出1张卡/, act:'hikers_shoes', p:()=>({peek:1,drawOnDiscard:1}) },
   { re: /将自己的战斗场的【基础】宝可梦与备战宝可梦互换[。.]然后[，,]将换入备战区的宝可梦恢复"?(\d+)"?HP/, act:'switch_active_basic_heal_bench', p:m=>({heal:+m[1]}) },
   { re: /(?:可)?从自己的弃牌区选择1张【火】能量卡[，,]附于自己的备战区的【火】宝可梦身上[。.](?:这个情况下[，,])?在附上那张卡的宝可梦身上放置(\d+)个伤害指示物/, act:'attach_energy_from_discard', p:m=>({count:1,filter:'【火】能量',target:'bench',targetType:'fire',damageCountersOnAttachedTarget:+m[1]}) },
