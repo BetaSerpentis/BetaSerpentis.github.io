@@ -210,9 +210,6 @@ export class PTCGBattleApp {
       case 'pokemon':
         this._openPokeScreen('view');
         break;
-      case 'stadium':
-        this._activateStadiumFromMain();
-        break;
       case 'end':
         if (phase === PHASE.SETUP) {
           const ok = this.engine.advancePhase();
@@ -222,14 +219,6 @@ export class PTCGBattleApp {
         }
         break;
     }
-  }
-
-  async _activateStadiumFromMain() {
-    const logStart = Array.isArray(this.gs?.log) ? this.gs.log.length : 0;
-    const ok = await this.engine.activateStadium(this.gs.player1);
-    const msg = ok ? this.gs.log.slice(logStart).at(-1) || '使用了竞技场' : this._latestLogOr('无法使用竞技场');
-    this._showMessage(msg);
-    this._refresh();
   }
 
   // ============================================================
@@ -337,9 +326,11 @@ export class PTCGBattleApp {
       return [{ title: this._cardPickTitle || '选择卡牌', cards: this._cardPickCards || [], usable: true }];
     }
     const isSearch = ['search-deck', 'search-discard', 'prize'].includes(this._cardMode);
+    const stadium = this.gs.getActiveStadium?.();
     return [
       { title: '我方手牌', cards: p1.hand, usable: this._cardMode === 'hand' && (this.gs.phase === PHASE.SETUP || this.gs.phase === PHASE.MAIN) },
       { title: '我方弃牌区', cards: p1.discard, usable: this._cardMode === 'hand' || isSearch },
+      { title: '竞技场', cards: stadium ? [stadium.cardId || stadium.name] : [], usable: this._cardMode === 'hand' && !!stadium, stadium:true, stadiumState:stadium },
       { title: '我方卡组', cards: p1.deck, usable: isSearch, hidden: !isSearch },
       { title: '我方奖赏卡', cards: p1.prizes, usable: this._cardMode === 'prize', hidden: this._cardMode !== 'prize' },
       { title: '对方手牌', cards: p2.hand, usable: false, hidden: true },
@@ -375,7 +366,7 @@ export class PTCGBattleApp {
       const page = pages[this._cardPage];
       if (idx >= 0 && page.cards[idx]) {
         const cd = this.resolver.getCard(page.cards[idx]);
-        $('#cards-use').textContent = this._useLabel(cd);
+        $('#cards-use').textContent = page.stadium ? '使用场地效果' : this._useLabel(cd);
       } else {
         $('#cards-use').textContent = '使用';
       }
@@ -392,7 +383,7 @@ export class PTCGBattleApp {
       return;
     }
     page.cards.forEach((cid, i) => {
-      const info = this.resolver.getInfo(cid);
+      const info = page.stadiumState?.card && page.stadium ? { name: page.stadiumState.name } : this.resolver.getInfo(cid);
       const item = document.createElement('div');
       const isSelected = this._cardMode === 'pick-cards' ? this._selectedCardIndices.has(i) : i === this._selectedCardIdx;
       item.className = 'card-list-item' + (isSelected ? ' selected' : '');
@@ -429,7 +420,13 @@ export class PTCGBattleApp {
     const page = pages[this._cardPage];
     if (this._cardMode === 'pick-cards') {
       if (this._selectedCardIndices.has(idx)) this._selectedCardIndices.delete(idx);
-      else if (this._cardPickMax == null || this._selectedCardIndices.size < this._cardPickMax) this._selectedCardIndices.add(idx);
+      else {
+        if (this._cardPickMax != null && this._selectedCardIndices.size >= this._cardPickMax) {
+          const oldest = this._selectedCardIndices.values().next().value;
+          this._selectedCardIndices.delete(oldest);
+        }
+        this._selectedCardIndices.add(idx);
+      }
       $$('.card-list-item').forEach((el, i) => el.classList.toggle('selected', this._selectedCardIndices.has(i)));
       if (page.cards[idx]) this._renderCardPreview(page.cards[idx]);
       $('#cards-use').textContent = this._cardPickMax !== 1 ? `选择(${this._selectedCardIndices.size})` : '选择';
@@ -439,7 +436,7 @@ export class PTCGBattleApp {
     if (page.cards[idx]) this._renderCardPreview(page.cards[idx]);
     if (this._cardMode === 'hand') {
       const cd = page.cards[idx] ? this.resolver.getCard(page.cards[idx]) : null;
-      $('#cards-use').textContent = this._useLabel(cd);
+      $('#cards-use').textContent = page.stadium ? '使用场地效果' : this._useLabel(cd);
     }
   }
 
@@ -448,8 +445,9 @@ export class PTCGBattleApp {
     const nameEl = $('#card-desc-name');
     const textEl = $('#card-desc-text');
     if (!cid) { thumb.innerHTML = ''; nameEl.textContent = ''; textEl.textContent = ''; return; }
-    const info = this.resolver.getInfo(cid);
-    const cd = this.resolver.getCard(cid);
+    const stadium = this._getCardPages?.()[this._cardPage]?.stadiumState || null;
+    const info = stadium && (stadium.cardId === cid || stadium.name === cid) ? { name:stadium.name, number:null } : this.resolver.getInfo(cid);
+    const cd = stadium && (stadium.cardId === cid || stadium.name === cid) ? stadium.card : this.resolver.getCard(cid);
       const src = pokemonSpriteSrc(info.number);
       thumb.innerHTML = src ? pokemonSpriteImgHtml(info.number, info.name) : `<div style="font-size:16px;color:#4878a8">${info.name?.[0] || '?'}</div>`;
     nameEl.textContent = info.name || '';
@@ -522,7 +520,7 @@ export class PTCGBattleApp {
     if (['search-deck', 'search-discard', 'prize', 'pick-cards'].includes(this._cardMode)) {
       let selected = [];
       if (this._cardMode === 'pick-cards') {
-        selected = [...this._selectedCardIndices].sort((a,b)=>a-b);
+        selected = [...this._selectedCardIndices];
         if (!this._cardPickAllowEmpty && selected.length < this._cardPickMin) return;
       } else {
         if (this._selectedCardIdx < 0 || !page.cards[this._selectedCardIdx]) return;
@@ -532,6 +530,18 @@ export class PTCGBattleApp {
       this._cardModeCb = null;
       if (cb) cb(selected);
       this._finishCardPickMode(true);
+      return;
+    }
+
+    if (page.stadium) {
+      if (this._selectedCardIdx < 0 || !page.cards[this._selectedCardIdx]) return;
+      const logStart = Array.isArray(this.gs?.log) ? this.gs.log.length : 0;
+      const ok = await this.engine.activateStadium(this.gs.player1);
+      this._appendNewGameLogsToCardLog(logStart);
+      if (!ok && this._cardLog.length === 0) this._cardLog.push(this._latestLogOr('无法使用场地效果'));
+      this._selectedCardIdx = -1;
+      this._renderScene();
+      this._renderCardList();
       return;
     }
 
@@ -815,7 +825,7 @@ export class PTCGBattleApp {
       item.className = 'menu-item' + (!canUse ? ' disabled' : '') + (i === 0 ? ' selected' : '');
       item.dataset.idx = i;
       const costStr = (atk.cost || []).length > 0 ? `[${atk.cost.join('')}]` : '';
-      item.textContent = `${atk.name} ${atk.damage || 0} ${costStr}`;
+      item.textContent = `${atk.name}${costStr ? ` ${costStr}` : ''}`;
       menu.appendChild(item);
     });
     const back = document.createElement('div');
@@ -988,14 +998,6 @@ export class PTCGBattleApp {
     items[0].textContent = phase === PHASE.SETUP ? '确认布置' : '战 斗';
     items[1].classList.toggle('disabled', false);
     items[2].classList.toggle('disabled', false);
-    const stadiumItem = [...items].find(item => item.dataset.action === 'stadium');
-    if (stadiumItem) {
-      const stadiumCheck = isP ? this.gs.canActivateStadium?.(this.gs.player1) : { ok:false, message:'对手回合' };
-      const canStadium = !!stadiumCheck?.ok;
-      stadiumItem.classList.toggle('disabled', over || !canStadium);
-      stadiumItem.textContent = '场地效果';
-      stadiumItem.title = canStadium ? '使用当前竞技场效果' : (stadiumCheck?.message || '无法使用场地效果');
-    }
     const endItem = [...items].find(item => item.dataset.action === 'end') || items[3];
     endItem.classList.toggle('disabled', over || !isP);
     endItem.textContent = phase === PHASE.SETUP ? '确认布置' : '结 束';
