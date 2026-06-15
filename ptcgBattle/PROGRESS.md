@@ -39,6 +39,7 @@ ptcgBattle/
 - [x] 轻量区域卡牌元数据解析：BattleEngine向GameState挂接resolver，EffectExecutor在可用时解析ID-only卡牌用于过滤；未知fallback保留，并修正Pokemon+energy组合过滤语义
 - [x] 奖赏卡与手牌弃置选择继续迁移到picker：prize_deck_top_swap（阿尔宙斯手机）支持奖赏卡选择、指定索引交换、空/无奖赏no-op、确定性fallback与可选取消；non-random discard_hand支持按数量/过滤条件/取消/fallback选择弃牌，discard_all_hand与discard_opponent_hand_random保持原语义
 - [x] 训练家 discard_cost 前置费用：GameState.canUseTrainer支持dry-run合法性检查，使用训练家前先校验/支付手牌弃牌费用；失败、取消或费用不足时不消耗训练家且不改变支援者状态
+- [x] WP3训练家轻量事务边界：useTrainer在前置合法性/费用后为训练家消耗与效果执行建立snapshot/rollback；必需picker取消、必需宝可梦目标失败与必需效果失败会回滚手牌/弃牌/牌库/奖赏/场上附加卡/支援者与竞技场等状态，可选allowEmpty/allowFewer保留成功no-op语义
 - [x] setup/addLog RangeError修复：autoSetup扫描基础宝可梦、日志长度受限、放置函数返回结果值、缺失sprite时安全fallback
 - [x] setup卡死修复：对手无基础宝可梦时mulligan/redeal恢复，confirmSetup失败时在可见UI中反馈并保持可操作状态
 - [x] Task A：executor侧过滤peek_and_keep与search_deck_to_bench；宝可装置/宝可齿轮限定支援者；巢穴球按基础宝可梦过滤并使用真实resolver放置
@@ -50,6 +51,7 @@ ptcgBattle/
 - [x] Task G：竞技场激活入口、共享当前竞技场状态、每方每回合一次激活限制、竞技场替换/弃置按owner归属处理
 - [x] Task H：初始setup从手牌卡牌界面开始，并在卡牌界面内确认设置
 - [x] WP2：扩展训练家前置条件正式校验，覆盖first_turn（含后攻玩家最初回合）、opponent_prizes_at_most、own_prizes_more_than_opponent，并区分先攻首回合支援者例外；非法时不消耗卡牌/费用或使用标记
+- [x] WP3：为useTrainer增加最小事务边界，required picker/目标失败时回滚训练家消耗、费用、使用标记和相关场上状态，并修复回滚后竞技场owner/共享对象身份
 
 ## 当前限制
 - [ ] 规则不是完整PTCG实现：弱点/抵抗力、烧伤、睡眠恢复、攻击效果顺序仍为简化模型
@@ -58,13 +60,13 @@ ptcgBattle/
 - [ ] 目标/卡牌/能量选择已部分泛化，但仍有部分效果保留自动选择或简化fallback；optional与max-count语义仍主要依赖picker空选择/取消/数量限制，并非完整规则级可选动作系统
 - [ ] 卡牌过滤依赖结构化元数据、分类标签与启发式文本标签，不是完整自然语言规则解析；缺失元数据时仍可能走安全ID fallback
 - [ ] trainer_prerequisite已执行discard_cost、first_turn、opponent_prizes_at_most、own_prizes_more_than_opponent等高置信前置，并将先攻首回合支援者例外作为规则例外处理；其他未结构化condition仍主要作为metadata/no-op保留，未纳入统一规则执行
-- [ ] 训练家费用执行已有针对性dry-run避免已知非法使用，但还不是完整事务系统；没有全效果链通用回滚
+- [ ] 训练家事务边界只覆盖useTrainer在前置合法性/费用之后的训练家消耗与效果执行；未扩展到攻击/特性/竞技场激活或完整全引擎事务，也不把未实现/no-op效果一概视为失败
 - [ ] 竞技场已支持上场、共享状态和每回合激活入口，但激活效果仍是最小实现，持续效果/离场触发/复杂替换规则未完整接入
 - [ ] 对手AI能完成基础回合推进，但仍是简单自动策略，缺少高级换位、资源规划和复杂效果选择
 - [ ] 完整卡牌详情、UI动画、音效仍待完善
 
 ## 最新测试基线
-- `npm --prefix e:/BetaSerpentis.github.io run test:ptcg-battle`：全部自动化测试通过（2026-06-15，Work Package 2：trainer prerequisite pre-consumption enforcement）。
+- `npm --prefix e:/BetaSerpentis.github.io run test:ptcg-battle`：全部自动化测试通过（2026-06-15，Work Package 3：trainer transaction rollback boundary）。
 - 解析覆盖率：4504/7208（62%）；仍有残留文本：4511。当前残留集中在复杂/多分支道具、化石类、未结构化前提文本与未完全映射的选择/交换/回收效果。
 
 ## PM浏览器复测清单
@@ -81,5 +83,5 @@ ptcgBattle/
 ## 下一步建议
 - [ ] 继续迁移剩余自动选目标/选卡效果到统一picker，并补齐optional/max-count动作的规则级表达与测试
 - [ ] 扩展trainer_prerequisite执行范围，优先覆盖高频前置条件（如特定场面/对象/次数限制），避免把metadata误当已执行规则
-- [ ] 设计训练家使用的轻量事务/回滚边界，覆盖费用支付后效果失败、取消与多步骤选择链
+- [x] WP3训练家轻量事务/回滚边界已覆盖必需选卡取消、必需宝可梦无目标和必需效果失败；后续只在发现具体卡牌需求时扩展更多必需效果信号
 - [ ] 扩展竞技场效果模型，从最小激活入口推进到持续效果、离场触发与完整替换规则

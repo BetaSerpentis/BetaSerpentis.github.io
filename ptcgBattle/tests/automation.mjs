@@ -3515,6 +3515,103 @@ await test('训练家opponent_prizes_at_most前提：合法时可消耗支援者
   assert.deepEqual(pl.discard, ['杜娟']);
 });
 
+await test('训练家事务：必需选卡取消会回滚卡牌费用与支援者标记', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  gs.currentPlayer = pl;
+  pl.hand = ['supporterCard', 'costA'];
+  pl.deck = ['bottom', 'targetPokemon 宝可梦'];
+  gs._shuffle = deck => deck;
+  gs._onPendingPick = pick => {
+    if (pick.options?.source === 'trainer-discard-cost') {
+      gs.resolvePick([0]);
+      return;
+    }
+    assert.equal(pick.options?.source, 'deck-search');
+    gs.resolvePick([]);
+  };
+  const engine = makeEngine(gs);
+
+  const ok = await engine.useTrainer(0, {
+    cardType:'trainer', trainerType:'supporter', name:'事务支援者',
+    effects:[
+      { action:'trainer_prerequisite', params:{ kind:'discard_cost', count:1, zone:'hand', raw:'cost' } },
+      { action:'search_deck_to_hand', params:{ count:1, filter:'宝可梦' } },
+    ]
+  });
+
+  assert.equal(ok, false);
+  assert.equal(pl.supporterUsed, false);
+  assert.deepEqual(pl.hand, ['supporterCard', 'costA']);
+  assert.deepEqual(pl.discard, []);
+  assert.deepEqual(pl.deck, ['bottom', 'targetPokemon 宝可梦']);
+});
+
+await test('训练家事务：必需宝可梦目标无候选会回滚物品消耗', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  gs.currentPlayer = pl;
+  pl.active = mon('出战');
+  pl.hand = ['switchItem'];
+  const engine = makeEngine(gs);
+
+  const ok = await engine.useTrainer(0, {
+    cardType:'trainer', trainerType:'item', name:'必需换位物品',
+    effects:[{ action:'switch_pokemon', params:{} }]
+  });
+
+  assert.equal(ok, false);
+  assert.deepEqual(pl.hand, ['switchItem']);
+  assert.deepEqual(pl.discard, []);
+  assert.equal(pl.active.name, '出战');
+  assert.deepEqual(pl.bench, []);
+});
+
+await test('训练家事务：必需效果成功仍消耗并结算', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  gs.currentPlayer = pl;
+  pl.hand = ['trainerCard'];
+  pl.deck = ['bottom', 'targetPokemon 宝可梦'];
+  gs._shuffle = deck => deck;
+  gs._onPendingPick = pick => gs.resolvePick([0]);
+  const engine = makeEngine(gs);
+
+  const ok = await engine.useTrainer(0, {
+    cardType:'trainer', trainerType:'item', name:'成功物品',
+    effects:[{ action:'search_deck_to_hand', params:{ count:1, filter:'宝可梦' } }]
+  });
+
+  assert.equal(ok, true);
+  assert.deepEqual(pl.hand, ['targetPokemon 宝可梦']);
+  assert.deepEqual(pl.discard, ['成功物品']);
+  assert.deepEqual(pl.deck, ['bottom']);
+});
+
+await test('训练家事务：可选allowEmpty取消保持成功且不回滚', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  gs.currentPlayer = pl;
+  pl.hand = ['trainerCard'];
+  pl.deck = ['bottom', 'targetPokemon 宝可梦'];
+  gs._shuffle = deck => deck;
+  gs._onPendingPick = pick => {
+    assert.equal(pick.options?.allowEmpty, true);
+    gs.resolvePick([]);
+  };
+  const engine = makeEngine(gs);
+
+  const ok = await engine.useTrainer(0, {
+    cardType:'trainer', trainerType:'item', name:'可选物品',
+    effects:[{ action:'search_deck_to_hand', params:{ count:1, filter:'宝可梦', allowEmpty:true } }]
+  });
+
+  assert.equal(ok, true);
+  assert.deepEqual(pl.hand, []);
+  assert.deepEqual(pl.discard, ['可选物品']);
+  assert.deepEqual(pl.deck, ['bottom', 'targetPokemon 宝可梦']);
+});
+
 await test('训练家使用限制：支援者一回合一次，竞技场替换，宝可梦道具装备目标', async () => {
   const gs = new GameState();
   const pl = gs.player1;
@@ -4302,6 +4399,48 @@ await test('Stadium：discard_cost 使用前提仍在打出前支付，但普通
   assert.equal(gs.log.some(msg => msg.includes('支付费用：丢弃 1 张手牌')), true);
 });
 
+await test('训练家事务：回滚后竞技场保持共享对象且owner指向真实玩家', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  const opp = gs.player2;
+  gs.currentPlayer = pl;
+  gs.phase = PHASE.MAIN;
+  const originalStadium = { cardId:'oldStadium', name:'旧竞技场', card:{ name:'旧竞技场' }, effects:[], owner:pl };
+  gs.stadium = originalStadium;
+  gs.activeStadium = originalStadium;
+  pl.stadium = originalStadium;
+  opp.stadium = null;
+  pl.hand = ['trainerCard'];
+  pl.deck = ['bottom', 'targetPokemon 宝可梦'];
+  gs._shuffle = deck => deck;
+  gs._onPendingPick = pick => {
+    assert.equal(pick.options?.source, 'deck-search');
+    gs.resolvePick([]);
+  };
+  const engine = makeEngine(gs);
+
+  const ok = await engine.useTrainer(0, {
+    cardType:'trainer', trainerType:'item', name:'移除场地后失败物品',
+    effects:[
+      { action:'discard_field_attachments', params:{ stadium:true } },
+      { action:'search_deck_to_hand', params:{ count:1, filter:'宝可梦' } },
+    ],
+  });
+
+  assert.equal(ok, false);
+  assert.equal(gs.stadium, pl.stadium);
+  assert.equal(gs.activeStadium, gs.stadium);
+  assert.equal(gs.stadium.owner, pl);
+  assert.notEqual(opp.stadium, gs.stadium);
+  assert.equal(opp.stadium, null);
+  assert.deepEqual(pl.discard, []);
+
+  const restored = gs.stadium;
+  const cleared = gs.clearActiveStadium();
+  assert.equal(cleared, restored);
+  assert.deepEqual(pl.discard, ['oldStadium']);
+  assert.deepEqual(opp.discard, []);
+});
 await test('search_deck_to_hand：宝可梦道具/Pokemon Tool 过滤只选择训练家道具并拒绝其他类型', async () => {
   for (const filter of ['宝可梦道具', 'Pokemon Tool']) {
     const gs = new GameState();
