@@ -627,6 +627,99 @@ const EXECUTORS = {
     gs.addLog('洗翠的沉重球：奖赏卡与本卡互换');
   },
 
+  // ===== 窄口径牌库顶操作：按解析器结构化参数查看/丢弃/置底/洗牌 =====
+  async manipulate_deck_top(gs, pl, p = {}) {
+    const owner = p.target === 'opponent' ? _opponent(gs, pl) : pl;
+    const count = Math.min(p.count || 1, owner.deck.length);
+    if (count <= 0) return;
+    const pickedTop = owner.deck.splice(-count, count);
+    const topCards = [...pickedTop].reverse();
+    const actorCanPick = pl === gs.player1 && !p.auto && gs._onPendingPick;
+
+    const restoreTop = cards => owner.deck.push(...cards);
+    const labels = topCards.map(card => _cardLabel(gs, card));
+
+    if (p.mode === 'discard_matching') {
+      const candidates = topCards.map((card, topIndex) => ({ card, topIndex })).filter(item => _cardMatchesFilter(gs, item.card, p.filter || null));
+      const limit = _selectionLimit(p.keep ?? p.count ?? count, candidates.length, { ...p, maxCount:p.maxCount ?? candidates.length });
+      let selected = [];
+      if (limit.max > 0) {
+        if (actorCanPick) {
+          const picked = await gs.waitForPick(candidates.map(c => _cardLabel(gs, c.card)), limit.max, { source:'manipulate-deck-top-discard', filter:p.filter || null, prompt:'选择要从牌库上方丢弃的卡', maxCount:limit.max, minCount:limit.min, allowFewer:limit.allowFewer, allowEmpty:limit.allowEmpty });
+          selected = (picked || []).map(i => candidates[i]).filter(Boolean).slice(0, limit.max);
+          if (selected.length < limit.min) selected = [];
+        } else {
+          selected = candidates.slice(0, limit.max);
+        }
+      }
+      const selectedTopPositions = new Set(selected.map(item => item.topIndex));
+      const selectedCards = selected.map(item => item.card);
+      const remainder = pickedTop.filter((_, pickedIndex) => !selectedTopPositions.has(count - 1 - pickedIndex));
+      owner.discard.push(...selectedCards);
+      owner.deck.push(...remainder);
+      if ((p.remainder || 'top_original') === 'shuffle') gs._shuffle(owner.deck);
+      gs.addLog(`查看${owner === pl ? '自己' : '对手'}牌库上方 ${count} 张，丢弃 ${selectedCards.length} 张`);
+      return;
+    }
+
+    if (p.mode === 'choose_top_rest_bottom') {
+      let chosenTopIndex = 0;
+      if (actorCanPick && topCards.length > 1) {
+        const picked = await gs.waitForPick(labels, 1, { source:'manipulate-deck-top-choose-top', prompt:'选择放回牌库上方的卡', allowEmpty:false, required:true });
+        if (!picked || picked.length < 1 || !Number.isInteger(picked[0]) || picked[0] < 0 || picked[0] >= topCards.length) {
+          restoreTop(pickedTop);
+          gs.addLog('牌库上方操作取消');
+          throw new Error('required_choice_cancelled');
+        }
+        chosenTopIndex = picked[0];
+      }
+      const chosen = topCards[chosenTopIndex];
+      const restTopOrder = topCards.filter((_, i) => i !== chosenTopIndex);
+      const restBottomToTop = [...restTopOrder].reverse();
+      owner.deck.unshift(...restBottomToTop);
+      owner.deck.push(chosen);
+      gs.addLog(`查看${owner === pl ? '自己' : '对手'}牌库上方 ${count} 张，1 张放回上方，其余置于下方`);
+      return;
+    }
+
+    if (p.mode === 'top_any_order') {
+      // 任意顺序 UI 尚未展开；当前明确采用原相对顺序作为无 UI/AI 和 UI 的确定性回退。
+      restoreTop(pickedTop);
+      gs.addLog(`查看${owner === pl ? '自己' : '对手'}牌库上方 ${count} 张，按原顺序放回上方`);
+      return;
+    }
+
+    if (p.mode === 'look') {
+      restoreTop(pickedTop);
+      gs.addLog(`查看${owner === pl ? '自己' : '对手'}牌库上方 ${count} 张，回复原样`);
+      return;
+    }
+
+    if (p.mode === 'look_then_optional') {
+      let doAction = false;
+      if (actorCanPick) {
+        const verb = p.optionalAction === 'discard' ? '丢弃' : p.optionalAction === 'bottom' ? '放回牌库下方' : p.optionalAction === 'shuffle' ? '重洗牌库' : '执行';
+        const picked = await gs.waitForPick([`不处理：${labels[0]}`, `${verb}：${labels[0]}`], 1, { source:'manipulate-deck-top-optional', prompt:'选择牌库上方卡的处理方式', allowEmpty:true, optional:true });
+        doAction = picked?.[0] === 1;
+      }
+      if (!doAction) {
+        restoreTop(pickedTop);
+        gs.addLog(`查看${owner === pl ? '自己' : '对手'}牌库上方 ${count} 张，回复原样`);
+        return;
+      }
+      const top = topCards[0];
+      if (p.optionalAction === 'discard') owner.discard.push(top);
+      else if (p.optionalAction === 'bottom') owner.deck.unshift(top);
+      else if (p.optionalAction === 'shuffle') { restoreTop(pickedTop); gs._shuffle(owner.deck); }
+      else restoreTop(pickedTop);
+      gs.addLog(`查看${owner === pl ? '自己' : '对手'}牌库上方 ${count} 张，执行${p.optionalAction || 'optional'}`);
+      return;
+    }
+
+    restoreTop(pickedTop);
+    gs.addLog(`[未实现: manipulate_deck_top.${p.mode || 'unknown'}]`);
+  },
+
   // ===== 健行鞋：看牌库顶，加入手牌或丢弃后抽1 =====
   async hikers_shoes(gs, pl, p) {
     if (!pl.deck.length) return;

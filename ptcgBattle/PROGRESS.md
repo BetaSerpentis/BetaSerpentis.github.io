@@ -53,6 +53,7 @@ ptcgBattle/
 - [x] WP2：扩展训练家前置条件正式校验，覆盖first_turn（含后攻玩家最初回合）、opponent_prizes_at_most、own_prizes_more_than_opponent，并区分先攻首回合支援者例外；非法时不消耗卡牌/费用或使用标记
 - [x] WP3：为useTrainer增加最小事务边界，required picker/目标失败时回滚训练家消耗、费用、使用标记和相关场上状态，并修复回滚后竞技场owner/共享对象身份
 - [x] WP4：switch_pokemon支持解析出的choose:'opponent'语义；目标方为玩家时走现有宝可梦选择器，AI/no-UI对手选择时确定性选择首个可用备战位
+- [x] WP5：manipulate_deck_top窄口径执行支持；覆盖查看牌库顶原样放回、可选丢弃/置底/洗牌、匹配物品丢弃、选择置顶其余置底与任意顺序原序fallback；lost_zone/fossil_place仍未扩展。
 
 ## 当前限制
 - [ ] 规则不是完整PTCG实现：弱点/抵抗力、烧伤、睡眠恢复、攻击效果顺序仍为简化模型
@@ -67,8 +68,8 @@ ptcgBattle/
 - [ ] 完整卡牌详情、UI动画、音效仍待完善
 
 ## 最新测试基线
-- `npm --prefix e:/BetaSerpentis.github.io run test:ptcg-battle`：全部自动化测试通过（2026-06-15，Work Package 4：switch_pokemon opponent-choice semantics）。
-- 解析覆盖率：4504/7208（62%）；仍有残留文本：4511。当前残留集中在复杂/多分支道具、化石类、未结构化前提文本与未完全映射的选择/交换/回收效果。
+- `npm --prefix e:/BetaSerpentis.github.io run test:ptcg-battle`：全部自动化测试通过（2026-06-15，Work Package 5：manipulate_deck_top executor support）。
+- 解析覆盖率：4518/7208（63%）；仍有残留文本：4499。当前残留集中在复杂/多分支道具、化石类、未结构化前提文本与未完全映射的选择/交换/回收效果。
 
 ## PM浏览器复测清单
 1. Setup流程：进入对局后应先显示手牌卡牌界面；选择基础宝可梦并在卡牌界面确认；无基础手牌/对手mulligan时不应卡死；confirm失败应有可见反馈。
