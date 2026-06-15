@@ -381,10 +381,12 @@ async function _pickPokemonTarget(gs, actingPlayer, targetPlayer, options = {}) 
     if (options.failRequired && !options.optional && !options.allowEmpty) _requiredFailure(options.requiredAction || 'pokemon_pick', 'required_no_target');
     return null;
   }
-  if (eligibleSlots.length === 1 || actingPlayer !== gs.player1 || options.auto || !gs._onPendingPokemonPick) return eligibleSlots[0];
+  const choosingPlayer = options.chooser || actingPlayer;
+  if (eligibleSlots.length === 1 || choosingPlayer !== gs.player1 || options.auto || !gs._onPendingPokemonPick) return eligibleSlots[0];
   const slot = await gs.waitForPokemonPick(targetPlayer, {
     mode: options.mode || 'target',
     side: options.side || (targetPlayer === actingPlayer ? 'self' : 'opponent'),
+    chooser: choosingPlayer === targetPlayer ? 'target' : 'acting',
     allowActive: options.allowActive !== false,
     allowBench: options.allowBench !== false,
     selectableSlots: eligibleSlots,
@@ -815,7 +817,15 @@ const EXECUTORS = {
     const failRequired = _effectIsRequired(eff, p, options);
     if (p.who === 'opponent') {
       const opp = _opponent(gs, pl);
-      const slot = await _pickPokemonTarget(gs, pl, opp, { mode:'switch', side:'opponent', allowActive:false, allowBench:true, prompt:'选择换上场的对手备战宝可梦', failRequired, requiredAction:eff?.action });
+      const chooser = p.choose === 'opponent' ? opp : pl;
+      const slot = await _pickPokemonTarget(gs, pl, opp, {
+        mode:'switch', side:'opponent', allowActive:false, allowBench:true,
+        chooser,
+        prompt: p.choose === 'opponent'
+          ? (chooser === gs.player1 ? '选择自己要换上场的备战宝可梦' : '对手选择换上场的备战宝可梦')
+          : '选择换上场的对手备战宝可梦',
+        failRequired, requiredAction:eff?.action
+      });
       const idx = slot?.startsWith('bench-') ? parseInt(slot.replace('bench-', '')) : -1;
       if (opp.bench[idx]) { const t = opp.active; opp.active = opp.bench.splice(idx,1)[0]; if (t) opp.bench.push(t); gs.addLog('对手换位'); }
     } else if (p.who === 'both') {

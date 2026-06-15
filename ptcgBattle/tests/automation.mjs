@@ -1337,6 +1337,63 @@ await test('宝可梦交替：单备战自动选择，无备战安全跳过', as
   assert.equal(gs2.player1.active.name, '孤独出战');
 });
 
+await test('宝可梦交替解析：由对手选择标记为 opponent chooser', () => {
+  const parsed = parseEffect('选择对手的备战宝可梦，与战斗宝可梦互换。[由对手选择]');
+  assert.equal(parsed.unparsed, '', `residual=${parsed.unparsed}`);
+  assert.equal(parsed.effects[0]?.action, 'switch_pokemon');
+  assert.equal(parsed.effects[0]?.params.who, 'opponent');
+  assert.equal(parsed.effects[0]?.params.choose, 'opponent');
+});
+
+await test('宝可梦交替：默认由玩家选择对手换上场宝可梦', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  pl.active = mon('我方出战A');
+  const opp = gs.player2;
+  opp.active = mon('对手出战A');
+  opp.bench = [mon('对手备战B'), mon('对手备战C')];
+  gs._onPendingPokemonPick = pick => {
+    assert.equal(pick.player, opp);
+    assert.equal(pick.options?.mode, 'switch');
+    assert.equal(pick.options?.side, 'opponent');
+    assert.equal(pick.options?.chooser, 'acting');
+    assert.equal(pick.options?.prompt, '选择换上场的对手备战宝可梦');
+    gs.resolvePokemonPick('bench-1');
+  };
+  await executeEffects(gs, pl, [{ action: 'switch_pokemon', params: { who: 'opponent' } }]);
+  assert.equal(opp.active.name, '对手备战C');
+});
+
+await test('宝可梦交替：choose opponent 由对手侧决定并在 AI/无 UI 时稳定选首个备战', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  pl.active = mon('我方出战A');
+  const opp = gs.player2;
+  opp.active = mon('对手出战A');
+  opp.bench = [mon('对手备战B'), mon('对手备战C')];
+  gs._onPendingPokemonPick = () => assert.fail('AI opponent chooser should use deterministic fallback instead of opening human UI');
+  await executeEffects(gs, pl, [{ action: 'switch_pokemon', params: { who: 'opponent', choose: 'opponent' } }]);
+  assert.equal(opp.active.name, '对手备战B');
+});
+
+await test('宝可梦交替：AI 招式的 choose opponent 可路由给人类选择自己的换入', async () => {
+  const gs = new GameState();
+  const ai = gs.player2;
+  const human = gs.player1;
+  human.active = mon('我方出战A');
+  human.bench = [mon('我方备战B'), mon('我方备战C')];
+  gs._onPendingPokemonPick = pick => {
+    assert.equal(pick.player, human);
+    assert.equal(pick.options?.mode, 'switch');
+    assert.equal(pick.options?.side, 'opponent');
+    assert.equal(pick.options?.chooser, 'target');
+    assert.equal(pick.options?.prompt, '选择自己要换上场的备战宝可梦');
+    gs.resolvePokemonPick('bench-1');
+  };
+  await executeEffects(gs, ai, [{ action: 'switch_pokemon', params: { who: 'opponent', choose: 'opponent' } }]);
+  assert.equal(human.active.name, '我方备战C');
+});
+
 await test('GameState日志：修复非数组并限制长度，避免运行时RangeError', () => {
   const gs = new GameState();
   gs.log = 'corrupted';
