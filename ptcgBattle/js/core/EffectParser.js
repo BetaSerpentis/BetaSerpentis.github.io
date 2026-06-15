@@ -44,6 +44,24 @@ function discardCostParams(text) {
   const type = (text.match(/【(.+?)】能量/) || [])[1];
   return { kind:'discard_cost', raw:text, count, zone:'hand', filter:type ? `【${type}】能量` : undefined };
 }
+function discardAttachTarget(dest) {
+  if (/这只|战斗/.test(dest)) return 'active';
+  if (/备战/.test(dest)) return 'bench';
+  return 'any';
+}
+function discardAttachTargetType(dest) {
+  const type = (dest.match(/【(.+?)】宝可梦/) || [])[1];
+  return type ? (ELEM[type] || type) : undefined;
+}
+function discardAttachParams(m, optional=false) {
+  const dest = m[3];
+  if (/所有|各|那些|以任意方式/.test(dest)) return null;
+  return withCount({
+    filter:m[2].replace(/^["“”]+|["“”]+$/g, '').trim(),
+    target:discardAttachTarget(dest),
+    targetType:discardAttachTargetType(dest)
+  }, m[1], optional);
+}
 
 const RULES = [
   // ===== 训练家/特性使用前提：仅解析为元数据，不执行合法性或费用 =====
@@ -195,8 +213,8 @@ const RULES = [
   { re: /对手的(?:战斗)?宝可梦无法撤退/, act:'cannot_retreat', p:()=>({target:'opponent'}) },
 
   // ===== 弃牌区附能 =====
-  { re: /从(?:自己的)?弃牌区选择最多(\d+)张(.+?)能量卡[,，]?附于(.+?)宝可梦/, act:'attach_energy_from_discard', p:m=>withCount({filter:m[2].trim(),target:m[3].includes('备战')?'bench':'any'},m[1],true) },
-  { re: /从(?:自己的)?弃牌区选择(\d+)张(.+?)能量卡[,，]?附于(.+?)宝可梦/, act:'attach_energy_from_discard', p:m=>withCount({filter:m[2].trim(),target:m[3].includes('备战')?'bench':'any'},m[1],false) },
+  { re: /从自己的弃牌区(?:选择|抽出)最多(\d+)张["“”]?([^"“”。，,]+?能量)["“”]?卡?[，,]附于((?:(?!(?:所有|各|那些|以任意方式)).)+?宝可梦)(?:身上)?/, act:'attach_energy_from_discard', p:m=>discardAttachParams(m,true) },
+  { re: /从自己的弃牌区(?:选择|抽出)(\d+)张["“”]?([^"“”。，,]+?能量)["“”]?卡?[，,]附于((?:(?!(?:所有|各|那些|以任意方式)).)+?宝可梦)(?:身上)?/, act:'attach_energy_from_discard', p:m=>discardAttachParams(m,false) },
 
   // ===== 牌库附能 =====
   { re: /从(?:自己的)?牌库(?:选择|抽出)最多(\d+)张(.+?)能量卡[,，]?附于/, act:'attach_energy_from_deck', p:m=>withCount({filter:m[2].trim()},m[1],true) },
