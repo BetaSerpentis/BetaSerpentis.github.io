@@ -271,6 +271,33 @@ await test('阿尔宙斯手机解析为 prize_deck_top_swap 且无残留', () =>
   assert.equal(parsed.effects[0]?.params.optional, true);
 });
 
+await test('WP7解析：弃牌区选择/抽出能量附于单一己方目标', () => {
+  const cases = [
+    ['水补丁', '从自己的弃牌区抽出1张【水】能量卡，附于备战区的【水】宝可梦身上。', { count:1, filter:'【水】能量', target:'bench', targetType:'water', allowFewer:false }],
+    ['暗黑修正档', '从自己的弃牌区选择1张"基本【恶】能量"卡，附于备战区的【恶】宝可梦身上。', { count:1, filter:'基本【恶】能量', target:'bench', targetType:'dark', allowFewer:false }],
+    ['辅助斩', '从自己的弃牌区选择1张"基本【草】能量"卡，附于备战宝可梦身上。', { count:1, filter:'基本【草】能量', target:'bench', targetType:undefined, allowFewer:false }],
+    ['雪之到来', '从自己的弃牌区选择最多2张"基本【水】能量"卡，附于自己的1只宝可梦身上。', { count:2, filter:'基本【水】能量', target:'any', targetType:undefined, allowFewer:true }],
+    ['这只宝可梦', '从自己的弃牌区选择1张基本【火】能量卡，附于这只宝可梦身上。', { count:1, filter:'基本【火】能量', target:'active', targetType:undefined, allowFewer:false }],
+    ['战斗宝可梦', '从自己的弃牌区抽出1张基本【雷】能量卡，附于战斗宝可梦身上。', { count:1, filter:'基本【雷】能量', target:'active', targetType:undefined, allowFewer:false }],
+  ];
+  for (const [label, text, expected] of cases) {
+    const parsed = parseEffect(text);
+    assert.equal(parsed.unparsed, '', `${label} residual=${parsed.unparsed}`);
+    const effect = parsed.effects[0];
+    assert.equal(effect?.action, 'attach_energy_from_discard', label);
+    assert.equal(effect.params.count, expected.count, label);
+    assert.equal(effect.params.maxCount, expected.count, label);
+    assert.equal(effect.params.minCount, expected.allowFewer ? 0 : expected.count, label);
+    assert.equal(effect.params.allowFewer, expected.allowFewer, label);
+    assert.equal(effect.params.allowEmpty, expected.allowFewer, label);
+    assert.equal(effect.params.filter, expected.filter, label);
+    assert.equal(effect.params.target, expected.target, label);
+    assert.equal(effect.params.targetType, expected.targetType, label);
+  }
+  const deferred = parseEffect('从自己的弃牌区选择2张基本【水】能量卡，附于那些宝可梦各1张。');
+  assert.equal(deferred.effects.some(e => e.action === 'attach_energy_from_discard'), false);
+});
+
 await test('真实数据：宝可梦交替与宝可齿轮3.0在 Item-cards.json 中可解析', () => {
   const items = loadJson('Item-cards.json');
   const gear = items.find(c => c['卡牌名字'] === '宝可齿轮3.0');
@@ -2921,6 +2948,36 @@ await test('能量选择：从弃牌区选择能量并附到指定宝可梦', as
   await executeEffects(gs, pl, [{ action:'attach_energy_from_discard', params:{ target:'bench', count:1 } }]);
   assert.deepEqual(pl.bench[1].energy, ['基本【火】能量']);
   assert.equal(pl.discard.includes('基本【火】能量'), false);
+});
+
+await test('WP7执行：弃牌区附能只展示匹配能量并附到选择目标', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  pl.active = mon('出战');
+  pl.bench = [mon('水备战'), mon('恶备战')];
+  pl.bench[0].element = 'water';
+  pl.bench[1].element = 'dark';
+  pl.discard = ['water-energy', 'dark-energy', 'item-card'];
+  gs.cardResolver = fakeResolver({
+    'water-energy': { card:{ cardType:'energy', name:'基本【水】能量', element:'water' }, info:{ name:'基本【水】能量', number:null, type:'energy' } },
+    'dark-energy': { card:{ cardType:'energy', name:'基本【恶】能量', element:'dark' }, info:{ name:'基本【恶】能量', number:null, type:'energy' } },
+    'item-card': { card:{ cardType:'trainer', trainerType:'item', name:'普通物品' }, info:{ name:'普通物品', number:null, type:'item' } },
+  });
+  const parsed = parseEffect('从自己的弃牌区抽出1张【水】能量卡，附于备战区的【水】宝可梦身上。');
+  gs._onPendingPokemonPick = pick => {
+    assert.deepEqual(pick.options.selectableSlots, ['bench-0']);
+    gs.resolvePokemonPick('bench-0');
+  };
+  gs._onPendingPick = pick => {
+    assert.deepEqual(pick.cards, ['基本【水】能量']);
+    gs.resolvePick([0]);
+  };
+
+  await executeEffects(gs, pl, parsed.effects);
+
+  assert.deepEqual(pl.bench[0].energy, ['water-energy']);
+  assert.deepEqual(pl.bench[1].energy, []);
+  assert.deepEqual(pl.discard, ['dark-energy', 'item-card']);
 });
 
 await test('能量选择：从牌库选择能量并附到指定宝可梦', async () => {
