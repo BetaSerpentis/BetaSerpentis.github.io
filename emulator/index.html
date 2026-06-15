@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>模拟器游戏盒</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            color: #fff;
+            background: radial-gradient(circle at 20% 10%, rgba(255, 207, 92, .28), transparent 28%),
+                        radial-gradient(circle at 80% 20%, rgba(75, 143, 255, .28), transparent 30%),
+                        linear-gradient(135deg, #111827, #2d1b69 52%, #111827);
+        }
+
+        .shell {
+            width: min(1180px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 32px 0 48px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 36px;
+        }
+
+        .home-link,
+        .secondary-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, .28);
+            border-radius: 999px;
+            color: #fff;
+            background: rgba(255, 255, 255, .1);
+            text-decoration: none;
+            padding: 10px 16px;
+            cursor: pointer;
+            backdrop-filter: blur(12px);
+            transition: transform .2s ease, background .2s ease;
+        }
+
+        .home-link:hover,
+        .secondary-button:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, .18);
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: end;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .eyebrow {
+            color: #fbbf24;
+            letter-spacing: .16em;
+            font-size: .82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: clamp(2.2rem, 6vw, 4.8rem);
+            line-height: .95;
+            text-shadow: 0 16px 36px rgba(0, 0, 0, .35);
+        }
+
+        .subtitle {
+            max-width: 680px;
+            margin-top: 18px;
+            color: rgba(255, 255, 255, .76);
+            font-size: 1.05rem;
+            line-height: 1.7;
+        }
+
+        .platforms {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .chip {
+            border-radius: 999px;
+            padding: 8px 12px;
+            color: #111827;
+            background: #fbbf24;
+            box-shadow: 0 12px 28px rgba(251, 191, 36, .25);
+            font-size: .88rem;
+            font-weight: 700;
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 22px;
+        }
+
+        .game-card {
+            position: relative;
+            min-height: 360px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, .18);
+            border-radius: 28px;
+            color: #fff;
+            background: linear-gradient(160deg, rgba(255,255,255,.2), rgba(255,255,255,.06));
+            box-shadow: 0 24px 70px rgba(0, 0, 0, .32);
+            cursor: pointer;
+            text-align: left;
+            transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+            backdrop-filter: blur(16px);
+        }
+
+        .game-card:hover {
+            transform: translateY(-8px) scale(1.015);
+            border-color: rgba(255, 255, 255, .36);
+            box-shadow: 0 34px 85px rgba(0, 0, 0, .42);
+        }
+
+        .cover-art {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 30% 22%, rgba(255, 238, 145, .85), transparent 18%),
+                radial-gradient(circle at 72% 26%, rgba(255, 88, 88, .75), transparent 20%),
+                radial-gradient(circle at 68% 76%, rgba(59, 130, 246, .78), transparent 26%),
+                linear-gradient(135deg, #20113f, #7f1d1d 55%, #111827);
+        }
+
+        .cover-art::before {
+            content: '';
+            position: absolute;
+            inset: 32px;
+            border: 2px solid rgba(255,255,255,.35);
+            border-radius: 22px;
+            box-shadow: inset 0 0 38px rgba(255,255,255,.14);
+        }
+
+        .cover-art::after {
+            content: 'MD';
+            position: absolute;
+            right: 34px;
+            bottom: 30px;
+            color: rgba(255,255,255,.18);
+            font-size: 7rem;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            min-height: 360px;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 26px;
+            background: linear-gradient(to top, rgba(0, 0, 0, .78), rgba(0, 0, 0, .18) 52%, transparent);
+        }
+
+        .badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .badge {
+            border: 1px solid rgba(255,255,255,.28);
+            border-radius: 999px;
+            padding: 6px 10px;
+            background: rgba(0,0,0,.24);
+            font-size: .78rem;
+            font-weight: 700;
+        }
+
+        .game-card h2 {
+            font-size: 1.75rem;
+            line-height: 1.18;
+            margin-bottom: 10px;
+            text-shadow: 0 4px 18px rgba(0,0,0,.6);
+        }
+
+        .game-card p {
+            color: rgba(255,255,255,.78);
+            line-height: 1.55;
+            margin-bottom: 20px;
+        }
+
+        .play-button {
+            align-self: flex-start;
+            border: 0;
+            border-radius: 999px;
+            color: #111827;
+            background: #fbbf24;
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: 900;
+            box-shadow: 0 14px 28px rgba(251, 191, 36, .26);
+        }
+
+        .empty-card {
+            min-height: 360px;
+            border: 1px dashed rgba(255,255,255,.28);
+            border-radius: 28px;
+            padding: 30px;
+            color: rgba(255,255,255,.74);
+            background: rgba(255,255,255,.07);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .empty-card strong {
+            color: #fff;
+            font-size: 1.35rem;
+        }
+
+        #player-view {
+            display: none;
+            height: 100vh;
+            background: #000;
+        }
+
+        .player-toolbar {
+            position: fixed;
+            top: max(10px, env(safe-area-inset-top));
+            left: max(10px, env(safe-area-inset-left));
+            z-index: 10010;
+            display: flex;
+            gap: 8px;
+        }
+
+        .toolbar-button {
+            border: 1px solid rgba(255,255,255,.25);
+            border-radius: 999px;
+            color: #fff;
+            background: rgba(0,0,0,.56);
+            padding: 9px 13px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+
+        #game {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        body.playing {
+            overflow: hidden;
+            background: #000;
+        }
+
+        body.playing #library-view {
+            display: none;
+        }
+
+        body.playing #player-view {
+            display: block;
+        }
+
+        .note {
+            margin-top: 28px;
+            color: rgba(255,255,255,.66);
+            font-size: .95rem;
+            line-height: 1.65;
+        }
+
+        @media (max-width: 720px) {
+            .topbar,
+            .hero {
+                display: block;
+            }
+
+            .home-link {
+                margin-bottom: 24px;
+            }
+
+            .platforms {
+                justify-content: flex-start;
+                margin-top: 22px;
+            }
+
+            .shell {
+                width: min(100% - 24px, 1180px);
+                padding-top: 22px;
+            }
+
+            .game-card,
+            .card-content,
+            .empty-card {
+                min-height: 330px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main id="library-view" class="shell">
+        <div class="topbar">
+            <a class="home-link" href="../">← 返回游戏盒</a>
+            <button class="secondary-button" type="button" id="local-upload-button">选择本地 ROM</button>
+        </div>
+
+        <section class="hero">
+            <div>
+                <div class="eyebrow">Local EmulatorJS</div>
+                <h1>模拟器游戏盒</h1>
+                <p class="subtitle">本地自托管 GBA、NES 和 Mega Drive 三个平台核心。点击游戏卡片即可启动，手机会显示虚拟按键，电脑可使用键盘或已连接的手柄。</p>
+            </div>
+            <div class="platforms" aria-label="支持平台">
+                <span class="chip">GBA</span>
+                <span class="chip">NES</span>
+                <span class="chip">MD</span>
+            </div>
+        </section>
+
+        <section class="game-grid" aria-label="游戏列表">
+            <button class="game-card" type="button" data-core="segaMD" data-rom="./roms/yybs.md" data-name="幽游白书 - 魔强统一战">
+                <div class="cover-art" aria-hidden="true"></div>
+                <div class="card-content">
+                    <div class="badge-row">
+                        <span class="badge">Mega Drive</span>
+                        <span class="badge">genesis_plus_gx</span>
+                        <span class="badge">测试 ROM</span>
+                    </div>
+                    <h2>幽游白书<br>魔强统一战</h2>
+                    <p>MD 格斗游戏测试入口。点击后使用本地 Mega Drive 核心启动。</p>
+                    <span class="play-button">开始游戏</span>
+                </div>
+            </button>
+
+            <div class="empty-card">
+                <strong>更多游戏位</strong>
+                <span>后续可以继续添加 GBA、NES 或 MD 游戏卡片。ROM 建议只保留在本地测试目录，避免把版权 ROM 提交到公开仓库。</span>
+            </div>
+        </section>
+
+        <p class="note">提示：当前 EmulatorJS 本地包使用非压缩源码运行，因此页面会开启 debug 加载模式。请通过本地静态服务器访问，不要直接双击 HTML 文件。</p>
+        <input id="local-rom-input" type="file" hidden accept=".gba,.nes,.md,.gen,.bin,.smd,.zip">
+    </main>
+
+    <section id="player-view" aria-label="模拟器运行区">
+        <div class="player-toolbar">
+            <button class="toolbar-button" type="button" id="back-button">← 返回列表</button>
+        </div>
+        <div id="game"></div>
+    </section>
+
+    <script>
+        const games = document.querySelectorAll('.game-card');
+        const localUploadButton = document.getElementById('local-upload-button');
+        const localRomInput = document.getElementById('local-rom-input');
+        const backButton = document.getElementById('back-button');
+
+        function guessCoreFromFile(fileName) {
+            const lower = fileName.toLowerCase();
+            if (lower.endsWith('.gba')) return 'gba';
+            if (lower.endsWith('.nes')) return 'nes';
+            return 'segaMD';
+        }
+
+        function launchGame(options) {
+            document.body.classList.add('playing');
+            document.getElementById('game').innerHTML = '';
+
+            window.EJS_player = '#game';
+            window.EJS_core = options.core;
+            window.EJS_gameUrl = options.rom;
+            window.EJS_gameName = options.name;
+            window.EJS_pathtodata = new URL('./data/', window.location.href).pathname;
+            window.EJS_startOnLoaded = true;
+            window.EJS_DEBUG_XX = true;
+            window.EJS_language = 'en';
+            window.EJS_askBeforeExit = false;
+            window.EJS_color = '#fbbf24';
+
+            const script = document.createElement('script');
+            script.src = new URL('./data/loader.js', window.location.href).pathname;
+            document.body.appendChild(script);
+        }
+
+        games.forEach((card) => {
+            card.addEventListener('click', () => {
+                launchGame({
+                    core: card.dataset.core,
+                    rom: card.dataset.rom,
+                    name: card.dataset.name
+                });
+            });
+        });
+
+        localUploadButton.addEventListener('click', () => localRomInput.click());
+        localRomInput.addEventListener('change', () => {
+            const file = localRomInput.files && localRomInput.files[0];
+            if (!file) return;
+            launchGame({
+                core: guessCoreFromFile(file.name),
+                rom: file,
+                name: file.name.replace(/\.[^.]+$/, '')
+            });
+        });
+
+        backButton.addEventListener('click', () => {
+            window.location.reload();
+        });
+    </script>
+</body>
+</html>
