@@ -168,7 +168,8 @@ export class GameState {
     const prereqFailure=this._trainerPrerequisiteFailure(pl,cd);
     if(prereqFailure)return prereqFailure;
     const tt=cd.trainerType;
-    if(tt==='supporter'&&pl===this.firstPlayer&&this.firstPlayerFirstTurnInProgress)return {ok:false,reason:'first_player_first_turn_supporter',message:'先攻玩家最初回合不能使用支援者卡'};
+    const hasFirstPlayerFirstTurnSupporterException=(cd.effects||[]).some(e=>e.action==='trainer_prerequisite'&&e.params?.kind==='first_player_first_turn_supporter_exception');
+    if(tt==='supporter'&&pl===this.firstPlayer&&this.firstPlayerFirstTurnInProgress&&!hasFirstPlayerFirstTurnSupporterException)return {ok:false,reason:'first_player_first_turn_supporter',message:'先攻玩家最初回合不能使用支援者卡'};
     if(tt==='supporter'&&pl.supporterUsed)return {ok:false,reason:'supporter_used',message:'已用过支援者卡'};
     if(tt==='tool'){
       const t=targetSlot==='active'?pl.active:(targetSlot?.startsWith('bench-')?pl.bench[parseInt(targetSlot.replace('bench-',''))]:null);
@@ -186,6 +187,16 @@ export class GameState {
         const opp=this.getOpponent(pl);
         const limit=p.count??3;
         if((opp?.prizes?.length??0)>limit)return {ok:false,reason:'trainer_prerequisite',message:`使用前提未满足：对手剩余奖赏卡需为${limit}张以下`};
+      }
+      if(p.kind==='own_prizes_more_than_opponent'){
+        const opp=this.getOpponent(pl);
+        if((pl?.prizes?.length??0)<=(opp?.prizes?.length??0))return {ok:false,reason:'trainer_prerequisite',message:'使用前提未满足：自己的剩余奖赏卡需多于对手'};
+      }
+      if(p.kind==='first_turn'){
+        const raw=p.raw||'';
+        const isOwnFirstTurn=this.turn===1&&pl===this.firstPlayer || this.turn===2&&pl!==this.firstPlayer;
+        if(/后攻玩家/.test(raw)&&!(isOwnFirstTurn&&pl!==this.firstPlayer))return {ok:false,reason:'trainer_prerequisite',message:'使用前提未满足：只可在后攻玩家自己的最初回合使用'};
+        if(!/后攻玩家/.test(raw)&&!isOwnFirstTurn)return {ok:false,reason:'trainer_prerequisite',message:'使用前提未满足：只可在自己的最初回合使用'};
       }
     }
     return null;

@@ -266,9 +266,10 @@ await test('解析覆盖：训练家使用前提解析为元数据且不残留',
   const cases = [
     ['帮忙铃', '这张卡只可在后攻玩家的最初回合使用。', 'trainer_prerequisite', 'first_turn'],
     ['对战VIP参加证', '这张卡只能在自己的最初回合使用。', 'trainer_prerequisite', 'first_turn'],
-    ['反击捕捉器', '这张卡只有在自己剩余奖赏卡的张数比对手剩余奖赏卡的张数多时才可使用。', 'trainer_prerequisite', 'condition'],
+    ['反击捕捉器', '这张卡只有在自己剩余奖赏卡的张数比对手剩余奖赏卡的张数多时才可使用。', 'trainer_prerequisite', 'own_prizes_more_than_opponent'],
     ['玻璃喇叭', '这张卡只有在自己的场上有"太晶"宝可梦时才可使用。', 'trainer_prerequisite', 'condition'],
     ['大地之容器', '这张卡必须将自己的1张手牌丢弃才可使用。', 'trainer_prerequisite', 'discard_cost'],
+    ['大姐姐', '这张卡可在先攻玩家的最初回合使用。', 'trainer_prerequisite', 'first_player_first_turn_supporter_exception'],
     ['火力工厂◇', '在自己的回合时，可使用1次。', 'usage_condition', 'once_per_turn'],
     ['潺潺之丘', '双方玩家在自己的回合时，可使用1次。', 'usage_condition', 'once_per_turn'],
   ];
@@ -3327,7 +3328,7 @@ await test('训练家discard_cost：无选卡器时确定性支付首个匹配�
   assert.deepEqual(pl.discard, ['costA', '费用物品']);
 });
 
-await test('训练家元数据回归：非discard_cost前提不强制但效果仍执行', async () => {
+await test('训练家元数据回归：未结构化condition前提不强制但效果仍执行', async () => {
   const gs = new GameState();
   const pl = gs.player1;
   gs.currentPlayer = pl;
@@ -3336,16 +3337,182 @@ await test('训练家元数据回归：非discard_cost前提不强制但效果�
   const engine = makeEngine(gs);
 
   const ok = await engine.useTrainer(0, {
-    cardType:'trainer', trainerType:'item', name:'首回合物品',
+    cardType:'trainer', trainerType:'item', name:'条件物品',
     effects:[
-      { action:'trainer_prerequisite', params:{ kind:'first_turn', raw:'metadata only' } },
+      { action:'trainer_prerequisite', params:{ kind:'condition', raw:'metadata only' } },
       { action:'draw', params:{ count:1 } },
     ]
   });
 
   assert.equal(ok, true);
   assert.deepEqual(pl.hand, ['drawnCard']);
-  assert.deepEqual(pl.discard, ['首回合物品']);
+  assert.deepEqual(pl.discard, ['条件物品']);
+});
+
+await test('先攻支援者例外：可在先攻最初回合使用且不是硬first_turn前提', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  gs.currentPlayer = pl;
+  gs.firstPlayer = pl;
+  gs.firstPlayerFirstTurnInProgress = true;
+  gs.turn = 1;
+  pl.hand = ['supporterCard'];
+  pl.deck = ['drawnCard'];
+  const effects = parseEffect('这张卡可在先攻玩家的最初回合使用。从自己的牌库抽出1张卡。').effects;
+
+  assert.equal(effects.some(e => e.action === 'trainer_prerequisite' && e.params?.kind === 'first_turn'), false);
+  assert.equal(effects.some(e => e.action === 'trainer_prerequisite' && e.params?.kind === 'first_player_first_turn_supporter_exception'), true);
+
+  const ok = await makeEngine(gs).useTrainer(0, { cardType:'trainer', trainerType:'supporter', name:'大姐姐', effects });
+
+  assert.equal(ok, true);
+  assert.equal(pl.supporterUsed, true);
+  assert.deepEqual(pl.hand, ['drawnCard']);
+  assert.deepEqual(pl.discard, ['大姐姐']);
+});
+
+await test('先攻支援者例外：后续普通回合仍可使用且不要求后攻最初回合', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  gs.currentPlayer = pl;
+  gs.firstPlayer = pl;
+  gs.firstPlayerFirstTurnInProgress = false;
+  gs.turn = 3;
+  pl.hand = ['supporterCard'];
+  pl.deck = ['drawnCard'];
+  const effects = parseEffect('这张卡可在先攻玩家的最初回合使用。从自己的牌库抽出1张卡。').effects;
+
+  const ok = await makeEngine(gs).useTrainer(0, { cardType:'trainer', trainerType:'supporter', name:'丹瑜', effects });
+
+  assert.equal(ok, true);
+  assert.equal(pl.supporterUsed, true);
+  assert.deepEqual(pl.hand, ['drawnCard']);
+  assert.deepEqual(pl.discard, ['丹瑜']);
+  assert.equal(gs.log.some(line => line.includes('最初回合')), false);
+});
+
+await test('训练家first_turn前提：自己的最初回合合法且会正常消耗物品', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  gs.currentPlayer = pl;
+  gs.firstPlayer = pl;
+  gs.turn = 1;
+  pl.hand = ['vipPass'];
+  pl.deck = ['drawnCard'];
+  const effects = parseEffect('这张卡只能在自己的最初回合使用。从自己的牌库抽出1张卡。').effects;
+  const engine = makeEngine(gs);
+
+  const ok = await engine.useTrainer(0, { cardType:'trainer', trainerType:'item', name:'对战VIP参加证', effects });
+
+  assert.equal(ok, true);
+  assert.deepEqual(pl.hand, ['drawnCard']);
+  assert.deepEqual(pl.discard, ['对战VIP参加证']);
+});
+
+await test('训练家first_turn前提：非最初回合失败且不消耗、不支付费用、不执行效果', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  gs.currentPlayer = pl;
+  gs.firstPlayer = pl;
+  gs.turn = 3;
+  pl.hand = ['vipPass', 'costA'];
+  pl.deck = ['drawnCard'];
+  const effects = [
+    ...parseEffect('这张卡只能在自己的最初回合使用。').effects,
+    { action:'trainer_prerequisite', params:{ kind:'discard_cost', count:1, zone:'hand', raw:'cost' } },
+    { action:'draw', params:{ count:1 } },
+  ];
+  const engine = makeEngine(gs);
+
+  const ok = await engine.useTrainer(0, { cardType:'trainer', trainerType:'item', name:'对战VIP参加证', effects });
+
+  assert.equal(ok, false);
+  assert.deepEqual(pl.hand, ['vipPass', 'costA']);
+  assert.deepEqual(pl.discard, []);
+  assert.deepEqual(pl.deck, ['drawnCard']);
+  assert.equal(gs.log.some(line => line.includes('只可在自己的最初回合使用')), true);
+});
+
+await test('训练家后攻first_turn前提：后攻最初回合合法，先攻或后续回合失败', async () => {
+  const legal = new GameState();
+  const second = legal.player2;
+  legal.currentPlayer = second;
+  legal.firstPlayer = legal.player1;
+  legal.turn = 2;
+  second.hand = ['bell'];
+  second.deck = ['drawnCard'];
+  const effects = parseEffect('这张卡只可在后攻玩家自己的最初回合使用1次。从自己的牌库抽出1张卡。').effects;
+  let ok = await makeEngine(legal).useTrainer(0, { cardType:'trainer', trainerType:'item', name:'帮忙铃', effects });
+  assert.equal(ok, true);
+  assert.deepEqual(second.hand, ['drawnCard']);
+  assert.deepEqual(second.discard, ['帮忙铃']);
+
+  const illegal = new GameState();
+  const first = illegal.player1;
+  illegal.currentPlayer = first;
+  illegal.firstPlayer = first;
+  illegal.turn = 1;
+  first.hand = ['bell'];
+  first.deck = ['drawnCard'];
+  ok = await makeEngine(illegal).useTrainer(0, { cardType:'trainer', trainerType:'item', name:'帮忙铃', effects });
+  assert.equal(ok, false);
+  assert.deepEqual(first.hand, ['bell']);
+  assert.deepEqual(first.discard, []);
+  assert.deepEqual(first.deck, ['drawnCard']);
+  assert.equal(illegal.log.some(line => line.includes('后攻玩家自己的最初回合')), true);
+});
+
+await test('训练家奖赏落后前提：自己奖赏多于对手时合法，否则不消耗支援者或卡牌', async () => {
+  const legal = new GameState();
+  const pl = legal.player1;
+  const opp = legal.player2;
+  legal.currentPlayer = pl;
+  pl.hand = ['counterCatcher'];
+  pl.prizes = ['p1', 'p2', 'p3'];
+  opp.prizes = ['o1', 'o2'];
+  const effects = parseEffect('这张卡只有在自己剩余奖赏卡的张数比对手剩余奖赏卡的张数多时才可使用。从自己的牌库抽出1张卡。').effects;
+  pl.deck = ['drawnCard'];
+  let ok = await makeEngine(legal).useTrainer(0, { cardType:'trainer', trainerType:'item', name:'反击捕捉器', effects });
+  assert.equal(ok, true);
+  assert.deepEqual(pl.hand, ['drawnCard']);
+  assert.deepEqual(pl.discard, ['反击捕捉器']);
+
+  const illegal = new GameState();
+  const pl2 = illegal.player1;
+  const opp2 = illegal.player2;
+  illegal.currentPlayer = pl2;
+  pl2.hand = ['counterCatcher'];
+  pl2.prizes = ['p1', 'p2'];
+  opp2.prizes = ['o1', 'o2'];
+  pl2.deck = ['drawnCard'];
+  ok = await makeEngine(illegal).useTrainer(0, { cardType:'trainer', trainerType:'supporter', name:'奖赏前提支援者', effects });
+  assert.equal(ok, false);
+  assert.deepEqual(pl2.hand, ['counterCatcher']);
+  assert.deepEqual(pl2.discard, []);
+  assert.deepEqual(pl2.deck, ['drawnCard']);
+  assert.equal(pl2.supporterUsed, false);
+  assert.equal(illegal.log.some(line => line.includes('自己的剩余奖赏卡需多于对手')), true);
+});
+
+await test('训练家opponent_prizes_at_most前提：合法时可消耗支援者并执行效果', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  const opp = gs.player2;
+  gs.currentPlayer = pl;
+  pl.hand = ['roxanneCard'];
+  pl.deck = ['drawnCard'];
+  opp.prizes = ['o1', 'o2', 'o3'];
+  const effects = [
+    ...parseEffect('这张卡只可在对手剩余奖赏卡的张数为3张以下时使用。').effects,
+    { action:'draw', params:{ count:1 } },
+  ];
+
+  const ok = await makeEngine(gs).useTrainer(0, { cardType:'trainer', trainerType:'supporter', name:'杜娟', effects });
+
+  assert.equal(ok, true);
+  assert.equal(pl.supporterUsed, true);
+  assert.deepEqual(pl.hand, ['drawnCard']);
+  assert.deepEqual(pl.discard, ['杜娟']);
 });
 
 await test('训练家使用限制：支援者一回合一次，竞技场替换，宝可梦道具装备目标', async () => {
