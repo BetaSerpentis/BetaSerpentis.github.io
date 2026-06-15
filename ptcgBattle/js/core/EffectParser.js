@@ -244,8 +244,15 @@ const RULES = [
   // ===== 随机丢弃对手手牌 =====
   { re: /在不看正面的情况下[，,]选择1张对手的手牌[，,]将其丢弃/, act:'discard_opponent_hand_random', p:()=>({count:1}) },
 
-  // ===== 对手牌库上方卡操作 =====
-  { re: /将对手的牌库上方1张卡/, act:'manipulate_deck_top', p:()=>({target:'opponent',count:1}) },
+  // ===== 牌库上方卡操作 =====
+  { re: /查看(自己|对手)的牌库上方(\d+)张卡[，,]从其中选择任意数量的物品卡[，,]将其丢弃[。.]将剩余卡放回牌库并重洗/, act:'manipulate_deck_top', p:m=>({target:m[1]==='对手'?'opponent':'self',count:+m[2],mode:'discard_matching',filter:'物品',allowFewer:true,allowEmpty:true,remainder:'shuffle'}) },
+  { re: /查看(自己|对手)的牌库上方(\d+)张卡[，,]选择其中1张[，,]放回牌库上方[。.]将剩余卡放回牌库下方/, act:'manipulate_deck_top', p:m=>({target:m[1]==='对手'?'opponent':'self',count:+m[2],mode:'choose_top_rest_bottom',keep:1}) },
+  { re: /查看(自己|对手)的牌库上方(\d+)张卡[，,]以任意顺序排列[，,]放回牌库上方/, act:'manipulate_deck_top', p:m=>({target:m[1]==='对手'?'opponent':'self',count:+m[2],mode:'top_any_order',keepOrder:true}) },
+  { re: /查看(自己|对手)的牌库上方1张卡[，,]回复原样[。.]若希望[，,]将那张卡丢弃/, act:'manipulate_deck_top', p:m=>({target:m[1]==='对手'?'opponent':'self',count:1,mode:'look_then_optional',optionalAction:'discard',optional:true}) },
+  { re: /查看(自己|对手)的牌库上方1张卡[，,]回复原样[。.]若希望[，,]将那张卡放回牌库下方/, act:'manipulate_deck_top', p:m=>({target:m[1]==='对手'?'opponent':'self',count:1,mode:'look_then_optional',optionalAction:'bottom',optional:true}) },
+  { re: /查看(自己|对手)的牌库上方1张卡[，,]回复原样[。.]若希望[，,]重洗那个牌库/, act:'manipulate_deck_top', p:m=>({target:m[1]==='对手'?'opponent':'self',count:1,mode:'look_then_optional',optionalAction:'shuffle',optional:true}) },
+  { re: /查看(自己|对手)的牌库上方(\d+)张卡[，,]回复原样/, act:'manipulate_deck_top', p:m=>({target:m[1]==='对手'?'opponent':'self',count:+m[2],mode:'look',remainder:'top_original'}) },
+  { re: /将对手的牌库上方1张卡(?!丢弃)/, act:'manipulate_deck_top', p:()=>({target:'opponent',count:1,mode:'look'}) },
 
   // ===== 重洗牌库 =====
   { re: /并且重洗牌库/, act:'shuffle_deck', p:()=>({}) },

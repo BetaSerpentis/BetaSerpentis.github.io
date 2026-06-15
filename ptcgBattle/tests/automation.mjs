@@ -180,6 +180,34 @@ await test('宝可齿轮3.0解析为 peek_and_keep top7 选1支援者', () => {
   assert.equal(parsed.effects[0]?.params.filter, '支援者');
 });
 
+await test('manipulate_deck_top解析：只为明确牌库顶文本产出结构化窄参数', () => {
+  const look = parseEffect('查看对手的牌库上方1张卡，回复原样。');
+  assert.equal(look.unparsed, '', `look residual=${look.unparsed}`);
+  assert.equal(look.effects[0]?.action, 'manipulate_deck_top');
+  assert.deepEqual(look.effects[0]?.params, { target:'opponent', count:1, mode:'look', remainder:'top_original' });
+
+  const bottom = parseEffect('查看自己的牌库上方1张卡，回复原样。若希望，将那张卡放回牌库下方。');
+  assert.equal(bottom.unparsed, '', `bottom residual=${bottom.unparsed}`);
+  assert.deepEqual(bottom.effects[0]?.params, { target:'self', count:1, mode:'look_then_optional', optionalAction:'bottom', optional:true });
+
+  const discardItems = parseEffect('查看对手的牌库上方5张卡，从其中选择任意数量的物品卡，将其丢弃。将剩余卡放回牌库并重洗。');
+  assert.equal(discardItems.unparsed, '', `discard residual=${discardItems.unparsed}`);
+  assert.equal(discardItems.effects[0]?.action, 'manipulate_deck_top');
+  assert.equal(discardItems.effects[0]?.params.mode, 'discard_matching');
+  assert.equal(discardItems.effects[0]?.params.filter, '物品');
+  assert.equal(discardItems.effects[0]?.params.remainder, 'shuffle');
+
+  const order = parseEffect('查看对手的牌库上方5张卡，以任意顺序排列，放回牌库上方。');
+  assert.equal(order.unparsed, '', `order residual=${order.unparsed}`);
+  assert.equal(order.effects[0]?.params.mode, 'top_any_order');
+  assert.equal(order.effects[0]?.params.keepOrder, true);
+
+  const choose = parseEffect('查看对手的牌库上方2张卡，选择其中1张，放回牌库上方。将剩余卡放回牌库下方。');
+  assert.equal(choose.unparsed, '', `choose residual=${choose.unparsed}`);
+  assert.equal(choose.effects[0]?.params.mode, 'choose_top_rest_bottom');
+  assert.equal(choose.effects[0]?.params.keep, 1);
+});
+
 await test('解析覆盖：常见物品/支援者/招式/能量效果类型', () => {
   const cases = [
     ['抽卡', '从自己的牌库抽出3张卡。', 'draw'],
@@ -1201,6 +1229,85 @@ await test('杜娟使用前提：对手奖赏超过3张时不消耗支援者', a
   assert.deepEqual(pl.discard, []);
   assert.equal(pl.supporterUsed, false);
   assert.equal(gs.log.some(line => line.includes('使用前提未满足')), true);
+});
+
+await test('manipulate_deck_top执行：查看对手牌库顶回复原样且不写未实现日志', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  const opp = gs.player2;
+  opp.deck = ['bottom', 'middle', 'top'];
+
+  await executeEffects(gs, pl, [{ action:'manipulate_deck_top', params:{ target:'opponent', count:1, mode:'look', remainder:'top_original' } }]);
+
+  assert.deepEqual(opp.deck, ['bottom', 'middle', 'top']);
+  assert.equal(gs.log.some(line => line.includes('[未实现: manipulate_deck_top]')), false);
+  assert.equal(gs.log.some(line => line.includes('查看对手牌库上方 1 张，回复原样')), true);
+});
+
+await test('manipulate_deck_top执行：可选择匹配物品丢弃，剩余牌洗回', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  const opp = gs.player2;
+  opp.deck = ['bottom', 'supporter', 'itemB', 'energy', 'itemA'];
+  gs.cardResolver = fakeResolver({
+    itemA: { info:{ name:'物品A', number:null, type:'item' }, card:{ cardType:'trainer', trainerType:'item', name:'物品A' } },
+    itemB: { info:{ name:'物品B', number:null, type:'item' }, card:{ cardType:'trainer', trainerType:'item', name:'物品B' } },
+    energy: { info:{ name:'基本能量', number:null, type:'energy' }, card:{ cardType:'energy', name:'基本能量' } },
+    supporter: { info:{ name:'支援者', number:null, type:'supporter' }, card:{ cardType:'trainer', trainerType:'supporter', name:'支援者' } },
+  });
+  gs._shuffle = deck => { deck.reverse(); return deck; };
+  gs._onPendingPick = pick => {
+    assert.equal(pick.options?.source, 'manipulate-deck-top-discard');
+    assert.equal(pick.options?.filter, '物品');
+    assert.equal(pick.options?.allowFewer, true);
+    assert.equal(pick.options?.allowEmpty, true);
+    assert.deepEqual(pick.cards, ['物品A', '物品B']);
+    gs.resolvePick([1]);
+  };
+
+  await executeEffects(gs, pl, [{ action:'manipulate_deck_top', params:{ target:'opponent', count:4, mode:'discard_matching', filter:'物品', allowFewer:true, allowEmpty:true, remainder:'shuffle' } }]);
+
+  assert.deepEqual(opp.discard, ['itemB']);
+  assert.equal(opp.deck.includes('itemB'), false);
+  assert.deepEqual(new Set(opp.deck), new Set(['bottom', 'supporter', 'energy', 'itemA']));
+  assert.equal(gs.log.some(line => line.includes('[未实现: manipulate_deck_top]')), false);
+});
+
+await test('manipulate_deck_top执行：无UI时确定性丢弃全部匹配候选并保留任意顺序原序回退', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  const opp = gs.player2;
+  opp.deck = ['bottom', 'itemB', 'energy', 'itemA'];
+  gs.cardResolver = fakeResolver({
+    itemA: { info:{ name:'物品A', number:null, type:'item' }, card:{ cardType:'trainer', trainerType:'item', name:'物品A' } },
+    itemB: { info:{ name:'物品B', number:null, type:'item' }, card:{ cardType:'trainer', trainerType:'item', name:'物品B' } },
+    energy: { info:{ name:'基本能量', number:null, type:'energy' }, card:{ cardType:'energy', name:'基本能量' } },
+  });
+
+  await executeEffects(gs, pl, [{ action:'manipulate_deck_top', params:{ target:'opponent', count:3, mode:'discard_matching', filter:'物品', allowFewer:true, allowEmpty:true, remainder:'top_original' } }]);
+  assert.deepEqual(opp.discard, ['itemA', 'itemB']);
+  assert.deepEqual(opp.deck, ['bottom', 'energy']);
+
+  await executeEffects(gs, pl, [{ action:'manipulate_deck_top', params:{ target:'opponent', count:2, mode:'top_any_order', keepOrder:true } }]);
+  assert.deepEqual(opp.deck, ['bottom', 'energy']);
+  assert.equal(gs.log.some(line => line.includes('按原顺序放回上方')), true);
+});
+
+await test('manipulate_deck_top执行：必选置顶取消时恢复牌库并按现有约定失败', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  const opp = gs.player2;
+  opp.deck = ['bottom', 'second', 'top'];
+  gs._onPendingPick = pick => {
+    assert.equal(pick.options?.source, 'manipulate-deck-top-choose-top');
+    gs.resolvePick([]);
+  };
+
+  await executeEffects(gs, pl, [{ action:'manipulate_deck_top', params:{ target:'opponent', count:2, mode:'choose_top_rest_bottom', keep:1 } }]);
+
+  assert.deepEqual(opp.deck, ['bottom', 'second', 'top']);
+  assert.equal(gs.log.some(line => line.includes('牌库上方操作取消')), true);
+  assert.equal(gs.log.some(line => line.includes('[效果失败: manipulate_deck_top] required_choice_cancelled')), true);
 });
 
 await test('未实现效果路径：执行器必须写入可见日志而不是静默跳过', async () => {
