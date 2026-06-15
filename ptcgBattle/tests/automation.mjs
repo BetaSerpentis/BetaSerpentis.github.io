@@ -17,6 +17,33 @@ import { pokemonSpriteImgHtml, pokemonSpriteSrc } from '../js/ui/SpriteUtils.js'
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.resolve(__dirname, '../../ptcg/data');
 
+// Parser coverage guardrails are intentionally below the latest validated WP5 baseline
+// (4518/7208 parsed, 4499 residual) so routine fixture/card-data churn does not make
+// this trend test brittle while still catching broad parser regressions.
+const PARSER_COVERAGE_MIN_RATIO = 0.60;
+const PARSER_RESIDUAL_MAX_COUNT = 4650;
+const PARSER_TOP_BUCKET_LIMIT = 8;
+
+const RESIDUAL_BUCKETS = [
+  { key: 'fossils', label: '化石', pattern: /化石|古代能力|复原|秘密琥珀|根之化石|爪之化石|盾甲化石|头盖化石/ },
+  { key: 'complex_multi_branch', label: '复杂/多分支', pattern: /若|如果|可选择|选择.*(则|然后)|同时|各自|任意|直到|每有|依照|根据|追加|改为/ },
+  { key: 'prerequisites_conditions', label: '前提/条件', pattern: /只可|必须|才可|不可|不能|前提|条件|场上存在|剩余奖赏卡|自己的回合|上个回合|本回合|下个回合/ },
+  { key: 'choice_switch_recover', label: '选择/交换/回收', pattern: /选择|交换|互换|替换|放回手牌|加入手牌|恢复|回复|回收|撤退|换位|备战区/ },
+  { key: 'deck_top_manipulation', label: '牌库顶/牌库操作', pattern: /牌库上方|牌库下方|查看.*牌库|放回牌库|重洗|洗切|排列|任意顺序|抽出|抽卡/ },
+  { key: 'energy_movement', label: '能量移动', pattern: /能量|附加|转移|移动|改附|丢弃.*能量|基本【|特殊能量/ },
+  { key: 'unknown_other', label: '未知/其他', pattern: /.*/ },
+];
+
+function residualBucket(text, context = '') {
+  const raw = `${String(context || '')} ${String(text || '')}`;
+  const bucket = RESIDUAL_BUCKETS.find(b => b.pattern.test(raw));
+  return bucket?.key || 'unknown_other';
+}
+
+function residualBucketLabel(key) {
+  return RESIDUAL_BUCKETS.find(b => b.key === key)?.label || key;
+}
+
 function mon(name, cardId = name, attacks = []) {
   return {
     name,
@@ -4671,6 +4698,7 @@ await test('全卡牌效果文本解析覆盖率报告', () => {
   ];
 
   const samples = [];
+  const residualBuckets = new Map(RESIDUAL_BUCKETS.map(bucket => [bucket.key, 0]));
   let total = 0;
   let parsed = 0;
   let unparsed = 0;
@@ -4691,21 +4719,36 @@ await test('全卡牌效果文本解析覆盖率报告', () => {
         if (result.effects.length > 0) parsed++;
         if (result.unparsed) {
           unparsed++;
-          if (samples.length < 20) samples.push({ file, name: item.name, unparsed: result.unparsed });
+          const bucket = residualBucket(result.unparsed, `${file} ${item.name}`);
+          residualBuckets.set(bucket, (residualBuckets.get(bucket) || 0) + 1);
+          if (samples.length < 20) samples.push({ file, name: item.name, bucket, unparsed: result.unparsed });
         }
       }
     }
   }
 
-  console.log(`\n解析覆盖率: ${parsed}/${total} (${Math.round(parsed / total * 100)}%)，仍有残留文本: ${unparsed}`);
+  const coverageRatio = parsed / total;
+  const bucketRows = [...residualBuckets.entries()]
+    .filter(([, count]) => count > 0)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+
+  console.log(`\n解析覆盖率: ${parsed}/${total} (${Math.round(coverageRatio * 100)}%)，仍有残留文本: ${unparsed}`);
+  if (bucketRows.length) {
+    const summary = bucketRows
+      .slice(0, PARSER_TOP_BUCKET_LIMIT)
+      .map(([key, count]) => `${residualBucketLabel(key)}=${count}`)
+      .join('，');
+    console.log(`残留分类Top${Math.min(PARSER_TOP_BUCKET_LIMIT, bucketRows.length)}: ${summary}`);
+  }
   if (samples.length) {
     console.log('未完全解析样例（前20条）:');
-    for (const s of samples) console.log(`- [${s.file}] ${s.name}: ${s.unparsed.slice(0, 90)}`);
+    for (const s of samples) console.log(`- [${s.file}] ${s.name} <${residualBucketLabel(s.bucket)}>: ${s.unparsed.slice(0, 90)}`);
   }
 
-  // 这是一条趋势性保护：避免解析器大面积退化。
-  // 当前不是要求100%精确实现，后续可以随着效果覆盖逐步提高阈值。
-  assert.ok(parsed / total > 0.35, `解析覆盖率过低: ${parsed}/${total}`);
+  // 趋势性保护：避免解析器大面积退化；阈值保留少量数据/fixture波动空间。
+  // 最新验证基线为4518/7208（约63%）且残留4499，当前保护线为>=60%且残留<=4650。
+  assert.ok(coverageRatio >= PARSER_COVERAGE_MIN_RATIO, `解析覆盖率低于保护线: ${parsed}/${total} (${coverageRatio.toFixed(3)}) < ${PARSER_COVERAGE_MIN_RATIO}`);
+  assert.ok(unparsed <= PARSER_RESIDUAL_MAX_COUNT, `解析残留高于保护线: ${unparsed} > ${PARSER_RESIDUAL_MAX_COUNT}`);
 });
 
 if (process.exitCode) {

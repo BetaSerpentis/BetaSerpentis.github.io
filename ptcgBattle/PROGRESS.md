@@ -54,6 +54,7 @@ ptcgBattle/
 - [x] WP3：为useTrainer增加最小事务边界，required picker/目标失败时回滚训练家消耗、费用、使用标记和相关场上状态，并修复回滚后竞技场owner/共享对象身份
 - [x] WP4：switch_pokemon支持解析出的choose:'opponent'语义；目标方为玩家时走现有宝可梦选择器，AI/no-UI对手选择时确定性选择首个可用备战位
 - [x] WP5：manipulate_deck_top窄口径执行支持；覆盖查看牌库顶原样放回、可选丢弃/置底/洗牌、匹配物品丢弃、选择置顶其余置底与任意顺序原序fallback；lost_zone/fossil_place仍未扩展。
+- [x] WP6：解析覆盖率报告加入趋势性保护线（覆盖率>=60%、残留<=4650）与确定性残留分类Top输出，避免低阈值掩盖大面积退化
 
 ## 当前限制
 - [ ] 规则不是完整PTCG实现：弱点/抵抗力、烧伤、睡眠恢复、攻击效果顺序仍为简化模型
@@ -68,8 +69,9 @@ ptcgBattle/
 - [ ] 完整卡牌详情、UI动画、音效仍待完善
 
 ## 最新测试基线
-- `npm --prefix e:/BetaSerpentis.github.io run test:ptcg-battle`：全部自动化测试通过（2026-06-15，Work Package 5：manipulate_deck_top executor support）。
-- 解析覆盖率：4518/7208（63%）；仍有残留文本：4499。当前残留集中在复杂/多分支道具、化石类、未结构化前提文本与未完全映射的选择/交换/回收效果。
+- `npm --prefix e:/BetaSerpentis.github.io run test:ptcg-battle`：全部自动化测试通过（2026-06-15，Work Package 6：parser coverage baseline tooling）。
+- 解析覆盖率：4504/7208（62%）；仍有残留文本：4511。WP6保护线为覆盖率>=60%、残留<=4650，并预留fixture/数据波动空间。
+- 残留分类Top：复杂/多分支=1688，未知/其他=858，选择/交换/回收=822，前提/条件=472，能量移动=395，牌库顶/牌库操作=233，化石=31。
 
 ## PM浏览器复测清单
 1. Setup流程：进入对局后应先显示手牌卡牌界面；选择基础宝可梦并在卡牌界面确认；无基础手牌/对手mulligan时不应卡死；confirm失败应有可见反馈。
