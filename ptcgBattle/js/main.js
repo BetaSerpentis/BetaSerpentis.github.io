@@ -26,9 +26,26 @@ export function energyElementClass(energy) {
 
 export function pokemonPickerSlotAllowed(slot, options = {}) {
   if (!slot) return false;
+  const selectableSlots = Array.isArray(options.selectableSlots) ? options.selectableSlots : null;
+  if (selectableSlots && !selectableSlots.includes(slot)) return false;
   if (slot === 'active') return options.allowActive !== false;
   if (slot.startsWith('bench-')) return options.allowBench !== false;
   return false;
+}
+
+export function pokemonPickerHasLegalTarget(player, options = {}) {
+  if (!player) return false;
+  if (player.active && pokemonPickerSlotAllowed('active', options)) return true;
+  return (player.bench || []).some((mon, i) => !!mon && pokemonPickerSlotAllowed(`bench-${i}`, options));
+}
+
+export function pokemonPickerSlotClass(slot, options = {}, selectedSlot = null) {
+  const allowed = pokemonPickerSlotAllowed(slot, options);
+  return {
+    allowed,
+    selected: allowed && slot === selectedSlot,
+    className: `${allowed ? ' selectable' : ' disabled'}${allowed && slot === selectedSlot ? ' selected' : ''}`,
+  };
 }
 
 export function pokemonPickerConfirmEnabled(selectedSlot, options = {}) {
@@ -685,10 +702,11 @@ export class PTCGBattleApp {
     const canTarget = isMySide && ['energy', 'evolve', 'tool'].includes(this._pokeMode);
     const isEffectPick = this._pokeMode === 'effect-switch' || this._pokeMode === 'effect-target';
     const effectPickOptions = isEffectPick ? (this._pokeTargetData?.options || {}) : null;
-    const allowActivePick = canTarget || (isMySide && this._pokeMode === 'view') || (isEffectPick && effectPickOptions.allowActive !== false);
-    const allowBenchPick = isEffectPick ? effectPickOptions.allowBench !== false : true;
+    const allowActivePick = canTarget || (isMySide && this._pokeMode === 'view');
+    const allowBenchPick = isEffectPick ? false : true;
     const selectedSlot = this._selectedPokeSlot || (this._selectedBenchIdx >= 0 ? `bench-${this._selectedBenchIdx}` : null);
     const hasValidEffectPick = isEffectPick && pokemonPickerConfirmEnabled(selectedSlot, effectPickOptions);
+    const hasLegalEffectTarget = !isEffectPick || pokemonPickerHasLegalTarget(pl, effectPickOptions);
     const canSwap = isMySide && (this._pokeMode === 'swap' || this._pokeMode === 'view');
     const showAction = canTarget || canSwap || isEffectPick;
     const selectedMon = this._getSelectedPokeMon(pl);
@@ -706,13 +724,16 @@ export class PTCGBattleApp {
     if (pl.active) {
       const info = this.resolver.getInfo(pl.active.cardId);
       const src = pokemonSpriteSrc(info.number);
+      const activeSlotClass = isEffectPick
+        ? pokemonPickerSlotClass('active', effectPickOptions, this._selectedPokeSlot)
+        : { allowed: allowActivePick, className: `${allowActivePick ? ' selectable' : ''}${this._selectedPokeSlot === 'active' ? ' selected' : ''}` };
       activeDiv.innerHTML = `
-        <div class="pokemon-active-sprite${allowActivePick ? ' selectable' : ''}${this._selectedPokeSlot === 'active' ? ' selected' : ''}" data-slot="active">${src ? pokemonSpriteImgHtml(info.number, pl.active.name) : ''}</div>
+        <div class="pokemon-active-sprite${activeSlotClass.className}" data-slot="active">${src ? pokemonSpriteImgHtml(info.number, pl.active.name) : ''}</div>
         <div class="pokemon-active-name">${pl.active.name}</div>
         <div class="pokemon-active-hp">HP ${pl.active.hp}/${pl.active.maxHp}</div>
         <div class="energy-icons">${(pl.active.energy || []).map(e => `<span class="energy ${this._eleClass(e)}" title="${energyLabel(e)}"></span>`).join('')}</div>
         <div class="pokemon-active-tag">${pl.active.ability?.active ? `特性:${pl.active.ability.name}` : '出战中'}</div>`;
-      if (allowActivePick) {
+      if (activeSlotClass.allowed) {
         const spriteEl = activeDiv.querySelector('.pokemon-active-sprite');
         spriteEl.addEventListener('click', () => { this._selectedBenchIdx = -1; this._selectedPokeSlot = 'active'; this._renderPokemonScreen(); });
       }
@@ -725,7 +746,7 @@ export class PTCGBattleApp {
     if (showAction) {
       const hint = document.createElement('div');
       hint.className = 'poke-mode-hint';
-      hint.textContent = modeLabels[this._pokeMode];
+      hint.textContent = isEffectPick && !hasLegalEffectTarget ? `${modeLabels[this._pokeMode]}：无可选目标` : modeLabels[this._pokeMode];
       body.appendChild(hint);
     }
 
@@ -735,18 +756,19 @@ export class PTCGBattleApp {
     for (let i = 0; i < 5; i++) {
       const mon = pl.bench[i];
       const slot = document.createElement('div');
-      const isSelected = i === this._selectedBenchIdx;
-      slot.className = 'bench-slot' + (mon ? '' : ' empty') + (isSelected ? ' selected' : '');
+      const slotName = `bench-${i}`;
+      const benchSlotClass = isEffectPick
+        ? pokemonPickerSlotClass(slotName, effectPickOptions, selectedSlot)
+        : { allowed: allowBenchPick, className: `${i === this._selectedBenchIdx ? ' selected' : ''}${allowBenchPick ? '' : ' disabled'}` };
+      slot.className = 'bench-slot' + (mon ? '' : ' empty') + (mon ? benchSlotClass.className : '');
       if (mon) {
         const info = this.resolver.getInfo(mon.cardId);
         const src = pokemonSpriteSrc(info.number);
         slot.innerHTML = `
           <div class="bench-sprite">${src ? pokemonSpriteImgHtml(info.number, mon.name) : ''}</div>
           <div><div class="bench-name">${mon.name}</div><div class="bench-hp">HP ${mon.hp}/${mon.maxHp}</div></div>`;
-        if (allowBenchPick) {
-          slot.addEventListener('click', () => { this._selectedBenchIdx = i; this._selectedPokeSlot = `bench-${i}`; this._renderPokemonScreen(); });
-        } else {
-          slot.classList.add('disabled');
+        if (benchSlotClass.allowed) {
+          slot.addEventListener('click', () => { this._selectedBenchIdx = i; this._selectedPokeSlot = slotName; this._renderPokemonScreen(); });
         }
       } else {
         slot.innerHTML = '<div class="bench-empty">空位</div>';

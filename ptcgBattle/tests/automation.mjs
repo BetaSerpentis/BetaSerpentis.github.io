@@ -11,7 +11,7 @@ import { executeEffects } from '../js/core/EffectExecutor.js';
 import { GameState, PHASE } from '../js/core/GameState.js';
 import { BattleEngine } from '../js/core/BattleEngine.js';
 import { CardResolver } from '../js/core/CardResolver.js';
-import { PTCGBattleApp, cardPickerTitleFor, energyElementClass, energyLabel, pokemonPickerConfirmEnabled, pokemonPickerSlotAllowed, pokemonPickerTitleFor } from '../js/main.js';
+import { PTCGBattleApp, cardPickerTitleFor, energyElementClass, energyLabel, pokemonPickerConfirmEnabled, pokemonPickerHasLegalTarget, pokemonPickerSlotAllowed, pokemonPickerSlotClass, pokemonPickerTitleFor } from '../js/main.js';
 import { pokemonSpriteImgHtml, pokemonSpriteSrc } from '../js/ui/SpriteUtils.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -1728,7 +1728,7 @@ await test('UI能量标签/属性分类：支持GameState附着的对象能量',
   assert.equal(energyElementClass({ cardId: 'unknown-energy' }), 'colorless');
 });
 
-await test('UI宝可梦选择器：按allowActive/allowBench判断槽位与确认状态', () => {
+await test('UI宝可梦选择器：按allowActive/allowBench/selectableSlots判断槽位与确认状态', () => {
   const anyOptions = { allowActive: true, allowBench: true };
   assert.equal(pokemonPickerSlotAllowed('active', anyOptions), true);
   assert.equal(pokemonPickerSlotAllowed('bench-0', anyOptions), true);
@@ -1745,6 +1745,30 @@ await test('UI宝可梦选择器：按allowActive/allowBench判断槽位与确�
   assert.equal(pokemonPickerSlotAllowed('active', activeOnly), true);
   assert.equal(pokemonPickerSlotAllowed('bench-2', activeOnly), false);
   assert.equal(pokemonPickerConfirmEnabled(null, activeOnly), false);
+
+  const selectable = { allowActive: true, allowBench: true, selectableSlots: ['bench-1'] };
+  assert.equal(pokemonPickerSlotAllowed('active', selectable), false);
+  assert.equal(pokemonPickerSlotAllowed('bench-0', selectable), false);
+  assert.equal(pokemonPickerSlotAllowed('bench-1', selectable), true);
+  assert.equal(pokemonPickerConfirmEnabled('active', selectable), false);
+  assert.equal(pokemonPickerConfirmEnabled('bench-1', selectable), true);
+});
+
+await test('UI宝可梦选择器：渲染辅助状态标记非法槽位disabled且只允许合法目标', () => {
+  const pl = { active: mon('出战'), bench: [mon('备战0'), mon('备战1')] };
+  const onlyBench1 = { allowActive: true, allowBench: true, selectableSlots: ['bench-1'] };
+  assert.equal(pokemonPickerHasLegalTarget(pl, onlyBench1), true);
+  assert.deepEqual(pokemonPickerSlotClass('active', onlyBench1, 'active'), {
+    allowed: false,
+    selected: false,
+    className: ' disabled',
+  });
+  assert.deepEqual(pokemonPickerSlotClass('bench-1', onlyBench1, 'bench-1'), {
+    allowed: true,
+    selected: true,
+    className: ' selectable selected',
+  });
+  assert.equal(pokemonPickerHasLegalTarget(pl, { allowActive: false, allowBench: true, selectableSlots: ['bench-3'] }), false);
 });
 
 await test('UI选卡器标题：options.prompt优先且保留撤退/查看/通用回退', () => {
