@@ -49,6 +49,7 @@ ptcgBattle/
 - [x] 杜娟/水莲的照顾修复：杜娟按奖赏落后条件执行非对称洗手重抽；水莲的照顾按弃牌区恢复对象过滤
 - [x] Task G：竞技场激活入口、共享当前竞技场状态、每方每回合一次激活限制、竞技场替换/弃置按owner归属处理
 - [x] Task H：初始setup从手牌卡牌界面开始，并在卡牌界面内确认设置
+- [x] WP2：扩展训练家前置条件正式校验，覆盖first_turn（含后攻玩家最初回合）、opponent_prizes_at_most、own_prizes_more_than_opponent，并区分先攻首回合支援者例外；非法时不消耗卡牌/费用或使用标记
 
 ## 当前限制
 - [ ] 规则不是完整PTCG实现：弱点/抵抗力、烧伤、睡眠恢复、攻击效果顺序仍为简化模型
@@ -56,15 +57,15 @@ ptcgBattle/
 - [ ] 特殊能量部分标记（回收、回合末弃置等）已解析但未接入所有弃置/回合末路径
 - [ ] 目标/卡牌/能量选择已部分泛化，但仍有部分效果保留自动选择或简化fallback；optional与max-count语义仍主要依赖picker空选择/取消/数量限制，并非完整规则级可选动作系统
 - [ ] 卡牌过滤依赖结构化元数据、分类标签与启发式文本标签，不是完整自然语言规则解析；缺失元数据时仍可能走安全ID fallback
-- [ ] trainer_prerequisite仅对手牌弃牌型discard_cost与少量指定卡牌规则执行正式前置费用/条件；其他前置条件仍主要作为metadata/no-op保留，未纳入统一规则执行
+- [ ] trainer_prerequisite已执行discard_cost、first_turn、opponent_prizes_at_most、own_prizes_more_than_opponent等高置信前置，并将先攻首回合支援者例外作为规则例外处理；其他未结构化condition仍主要作为metadata/no-op保留，未纳入统一规则执行
 - [ ] 训练家费用执行已有针对性dry-run避免已知非法使用，但还不是完整事务系统；没有全效果链通用回滚
 - [ ] 竞技场已支持上场、共享状态和每回合激活入口，但激活效果仍是最小实现，持续效果/离场触发/复杂替换规则未完整接入
 - [ ] 对手AI能完成基础回合推进，但仍是简单自动策略，缺少高级换位、资源规划和复杂效果选择
 - [ ] 完整卡牌详情、UI动画、音效仍待完善
 
 ## 最新测试基线
-- `npm --prefix e:/BetaSerpentis.github.io run test:ptcg-battle`：全部自动化测试通过（2026-06-15，Work Package 1：Pokemon target picker selectableSlots UI enforcement）。
-- 解析覆盖率：4504/7208（62%）；仍有残留文本：4511。当前残留集中在复杂/多分支道具、化石类、前提文本与未完全映射的选择/交换/回收效果。
+- `npm --prefix e:/BetaSerpentis.github.io run test:ptcg-battle`：全部自动化测试通过（2026-06-15，Work Package 2：trainer prerequisite pre-consumption enforcement）。
+- 解析覆盖率：4504/7208（62%）；仍有残留文本：4511。当前残留集中在复杂/多分支道具、化石类、未结构化前提文本与未完全映射的选择/交换/回收效果。
 
 ## PM浏览器复测清单
 1. Setup流程：进入对局后应先显示手牌卡牌界面；选择基础宝可梦并在卡牌界面确认；无基础手牌/对手mulligan时不应卡死；confirm失败应有可见反馈。
