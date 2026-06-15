@@ -1411,6 +1411,23 @@ await test('回手：target choose 可选择自己的备战宝可梦且不改变
   assert.deepEqual(pl.hand, ['bench-c']);
 });
 
+await test('回手：with_attachments 回收当前模型表示的备战能量与道具', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  const target = mon('备战B', 'bench-b');
+  target.energy = [{ cardId: 'energy-object', name: '基本火能量' }, 'energy-primitive'];
+  target.tool = '道具卡名';
+  pl.active = mon('出战A', 'active-a');
+  pl.bench = [target];
+  gs._onPendingPokemonPick = () => gs.resolvePokemonPick('bench-0');
+
+  await executeEffects(gs, pl, [{ action: 'return_to_hand', params: { target: 'choose', with_attachments: true } }]);
+
+  assert.equal(pl.active.name, '出战A');
+  assert.deepEqual(pl.bench, []);
+  assert.deepEqual(pl.hand, ['energy-object', 'energy-primitive', '道具卡名', 'bench-b']);
+});
+
 await test('回手：target choose 选择出战时可选择指定备战换上', async () => {
   const gs = new GameState();
   const pl = gs.player1;
@@ -1430,6 +1447,24 @@ await test('回手：target choose 选择出战时可选择指定备战换上', 
   assert.equal(pl.active.name, '备战C');
   assert.deepEqual(pl.bench.map(m => m.name), ['备战B']);
   assert.deepEqual(pl.hand, ['active-a']);
+  assert.equal(picks.length, 0);
+});
+
+await test('回手：with_attachments 回收出战附加卡并保留换上行为', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  pl.active = mon('出战A', 'active-a');
+  pl.active.energy = [{ id: 'energy-by-id', name: '特殊能量' }];
+  pl.active.tool = { cardId: 'tool-card-id', name: '工具' };
+  pl.bench = [mon('备战B', 'bench-b'), mon('备战C', 'bench-c')];
+  const picks = ['active', 'bench-1'];
+  gs._onPendingPokemonPick = () => gs.resolvePokemonPick(picks.shift());
+
+  await executeEffects(gs, pl, [{ action: 'return_to_hand', params: { target: 'choose', with_attachments: true } }]);
+
+  assert.equal(pl.active.name, '备战C');
+  assert.deepEqual(pl.bench.map(m => m.name), ['备战B']);
+  assert.deepEqual(pl.hand, ['energy-by-id', 'tool-card-id', 'active-a']);
   assert.equal(picks.length, 0);
 });
 
@@ -1463,10 +1498,21 @@ await test('回手：无选择器时 target choose 稳定回退到出战和首�
   assert.deepEqual(pl.hand, ['active-a']);
 });
 
-await test('回手解析：宝可梦旋风回收机类文本映射到 choose', () => {
+await test('回手解析：宝可梦旋风回收机类文本映射到 choose 且只在明示时回收附加卡', () => {
   const parsed = parseEffect('将自己的1只宝可梦与所附加的所有卡放回手牌。');
   assert.equal(parsed.effects[0]?.action, 'return_to_hand');
   assert.equal(parsed.effects[0]?.params.target, 'choose');
+  assert.equal(parsed.effects[0]?.params.with_attachments, true);
+
+  const cyclone = parseEffect('选择1只自己的场上宝可梦，将那只宝可梦与附加的卡，全部放回手牌。');
+  assert.equal(cyclone.effects[0]?.action, 'return_to_hand');
+  assert.equal(cyclone.effects[0]?.params.target, 'choose');
+  assert.equal(cyclone.effects[0]?.params.with_attachments, true);
+
+  const discardAttached = parseEffect('选择自己的1只场上宝可梦，将其放回手牌。宝可梦以外的卡全部丢弃。');
+  assert.equal(discardAttached.effects[0]?.action, 'return_to_hand');
+  assert.equal(discardAttached.effects[0]?.params.target, 'choose');
+  assert.equal(discardAttached.effects[0]?.params.with_attachments, false);
 });
 
 await test('宝可梦交替：玩家选择 bench-1 时换上第二只备战', async () => {

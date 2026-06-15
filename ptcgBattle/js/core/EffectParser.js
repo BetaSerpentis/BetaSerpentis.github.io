@@ -237,7 +237,10 @@ const RULES = [
   { re: /选择1个这只宝可梦身上附加的能量[，,]改附于备战宝可梦身上/, act:'move_energy', p:()=>({source:'self',dest:'bench'}) },
 
   // ===== 回手 =====
-  { re: /将自己的.*?宝可梦(?:与所附加的所有卡)?[,，]?(?:全部)?放回手牌/, act:'return_to_hand', p:()=>({target:'choose',with_attachments:true}) },
+  { re: /选择1只自己的场上宝可梦[，,]?将那只宝可梦与附加的卡[，,]全部放回手牌/, act:'return_to_hand', p:()=>({target:'choose',with_attachments:true}) },
+  { re: /(?:选择|将)自己的.*?宝可梦.*?宝可梦以外的卡.*?(?:丢弃|丢到弃牌区)/, act:'return_to_hand', p:()=>({target:'choose',with_attachments:false}) },
+  { re: /将自己的.*?宝可梦与(?:所附加的所有卡|附加的卡)[,，]?(?:全部)?放回手牌/, act:'return_to_hand', p:()=>({target:'choose',with_attachments:true}) },
+  { re: /将自己的.*?宝可梦[,，]?(?:全部)?放回手牌/, act:'return_to_hand', p:()=>({target:'choose',with_attachments:false}) },
   { re: /将这只宝可梦与附加的卡[，,]全部放回手牌/, act:'return_to_hand', p:()=>({target:'self',with_attachments:true}) },
 
   // ===== 弃牌区回收 =====

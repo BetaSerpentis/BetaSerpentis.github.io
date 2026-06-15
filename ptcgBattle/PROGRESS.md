@@ -56,6 +56,7 @@ ptcgBattle/
 - [x] WP5：manipulate_deck_top窄口径执行支持；覆盖查看牌库顶原样放回、可选丢弃/置底/洗牌、匹配物品丢弃、选择置顶其余置底与任意顺序原序fallback；lost_zone/fossil_place仍未扩展。
 - [x] WP6：解析覆盖率报告加入趋势性保护线（覆盖率>=60%、残留<=4650）与确定性残留分类Top输出，避免低阈值掩盖大面积退化
 - [x] WP7：弃牌区附能解析扩展，支持从自己的弃牌区选择/抽出精确或最多N张带引号/不带引号的能量卡，并附于单一己方出战/备战/任意宝可梦；复用既有执行器按能量与目标属性过滤
+- [x] WP8：return_to_hand按with_attachments真实回收当前模型可表示的附加能量/道具，收窄回手解析避免把“非宝可梦卡丢弃”误当成附加卡回手
 
 ## 当前限制
 - [ ] 规则不是完整PTCG实现：弱点/抵抗力、烧伤、睡眠恢复、攻击效果顺序仍为简化模型
@@ -70,8 +71,8 @@ ptcgBattle/
 - [ ] 完整卡牌详情、UI动画、音效仍待完善
 
 ## 最新测试基线
-- `npm --prefix e:/BetaSerpentis.github.io run test:ptcg-battle`：全部自动化测试通过（2026-06-15，Work Package 7：discard-energy attach wording）。
-- 解析覆盖率：4553/7208（63%）；仍有残留文本：4419。WP7弃牌区附能后残留明显减少；当前残留前20仍集中在复杂/多分支道具、化石类、交换/回手/特殊限制与刻意未覆盖的多目标分配（如那些/各）效果。
+- `npm --prefix e:/BetaSerpentis.github.io run test:ptcg-battle`：全部自动化测试通过（2026-06-15，Work Package 8：return_to_hand attachments truthfulness）。
+- 解析覆盖率：4555/7208（63%）；仍有残留文本：4417。当前残留集中在复杂/多分支道具、化石类、前提文本与未完全映射的选择/交换/回收效果。
 
 ## PM浏览器复测清单
 1. Setup流程：进入对局后应先显示手牌卡牌界面；选择基础宝可梦并在卡牌界面确认；无基础手牌/对手mulligan时不应卡死；confirm失败应有可见反馈。

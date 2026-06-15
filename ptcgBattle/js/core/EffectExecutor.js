@@ -934,10 +934,26 @@ const EXECUTORS = {
   },
 
   // ===== 回手 =====
-  async return_to_hand(gs, pl, p) {
+  async return_to_hand(gs, pl, p = {}) {
     if (!pl.active) return;
+    const attachedCardIdentity = card => {
+      if (card && typeof card === 'object') return card.cardId ?? card.id ?? card.name ?? card;
+      return card;
+    };
+    const returnRepresentedAttachments = mon => {
+      if (!p.with_attachments || !mon) return;
+      if (Array.isArray(mon.energy)) {
+        for (const energy of mon.energy) pl.hand.push(attachedCardIdentity(energy));
+        mon.energy = [];
+      }
+      if (mon.tool) {
+        pl.hand.push(attachedCardIdentity(mon.tool));
+        mon.tool = null;
+      }
+    };
     const returnActiveToHand = async () => {
       const returned = pl.active;
+      returnRepresentedAttachments(returned);
       pl.hand.push(returned.cardId);
       pl.active = null;
       if (pl.bench.length > 0) {
@@ -949,6 +965,7 @@ const EXECUTORS = {
         if (!pl.bench[idx]) idx = 0;
         pl.active = pl.bench.splice(idx, 1)[0] || null;
       }
+      gs.recomputePassives?.();
       gs.addLog('宝可梦回手');
     };
 
@@ -964,8 +981,10 @@ const EXECUTORS = {
       const idx = slot?.startsWith('bench-') ? parseInt(slot.replace('bench-', '')) : -1;
       const returned = pl.bench[idx];
       if (!returned) return;
+      returnRepresentedAttachments(returned);
       pl.hand.push(returned.cardId);
       pl.bench.splice(idx, 1);
+      gs.recomputePassives?.();
       gs.addLog('宝可梦回手');
       return;
     }
