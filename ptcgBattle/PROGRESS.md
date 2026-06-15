@@ -63,8 +63,8 @@ ptcgBattle/
 - [ ] 完整卡牌详情、UI动画、音效仍待完善
 
 ## 最新测试基线
-- `npm run test:ptcg-battle`：全部自动化测试通过。
-- 解析覆盖率：4501/7208（62%）；仍有残留文本：4514。当前残留集中在复杂/多分支道具、化石类、前提文本与未完全映射的选择/交换/回收效果。
+- `npm --prefix e:/BetaSerpentis.github.io run test:ptcg-battle`：全部自动化测试通过（2026-06-15，Work Package 1：Pokemon target picker selectableSlots UI enforcement）。
+- 解析覆盖率：4504/7208（62%）；仍有残留文本：4511。当前残留集中在复杂/多分支道具、化石类、前提文本与未完全映射的选择/交换/回收效果。
 
 ## PM浏览器复测清单
 1. Setup流程：进入对局后应先显示手牌卡牌界面；选择基础宝可梦并在卡牌界面确认；无基础手牌/对手mulligan时不应卡死；confirm失败应有可见反馈。

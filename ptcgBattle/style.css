@@ -329,6 +329,17 @@ body {
 .pokemon-active-sprite.selectable { cursor: pointer; border-color: #f87818; }
 .pokemon-active-sprite.selectable:hover { background: rgba(248,120,24,0.15); }
 
+.pokemon-active-sprite.disabled,
+.bench-slot.disabled {
+  opacity: 0.35;
+  filter: grayscale(1);
+  cursor: not-allowed;
+}
+.pokemon-active-sprite.disabled { border-color: #a8a8a8; }
+.bench-slot.disabled:hover { background: transparent; }
+.bench-slot.selectable { cursor: pointer; }
+.bench-slot.selectable:not(.selected):hover { background: #e8e8d0; }
+
 /* 卡组选择 */
 .deck-select-body {
   flex: 1; display: flex; gap: 12px;
