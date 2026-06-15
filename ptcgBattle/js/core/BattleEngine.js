@@ -15,6 +15,113 @@ const SETUP_HAND_SIZE = 7;
 const MAX_OPPONENT_MULLIGANS = 20;
 const MAX_AI_ACTIONS = 3;
 
+function _cloneForTrainerTransaction(value, seen = new WeakMap()) {
+  if (value === null || typeof value !== 'object') return value;
+  if (seen.has(value)) return seen.get(value);
+  if (Array.isArray(value)) {
+    const out = [];
+    seen.set(value, out);
+    for (const item of value) out.push(_cloneForTrainerTransaction(item, seen));
+    return out;
+  }
+  const out = {};
+  seen.set(value, out);
+  for (const [key, item] of Object.entries(value)) {
+    if (typeof item === 'function') continue;
+    out[key] = _cloneForTrainerTransaction(item, seen);
+  }
+  return out;
+}
+
+function _snapshotPlayerForTrainerTransaction(player) {
+  return {
+    hand: _cloneForTrainerTransaction(player.hand),
+    discard: _cloneForTrainerTransaction(player.discard),
+    deck: _cloneForTrainerTransaction(player.deck),
+    prizes: _cloneForTrainerTransaction(player.prizes),
+    active: _cloneForTrainerTransaction(player.active),
+    bench: _cloneForTrainerTransaction(player.bench),
+    supporterUsed: player.supporterUsed,
+    energyAttached: player.energyAttached,
+    retreatUsed: player.retreatUsed,
+    abilityUsedThisTurn: _cloneForTrainerTransaction(player.abilityUsedThisTurn || {}),
+    stadiumUsedThisTurn: _cloneForTrainerTransaction(player.stadiumUsedThisTurn || {}),
+  };
+}
+
+function _restorePlayerForTrainerTransaction(player, snapshot) {
+  player.hand = _cloneForTrainerTransaction(snapshot.hand);
+  player.discard = _cloneForTrainerTransaction(snapshot.discard);
+  player.deck = _cloneForTrainerTransaction(snapshot.deck);
+  player.prizes = _cloneForTrainerTransaction(snapshot.prizes);
+  player.active = _cloneForTrainerTransaction(snapshot.active);
+  player.bench = _cloneForTrainerTransaction(snapshot.bench);
+  player.supporterUsed = snapshot.supporterUsed;
+  player.energyAttached = snapshot.energyAttached;
+  player.retreatUsed = snapshot.retreatUsed;
+  player.abilityUsedThisTurn = _cloneForTrainerTransaction(snapshot.abilityUsedThisTurn || {});
+  player.stadiumUsedThisTurn = _cloneForTrainerTransaction(snapshot.stadiumUsedThisTurn || {});
+}
+
+function _stadiumSnapshotSource(gs) {
+  return gs.stadium || gs.activeStadium || gs.player1?.stadium || gs.player2?.stadium || null;
+}
+
+function _stadiumOwnerKey(gs, stadium) {
+  if (!stadium) return null;
+  if (stadium.owner === gs.player1) return 'player1';
+  if (stadium.owner === gs.player2) return 'player2';
+  if (gs.player1?.stadium === stadium && gs.player2?.stadium !== stadium) return 'player1';
+  if (gs.player2?.stadium === stadium && gs.player1?.stadium !== stadium) return 'player2';
+  return null;
+}
+
+function _restoreSharedStadiumForTrainerTransaction(gs, snapshot) {
+  const stadium = snapshot.stadium ? _cloneForTrainerTransaction(snapshot.stadium) : null;
+  gs.stadium = stadium;
+  gs.activeStadium = stadium;
+  gs.player1.stadium = null;
+  gs.player2.stadium = null;
+  if (!stadium) return;
+  if (snapshot.stadiumOwner === 'player1') {
+    stadium.owner = gs.player1;
+    gs.player1.stadium = stadium;
+  } else if (snapshot.stadiumOwner === 'player2') {
+    stadium.owner = gs.player2;
+    gs.player2.stadium = stadium;
+  } else {
+    stadium.owner = null;
+  }
+}
+
+function _snapshotTrainerTransaction(gs) {
+  const stadium = _stadiumSnapshotSource(gs);
+  const stadiumSnapshot = _cloneForTrainerTransaction(stadium);
+  if (stadiumSnapshot && typeof stadiumSnapshot === 'object') stadiumSnapshot.owner = null;
+  return {
+    logLength: Array.isArray(gs.log) ? gs.log.length : 0,
+    player1: _snapshotPlayerForTrainerTransaction(gs.player1),
+    player2: _snapshotPlayerForTrainerTransaction(gs.player2),
+    stadium: stadiumSnapshot,
+    stadiumOwner: _stadiumOwnerKey(gs, stadium),
+    temporaryAbilityLocks: _cloneForTrainerTransaction(gs.temporaryAbilityLocks || []),
+    winner: gs.winner,
+    phase: gs.phase,
+  };
+}
+
+function _restoreTrainerTransaction(gs, snapshot) {
+  _restorePlayerForTrainerTransaction(gs.player1, snapshot.player1);
+  _restorePlayerForTrainerTransaction(gs.player2, snapshot.player2);
+  _restoreSharedStadiumForTrainerTransaction(gs, snapshot);
+  gs.temporaryAbilityLocks = _cloneForTrainerTransaction(snapshot.temporaryAbilityLocks || []);
+  gs.winner = snapshot.winner;
+  gs.phase = snapshot.phase;
+  if (Array.isArray(gs.log)) gs.log.splice(snapshot.logLength);
+  else gs.log = [];
+  gs.recomputePassives?.();
+}
+
 export class BattleEngine {
   constructor(gameState, resolver, callbacks = {}) {
     this.gs = gameState;
@@ -178,6 +285,7 @@ export class BattleEngine {
       return false;
     }
 
+    const transaction = _snapshotTrainerTransaction(gs);
     const discardCosts = effects.filter(e => e.action === 'trainer_prerequisite' && e.params?.kind === 'discard_cost');
     let paidHandIndex = handIndex;
     for (const cost of discardCosts) {
@@ -188,14 +296,20 @@ export class BattleEngine {
       }
       paidHandIndex = paid.handIndex;
     }
-
     const usedCard = pl.hand[paidHandIndex];
     const ok = gs.useTrainer(pl, paidHandIndex, cardData, targetSlot);
     const shouldExecuteEffects = ok && effects.length && cardData.trainerType !== 'stadium';
     // Stadium activation effects (for cards like 城镇百货公司) are future work:
     // playing a Stadium only places/replaces it and must not fire its ordinary parsed effects.
     if (shouldExecuteEffects) {
-      await executeEffects(gs, pl, effects.filter(e => e.action !== 'trainer_prerequisite'), { trainerCard:usedCard, trainerCardData:cardData });
+      try {
+        await executeEffects(gs, pl, effects.filter(e => e.action !== 'trainer_prerequisite'), { trainerCard:usedCard, trainerCardData:cardData, failRequired: true });
+      } catch (err) {
+        _restoreTrainerTransaction(gs, transaction);
+        gs.addLog(`训练家「${cardData.name || usedCard || '卡'}」使用取消：${err?.message || '必需效果未完成'}`);
+        this.cb.onFieldUpdate?.();
+        return false;
+      }
     }
     this.cb.onFieldUpdate?.();
     return ok;

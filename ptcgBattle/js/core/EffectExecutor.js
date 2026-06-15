@@ -50,18 +50,37 @@ export async function payDiscardCostFromHand(gs, pl, params = {}, options = {}) 
   return { ok: true, handIndex: adjustedTrainerIndex };
 }
 
+export class RequiredEffectFailed extends Error {
+  constructor(action, reason = 'required_effect_failed') {
+    super(reason);
+    this.name = 'RequiredEffectFailed';
+    this.action = action;
+    this.requiredEffectFailed = true;
+  }
+}
+
+function _effectIsRequired(eff, params = eff?.params || {}, options = {}) {
+  if (!options.failRequired) return false;
+  if (params.optional || params.allowEmpty || params.allowFewer || params.minCount === 0) return false;
+  return params.required !== false;
+}
+
+function _requiredFailure(action, reason) {
+  throw new RequiredEffectFailed(action, reason);
+}
+
 export async function executeEffects(gs, player, effects, options = {}) {
   for (const eff of effects) {
     try {
       const fn = EXECUTORS[eff.action];
       if (fn) {
-        await fn(gs, player, eff.params, eff, options);
+        await fn(gs, player, eff.params || {}, eff, options);
       } else {
         gs.addLog(`[未实现: ${eff.action}]`);
       }
     } catch (e) {
       gs.addLog(`[效果失败: ${eff.action}] ${e.message}`);
-      if (options.propagateFailure) throw e;
+      if (options.propagateFailure || e?.requiredEffectFailed) throw e;
     }
   }
 }
@@ -94,13 +113,20 @@ async function _pickCardsFromZone(gs, actingPlayer, owner, zoneCards, count, opt
   const filter = options.filter || null;
   const candidates = (zoneCards || []).map((card, index) => ({ card, index })).filter(item => !options.excludeIndices?.includes?.(item.index)).filter(item => _cardMatchesFilter(gs, item.card, filter));
   const limit = _selectionLimit(count, candidates.length, options);
-  if (limit.max <= 0) return [];
+  if (limit.max <= 0) {
+    if (options.failRequired && limit.min > 0 && !limit.allowEmpty && !limit.allowFewer && !options.optional) _requiredFailure(options.requiredAction || 'pick_cards', 'required_no_candidates');
+    return [];
+  }
   const shouldUsePicker = actingPlayer === gs.player1 && !options.auto && gs._onPendingPick;
   if (!shouldUsePicker) return candidates.slice(0, limit.max);
   if (candidates.length <= limit.max && !limit.allowFewer) return candidates.slice(0, limit.max);
   const picked = await gs.waitForPick(candidates.map(c => _cardLabel(gs, c.card)), limit.max, { ...options, maxCount:limit.max, minCount:limit.min, allowFewer:limit.allowFewer, allowEmpty:limit.allowEmpty });
   const selected = (picked || []).map(i => candidates[i]).filter(Boolean).slice(0, limit.max);
-  return selected.length >= limit.min ? selected : [];
+  if (selected.length < limit.min) {
+    if (options.failRequired && limit.min > 0 && !limit.allowEmpty && !limit.allowFewer && !options.optional) _requiredFailure(options.requiredAction || 'pick_cards', 'required_pick_cancelled');
+    return [];
+  }
+  return selected;
 }
 function _resolveZoneCard(gs, card) {
   const fromObject = card && typeof card === 'object';
@@ -351,7 +377,10 @@ async function _pickPokemonTarget(gs, actingPlayer, targetPlayer, options = {}) 
   const eligibleSlots = typeof options.slotFilter === 'function'
     ? slots.filter(slot => options.slotFilter(slot, targetPlayer))
     : slots;
-  if (!slots.length || !eligibleSlots.length) return null;
+  if (!slots.length || !eligibleSlots.length) {
+    if (options.failRequired && !options.optional && !options.allowEmpty) _requiredFailure(options.requiredAction || 'pokemon_pick', 'required_no_target');
+    return null;
+  }
   if (eligibleSlots.length === 1 || actingPlayer !== gs.player1 || options.auto || !gs._onPendingPokemonPick) return eligibleSlots[0];
   const slot = await gs.waitForPokemonPick(targetPlayer, {
     mode: options.mode || 'target',
@@ -361,7 +390,11 @@ async function _pickPokemonTarget(gs, actingPlayer, targetPlayer, options = {}) 
     selectableSlots: eligibleSlots,
     prompt: options.prompt || '选择宝可梦',
   });
-  return eligibleSlots.includes(slot) ? slot : null;
+  if (!eligibleSlots.includes(slot)) {
+    if (options.failRequired && !options.optional && !options.allowEmpty) _requiredFailure(options.requiredAction || 'pokemon_pick', 'required_pokemon_pick_cancelled');
+    return null;
+  }
+  return slot;
 }
 function _slotHasMatchingAttachedEnergy(gs, owner, slot, filter) {
   const mon = _getMon(owner, slot);
@@ -435,8 +468,11 @@ const EXECUTORS = {
   draw_until(gs, pl, p) { const t = p.target || 6; while (pl.hand.length < t && pl.deck.length > 0) pl.draw(1); gs.addLog(`抽卡至 ${t} 张`); },
 
   // ===== 搜牌库加手 =====
-  async search_deck_to_hand(gs, pl, p) {
-    if (pl.deck.length === 0) return;
+  async search_deck_to_hand(gs, pl, p, eff, options) {
+    if (pl.deck.length === 0) {
+      if (_effectIsRequired(eff, p, options)) _requiredFailure(eff?.action, 'required_empty_deck');
+      return;
+    }
     const cards = [...pl.deck].reverse();
     const count = p.dynamicCount === 'own_field_type_count' ? _ownFieldTypeCount(pl) : (p.count || 1);
     const selected = await _pickCardsFromZone(gs, pl, pl, cards, count, {
@@ -447,7 +483,9 @@ const EXECUTORS = {
       allowEmpty:!!p.allowEmpty,
       maxCount:p.maxCount,
       minCount:p.minCount,
-      optional:!!p.optional
+      optional:!!p.optional,
+      failRequired:_effectIsRequired(eff, p, options),
+      requiredAction:eff?.action
     });
     if (!selected.length) { gs._shuffle(pl.deck); return; }
     const selectedCards = selected.map(item => item.card);
@@ -458,10 +496,10 @@ const EXECUTORS = {
   },
 
   // ===== 搜牌库放备战 =====
-  async search_deck_to_bench(gs, pl, p) {
-    if (pl.deck.length === 0) { gs.addLog('牌库为空，无法搜索宝可梦'); return; }
+  async search_deck_to_bench(gs, pl, p, eff, options) {
+    if (pl.deck.length === 0) { gs.addLog('牌库为空，无法搜索宝可梦'); if (_effectIsRequired(eff, p, options)) _requiredFailure(eff?.action, 'required_empty_deck'); return; }
     const openSlots = Math.max(0, 5 - pl.bench.length);
-    if (openSlots <= 0) { gs.addLog('备战区已满，无法放置宝可梦'); gs._shuffle(pl.deck); return; }
+    if (openSlots <= 0) { gs.addLog('备战区已满，无法放置宝可梦'); gs._shuffle(pl.deck); if (_effectIsRequired(eff, p, options)) _requiredFailure(eff?.action, 'required_no_bench_space'); return; }
     const count = Math.min(p.count || 1, openSlots);
     const cards = [...pl.deck].reverse();
     const filter = card => _cardMatchesFilter(gs, card, p.filter || '宝可梦') && _isBasicPokemonCard(gs, card);
@@ -474,9 +512,11 @@ const EXECUTORS = {
       allowEmpty:!!p.allowEmpty,
       maxCount:p.maxCount,
       minCount:p.minCount,
-      optional:!!p.optional
+      optional:!!p.optional,
+      failRequired:_effectIsRequired(eff, p, options),
+      requiredAction:eff?.action
     }) : [];
-    if (!selected.length) { gs.addLog('牌库中没有可放置的基础宝可梦'); gs._shuffle(pl.deck); return; }
+    if (!selected.length) { gs.addLog('牌库中没有可放置的基础宝可梦'); gs._shuffle(pl.deck); if (_effectIsRequired(eff, p, options) && hasCandidates) _requiredFailure(eff?.action, 'required_no_candidates'); return; }
     let placed = 0;
     for (const item of selected) {
       if (pl.bench.length >= 5) break;
@@ -491,7 +531,7 @@ const EXECUTORS = {
   },
 
   // ===== 看牌库上方选牌 =====
-  async peek_and_keep(gs, pl, p) {
+  async peek_and_keep(gs, pl, p, eff, options) {
     const peek = Math.min(p.peek || 6, pl.deck.length);
     const keep = Math.min(p.keep || 1, peek);
     const peeked = pl.deck.splice(-peek, peek);
@@ -503,6 +543,7 @@ const EXECUTORS = {
       const filterText = p.filter ? `符合${p.filter}条件的卡` : '符合条件的卡';
       gs.addLog(`查看了 ${peek} 张，没有${filterText}`);
     }
+    if (limit.max <= 0 && _effectIsRequired(eff, p, options)) _requiredFailure(eff?.action, 'required_no_candidates');
     if (limit.max > 0) {
       const shouldUsePicker = pl === gs.player1 && !p.auto && gs._onPendingPick;
       if (!shouldUsePicker) {
@@ -510,7 +551,10 @@ const EXECUTORS = {
       } else {
         const picked = await gs.waitForPick(candidates.map(c => _cardLabel(gs, c.card)), limit.max, { source: 'peek', filter: p.filter || null, maxCount:limit.max, minCount:limit.min, allowFewer:limit.allowFewer, allowEmpty:limit.allowEmpty });
         selected = (picked || []).map(i => candidates[i]).filter(Boolean).slice(0, limit.max);
-        if (selected.length < limit.min) selected = [];
+        if (selected.length < limit.min) {
+          if (_effectIsRequired(eff, p, options)) _requiredFailure(eff?.action, 'required_pick_cancelled');
+          selected = [];
+        }
       }
     }
     const selectedTopPositions = new Set(selected.map(item => item.topIndex));
@@ -767,10 +811,11 @@ const EXECUTORS = {
     gs.addLog(`${pl.active.name} 因特性换到战斗场`);
     gs.recomputePassives?.();
   },
-  async switch_pokemon(gs, pl, p) {
+  async switch_pokemon(gs, pl, p, eff, options) {
+    const failRequired = _effectIsRequired(eff, p, options);
     if (p.who === 'opponent') {
       const opp = _opponent(gs, pl);
-      const slot = await _pickPokemonTarget(gs, pl, opp, { mode:'switch', side:'opponent', allowActive:false, allowBench:true, prompt:'选择换上场的对手备战宝可梦' });
+      const slot = await _pickPokemonTarget(gs, pl, opp, { mode:'switch', side:'opponent', allowActive:false, allowBench:true, prompt:'选择换上场的对手备战宝可梦', failRequired, requiredAction:eff?.action });
       const idx = slot?.startsWith('bench-') ? parseInt(slot.replace('bench-', '')) : -1;
       if (opp.bench[idx]) { const t = opp.active; opp.active = opp.bench.splice(idx,1)[0]; if (t) opp.bench.push(t); gs.addLog('对手换位'); }
     } else if (p.who === 'both') {
@@ -779,7 +824,7 @@ const EXECUTORS = {
       }
       gs.addLog('双方换位');
     } else {
-      const slot = await _pickPokemonTarget(gs, pl, pl, { mode:'switch', side:'self', allowActive:false, allowBench:true, prompt:'选择换上场的备战宝可梦' });
+      const slot = await _pickPokemonTarget(gs, pl, pl, { mode:'switch', side:'self', allowActive:false, allowBench:true, prompt:'选择换上场的备战宝可梦', failRequired, requiredAction:eff?.action });
       const idx = slot?.startsWith('bench-') ? parseInt(slot.replace('bench-', '')) : -1;
       if (pl.bench[idx]) { const t = pl.active; pl.active = pl.bench.splice(idx,1)[0]; if (t) pl.bench.push(t); gs.addLog('换位'); }
     }
