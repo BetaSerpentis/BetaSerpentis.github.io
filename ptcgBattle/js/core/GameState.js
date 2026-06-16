@@ -16,7 +16,7 @@ export class GameState {
   constructor(){this.player1=new PlayerState('玩家');this.player2=new PlayerState('对手');
     this.currentPlayer=this.player1;this.phase=PHASE.SETUP;this.turn=0;this.log=[];this.winner=null;this.temporaryAbilityLocks=[];
     this.firstPlayer=null;this.firstPlayerFirstTurnInProgress=false;
-    this.stadium=null;this.pendingPick=null;this.pendingPokemonPick=null;}
+    this.stadium=null;this.pendingPick=null;this.pendingPokemonPick=null;this.knockoutHistory=[];}
 
   waitForPick(cards,count,options={}){return new Promise(r=>{this.pendingPick={cards,count,options,resolve:r};this._onPendingPick?.(this.pendingPick);});}
   waitForPokemonPick(player, options={}){return new Promise(r=>{this.pendingPokemonPick={player,options,resolve:r};this._onPendingPokemonPick?.(this.pendingPokemonPick);});}
@@ -29,7 +29,7 @@ export class GameState {
     this.player1.prizes=this.player1.deck.splice(-6,6);this.player2.prizes=this.player2.deck.splice(-6,6);
     this.player1.draw(7);this.player2.draw(7);
     this.turn=0;this.phase=PHASE.SETUP;this.winner=null;this.log=[];this.currentPlayer=this.player1;this.temporaryAbilityLocks=[];
-    this.firstPlayer=null;this.firstPlayerFirstTurnInProgress=false;
+    this.firstPlayer=null;this.firstPlayerFirstTurnInProgress=false;this.knockoutHistory=[];
     this.addLog('请放置1只基础宝可梦到战斗区');}
 
   setPhase(p){this.phase=p;}
@@ -196,6 +196,9 @@ export class GameState {
         const opp=this.getOpponent(pl);
         if((pl?.prizes?.length??0)<=(opp?.prizes?.length??0))return {ok:false,reason:'trainer_prerequisite',message:'使用前提未满足：自己的剩余奖赏卡需多于对手'};
       }
+      if(p.kind==='own_pokemon_knocked_out_last_opponent_turn'){
+        if(!this.wasOwnPokemonKnockedOutLastOpponentTurn(pl))return {ok:false,reason:'trainer_prerequisite',message:'使用前提未满足：上个对手的回合自己的宝可梦需被击倒'};
+      }
       if(p.kind==='first_turn'){
         const raw=p.raw||'';
         const isOwnFirstTurn=this.turn===1&&pl===this.firstPlayer || this.turn===2&&pl!==this.firstPlayer;
@@ -276,6 +279,12 @@ export class GameState {
   markStadiumUsed(pl,stadium=this.getActiveStadium()){pl.stadiumUsedThisTurn=pl.stadiumUsedThisTurn||{};pl.stadiumUsedThisTurn[this._stadiumUseKey(stadium)]=true;}
 
   getOpponent(pl){return pl===this.player1?this.player2:this.player1;}
+  _recordKnockout(owner){this.knockoutHistory=this.knockoutHistory||[];this.knockoutHistory.push({owner,turn:this.turn,by:this.getOpponent(owner),phase:this.phase});}
+  wasOwnPokemonKnockedOutLastOpponentTurn(pl){
+    const opp=this.getOpponent(pl);
+    const turn=this.turn-1;
+    return (this.knockoutHistory||[]).some(k=>k.owner===pl&&k.by===opp&&k.turn===turn);
+  }
   getPokemonInPlay(pl){return [pl.active,...pl.bench].filter(Boolean);}
   getAllPokemonInPlay(){return [...this.getPokemonInPlay(this.player1),...this.getPokemonInPlay(this.player2)];}
   normalizeAbilityZone(zone){const z=zone||'field';return ({in_play:'field',場:'field',手牌:'hand',手札:'hand',弃牌区:'discard',トラッシュ:'discard'}[z]||z);}
@@ -375,7 +384,7 @@ export class GameState {
   takePrize(pl){if(pl.prizes.length>0){const prize=pl.prizes.pop();pl.hand.push(prize);this.addLog(`${pl.name} 获奖品卡 剩${pl.prizes.length}`);
     if(pl.prizes.length===0){this.winner=pl;this.phase=PHASE.GAME_OVER;this.addLog(`${pl.name} 胜利！`);}}}
 
-  knockout(pl){if(!pl.active)return;pl.discard.push(pl.active.cardId);this.addLog(`${pl.name} 的 ${pl.active.name} 被击倒！`);
+  knockout(pl){if(!pl.active)return;this._recordKnockout(pl);pl.discard.push(pl.active.cardId);this.addLog(`${pl.name} 的 ${pl.active.name} 被击倒！`);
     const opp=this.getOpponent(pl);this.takePrize(opp);
     if(pl.bench.length>0){pl.active=pl.bench.shift();this.addLog(`${pl.name} 换上 ${pl.active.name}`);this.recomputePassives();}
     else{this.winner=opp;this.phase=PHASE.GAME_OVER;this.addLog(`${opp.name} 胜利！`);}}

@@ -71,6 +71,8 @@ const RULES = [
   { re: /这张卡只可在对手剩余奖赏卡的张数为(\d+)张以下时使用/, act:'trainer_prerequisite', p:m=>({ kind:'opponent_prizes_at_most', raw:m[0], count:+m[1] }) },
   { re: /(?:这张卡)?只可在后攻玩家自己的最初回合使用1次/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('first_turn', m[0]) },
   { re: /这张卡只有在自己剩余奖赏卡的张数比对手剩余奖赏卡的张数多时才可使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('own_prizes_more_than_opponent', m[0]) },
+  { re: /这张卡只有在(?:上个)?对手的回合自己的宝可梦(?:被)?"?击倒"?了?时才可使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('own_pokemon_knocked_out_last_opponent_turn', m[0]) },
+  { re: /这张卡只有在将自己的(\d+)张手牌丢(?:到弃牌区|弃)才可使用/, act:'trainer_prerequisite', p:m=>({ kind:'discard_cost', raw:m[0], count:+m[1], zone:'hand' }) },
   { re: /这张卡只有在.+?时才可使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('condition', m[0]) },
   { re: /这张卡必须.+?丢弃才可使用/, act:'trainer_prerequisite', p:m=>discardCostParams(m[0]) },
 
@@ -121,6 +123,8 @@ const RULES = [
   { re: /将(?:自己的)?手牌全部放回牌库并重洗[。.]然后[，,]从牌库抽出(\d+)张卡/, act:'shuffle_hand_to_deck', p:m=>({who:'self',draw_count:+m[1]}) },
 
   // ===== 搜牌库放备战区 =====
+  { re: /(?:可)?从(?:自己的)?牌库(?:选择|抽出)最多(\d+)张HP为[「"]?(\d+)[」"]?以下的.*?基础.*?宝可梦(?:卡)?[,，]\s*放置于备战区/, act:'search_deck_to_bench', p:m=>withCount({filter:`HP为${m[2]}以下的【基础】宝可梦`, maxHp:+m[2]},m[1],true) },
+  { re: /可从(?:自己的)?牌库选择1张【基础】宝可梦卡[（(]["“]?拥有规则的宝可梦["”]?除外[）)][，,]放置于备战区/, act:'search_deck_to_bench', p:m=>withCount({filter:'【基础】宝可梦卡（"拥有规则的宝可梦"除外）'},1,true) },
   { re: /从(?:自己的)?牌库(?:选择|抽出)最多(\d+)张.*?基础.*?宝可梦(?:卡)?[,，]\s*放置于备战区/, act:'search_deck_to_bench', p:m=>withCount({filter:'【基础】宝可梦'},m[1],true) },
   { re: /从(?:自己的)?牌库(?:选择|抽出)(\d+)张.*?基础.*?宝可梦(?:卡)?[,，]\s*放置于备战区/, act:'search_deck_to_bench', p:m=>withCount({filter:'【基础】宝可梦'},m[1],false) },
   { re: /从(?:自己的)?牌库选择最多(\d+)张(.+?)宝可梦(?:卡)?[,，]放置于备战区/, act:'search_deck_to_bench', p:m=>withCount({filter:m[2]},m[1],true) },
@@ -142,7 +146,8 @@ const RULES = [
   { re: /查看(?:自己的)?牌库上方(\d+)张卡[,，]选择/, act:'peek_and_keep', p:m=>({peek:+m[1],keep:1}) },
 
   // ===== 抽卡 =====
-  { re: /从牌库抽卡直到(?:自己的)?手牌满(\d+)张/, act:'draw_until', p:m=>({target:+m[1]}) },
+  { re: /从自己的弃牌区选择1张["“”]?基本【火】能量["“”]?卡[，,]附于自己的1只备战宝可梦身上/, act:'attach_energy_from_discard', p:()=>withCount({filter:'基本【火】能量',target:'bench'},1,false) },
+  { re: /(?:然后[，,])?从牌库抽卡直到(?:自己的)?手牌满(\d+)张(?:为止)?/, act:'draw_until', p:m=>({target:+m[1]}) },
   { re: /从(?:自己的)?牌库抽出(\d+)张卡/, act:'draw', p:m=>({count:+m[1]}) },
   { re: /从牌库抽出(\d+)张/, act:'draw', p:m=>({count:+m[1]}) },
 
@@ -168,6 +173,7 @@ const RULES = [
   { re: /双方玩家将自己的战斗宝可梦与备战宝可梦互换/, act:'switch_pokemon', p:()=>({who:'both'}) },
   { re: /选择(?:1只\s*)?对手的备战宝可梦[，,]?与战斗宝可梦互换[。.]\[由对手选择/, act:'switch_pokemon', p:()=>({who:'opponent',choose:'opponent'}) },
   { re: /选择(?:1只\s*)?对手的备战宝可梦[，,]?与战斗宝可梦互换/, act:'switch_pokemon', p:()=>({who:'opponent'}) },
+  { re: /选择对手的1只备战宝可梦[，,]?与战斗宝可梦互换/, act:'switch_pokemon', p:()=>({who:'opponent'}) },
   { re: /将对手的(?:战斗)?宝可梦与备战宝可梦互换[。.]\[由对手选择/, act:'switch_pokemon', p:()=>({who:'opponent',choose:'opponent'}) },
   { re: /将对手的(?:战斗)?宝可梦与备战宝可梦互换/, act:'switch_pokemon', p:()=>({who:'opponent'}) },
   { re: /若希望[，,]将这只宝可梦与备战宝可梦互换/, act:'switch_pokemon', p:()=>({who:'self',optional:true}) },
@@ -249,6 +255,7 @@ const RULES = [
   { re: /从(?:自己的)?弃牌区选择(\d+)张(.+?)(?:卡)?[,，]在给对手看过后加入手牌/, act:'recover_from_discard', p:m=>withCount({filter:m[2].trim(),target:'hand'},m[1],false) },
   { re: /从(?:自己的)?弃牌区选择最多(\d+)张(.+?)(?:卡)?[,，]加入手牌/, act:'recover_from_discard', p:m=>withCount({filter:m[2].trim(),target:'hand'},m[1],true) },
   { re: /从(?:自己的)?弃牌区选择(\d+)张(.+?)(?:卡)?[,，]加入手牌/, act:'recover_from_discard', p:m=>withCount({filter:m[2].trim(),target:'hand'},m[1],false) },
+  { re: /从(?:自己的)?弃牌区选择宝可梦卡与基本能量卡合计最多(\d+)张[，,]在给对手看过后放回牌库并重洗/, act:'recover_from_discard', p:m=>withCount({filter:'宝可梦卡与基本能量卡',target:'deck',shuffle:true},m[1],true) },
   { re: /从(?:自己的)?弃牌区选择.*?合计最多(\d+)张[,，]在给对手看过后放回牌库/, act:'recover_from_discard', p:m=>withCount({target:'deck'},m[1],true) },
   { re: /从(?:自己的)?弃牌区选择.*?合计(\d+)张[,，]在给对手看过后放回牌库/, act:'recover_from_discard', p:m=>withCount({target:'deck'},m[1],false) },
   { re: /从(?:自己的)?弃牌区(?:选择|抽出).*?(?:加入手牌|放回牌库)/, act:'recover_from_discard', p:()=>({count:1,target:'hand'}) },
