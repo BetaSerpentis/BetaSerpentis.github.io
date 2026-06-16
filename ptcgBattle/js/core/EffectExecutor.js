@@ -178,6 +178,14 @@ function _cardLabel(gs, card) { return _resolveZoneCard(gs, card).label; }
 function _cardMatchesFilter(gs, card, filter) {
   if (!filter) return true;
   if (typeof filter === 'function') return filter(card);
+  if (filter && typeof filter === 'object') {
+    const textFilter = filter.filter ?? filter.text ?? null;
+    if (textFilter && !_cardMatchesFilter(gs, card, textFilter)) return false;
+    const meta = _resolveZoneCard(gs, card);
+    if (Number.isFinite(filter.maxHp) && _pokemonCardHp(meta, card) > filter.maxHp) return false;
+    if (filter.nonRuleBox && _isRuleBoxPokemon(meta, card)) return false;
+    return true;
+  }
   const meta = _resolveZoneCard(gs, card);
   const text = meta.label;
   const f = String(filter).replace(/["“”]/g, '').trim();
@@ -241,11 +249,22 @@ function _isTrainerSubtypeMeta(meta, subtype) {
 }
 function _pokemonMatchesFilter(gs, card, meta, f, typeMatches) {
   if (!_isPokemonCard(gs, card)) return false;
+  const maxHp = _maxHpFromFilter(f);
+  if (Number.isFinite(maxHp) && _pokemonCardHp(meta, card) > maxHp) return false;
   if (/拥有规则的宝可梦.*?除外|规则.*?除外/.test(f) && _isRuleBoxPokemon(meta, card)) return false;
   if ((/【(?:基础|基本)】\s*宝可梦|(?:基础|基本)宝可梦/.test(f)) && !_isBasicPokemonCard(gs, card)) return false;
   const pokemonTypeMatches = _pokemonClauseTypes(f, typeMatches);
   if (!pokemonTypeMatches.length) return true;
   return pokemonTypeMatches.some(t => _metaHasPokemonType(meta, t));
+}
+function _maxHpFromFilter(f) {
+  const m = String(f || '').match(/HP(?:为)?[「"]?(\d+)[」"]?以下/);
+  return m ? +m[1] : null;
+}
+function _pokemonCardHp(meta, card) {
+  const hp = meta.full?.hp ?? card?.hp ?? meta.info?.hp;
+  const n = typeof hp === 'number' ? hp : parseInt(String(hp || ''), 10);
+  return Number.isFinite(n) ? n : 0;
 }
 function _pokemonClauseTypes(f, typeMatches) {
   const validTypes = typeMatches.filter(t => !_isNonElementQualifier(t));
@@ -494,6 +513,7 @@ function _knockoutPokemon(gs, owner, mon) {
   owner.discard.push(mon.cardId);
   gs.addLog(`${owner.name} 的 ${mon.name} 被击倒！`);
   const prizeTaker = gs.getOpponent?.(owner) || [gs.player1, gs.player2].find(p => p !== owner);
+  if (typeof gs._recordKnockout === 'function') gs._recordKnockout(owner);
   if (prizeTaker) gs.takePrize(prizeTaker);
   gs.recomputePassives?.();
 }
@@ -542,7 +562,7 @@ const EXECUTORS = {
     if (openSlots <= 0) { gs.addLog('备战区已满，无法放置宝可梦'); gs._shuffle(pl.deck); if (_effectIsRequired(eff, p, options)) _requiredFailure(eff?.action, 'required_no_bench_space'); return; }
     const count = Math.min(p.count || 1, openSlots);
     const cards = [...pl.deck].reverse();
-    const filter = card => _cardMatchesFilter(gs, card, p.filter || '宝可梦') && _isBasicPokemonCard(gs, card);
+    const filter = card => _cardMatchesFilter(gs, card, { filter:p.filter || '宝可梦', maxHp:p.maxHp, nonRuleBox:p.nonRuleBox }) && _isBasicPokemonCard(gs, card);
     const hasCandidates = cards.some(filter);
     const selected = hasCandidates ? await _pickCardsFromZone(gs, pl, pl, cards, count, {
       source:'deck-to-bench',
@@ -1134,6 +1154,7 @@ const EXECUTORS = {
       const card = pl.discard.splice(item.index, 1)[0];
       if (p.target === 'deck') pl.deck.push(card); else pl.hand.push(card);
     }
+    if (p.target === 'deck' && p.shuffle) gs._shuffle(pl.deck);
     gs.addLog(`回收 ${selected.length} 张卡`);
   },
 
