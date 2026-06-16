@@ -65,12 +65,16 @@ function discardAttachParams(m, optional=false) {
 
 const RULES = [
   // ===== 训练家/特性使用前提：仅解析为元数据，不执行合法性或费用 =====
+  { re: /若从自己的手牌将1张["“”]?基本【火】能量["“”]?卡丢弃/, act:'ability_discard_cost', p:m=>({ count:1, filter:'基本【火】能量', zone:'hand', raw:m[0] }) },
+  { re: /在这个回合[，,]自己的宝可梦使用的招式[，,]对对手的战斗宝可梦造成的伤害["“]?\+60["”]?点/, act:'turn_damage_mod', p:()=>({ target:'own_field', amount:60, defender:'opponent_active', duration:'turn' }) },
   { re: /(?:双方玩家)?在(?:每个)?自己的回合时[，,]可使用1次/, act:'usage_condition', p:m=>trainerPrerequisite('once_per_turn', m[0]) },
+  { re: /在这个回合[，,]若已经使出了其他的["“”]?(.+?)["“”]?[，,]则这个特性无法使用/, act:'usage_condition', p:m=>({ kind:'ability_name_once_per_turn', abilityName:m[1], raw:m[0] }) },
   { re: /这张卡可在先攻玩家的最初回合使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('first_player_first_turn_supporter_exception', m[0]) },
   { re: /这张卡(?:只可|只能)在.+?最初回合使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('first_turn', m[0]) },
   { re: /这张卡只可在对手剩余奖赏卡的张数为(\d+)张以下时使用/, act:'trainer_prerequisite', p:m=>({ kind:'opponent_prizes_at_most', raw:m[0], count:+m[1] }) },
   { re: /(?:这张卡)?只可在后攻玩家自己的最初回合使用1次/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('first_turn', m[0]) },
   { re: /这张卡只有在自己剩余奖赏卡的张数比对手剩余奖赏卡的张数多时才可使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('own_prizes_more_than_opponent', m[0]) },
+  { re: /(?:在)?(?:上个)?对手的回合[，,]?若自己的宝可梦(?:【昏厥】|(?:被)?"?击倒"?)了?[，,]?则在自己的回合时可使用1次/, act:'usage_condition', p:m=>trainerPrerequisite('own_pokemon_knocked_out_last_opponent_turn', m[0]) },
   { re: /这张卡只有在(?:上个)?对手的回合自己的宝可梦(?:被)?"?击倒"?了?时才可使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('own_pokemon_knocked_out_last_opponent_turn', m[0]) },
   { re: /这张卡只有在将自己的(\d+)张手牌丢(?:到弃牌区|弃)才可使用/, act:'trainer_prerequisite', p:m=>({ kind:'discard_cost', raw:m[0], count:+m[1], zone:'hand' }) },
   { re: /这张卡只有在.+?时才可使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('condition', m[0]) },
@@ -198,6 +202,8 @@ const RULES = [
   { re: /在上个对手的回合[，,]?若自己的宝可梦因招式的伤害而【昏厥】了[，,]?则增加(\d+)点伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'own_pokemon_knocked_out_last_opponent_turn'}) },
   { re: /在下个对手的回合[，,]这只宝可梦受到招式的伤害"?([+-]?\d+)"?点/, act:'damage_modify', p:m=>({amount:+m[1],duration:'next_opp_turn',target:'self'}) },
   { re: /这只宝可梦受到招式的伤害"?([+-]?\d+)"?点/, act:'damage_modify', p:m=>({amount:+m[1],target:'self'}) },
+  { re: /造成对手的战斗宝可梦【撤退】所需的能量的数量[×x](\d+)点伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'opponent_retreat_cost',mode:'per_unit'}) },
+  { re: /增加对手的战斗宝可梦身上附加的能量的数量[×x](\d+)点伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'opponent_active_energy_count',mode:'per_unit'}) },
   { re: /增加对手的战斗宝可梦身上放置的伤害指示物的数量[×x](\d+)点伤害/, act:'damage_modify', p:m=>({amount:+m[1],condition:'opponent_damage_counters'}) },
   { re: /增加这只宝可梦身上放置的伤害指示物的数量[×x](\d+)点伤害/, act:'damage_modify', p:m=>({amount:+m[1],condition:'self_damage_counters'}) },
   { re: /增加这只宝可梦身上附加的.+?能量的数量[×x](\d+)点伤害/, act:'damage_modify', p:m=>({amount:+m[1],condition:'self_energy'}) },
@@ -207,6 +213,7 @@ const RULES = [
   // ===== 防止伤害/效果 =====
   { re: /在下个对手的回合[，,]这只宝可梦不会受到招式的伤害与效果的影响/, act:'prevent_damage_effect', p:()=>({duration:'next_opp_turn'}) },
   { re: /在下个对手的回合[，,]这只宝可梦不会受到招式的伤害/, act:'prevent_damage', p:()=>({duration:'next_opp_turn'}) },
+  { re: /自己的所有备战宝可梦不会受到对手的宝可梦招式的伤害与效果的影响/, act:'bench_attack_shield', p:()=>({target:'own_bench',source:'opponent_attack',preventDamage:true,preventEffect:true}) },
   { re: /这只宝可梦不会受到对手的宝可梦使用招式的效果的影响/, act:'prevent_effect', p:()=>({source:'attack'}) },
   { re: /不会受到.*?招式的伤害/, act:'prevent_damage', p:()=>({source:'attack'}) },
 

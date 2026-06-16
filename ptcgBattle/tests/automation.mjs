@@ -63,6 +63,7 @@ function mon(name, cardId = name, attacks = []) {
     cannotRetreat: false,
     ignore: [],
     costEliminated: false,
+    abilityUsed: false,
   };
 }
 
@@ -360,6 +361,39 @@ await test('真实数据：健行鞋/交替推车/熔岩的瀑布深潭/小陨�
   assert.equal(!!chiYuDamage, true, JSON.stringify(parseEffect(chiYu['技能2']['效果'])));
   assert.equal(chiYuDamage.params.condition, 'own_pokemon_knocked_out_last_opponent_turn');
   assert.equal(chiYuDamage.params.amount, 90);
+});
+
+await test('真实数据：WP3 Skeledirge deck core cards parse to targeted effects', () => {
+  const pokemon = loadJson('pokemon-cards.json');
+  const byId = id => pokemon.find(c => (c['卡牌ID'] || []).includes(id));
+  const skeledirge = byId('9811');
+  const minior = byId('9875');
+  const rabsca = byId('10883');
+  const fez = byId('11778');
+  assert.ok(skeledirge && minior && rabsca && fez);
+
+  const skeledirgeAbility = parseEffect(skeledirge['特性效果']);
+  assert.equal(skeledirgeAbility.effects.some(e => e.action === 'ability_discard_cost'), true, JSON.stringify(skeledirgeAbility));
+  assert.equal(skeledirgeAbility.effects.some(e => e.action === 'turn_damage_mod' && e.params.amount === 60), true, JSON.stringify(skeledirgeAbility));
+  assert.equal(skeledirgeAbility.effects.some(e => e.action === 'passive_damage_mod'), false, JSON.stringify(skeledirgeAbility));
+
+  const gravity = parseEffect(minior['技能1']['效果']).effects.find(e => e.action === 'conditional_damage_mod');
+  assert.equal(gravity?.params.condition, 'opponent_retreat_cost');
+  assert.equal(gravity?.params.amount, 20);
+
+  const shield = parseEffect(rabsca['特性效果']).effects.find(e => e.action === 'bench_attack_shield');
+  assert.equal(!!shield, true, JSON.stringify(parseEffect(rabsca['特性效果'])));
+  const psy = parseEffect(rabsca['技能1']['效果']).effects.find(e => e.action === 'conditional_damage_mod');
+  assert.equal(psy?.params.condition, 'opponent_active_energy_count');
+  assert.equal(psy?.params.amount, 30);
+
+  const flip = parseEffect(fez['特性效果']);
+  assert.equal(flip.effects.some(e => e.action === 'usage_condition' && e.params.kind === 'own_pokemon_knocked_out_last_opponent_turn'), true, JSON.stringify(flip));
+  assert.equal(flip.effects.some(e => e.action === 'usage_condition' && e.params.kind === 'ability_name_once_per_turn'), true, JSON.stringify(flip));
+  assert.equal(flip.effects.some(e => e.action === 'draw' && e.params.count === 3), true, JSON.stringify(flip));
+  const arrow = parseEffect(fez['技能1']['效果']).effects.find(e => e.action === 'damage_bench');
+  assert.equal(arrow?.params.target, 'opponent_any');
+  assert.equal(arrow?.params.damage, 100);
 });
 
 await test('解析覆盖：训练家使用前提解析为元数据且不残留', () => {
@@ -796,6 +830,138 @@ await test('古玉鱼嫉妒业火：仅上个对手回合己方被击倒时追�
   ctx = makeChiYuGame((gs, pl, opp) => [{ owner:opp, by:pl, turn:3, phase:PHASE.BATTLE }]);
   assert.equal(await ctx.engine.attack(0), true);
   assert.equal(ctx.opp.active.hp, 150);
+});
+
+await test('骨纹巨声鳄ex爆热高歌：需弃基本火能后本回合+60且不是免费被动', async () => {
+  const make = hand => {
+    const gs = new GameState();
+    const pl = gs.player1;
+    const opp = gs.player2;
+    gs.currentPlayer = pl;
+    gs.phase = PHASE.MAIN;
+    pl.active = mon('攻击手', 'attacker', [{ name:'打击', damage:40, cost:[] }]);
+    opp.active = mon('防守');
+    opp.active.hp = 200;
+    opp.active.maxHp = 200;
+    const skeledirge = mon('骨纹巨声鳄ex', '9811');
+    skeledirge.ability = { name:'爆热高歌', active:true, zone:'field', effects:[{ action:'ability_discard_cost', params:{ count:1, filter:'基本【火】能量', zone:'hand' } }, { action:'turn_damage_mod', params:{ target:'own_field', defender:'opponent_active', amount:60 } }] };
+    pl.bench = [skeledirge];
+    pl.hand = [...hand];
+    return { gs, pl, opp, skeledirge, engine:makeEngine(gs) };
+  };
+
+  let ctx = make([]);
+  ctx.gs.phase = PHASE.BATTLE;
+  assert.equal(await ctx.engine.attack(0), true);
+  assert.equal(ctx.opp.active.hp, 160);
+
+  ctx = make(['基本【水】能量']);
+  assert.equal(await ctx.engine.useAbility(ctx.skeledirge), false);
+  assert.equal(ctx.pl.hand.length, 1);
+  assert.equal(ctx.skeledirge.abilityUsed, false);
+
+  ctx = make(['基本【火】能量']);
+  assert.equal(await ctx.engine.useAbility(ctx.skeledirge), true);
+  assert.equal(ctx.pl.hand.length, 0);
+  assert.equal(ctx.pl.discard.length, 1);
+  assert.equal(await ctx.engine.useAbility(ctx.skeledirge), false);
+  ctx.gs.phase = PHASE.BATTLE;
+  assert.equal(await ctx.engine.attack(0), true);
+  assert.equal(ctx.opp.active.hp, 100);
+});
+
+await test('小陨星重力冲撞：按对手撤退所需能量×20造成伤害', async () => {
+  for (const [retreat, expectedHp] of [[0, 200], [2, 160], [3, 140]]) {
+    const gs = new GameState();
+    const pl = gs.player1;
+    const opp = gs.player2;
+    gs.currentPlayer = pl;
+    gs.phase = PHASE.BATTLE;
+    pl.active = mon('小陨星', '9875', [{ name:'重力冲撞', damage:0, cost:[], effects:[{ action:'conditional_damage_mod', params:{ amount:20, condition:'opponent_retreat_cost' } }] }]);
+    opp.active = mon('防守');
+    opp.active.hp = 200;
+    opp.active.maxHp = 200;
+    opp.active.retreatCost = retreat;
+    assert.equal(await makeEngine(gs).attack(0), true);
+    assert.equal(opp.active.hp, expectedHp, `retreat=${retreat}`);
+  }
+});
+
+await test('虫甲圣球形盾牌/精神强念：保护己方备战且按对手能量增伤', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  const opp = gs.player2;
+  const shield = mon('虫甲圣', '10883');
+  shield.ability = { name:'球形盾牌', passive:true, zone:'field', effects:[{ action:'bench_attack_shield', params:{ target:'own_bench', source:'opponent_attack', preventDamage:true, preventEffect:true } }] };
+  pl.active = mon('己方出战');
+  pl.bench = [shield, mon('被保护备战')];
+  opp.active = mon('攻击者', 'attacker', [{ name:'狙击', damage:0, cost:[], effects:[{ action:'damage_bench', params:{ target:'opponent_1', damage:50 } }, { action:'discard_energy', params:{ target:'opponent_bench', count:1 } }] }]);
+  pl.bench[1].hp = 100;
+  pl.bench[1].maxHp = 100;
+  pl.bench[1].energy = ['基本【草】能量'];
+  gs.currentPlayer = opp;
+  gs.phase = PHASE.BATTLE;
+  assert.equal(await makeEngine(gs).attack(0), true);
+  assert.equal(pl.bench[1].hp, 100);
+  assert.equal(pl.bench[1].energy.length, 1);
+
+  const activeHit = new GameState();
+  activeHit.player1.active = mon('虫甲圣攻击者', '10883', [{ name:'精神强念', damage:10, cost:[], effects:[{ action:'conditional_damage_mod', params:{ amount:30, condition:'opponent_active_energy_count' } }] }]);
+  activeHit.player2.active = mon('防守');
+  activeHit.player2.active.hp = 200;
+  activeHit.player2.active.maxHp = 200;
+  activeHit.player2.active.energy = ['e1','e2'];
+  activeHit.currentPlayer = activeHit.player1;
+  activeHit.phase = PHASE.BATTLE;
+  assert.equal(await makeEngine(activeHit).attack(0), true);
+  assert.equal(activeHit.player2.active.hp, 130);
+
+  const ownAttack = new GameState();
+  ownAttack.player1.active = mon('己方狙击手', 'own', [{ name:'友军误伤测试', damage:0, cost:[], effects:[{ action:'damage_bench', params:{ target:'opponent_1', damage:40 } }] }]);
+  ownAttack.player2.active = mon('对手出战');
+  ownAttack.player2.bench = [mon('对手备战')];
+  ownAttack.player2.bench[0].hp = 100;
+  ownAttack.player2.bench[0].maxHp = 100;
+  ownAttack.currentPlayer = ownAttack.player1;
+  ownAttack.phase = PHASE.BATTLE;
+  assert.equal(await makeEngine(ownAttack).attack(0), true);
+  assert.equal(ownAttack.player2.bench[0].hp, 60);
+});
+
+await test('吉雉鸡ex扭转乾坤/残酷箭：KO门槛、名字一次与任意对手宝可梦伤害', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  const opp = gs.player2;
+  gs.currentPlayer = pl;
+  gs.phase = PHASE.MAIN;
+  gs.turn = 4;
+  pl.deck = ['a','b','c','d'];
+  const ability = { name:'扭转乾坤', active:true, zone:'field', effects:[{ action:'usage_condition', params:{ kind:'own_pokemon_knocked_out_last_opponent_turn' } }, { action:'draw', params:{ count:3 } }, { action:'usage_condition', params:{ kind:'ability_name_once_per_turn', abilityName:'扭转乾坤' } }] };
+  const fez1 = mon('吉雉鸡ex', '11778');
+  const fez2 = mon('吉雉鸡ex', '11489');
+  fez1.ability = ability;
+  fez2.ability = ability;
+  pl.active = fez1;
+  pl.bench = [fez2];
+  const engine = makeEngine(gs);
+  assert.equal(await engine.useAbility(fez1), false);
+  assert.equal(pl.hand.length, 0);
+  gs.knockoutHistory = [{ owner:pl, by:opp, turn:3, phase:PHASE.BATTLE }];
+  assert.equal(await engine.useAbility(fez1), true);
+  assert.equal(pl.hand.length, 3);
+  assert.equal(await engine.useAbility(fez2), false);
+
+  const arrowGs = new GameState();
+  arrowGs.player1.active = mon('吉雉鸡ex', '11778', [{ name:'残酷箭', damage:0, cost:[], effects:[{ action:'damage_bench', params:{ target:'opponent_any', damage:100 } }] }]);
+  arrowGs.player2.active = mon('对手出战');
+  arrowGs.player2.active.hp = 180;
+  arrowGs.player2.active.maxHp = 180;
+  arrowGs.player2.bench = [mon('对手备战')];
+  arrowGs.currentPlayer = arrowGs.player1;
+  arrowGs.phase = PHASE.BATTLE;
+  arrowGs._onPendingPokemonPick = pick => pick.resolve('active');
+  assert.equal(await makeEngine(arrowGs).attack(0), true);
+  assert.equal(arrowGs.player2.active.hp, 80);
 });
 
 await test('小陨星飞散流星：给备战小陨星从手牌附能后换到战斗场', async () => {

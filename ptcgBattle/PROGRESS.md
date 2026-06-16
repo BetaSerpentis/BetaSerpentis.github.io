@@ -59,10 +59,11 @@ ptcgBattle/
 - [x] WP8：return_to_hand按with_attachments真实回收当前模型可表示的附加能量/道具，收窄回手解析避免把“非宝可梦卡丢弃”误当成附加卡回手
 - [x] WP9：Pokemon Tool新附着保存精确手牌卡id并保持日志/失败提示可读；discard_field_attachments与return_to_hand(with_attachments)按精确id移动对象道具，兼容旧字符串道具。
 - [x] WP1：补齐高频训练家/物品窄口径效果：上回合己方宝可梦被击倒前提、手牌弃牌费用、HP上限/规则盒排除的基础宝可梦检索、弃牌区火能附着、抽到指定手牌数与弃牌区宝可梦/基本能量回牌库洗牌。
+- [x] WP3 Skeledirge deck core：骨纹巨声鳄ex「爆热高歌」改为主动特性，需从手牌丢弃基本【火】能量后才获得本回合己方招式+60，避免旧的无费用被动+60；小陨星「重力冲撞」按对手撤退费用动态伤害；虫甲圣「球形盾牌」保护己方备战免受对手招式伤害/效果且「精神强念」按对手出战能量增伤；吉雉鸡ex「扭转乾坤」复用既有上个对手回合己方KO历史并加名字级本回合一次限制，「残酷箭」可选对手出战或备战。
 
 ## 当前限制
 - [ ] 规则不是完整PTCG实现：弱点/抵抗力、烧伤、睡眠恢复、攻击效果顺序仍为简化模型
-- [ ] 能力/特性层规则仍是窄模式实现，复杂触发时点、once-per-game、VSTAR/GX等未完整支持
+- [ ] 能力/特性层规则仍是窄模式实现，复杂触发时点、once-per-game、VSTAR/GX等未完整支持；吉雉鸡ex「扭转乾坤」当前使用既有KO历史近似“上个对手回合自己的宝可梦昏厥”，尚不能区分是否严格由招式伤害造成。
 - [ ] 特殊能量部分标记（回收、回合末弃置等）已解析但未接入所有弃置/回合末路径
 - [ ] 目标/卡牌/能量选择已部分泛化，但仍有部分效果保留自动选择或简化fallback；optional与max-count语义仍主要依赖picker空选择/取消/数量限制，并非完整规则级可选动作系统
 - [ ] 卡牌过滤依赖结构化元数据、分类标签与启发式文本标签，不是完整自然语言规则解析；缺失元数据时仍可能走安全ID fallback
@@ -73,8 +74,8 @@ ptcgBattle/
 - [ ] 完整卡牌详情、UI动画、音效仍待完善
 
 ## 最新测试基线
-- 2026-06-16 WP2验证：`git diff --check`、`node --check`（BattleEngine.js、EffectParser.js、GameState.js）与 `npm --prefix E:/BetaSerpentis.github.io run test:ptcg-battle` 全部通过。
-- 自动化基线：全部 ptcgBattle 自动化测试通过；解析覆盖率 4583/7208 (64%)，仍有残留文本 4385；残留Top7为复杂/多分支 1665、未知/其他 817、选择/交换/回收 802、前提/条件 469、能量移动 389、牌库顶/牌库操作 212、化石 31。
+- 2026-06-16 WP3验证：`git diff --check`、`node --check`（BattleEngine.js、EffectExecutor.js、EffectParser.js、GameState.js）与 `npm --prefix E:/BetaSerpentis.github.io run test:ptcg-battle` 全部通过。
+- 自动化基线：全部 ptcgBattle 自动化测试通过；解析覆盖率 4622/7208 (64%)，仍有残留文本 4345；残留Top7为复杂/多分支 1657、未知/其他 820、选择/交换/回收 795、前提/条件 471、能量移动 359、牌库顶/牌库操作 212、化石 31。
 
 ## PM浏览器复测清单
 1. Setup流程：进入对局后应先显示手牌卡牌界面；选择基础宝可梦并在卡牌界面确认；无基础手牌/对手mulligan时不应卡死；confirm失败应有可见反馈。
