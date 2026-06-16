@@ -321,14 +321,18 @@ await test('真实数据：神奇糖果/洗翠沉重球/光辉伊布解析为可
   assert.equal(search.params.dynamicCount, 'own_field_type_count');
 });
 
-await test('真实数据：健行鞋/交替推车/熔岩的瀑布深潭/小陨星解析为专用效果', () => {
+await test('真实数据：健行鞋/交替推车/熔岩的瀑布深潭/小陨星/Fire核心解析为专用效果', () => {
   const items = loadJson('Item-cards.json');
   const stadiums = loadJson('Stadium-cards.json');
+  const pokemon = loadJson('pokemon-cards.json');
   const hikers = items.find(c => (c['卡牌ID'] || []).includes('6966'));
   const cart = items.find(c => (c['卡牌ID'] || []).includes('6965'));
   const basin = stadiums.find(c => (c['卡牌ID'] || []).includes('6250'));
   const minior = getPokemonRawByAbility('飞散流星');
-  assert.ok(hikers && cart && basin && minior);
+  const radiantCharizard = pokemon.find(c => (c['卡牌ID'] || []).includes('7970'));
+  const moltres = pokemon.find(c => (c['卡牌ID'] || []).includes('7202'));
+  const chiYu = pokemon.find(c => (c['卡牌ID'] || []).includes('9974'));
+  assert.ok(hikers && cart && basin && minior && radiantCharizard && moltres && chiYu);
 
   assert.equal(parseEffect(hikers['效果']).effects[0]?.action, 'hikers_shoes');
   assert.equal(parseEffect(cart['效果']).effects[0]?.action, 'switch_active_basic_heal_bench');
@@ -342,6 +346,20 @@ await test('真实数据：健行鞋/交替推车/熔岩的瀑布深潭/小陨�
   assert.equal(!!trigger, true, JSON.stringify(miniorParsed));
   assert.equal(trigger.params.event, 'attach_energy_from_hand');
   assert.equal(trigger.params.effects[0].action, 'self_switch_to_active');
+
+  const costReduction = parseEffect(radiantCharizard['特性效果']).effects.find(e => e.action === 'attack_cost_reduction');
+  assert.equal(!!costReduction, true, JSON.stringify(parseEffect(radiantCharizard['特性效果'])));
+  assert.equal(costReduction.params.type, 'colorless');
+  assert.equal(costReduction.params.amount, 'opponent_prizes_taken');
+  const aura = parseEffect(moltres['特性效果']).effects.find(e => e.action === 'passive_damage_mod');
+  assert.equal(!!aura, true, JSON.stringify(parseEffect(moltres['特性效果'])));
+  assert.equal(aura.params.attackerType, 'fire');
+  assert.equal(aura.params.attackerStage, 'basic');
+  assert.equal(aura.params.excludeSourceName, '火焰鸟');
+  const chiYuDamage = parseEffect(chiYu['技能2']['效果']).effects.find(e => e.action === 'conditional_damage_mod');
+  assert.equal(!!chiYuDamage, true, JSON.stringify(parseEffect(chiYu['技能2']['效果'])));
+  assert.equal(chiYuDamage.params.condition, 'own_pokemon_knocked_out_last_opponent_turn');
+  assert.equal(chiYuDamage.params.amount, 90);
 });
 
 await test('解析覆盖：训练家使用前提解析为元数据且不残留', () => {
@@ -629,6 +647,7 @@ await test('熔岩的瀑布深潭效果：只给备战火宝可梦附火能并�
   const gs = new GameState();
   const pl = gs.player1;
   pl.active = mon('出战');
+  pl.active.element = 'fire';
   pl.bench = [mon('火备战'), mon('雷备战')];
   pl.bench[0].element = 'fire';
   pl.bench[0].hp = 100;
@@ -645,9 +664,138 @@ await test('熔岩的瀑布深潭效果：只给备战火宝可梦附火能并�
 
   await executeEffects(gs, pl, [{ action:'attach_energy_from_discard', params:{ count:1, filter:'【火】能量', target:'bench', targetType:'fire', damageCountersOnAttachedTarget:2 } }]);
 
+  assert.equal(pl.active.energy.length, 0);
   assert.equal(pl.bench[0].energy.length, 1);
   assert.equal(pl.bench[0].hp, 80);
+  assert.equal(pl.bench[1].energy.length, 0);
   assert.deepEqual(pl.discard, []);
+});
+
+await test('熔岩的瀑布深潭竞技场激活：MAIN阶段附能，非火/出战目标不可选，且每回合一次', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  gs.currentPlayer = pl;
+  gs.phase = PHASE.MAIN;
+  pl.active = mon('火出战');
+  pl.active.element = 'fire';
+  pl.bench = [mon('火备战'), mon('无备战')];
+  pl.bench[0].element = 'fire';
+  pl.bench[0].hp = 100;
+  pl.bench[0].maxHp = 100;
+  pl.bench[1].element = 'colorless';
+  pl.hand = ['basin'];
+  pl.discard = ['fire-energy', 'water-energy'];
+  gs.cardResolver = fakeResolver({
+    'fire-energy': { card:{ cardType:'energy', name:'基本【火】能量', element:'fire' }, info:{ name:'基本【火】能量', number:null, type:'energy' } },
+    'water-energy': { card:{ cardType:'energy', name:'基本【水】能量', element:'water' }, info:{ name:'基本【水】能量', number:null, type:'energy' } },
+  });
+  const basin = { cardType:'trainer', trainerType:'stadium', name:'熔岩的瀑布深潭', effects:[{ action:'attach_energy_from_discard', params:{ count:1, filter:'【火】能量', target:'bench', targetType:'fire', damageCountersOnAttachedTarget:2 } }] };
+  const engine = makeEngine(gs);
+
+  assert.equal(await engine.useTrainer(0, basin), true);
+  assert.equal(pl.bench[0].energy.length, 0, 'playing stadium must not auto-activate');
+  gs._onPendingPokemonPick = pick => {
+    assert.deepEqual(pick.options.selectableSlots, ['bench-0']);
+    gs.resolvePokemonPick('bench-0');
+  };
+  assert.equal(await engine.activateStadium(pl), true);
+  assert.equal(pl.bench[0].energy.length, 1);
+  assert.equal(pl.bench[0].hp, 80);
+  assert.deepEqual(pl.discard, ['water-energy']);
+  assert.equal(await engine.activateStadium(pl), false);
+});
+
+await test('光辉喷火龙激动之心：只按对手已拿奖赏减少无色费用，不减少火要求', () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  const opp = gs.player2;
+  const radiant = mon('光辉喷火龙', 'radiant-zard', [{ name:'烈焰爆', damage:250, cost:['fire','colorless','colorless','colorless','colorless'] }]);
+  radiant.element = 'fire';
+  radiant.ability = { name:'激动之心', passive:true, effects:[{ action:'attack_cost_reduction', params:{ target:'self', type:'colorless', amount:'opponent_prizes_taken' } }] };
+  pl.active = radiant;
+  opp.prizes = ['p1','p2','p3','p4','p5','p6'];
+
+  radiant.energy = [{ name:'基本【火】能量' }, { name:'基本【无】能量' }, { name:'基本【无】能量' }, { name:'基本【无】能量' }, { name:'基本【无】能量' }];
+  assert.deepEqual(gs.adjustedAttackCost(radiant, radiant.attacks[0]), ['fire','colorless','colorless','colorless','colorless']);
+  assert.equal(gs.checkEnergy(radiant, 0), true);
+
+  opp.prizes = ['p1','p2','p3','p4'];
+  radiant.energy = [{ name:'基本【火】能量' }, { name:'基本【无】能量' }, { name:'基本【无】能量' }];
+  assert.deepEqual(gs.adjustedAttackCost(radiant, radiant.attacks[0]), ['fire','colorless','colorless']);
+  assert.equal(gs.checkEnergy(radiant, 0), true);
+
+  opp.prizes = ['p1'];
+  radiant.energy = [{ name:'基本【火】能量' }];
+  assert.deepEqual(gs.adjustedAttackCost(radiant, radiant.attacks[0]), ['fire']);
+  assert.equal(gs.checkEnergy(radiant, 0), true);
+  radiant.energy = [{ name:'基本【无】能量' }, { name:'基本【无】能量' }, { name:'基本【无】能量' }, { name:'基本【无】能量' }, { name:'基本【无】能量' }];
+  assert.equal(gs.checkEnergy(radiant, 0), false);
+});
+
+await test('火焰鸟闪焰象征：只强化己方基础火宝可梦且随进出场/失效重算', () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  const opp = gs.player2;
+  opp.active = mon('防守');
+  const attack = { name:'火花', damage:20, cost:[] };
+  const moltres = mon('火焰鸟', 'moltres', [attack]);
+  moltres.element = 'fire';
+  moltres.ability = { name:'闪焰象征', passive:true, effects:[{ action:'passive_damage_mod', params:{ target:'own_field', amount:10, attackerType:'fire', attackerStage:'basic', excludeSourceName:'火焰鸟', defender:'opponent_active' } }] };
+  const basicFire = mon('小火龙', 'charmander', [attack]);
+  basicFire.element = 'fire';
+  const basicWater = mon('杰尼龟', 'squirtle', [attack]);
+  basicWater.element = 'water';
+  const evoFire = mon('火恐龙', 'charmeleon', [attack]);
+  evoFire.element = 'fire';
+  evoFire.stage = '1阶';
+  evoFire.evolvesFrom = '小火龙';
+  pl.active = basicFire;
+  pl.bench = [moltres, basicWater, evoFire];
+
+  assert.equal(gs.getPassiveDamageModifier(basicFire, opp.active, attack, pl), 10);
+  assert.equal(gs.getPassiveDamageModifier(basicWater, opp.active, attack, pl), 0);
+  assert.equal(gs.getPassiveDamageModifier(evoFire, opp.active, attack, pl), 0);
+  assert.equal(gs.getPassiveDamageModifier(moltres, opp.active, attack, pl), 0);
+  moltres.abilityDisabled = true;
+  assert.equal(gs.getPassiveDamageModifier(basicFire, opp.active, attack, pl), 0);
+  moltres.abilityDisabled = false;
+  pl.bench = [];
+  gs.recomputePassives();
+  assert.equal(gs.getPassiveDamageModifier(basicFire, opp.active, attack, pl), 0);
+});
+
+await test('古玉鱼嫉妒业火：仅上个对手回合己方被击倒时追加90伤害', async () => {
+  const makeChiYuGame = history => {
+    const gs = new GameState();
+    const pl = gs.player1;
+    const opp = gs.player2;
+    gs.turn = 4;
+    gs.phase = PHASE.BATTLE;
+    gs.currentPlayer = pl;
+    pl.active = mon('古玉鱼', 'chi-yu', [{ name:'嫉妒业火', damage:'50+', cost:[], effects:[{ action:'conditional_damage_mod', params:{ amount:90, condition:'own_pokemon_knocked_out_last_opponent_turn' } }] }]);
+    pl.active.element = 'fire';
+    opp.active = mon('防守');
+    opp.active.hp = 200;
+    opp.active.maxHp = 200;
+    gs.knockoutHistory = history(gs, pl, opp);
+    return { gs, pl, opp, engine:makeEngine(gs) };
+  };
+
+  let ctx = makeChiYuGame((gs, pl, opp) => [{ owner:pl, by:opp, turn:3, phase:PHASE.BATTLE }]);
+  assert.equal(await ctx.engine.attack(0), true);
+  assert.equal(ctx.opp.active.hp, 60);
+
+  ctx = makeChiYuGame(() => []);
+  assert.equal(await ctx.engine.attack(0), true);
+  assert.equal(ctx.opp.active.hp, 150);
+
+  ctx = makeChiYuGame((gs, pl, opp) => [{ owner:pl, by:opp, turn:2, phase:PHASE.BATTLE }]);
+  assert.equal(await ctx.engine.attack(0), true);
+  assert.equal(ctx.opp.active.hp, 150);
+
+  ctx = makeChiYuGame((gs, pl, opp) => [{ owner:opp, by:pl, turn:3, phase:PHASE.BATTLE }]);
+  assert.equal(await ctx.engine.attack(0), true);
+  assert.equal(ctx.opp.active.hp, 150);
 });
 
 await test('小陨星飞散流星：给备战小陨星从手牌附能后换到战斗场', async () => {

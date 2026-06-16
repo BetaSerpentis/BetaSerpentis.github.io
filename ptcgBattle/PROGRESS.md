@@ -50,7 +50,7 @@ ptcgBattle/
 - [x] 杜娟/水莲的照顾修复：杜娟按奖赏落后条件执行非对称洗手重抽；水莲的照顾按弃牌区恢复对象过滤
 - [x] Task G：竞技场激活入口、共享当前竞技场状态、每方每回合一次激活限制、竞技场替换/弃置按owner归属处理
 - [x] Task H：初始setup从手牌卡牌界面开始，并在卡牌界面内确认设置
-- [x] WP2：扩展训练家前置条件正式校验，覆盖first_turn（含后攻玩家最初回合）、opponent_prizes_at_most、own_prizes_more_than_opponent，并区分先攻首回合支援者例外；非法时不消耗卡牌/费用或使用标记
+- [x] WP2：扩展训练家前置条件正式校验，覆盖first_turn（含后攻玩家最初回合）、opponent_prizes_at_most、own_prizes_more_than_opponent，并区分先攻首回合支援者例外；非法时不消耗卡牌/费用或使用标记；2026-06-16验证通过
 - [x] WP3：为useTrainer增加最小事务边界，required picker/目标失败时回滚训练家消耗、费用、使用标记和相关场上状态，并修复回滚后竞技场owner/共享对象身份
 - [x] WP4：switch_pokemon支持解析出的choose:'opponent'语义；目标方为玩家时走现有宝可梦选择器，AI/no-UI对手选择时确定性选择首个可用备战位
 - [x] WP5：manipulate_deck_top窄口径执行支持；覆盖查看牌库顶原样放回、可选丢弃/置底/洗牌、匹配物品丢弃、选择置顶其余置底与任意顺序原序fallback；lost_zone/fossil_place仍未扩展。
@@ -73,8 +73,8 @@ ptcgBattle/
 - [ ] 完整卡牌详情、UI动画、音效仍待完善
 
 ## 最新测试基线
-- 2026-06-16 WP1验证：`git diff --check`、`node --check`（EffectExecutor.js、EffectParser.js、GameState.js）与 `npm --prefix E:/BetaSerpentis.github.io run test:ptcg-battle` 全部通过。
-- 自动化基线：全部 ptcgBattle 自动化测试通过；解析覆盖率 4577/7208 (63%)，仍有残留文本 4391；残留Top7为复杂/多分支 1670、未知/其他 817、选择/交换/回收 802、前提/条件 469、能量移动 390、牌库顶/牌库操作 212、化石 31。
+- 2026-06-16 WP2验证：`git diff --check`、`node --check`（BattleEngine.js、EffectParser.js、GameState.js）与 `npm --prefix E:/BetaSerpentis.github.io run test:ptcg-battle` 全部通过。
+- 自动化基线：全部 ptcgBattle 自动化测试通过；解析覆盖率 4583/7208 (64%)，仍有残留文本 4385；残留Top7为复杂/多分支 1665、未知/其他 817、选择/交换/回收 802、前提/条件 469、能量移动 389、牌库顶/牌库操作 212、化石 31。
 
 ## PM浏览器复测清单
 1. Setup流程：进入对局后应先显示手牌卡牌界面；选择基础宝可梦并在卡牌界面确认；无基础手牌/对手mulligan时不应卡死；confirm失败应有可见反馈。
