@@ -85,6 +85,36 @@ export async function executeEffects(gs, player, effects, options = {}) {
   }
 }
 
+function _toolCardValue(tool) {
+  return (tool && typeof tool === 'object') ? (tool.cardId || tool.id || tool.name || tool) : tool;
+}
+
+function _returnAttachedCardsToHand(pl, mon, withAttachments = false) {
+  if (!withAttachments) {
+    pl.hand.push(mon.cardId);
+    return;
+  }
+
+  const hasEnergy = Array.isArray(mon.energy) && mon.energy.length > 0;
+  if (hasEnergy) {
+    for (const energy of mon.energy) pl.hand.push(_toolCardValue(energy));
+    mon.energy = [];
+    if (mon.tool) {
+      pl.hand.push(_toolCardValue(mon.tool));
+      mon.tool = null;
+    }
+    pl.hand.push(mon.cardId);
+    return;
+  }
+
+  pl.hand.push(mon.cardId);
+  if (Array.isArray(mon.energy)) mon.energy = [];
+  if (mon.tool) {
+    pl.hand.push(_toolCardValue(mon.tool));
+    mon.tool = null;
+  }
+}
+
 // === 选卡 UI 交互 ===
 async function _pickCards(gs, pl, cards, count, options = {}) {
   const n = Math.min(count || 1, (cards || []).length);
@@ -261,6 +291,14 @@ function _energyMatchesFilter(meta, f, typeMatches, wantsEnergy, wantsBasic, wan
 function _isEnergyMeta(meta) { return /energy|能量/.test(meta.cardType) || /energy|能量/.test(meta.trainerType) || meta.info?.type === 'energy' || meta.info?.type === 'specialEnergy'; }
 function _isBasicEnergyMeta(meta) { return meta.info?.type === 'energy' || meta.cardType === 'energy' || (meta.label.includes('基本') && meta.label.includes('能量')); }
 function _isSpecialEnergyMeta(meta) { return meta.info?.type === 'specialEnergy' || meta.cardType === 'specialenergy' || (meta.label.includes('特殊') && meta.label.includes('能量')); }
+function _isSpecialEnergyAttachment(gs, energy) {
+  const meta = _resolveZoneCard(gs, energy);
+  if (_isSpecialEnergyMeta(meta)) return true;
+  if (_isBasicEnergyMeta(meta)) return false;
+  const value = _toolCardValue(energy);
+  const text = String(value ?? energy);
+  return text.includes('特殊') || !text.includes('基本');
+}
 function _metaHasEnergyType(meta, cnType) {
   if (meta.label.includes(`【${cnType}】`) || meta.label.includes(cnType)) return true;
   const map = { '草':'grass','火':'fire','水':'water','雷':'lightning','斗':'fighting','恶':'dark','钢':'metal','超':'psychic','无':'colorless','龙':'dragon','妖':'fairy' };
@@ -767,11 +805,11 @@ const EXECUTORS = {
     let n = 0;
     for (const mon of [opp.active, ...opp.bench]) {
       if (!mon) continue;
-      if (p.tools && mon.tool) { opp.discard.push(mon.tool); mon.tool = null; n++; }
+      if (p.tools && mon.tool) { opp.discard.push(_toolCardValue(mon.tool)); mon.tool = null; n++; }
       if (p.specialEnergy && mon.energy?.length) {
         const kept = [];
         for (const e of mon.energy) {
-          if (String(e).includes('特殊') || !String(e).includes('基本')) { opp.discard.push(e); n++; }
+          if (_isSpecialEnergyAttachment(gs, e)) { opp.discard.push(e); n++; }
           else kept.push(e);
         }
         mon.energy = kept;
@@ -936,25 +974,9 @@ const EXECUTORS = {
   // ===== 回手 =====
   async return_to_hand(gs, pl, p = {}) {
     if (!pl.active) return;
-    const attachedCardIdentity = card => {
-      if (card && typeof card === 'object') return card.cardId ?? card.id ?? card.name ?? card;
-      return card;
-    };
-    const returnRepresentedAttachments = mon => {
-      if (!p.with_attachments || !mon) return;
-      if (Array.isArray(mon.energy)) {
-        for (const energy of mon.energy) pl.hand.push(attachedCardIdentity(energy));
-        mon.energy = [];
-      }
-      if (mon.tool) {
-        pl.hand.push(attachedCardIdentity(mon.tool));
-        mon.tool = null;
-      }
-    };
     const returnActiveToHand = async () => {
       const returned = pl.active;
-      returnRepresentedAttachments(returned);
-      pl.hand.push(returned.cardId);
+      _returnAttachedCardsToHand(pl, returned, !!p.with_attachments);
       pl.active = null;
       if (pl.bench.length > 0) {
         const slot = await _pickPokemonTarget(gs, pl, pl, {
@@ -981,8 +1003,7 @@ const EXECUTORS = {
       const idx = slot?.startsWith('bench-') ? parseInt(slot.replace('bench-', '')) : -1;
       const returned = pl.bench[idx];
       if (!returned) return;
-      returnRepresentedAttachments(returned);
-      pl.hand.push(returned.cardId);
+      _returnAttachedCardsToHand(pl, returned, !!p.with_attachments);
       pl.bench.splice(idx, 1);
       gs.recomputePassives?.();
       gs.addLog('宝可梦回手');

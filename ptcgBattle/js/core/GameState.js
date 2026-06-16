@@ -163,6 +163,10 @@ export class GameState {
     t.attacks=cd.attacks;t.element=cd.element;t.weakness=cd.weakness||null;t.resistance=cd.resistance||null;t.retreatCost=cd.retreatCost??1;t.ability=cd.ability||null;t.abilityUsed=false;t.abilityDisabled=false;t.abilityDisabledBy=null;t.placedThisTurn=false;t.evolvedThisTurn=true;
     this.addLog(`${pl.name} 的宝可梦进化成了 ${cd.name}！`);this.recomputePassives();return true;}
 
+  _toolLabel(tool){return (tool&&typeof tool==='object')?(tool.name||tool.cardId||'宝可梦道具'):tool;}
+  _toolCardValue(tool){return (tool&&typeof tool==='object')?(tool.cardId||tool.name||tool):tool;}
+  _makeToolState(cardId,cd){return {cardId,name:cd?.name||String(cardId)};}
+
   canUseTrainer(pl, cd, targetSlot=null){
     if(!cd||cd.cardType!=='trainer')return {ok:false,reason:'not_trainer',message:'不是训练家卡'};
     const prereqFailure=this._trainerPrerequisiteFailure(pl,cd);
@@ -174,7 +178,7 @@ export class GameState {
     if(tt==='tool'){
       const t=targetSlot==='active'?pl.active:(targetSlot?.startsWith('bench-')?pl.bench[parseInt(targetSlot.replace('bench-',''))]:null);
       if(!t)return {ok:false,reason:'missing_tool_target',message:'请选择目标宝可梦'};
-      if(t.tool)return {ok:false,reason:'tool_already_attached',message:`${t.name} 已装备 ${t.tool}`};
+      if(t.tool)return {ok:false,reason:'tool_already_attached',message:`${t.name} 已装备 ${this._toolLabel(t.tool)}`};
     }
     return {ok:true,trainerType:tt};
   }
@@ -204,7 +208,7 @@ export class GameState {
 
   _trainerLegalityMessage(check){return check?.message||'无法使用训练家卡';}
 
-  useTrainer(pl, hi, cd, targetSlot=null){
+  useTrainer(pl, hi, cd, targetSlot=null, cardId=null){
     const check=this.canUseTrainer(pl,cd,targetSlot);
     if(!check.ok){this.addLog(this._trainerLegalityMessage(check));return false;}
     const tt=cd.trainerType;
@@ -217,9 +221,10 @@ export class GameState {
     if(tt==='tool'){
       const t=targetSlot==='active'?pl.active:(targetSlot?.startsWith('bench-')?pl.bench[parseInt(targetSlot.replace('bench-',''))]:null);
       if(!t){this.addLog('请选择目标宝可梦');return false;}
-      if(t.tool){this.addLog(`${t.name} 已装备 ${t.tool}`);return false;}
+      if(t.tool){this.addLog(`${t.name} 已装备 ${this._toolLabel(t.tool)}`);return false;}
+      const attached=cardId??pl.hand[hi];
       pl.hand.splice(hi,1);
-      t.tool=cd.name;
+      t.tool=this._makeToolState(attached,cd);
       this.addLog(`${pl.name} 为 ${t.name} 装备了「${cd.name}」`);
       return true;
     }

@@ -297,7 +297,7 @@ export class BattleEngine {
       paidHandIndex = paid.handIndex;
     }
     const usedCard = pl.hand[paidHandIndex];
-    const ok = gs.useTrainer(pl, paidHandIndex, cardData, targetSlot);
+    const ok = gs.useTrainer(pl, paidHandIndex, cardData, targetSlot, usedCard);
     const shouldExecuteEffects = ok && effects.length && cardData.trainerType !== 'stadium';
     // Stadium activation effects (for cards like 城镇百货公司) are future work:
     // playing a Stadium only places/replaces it and must not fire its ordinary parsed effects.
