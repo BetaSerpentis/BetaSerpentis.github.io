@@ -1487,6 +1487,27 @@ await test('回手：target self 保持只回收出战且只请求换上宝可�
   assert.equal(pickCount, 1);
 });
 
+await test('回手：with_attachments 回收精确道具id并兼容旧字符串道具', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  pl.active = mon('出战A', 'active-a');
+  pl.active.tool = { cardId:'tool-print-1', name:'力量头带' };
+  pl.bench = [mon('备战B', 'bench-b')];
+  pl.bench[0].tool = '旧字符串道具';
+  pl.bench[0].energy = [{ cardId:'energy-print-1', name:'基本水能量' }, { id:'energy-print-2', name:'特殊能量' }, '旧字符串能量'];
+
+  gs._onPendingPokemonPick = pick => {
+    if (pick.options?.mode === 'switch') gs.resolvePokemonPick('bench-0');
+    else gs.resolvePokemonPick('bench-0');
+  };
+  await executeEffects(gs, pl, [{ action: 'return_to_hand', params: { target: 'self', with_attachments: true } }]);
+  assert.deepEqual(pl.hand, ['active-a', 'tool-print-1']);
+  assert.equal(pl.active.tool, '旧字符串道具');
+
+  await executeEffects(gs, pl, [{ action: 'return_to_hand', params: { target: 'choose', with_attachments: true } }]);
+  assert.deepEqual(pl.hand, ['active-a', 'tool-print-1', 'energy-print-1', 'energy-print-2', '旧字符串能量', '旧字符串道具', 'bench-b']);
+});
+
 await test('回手：无选择器时 target choose 稳定回退到出战和首个备战', async () => {
   const gs = new GameState();
   const pl = gs.player1;
@@ -2312,14 +2333,32 @@ await test('百万吨吹风机：丢弃对手道具、特殊能量和竞技场',
   pl.stadium = '我方竞技场';
   opp.stadium = '对方竞技场';
   opp.active = mon('对手');
-  opp.active.tool = '宝可梦道具';
-  opp.active.energy = ['基本【雷】能量', '特殊能量'];
+  opp.active.tool = { cardId:'tool-print-1', name:'宝可梦道具' };
+  opp.bench = [mon('对手备战')];
+  opp.bench[0].tool = '旧字符串道具';
+  const basicEnergyObject = { cardId:'basic-energy-print', name:'基本火能量' };
+  const specialEnergyByCardId = { cardId:'special-energy-print', name:'双重无色能量' };
+  const specialEnergyById = { id:'special-energy-id', name:'特殊能量' };
+  opp.active.energy = ['基本【雷】能量', '特殊能量', basicEnergyObject, specialEnergyByCardId];
+  opp.bench[0].energy = [specialEnergyById];
+  gs.cardResolver = fakeResolver({
+    'basic-energy-print': { info:{ name:'基本火能量', number:null, type:'energy' }, card:{ cardType:'energy', name:'基本火能量' } },
+    'special-energy-print': { info:{ name:'双重无色能量', number:null, type:'specialEnergy' }, card:{ cardType:'specialEnergy', name:'双重无色能量' } },
+    'special-energy-id': { info:{ name:'特殊能量', number:null, type:'specialEnergy' }, card:{ cardType:'specialEnergy', name:'特殊能量' } },
+  });
   await executeEffects(gs, pl, [{ action: 'discard_field_attachments', params: { target:'opponent', tools:true, specialEnergy:true, stadium:true } }]);
   assert.equal(opp.active.tool, null);
-  assert.deepEqual(opp.active.energy, ['基本【雷】能量']);
+  assert.equal(opp.bench[0].tool, null);
+  assert.deepEqual(opp.active.energy, ['基本【雷】能量', basicEnergyObject]);
+  assert.deepEqual(opp.bench[0].energy, []);
   assert.equal(pl.stadium, null);
   assert.equal(opp.stadium, null);
+  assert.ok(opp.discard.includes('tool-print-1'));
+  assert.ok(opp.discard.includes('旧字符串道具'));
   assert.ok(opp.discard.includes('特殊能量'));
+  assert.ok(opp.discard.includes(specialEnergyByCardId));
+  assert.ok(opp.discard.includes(specialEnergyById));
+  assert.equal(opp.discard.includes(basicEnergyObject), false);
 });
 
 await test('宝可梦通信解析为 hand_pokemon_to_deck_search_pokemon 且无残留', () => {
@@ -3906,6 +3945,23 @@ await test('训练家事务：可选allowEmpty取消保持成功且不回滚', a
   assert.deepEqual(pl.deck, ['bottom', 'targetPokemon 宝可梦']);
 });
 
+await test('宝可梦道具装备：保存精确手牌id且日志与已有道具提示可读', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  gs.currentPlayer = pl;
+  pl.active = mon('出战');
+  pl.hand = ['tool-print-A'];
+  const engine = makeEngine(gs);
+
+  const ok = await engine.useTrainer(0, { cardType:'trainer', trainerType:'tool', name:'力量头带', effects:[] }, 'active');
+  assert.equal(ok, true);
+  assert.deepEqual(pl.active.tool, { cardId:'tool-print-A', name:'力量头带' });
+  assert.equal(gs.log.some(msg => msg.includes('装备了「力量头带」')), true);
+  const check = gs.canUseTrainer(pl, { cardType:'trainer', trainerType:'tool', name:'第二工具' }, 'active');
+  assert.equal(check.ok, false);
+  assert.equal(check.message.includes('出战 已装备 力量头带'), true);
+});
+
 await test('训练家使用限制：支援者一回合一次，竞技场替换，宝可梦道具装备目标', async () => {
   const gs = new GameState();
   const pl = gs.player1;
@@ -3931,7 +3987,7 @@ await test('训练家使用限制：支援者一回合一次，竞技场替换�
   pl.hand.unshift('toolCard');
   ok = await engine.useTrainer(0, { cardType:'trainer', trainerType:'tool', name:'道具A', effects:[] }, 'active');
   assert.equal(ok, true);
-  assert.equal(pl.active.tool, '道具A');
+  assert.deepEqual(pl.active.tool, { cardId:'toolCard', name:'道具A' });
 });
 
 await test('奖赏卡：击倒后拿奖赏，拿完判胜', () => {
