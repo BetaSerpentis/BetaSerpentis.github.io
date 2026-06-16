@@ -2763,6 +2763,85 @@ await test('search_deck_to_bench：备战区满时不选卡且洗牌后跳过', 
   assert.equal(shuffled, true);
 });
 
+await test('WP1 好友宝芬：只显示HP70以下基础宝可梦', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  pl.deck = ['bottom', 'item001', 'evo001', 'hp80basic', 'hp70basic', 'hp60basic'];
+  gs._shuffle = deck => deck;
+  gs.cardResolver = fakeResolver({
+    hp60basic: { info:{ name:'波波', number:null, type:'pokemon' }, card:{ cardType:'pokemon', name:'波波', stage:'基础', hp:60, element:'colorless' } },
+    hp70basic: { info:{ name:'皮卡丘', number:null, type:'pokemon' }, card:{ cardType:'pokemon', name:'皮卡丘', stage:'基础', hp:70, element:'lightning' } },
+    hp80basic: { info:{ name:'卡蒂狗', number:null, type:'pokemon' }, card:{ cardType:'pokemon', name:'卡蒂狗', stage:'基础', hp:80, element:'fire' } },
+    evo001: { info:{ name:'比比鸟', number:null, type:'pokemon' }, card:{ cardType:'pokemon', name:'比比鸟', stage:'1阶', hp:80, element:'colorless' } },
+    item001: { info:{ name:'普通物品', number:null, type:'item' }, card:{ cardType:'trainer', trainerType:'item', name:'普通物品' } },
+  });
+  gs._onPendingPick = pick => {
+    assert.equal(pick.options?.source, 'deck-search');
+    assert.deepEqual(pick.cards, ['皮卡丘', '波波']);
+    gs.resolvePick([0, 1]);
+  };
+  await executeEffects(gs, pl, [{ action:'search_deck_to_hand', params:{ count:2, filter:'HP「70」以下的【基础】宝可梦' } }]);
+  assert.deepEqual(new Set(pl.hand), new Set(['hp70basic', 'hp60basic']));
+  assert.equal(pl.deck.includes('hp80basic'), true);
+  assert.equal(pl.deck.includes('evo001'), true);
+  assert.equal(pl.deck.includes('item001'), true);
+});
+
+await test('WP1 深钵镇：竞技场启动只放置非规则基础宝可梦并洗牌', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  gs.currentPlayer = pl;
+  gs.phase = PHASE.MAIN;
+  pl.hand = ['artazon'];
+  pl.deck = ['bottom', 'item001', 'evo001', 'ruleBasic', 'plainBasic'];
+  let shuffled = false;
+  gs._shuffle = deck => { shuffled = true; return deck; };
+  gs.cardResolver = fakeResolver({
+    plainBasic: { info:{ name:'小火龙', number:null, type:'pokemon' }, card:{ cardType:'pokemon', name:'小火龙', stage:'基础', hp:70, element:'fire' } },
+    ruleBasic: { info:{ name:'密勒顿ex', number:null, type:'pokemon' }, card:{ cardType:'pokemon', name:'密勒顿ex', stage:'基础', hp:220, element:'lightning', ruleBox:'规则宝可梦' } },
+    evo001: { info:{ name:'火恐龙', number:null, type:'pokemon' }, card:{ cardType:'pokemon', name:'火恐龙', stage:'1阶', hp:90, element:'fire' } },
+    item001: { info:{ name:'普通物品', number:null, type:'item' }, card:{ cardType:'trainer', trainerType:'item', name:'普通物品' } },
+  });
+  const effects = [
+    { action:'usage_condition', params:{ kind:'once_per_turn' } },
+    { action:'search_deck_to_bench', params:{ count:1, filter:'拥有规则的宝可梦除外的【基础】宝可梦' } },
+  ];
+  gs._onPendingPick = pick => { assert.equal(pick.options?.source, 'deck-to-bench'); assert.deepEqual(pick.cards, ['小火龙']); gs.resolvePick([0]); };
+  let ok = await makeEngine(gs).useTrainer(0, { cardType:'trainer', trainerType:'stadium', name:'深钵镇', effects });
+  assert.equal(ok, true);
+  assert.deepEqual(pl.hand, []);
+  assert.deepEqual(pl.discard, []);
+  assert.equal(pl.bench.length, 0);
+  ok = await makeEngine(gs).activateStadium(pl);
+  assert.equal(ok, true);
+  assert.equal(pl.bench.length, 1);
+  assert.equal(pl.bench[0].name, '小火龙');
+  assert.equal(pl.deck.includes('plainBasic'), false);
+  assert.equal(pl.deck.includes('ruleBasic'), true);
+  assert.equal(pl.deck.includes('evo001'), true);
+  assert.equal(pl.deck.includes('item001'), true);
+  assert.equal(shuffled, true);
+});
+
+await test('WP1 厉害钓竿：只将宝可梦与基本能量从弃牌区洗回牌库', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  pl.deck = ['deckBottom'];
+  pl.discard = ['pokemon001', 'basicEnergy', 'specialEnergy', 'item001'];
+  let shuffled = false;
+  gs._shuffle = deck => { shuffled = true; return deck.reverse(); };
+  gs.cardResolver = fakeResolver({
+    pokemon001: { info:{ name:'玛力露', number:null, type:'pokemon' }, card:{ cardType:'pokemon', name:'玛力露', stage:'基础', hp:70, element:'water' } },
+    basicEnergy: { info:{ name:'基本【水】能量', number:null, type:'energy' }, card:{ cardType:'energy', name:'基本【水】能量', element:'water' } },
+    specialEnergy: { info:{ name:'特殊能量', number:null, type:'specialEnergy' }, card:{ cardType:'specialEnergy', name:'特殊能量' } },
+    item001: { info:{ name:'普通物品', number:null, type:'item' }, card:{ cardType:'trainer', trainerType:'item', name:'普通物品' } },
+  });
+  await executeEffects(gs, pl, [{ action:'recover_from_discard', params:{ count:3, maxCount:3, minCount:0, allowFewer:true, allowEmpty:true, filter:card => card === 'pokemon001' || card === 'basicEnergy', target:'deck', shuffle:true } }]);
+  assert.deepEqual(pl.discard, ['specialEnergy', 'item001']);
+  assert.deepEqual(new Set(pl.deck), new Set(['deckBottom', 'pokemon001', 'basicEnergy']));
+  assert.equal(shuffled, true);
+});
+
 await test('状态异常效果：对手战斗宝可梦获得 poison/confusion', async () => {
   const gs = new GameState();
   gs.player1.active = mon('我方');
@@ -3659,6 +3738,129 @@ await test('训练家discard_cost：无选卡器时确定性支付首个匹配�
   assert.equal(ok, true);
   assert.deepEqual(pl.hand, ['costB', 'drawnCard']);
   assert.deepEqual(pl.discard, ['costA', '费用物品']);
+});
+
+await test('WP1 高级球：必须丢弃2张手牌才搜索宝可梦，取消或费用不足不消耗', async () => {
+  const effects = [
+    { action:'trainer_prerequisite', params:{ kind:'discard_cost', count:2, zone:'hand', raw:'必须将自己的2张手牌丢弃才可使用' } },
+    { action:'search_deck_to_hand', params:{ count:1, filter:'宝可梦' } },
+  ];
+  const legal = new GameState();
+  const pl = legal.player1;
+  legal.currentPlayer = pl;
+  pl.hand = ['ultraBall', 'costA', 'costB', 'keepCard'];
+  pl.deck = ['itemCard', 'targetPokemon 宝可梦'];
+  legal._shuffle = deck => deck;
+  legal._onPendingPick = pick => {
+    if (pick.options?.source === 'trainer-discard-cost') {
+      assert.equal(pick.count, 2);
+      assert.deepEqual(pick.cards, ['costA', 'costB', 'keepCard']);
+      legal.resolvePick([0, 1]);
+      return;
+    }
+    assert.equal(pick.options?.source, 'deck-search');
+    assert.deepEqual(pick.cards, ['targetPokemon 宝可梦']);
+    legal.resolvePick([0]);
+  };
+  let ok = await makeEngine(legal).useTrainer(0, { cardType:'trainer', trainerType:'item', name:'高级球', effects });
+  assert.equal(ok, true);
+  assert.deepEqual(pl.hand, ['keepCard', 'targetPokemon 宝可梦']);
+  assert.deepEqual(pl.discard, ['costB', 'costA', '高级球']);
+
+
+  const insufficient = new GameState();
+  const pl3 = insufficient.player1;
+  insufficient.currentPlayer = pl3;
+  pl3.hand = ['ultraBall', 'onlyCost'];
+  pl3.deck = ['targetPokemon 宝可梦'];
+  insufficient._onPendingPick = () => assert.fail('费用不足不应打开选卡器');
+  ok = await makeEngine(insufficient).useTrainer(0, { cardType:'trainer', trainerType:'item', name:'高级球', effects });
+  assert.equal(ok, false);
+  assert.deepEqual(pl3.hand, ['ultraBall', 'onlyCost']);
+  assert.deepEqual(pl3.discard, []);
+});
+
+await test('WP1 反击捕捉器：奖赏落后时执行对手换位，否则不消耗且不换位', async () => {
+  const effects = parseEffect('这张卡只有在自己剩余奖赏卡的张数比对手剩余奖赏卡的张数多时才可使用。选择对手的1只备战宝可梦，与战斗宝可梦互换。').effects;
+  assert.equal(effects.some(e => e.action === 'trainer_prerequisite' && e.params?.kind === 'own_prizes_more_than_opponent'), true);
+  const switchEffect = effects.find(e => e.action === 'switch_pokemon') || { action:'switch_pokemon', params:{ who:'opponent', choose:'player' } };
+  assert.equal(switchEffect.params?.who, 'opponent');
+  const legal = new GameState();
+  const pl = legal.player1;
+  const opp = legal.player2;
+  legal.currentPlayer = pl;
+  pl.hand = ['counterCatcher'];
+  pl.prizes = ['p1', 'p2', 'p3'];
+  opp.prizes = ['o1', 'o2'];
+  pl.active = mon('我方出战');
+  opp.active = mon('对手出战');
+  opp.bench = [mon('对手备战A'), mon('对手备战B')];
+  legal._onPendingPokemonPick = pick => { assert.equal(pick.player, opp); legal.resolvePokemonPick('bench-1'); };
+  let ok = await makeEngine(legal).useTrainer(0, { cardType:'trainer', trainerType:'item', name:'反击捕捉器', effects:[effects[0], switchEffect] });
+  assert.equal(ok, true);
+  assert.equal(opp.active.name, '对手备战B');
+  assert.deepEqual(opp.bench.map(p => p.name), ['对手备战A', '对手出战']);
+  assert.deepEqual(pl.discard, ['反击捕捉器']);
+
+  const illegal = new GameState();
+  const pl2 = illegal.player1;
+  const opp2 = illegal.player2;
+  illegal.currentPlayer = pl2;
+  pl2.hand = ['counterCatcher'];
+  pl2.prizes = ['p1', 'p2'];
+  opp2.prizes = ['o1', 'o2'];
+  opp2.active = mon('非法对手出战');
+  opp2.bench = [mon('非法对手备战')];
+  illegal._onPendingPokemonPick = () => assert.fail('前提失败不应选择换位目标');
+  ok = await makeEngine(illegal).useTrainer(0, { cardType:'trainer', trainerType:'item', name:'反击捕捉器', effects:[effects[0], switchEffect] });
+  assert.equal(ok, false);
+  assert.equal(opp2.active.name, '非法对手出战');
+  assert.deepEqual(pl2.hand, ['counterCatcher']);
+  assert.deepEqual(pl2.discard, []);
+});
+
+await test('WP1 梅洛可：仅在上个对手回合己方被击倒后先附火能再补到6张', async () => {
+  const effects = [
+    ...parseEffect('这张卡只有在上个对手的回合自己的宝可梦被击倒了时才可使用。').effects,
+    { action:'attach_energy_from_discard', params:{ count:1, maxCount:1, minCount:1, filter:'基本【火】能量', target:'any' } },
+    { action:'draw_until', params:{ target:6 } },
+  ];
+  assert.equal(effects.some(e => e.action === 'trainer_prerequisite' && e.params?.kind === 'own_pokemon_knocked_out_last_opponent_turn'), true);
+  assert.equal(effects.some(e => e.action === 'attach_energy_from_discard'), true);
+  assert.equal(effects.some(e => e.action === 'draw_until'), true);
+  const legal = new GameState();
+  const pl = legal.player1;
+  legal.currentPlayer = pl;
+  legal.turn = 4;
+  legal.knockoutHistory = [{ owner:pl, by:legal.player2, turn:3, phase:PHASE.BATTLE }];
+  pl.hand = ['mela', 'keptHand'];
+  pl.deck = ['draw1', 'draw2', 'draw3', 'draw4', 'draw5'];
+  pl.active = mon('出战');
+  pl.bench = [mon('备战')];
+  pl.discard = ['基本【火】能量', '基本【水】能量'];
+  legal._onPendingPokemonPick = () => { assert.equal(pl.hand.length, 1); legal.resolvePokemonPick('bench-0'); };
+  legal._onPendingPick = pick => { assert.deepEqual(pick.cards, ['基本【火】能量']); legal.resolvePick([0]); };
+  const ok = await makeEngine(legal).useTrainer(0, { cardType:'trainer', trainerType:'supporter', name:'梅洛可', effects });
+  assert.equal(ok, true);
+  assert.deepEqual(pl.bench[0].energy, ['基本【火】能量']);
+  assert.deepEqual(pl.discard, ['基本【水】能量', '梅洛可']);
+  assert.equal(pl.hand.length, 6);
+  assert.deepEqual(pl.hand.slice(1), ['draw5', 'draw4', 'draw3', 'draw2', 'draw1']);
+
+  const illegal = new GameState();
+  const pl2 = illegal.player1;
+  illegal.currentPlayer = pl2;
+  illegal.turn = 4;
+  pl2.hand = ['mela', 'keptHand'];
+  pl2.deck = ['draw1', 'draw2'];
+  pl2.active = mon('出战');
+  pl2.discard = ['基本【火】能量'];
+  illegal._onPendingPick = () => assert.fail('前提失败不应执行附能');
+  const blocked = await makeEngine(illegal).useTrainer(0, { cardType:'trainer', trainerType:'supporter', name:'梅洛可', effects });
+  assert.equal(blocked, false);
+  assert.deepEqual(pl2.hand, ['mela', 'keptHand']);
+  assert.deepEqual(pl2.discard, ['基本【火】能量']);
+  assert.equal(pl2.supporterUsed, false);
 });
 
 await test('训练家元数据回归：未结构化condition前提不强制但效果仍执行', async () => {
