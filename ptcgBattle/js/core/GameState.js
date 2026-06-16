@@ -97,7 +97,23 @@ export class GameState {
     this.addLog(`${pl.name} 为 ${t.name} 附着了 ${cd.name}`);return true;}
 
   checkEnergy(mon,ai){const a=mon.attacks?.[ai];if(!a||!a.cost||a.cost.length===0)return true;
-    return this._canPayEnergyCost(mon,a.cost);}
+    return this._canPayEnergyCost(mon,this.adjustedAttackCost(mon,a));}
+  adjustedAttackCost(mon,attack){return this._adjustAttackCostForPassives(mon,attack?.cost||[],attack);}
+  _adjustAttackCostForPassives(mon,cost,attack=null){let adjusted=[...(cost||[])];
+    const owner=[this.player1,this.player2].find(pl=>this.getPokemonInPlay(pl).includes(mon));
+    if(!owner)return adjusted;
+    for(const source of this.getPokemonInPlay(owner)){
+      if(!source?.ability?.effects?.length||source.abilityDisabled)continue;
+      for(const eff of this._enabledAbilityEffects(source).filter(e=>e.action==='attack_cost_reduction')){
+        const p=eff.params||{};
+        if((p.target==='self'||p.target==='this')&&source!==mon)continue;
+        const type=this._normalizeType(p.type||'colorless');
+        let amount=p.amount==='opponent_prizes_taken'?this._prizesTaken(this.getOpponent(owner)):(p.amount||0);
+        while(amount>0){const idx=adjusted.indexOf(type);if(idx<0)break;adjusted.splice(idx,1);amount--;}
+      }
+    }
+    return adjusted;}
+  _prizesTaken(pl){return Math.max(0,6-(pl?.prizes?.length??6));}
 
   _energyProvides(energy,mon=null){
     let base;
@@ -359,10 +375,26 @@ export class GameState {
       for(const eff of this._enabledAbilityEffects(source).filter(e=>e.action==='passive_damage_mod')){
         const p=eff.params||{};
         if((p.target==='self'||p.target==='this')&&source!==attacker)continue;
+        if((p.target==='own_field'||p.target==='field')&&!this.getPokemonInPlay(pl).includes(attacker))continue;
+        if(p.attackerType&&attacker?.element!==this._normalizeType(p.attackerType))continue;
+        if(p.attackerStage==='basic'&&!this._isBasicPokemonInPlay(attacker))continue;
+        if(p.excludeSourceName&&attacker?.name===p.excludeSourceName)continue;
         total+=p.amount||0;
       }
     }
     return total;}
+  getConditionalDamageModifier(attacker,defender,move,pl){let total=0;
+    for(const eff of move?.effects||[]){
+      if(eff.action!=='conditional_damage_mod')continue;
+      const p=eff.params||{};
+      if(p.condition==='own_pokemon_knocked_out_last_opponent_turn'&&!this.wasOwnPokemonKnockedOutLastOpponentTurn(pl))continue;
+      total+=p.amount||0;
+    }
+    return total;}
+  _isBasicPokemonInPlay(mon){const owner=[this.player1,this.player2].find(pl=>this.getPokemonInPlay(pl).includes(mon));
+    const card=mon?.cardId&&this.cardResolver?.getCard?.(mon.cardId);
+    if(card)return card.cardType==='pokemon'&&(!card.evolvesFrom)&&(!card.stage||card.stage==='基础');
+    return !mon?.evolvesFrom&&(!mon?.stage||mon.stage==='基础'||mon.stage==='basic');}
   _enabledAbilityEffects(mon){return mon?.ability?.effects||[];}
   _energyMultiplierEffectsFor(mon){
     const owner=[this.player1,this.player2].find(pl=>this.getPokemonInPlay(pl).includes(mon));

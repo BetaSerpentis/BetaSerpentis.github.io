@@ -373,7 +373,7 @@ export class BattleEngine {
 
     // Check energy (with costEliminated override)
     if (!atk.active.costEliminated && !gs.checkEnergy(atk.active, ai)) {
-      const cost = (move.cost || []).join('+');
+      const cost = (gs.adjustedAttackCost?.(atk.active, move) || move.cost || []).join('+');
       this.cb.onLog?.(`能量不足！需要 ${cost || '无消耗'}`);
       return false;
     }
@@ -389,6 +389,7 @@ export class BattleEngine {
     }
 
     let damage = move ? (parseInt(String(move.damage).match(/\d+/)?.[0]) || 0) : 20;
+    damage += gs.getConditionalDamageModifier?.(atk.active, def.active, move, atk) || 0;
 
     // Weakness/resistance: simplified PTCG handling. Weakness x2, resistance -30.
     if (damage > 0 && def.active.weakness && def.active.weakness === atk.active.element && !(atk.active.ignore||[]).includes('weakness')) damage *= 2;

@@ -79,6 +79,8 @@ const RULES = [
   // ===== 特性：消除/被动光环 =====
   { re: /(?:对手的)?(?:战斗宝可梦|场上宝可梦|所有场上宝可梦|场上的.*?宝可梦).*?特性(?:（.*?除外）)?全部消除/, act:'ability_nullify', p:m=>abilityNullifyParams(m[0],m.input) },
   { re: /将(?:双方|对手|自己的)?.*?场上.*?宝可梦.*?特性(?:（.*?除外）)?全部消除/, act:'ability_nullify', p:m=>abilityNullifyParams(m[0],m.input) },
+  { re: /这只宝可梦使用招式所需的【无】能量[，,]?减少对手已经获得的奖赏卡的张数数量/, act:'attack_cost_reduction', p:()=>({target:'self',type:'colorless',amount:'opponent_prizes_taken'}) },
+  { re: /自己的【火】属性的【基础】宝可梦(?:（["“]?火焰鸟["”]?\s*除外）)?使用的招式[，,]?对对手的战斗宝可梦造成的伤害["“]?\+10["”]?点/, act:'passive_damage_mod', p:()=>({target:'own_field',amount:10,attackerType:'fire',attackerStage:'basic',excludeSourceName:'火焰鸟',defender:'opponent_active'}) },
   { re: /(?:自己的|这只)宝可梦使用的招式.*?造成的伤害["“]?([+-]\d+)["”]?点/, act:'passive_damage_mod', p:m=>({target:/这只/.test(m[0])?'self':'own_field',amount:+m[1]}) },
   { re: /(?:自己的|这只)宝可梦使用的招式.*?伤害["“]?([+-]\d+)["”]?点/, act:'passive_damage_mod', p:m=>({target:/这只/.test(m[0])?'self':'own_field',amount:+m[1]}) },
   { re: /基本【(.+?)】能量.*?视为各?提供2个【\1】能量/, act:'energy_provides_multiplier', p:m=>({target:/自己的场上宝可梦|场上宝可梦/.test(m.input)?'own_field':'self',energyType:ELEM[m[1]]||m[1],multiplier:2,basicOnly:true}) },
@@ -193,6 +195,7 @@ const RULES = [
   { re: /在这只宝可梦身上放置(\d+)个伤害指示物/, act:'damage_place', p:m=>({target:'self',count:+m[1]}) },
 
   // ===== 伤害增减 =====
+  { re: /在上个对手的回合[，,]?若自己的宝可梦因招式的伤害而【昏厥】了[，,]?则增加(\d+)点伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'own_pokemon_knocked_out_last_opponent_turn'}) },
   { re: /在下个对手的回合[，,]这只宝可梦受到招式的伤害"?([+-]?\d+)"?点/, act:'damage_modify', p:m=>({amount:+m[1],duration:'next_opp_turn',target:'self'}) },
   { re: /这只宝可梦受到招式的伤害"?([+-]?\d+)"?点/, act:'damage_modify', p:m=>({amount:+m[1],target:'self'}) },
   { re: /增加对手的战斗宝可梦身上放置的伤害指示物的数量[×x](\d+)点伤害/, act:'damage_modify', p:m=>({amount:+m[1],condition:'opponent_damage_counters'}) },
