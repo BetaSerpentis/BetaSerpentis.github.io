@@ -494,8 +494,9 @@ function _removeFirstFromDiscard(pl, card) {
   const idx = pl.discard.lastIndexOf(card);
   if (idx >= 0) pl.discard.splice(idx, 1);
 }
-function _applyDamageToPokemon(gs, owner, mon, amount, logSuffix = '受到') {
+function _applyDamageToPokemon(gs, owner, mon, amount, logSuffix = '受到', options = {}) {
   if (!mon || !amount) return false;
+  if (options.source === 'attack' && gs.isBenchProtectedFromOpponentAttack?.(owner, mon, 'damage')) { gs.addLog(`${mon.name} 防止了备战伤害`); return false; }
   mon.hp -= amount;
   gs.addLog(`${mon.name} ${logSuffix} ${amount} 伤害`);
   if (mon.hp <= 0) _knockoutPokemon(gs, owner, mon);
@@ -522,6 +523,16 @@ const EXECUTORS = {
   // ===== 元数据/使用前提（当前仅记录，不强制执行） =====
   trainer_prerequisite(gs, pl, p) { gs.addLog(`使用前提: ${p.kind}`); },
   usage_condition(gs, pl, p) { gs.addLog(`使用条件: ${p.kind}`); },
+
+  ability_discard_cost: async (gs, pl, p) => {
+    const paid = await payDiscardCostFromHand(gs, pl, p, { auto:p.auto });
+    if (!paid.ok) throw new Error('ability_cost_unpaid');
+  },
+  turn_damage_mod(gs, pl, p) {
+    pl.turnAttackModifiers = pl.turnAttackModifiers || [];
+    pl.turnAttackModifiers.push({ target:p.target || 'own_field', defender:p.defender || 'opponent_active', amount:p.amount || 0 });
+    gs.addLog(`本回合招式伤害 ${p.amount > 0 ? '+' : ''}${p.amount}`);
+  },
 
   // ===== 抽卡 =====
   draw(gs, pl, p) { const n = p.count || 1; pl.draw(n); gs.addLog(`抽了 ${n} 张卡`); },
@@ -912,14 +923,14 @@ const EXECUTORS = {
     const opp = _opponent(gs, pl);
     const dmg = p.damage || 20;
     if (p.target === 'opponent_1' || p.target === 'opponent_any') {
-      const slot = await _pickPokemonTarget(gs, pl, opp, { mode:'damage', side:'opponent', allowActive:false, allowBench:true, prompt:'选择受到备战伤害的宝可梦' });
+      const slot = await _pickPokemonTarget(gs, pl, opp, { mode:'damage', side:'opponent', allowActive:p.target === 'opponent_any', allowBench:true, prompt:'选择受到伤害的宝可梦' });
       const mon = _getMon(opp, slot);
-      if (mon) { mon.hp -= dmg; gs.addLog(`${mon.name} 备战受 ${dmg}`); if (mon.hp <= 0) gs.knockout(opp); }
+      if (mon) _applyDamageToPokemon(gs, opp, mon, dmg, slot === 'active' ? '受到' : '备战受', { source:'attack' });
     } else if (p.target === 'opponent_all') {
-      for (const mon of opp.bench) { if (mon) { mon.hp -= dmg; if (mon.hp <= 0) gs.knockout(opp); } }
+      for (const mon of [...opp.bench]) if (mon) _applyDamageToPokemon(gs, opp, mon, dmg, '备战受', { source:'attack' });
       gs.addLog(`对手备战区各受 ${dmg}`);
     } else if (p.target === 'self_all') {
-      for (const mon of pl.bench) { if (mon) { mon.hp -= dmg; if (mon.hp <= 0) gs.knockout(pl); } }
+      for (const mon of [...pl.bench]) if (mon) _applyDamageToPokemon(gs, pl, mon, dmg, '备战受', { source:'attack' });
       gs.addLog(`己方备战区各受 ${dmg}`);
     }
   },
@@ -1103,7 +1114,7 @@ const EXECUTORS = {
     if (p.target === 'opponent_bench') {
       slot = await _pickPokemonTarget(gs, pl, owner, {
         mode:'discard-energy-target', side:'opponent', allowActive:false, allowBench:true,
-        slotFilter: candidateSlot => _slotHasMatchingAttachedEnergy(gs, owner, candidateSlot, p.filter),
+        slotFilter: candidateSlot => _slotHasMatchingAttachedEnergy(gs, owner, candidateSlot, p.filter) && !gs.isBenchProtectedFromOpponentAttack?.(owner, _getMon(owner, candidateSlot), 'effect'),
         prompt:'选择丢弃能量的对手备战宝可梦'
       });
       mon = _getMon(owner, slot);
@@ -1221,6 +1232,9 @@ const EXECUTORS = {
   },
   prevent_damage_effect(gs, pl, p) {
     if (pl.active) { pl.active.preventDamage = true; pl.active.preventEffect = true; gs.addLog('防伤防效'); }
+  },
+  bench_attack_shield(gs, pl, p) {
+    gs.addLog('备战保护生效');
   },
 
   // ===== 无视 =====

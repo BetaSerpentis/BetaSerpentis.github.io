@@ -8,7 +8,7 @@ const TYPE_EN = Object.fromEntries(Object.entries(TYPE_CN).map(([k,v])=>[v,k]));
 
 export class PlayerState {
   constructor(name){this.name=name;this.deck=[];this.hand=[];this.discard=[];this.prizes=[];this.active=null;this.bench=[];
-    this.stadium=null;this.supporterUsed=false;this.energyAttached=false;this.retreatUsed=false;this.abilityUsedThisTurn={};this.stadiumUsedThisTurn={};}
+    this.stadium=null;this.supporterUsed=false;this.energyAttached=false;this.retreatUsed=false;this.abilityUsedThisTurn={};this.stadiumUsedThisTurn={};this.turnAttackModifiers=[];}
   draw(n=1){const d=[];for(let i=n;i>0&&this.deck.length;i--){const c=this.deck.pop();this.hand.push(c);d.push(c);}return d;}
 }
 
@@ -17,6 +17,14 @@ export class GameState {
     this.currentPlayer=this.player1;this.phase=PHASE.SETUP;this.turn=0;this.log=[];this.winner=null;this.temporaryAbilityLocks=[];
     this.firstPlayer=null;this.firstPlayerFirstTurnInProgress=false;
     this.stadium=null;this.pendingPick=null;this.pendingPokemonPick=null;this.knockoutHistory=[];}
+
+  _applyTurnAttackModifiers(attacker,defender,move,pl){let total=0;
+    for(const mod of pl?.turnAttackModifiers||[]){
+      if((mod.target==='own_field'||mod.target==='field')&&!this.getPokemonInPlay(pl).includes(attacker))continue;
+      if(mod.defender==='opponent_active'&&defender!==this.getOpponent(pl)?.active)continue;
+      total+=mod.amount||0;
+    }
+    return total;}
 
   waitForPick(cards,count,options={}){return new Promise(r=>{this.pendingPick={cards,count,options,resolve:r};this._onPendingPick?.(this.pendingPick);});}
   waitForPokemonPick(player, options={}){return new Promise(r=>{this.pendingPokemonPick={player,options,resolve:r};this._onPendingPokemonPick?.(this.pendingPokemonPick);});}
@@ -56,7 +64,7 @@ export class GameState {
       }
     }
     if(this.firstPlayerFirstTurnInProgress&&this.currentPlayer===this.firstPlayer)this.firstPlayerFirstTurnInProgress=false;
-    this.currentPlayer.supporterUsed=false;this.currentPlayer.energyAttached=false;this.currentPlayer.retreatUsed=false;this.currentPlayer.abilityUsedThisTurn={};this.currentPlayer.stadiumUsedThisTurn={};
+    this.currentPlayer.supporterUsed=false;this.currentPlayer.energyAttached=false;this.currentPlayer.retreatUsed=false;this.currentPlayer.abilityUsedThisTurn={};this.currentPlayer.stadiumUsedThisTurn={};this.currentPlayer.turnAttackModifiers=[];
     this.temporaryAbilityLocks=(this.temporaryAbilityLocks||[]).filter(lock=>lock.expires!=='turn'&&lock.owner!==this.currentPlayer);
     for(const mon of[this.currentPlayer.active,...this.currentPlayer.bench]){if(mon){mon.placedThisTurn=false;mon.evolvedThisTurn=false;}}
     this.currentPlayer=(this.currentPlayer===this.player1)?this.player2:this.player1;
@@ -323,15 +331,33 @@ export class GameState {
       if(!this.getPokemonInPlay(pl).includes(source))return {ok:false,reason:'invalid_source',ability:ab,zone:srcZone};
       if(this.isAbilityDisabled(source))return {ok:false,reason:'ability_disabled',ability:ab,zone:srcZone};
       if(source.abilityUsed)return {ok:false,reason:'already_used',ability:ab,zone:srcZone};
+      const usageFailure=this._abilityUsageFailure(pl,ab);
+      if(usageFailure)return {ok:false,reason:usageFailure.reason,ability:ab,zone:srcZone,message:usageFailure.message};
     }else{
       const key=this._abilityUseKey(source,ab,srcZone);
       if(pl.abilityUsedThisTurn?.[key])return {ok:false,reason:'already_used',ability:ab,zone:srcZone};
+      const usageFailure=this._abilityUsageFailure(pl,ab);
+      if(usageFailure)return {ok:false,reason:usageFailure.reason,ability:ab,zone:srcZone,message:usageFailure.message};
     }
     return {ok:true,ability:ab,zone:srcZone};}
 
+  _abilityUsageFailure(pl,ability){
+    for(const eff of ability?.effects||[]){
+      if(eff.action!=='usage_condition')continue;
+      const p=eff.params||{};
+      if(p.kind==='own_pokemon_knocked_out_last_opponent_turn'&&!this.wasOwnPokemonKnockedOutLastOpponentTurn(pl))return {reason:'usage_condition',message:'使用前提未满足：上个对手的回合自己的宝可梦需被击倒'};
+      if(p.kind==='ability_name_once_per_turn'&&pl.abilityUsedThisTurn?.[`ability-name:${p.abilityName||ability.name}`])return {reason:'already_used',message:'这个名字的特性本回合已使用'};
+    }
+    return null;}
   markAbilityUsed(pl,source,ability,zone){const z=this.normalizeAbilityZone(zone||this.inferAbilityZone(pl,source)||ability?.zone||'field');
     if(['active','bench','field'].includes(z)&&this.getPokemonInPlay(pl).includes(source))source.abilityUsed=true;
-    else{pl.abilityUsedThisTurn=pl.abilityUsedThisTurn||{};pl.abilityUsedThisTurn[this._abilityUseKey(source,ability,z)]=true;}}
+    else{pl.abilityUsedThisTurn=pl.abilityUsedThisTurn||{};pl.abilityUsedThisTurn[this._abilityUseKey(source,ability,z)]=true;}
+    for(const eff of ability?.effects||[]){
+      if(eff.action==='usage_condition'&&eff.params?.kind==='ability_name_once_per_turn'){
+        pl.abilityUsedThisTurn=pl.abilityUsedThisTurn||{};
+        pl.abilityUsedThisTurn[`ability-name:${eff.params.abilityName||ability.name}`]=true;
+      }
+    }}
   addTemporaryAbilityLock(owner,scope='opponent_active',reason='临时效果'){
     this.temporaryAbilityLocks=this.temporaryAbilityLocks||[];
     this.temporaryAbilityLocks.push({owner,scope,reason,expires:'turn'});
@@ -387,10 +413,26 @@ export class GameState {
     for(const eff of move?.effects||[]){
       if(eff.action!=='conditional_damage_mod')continue;
       const p=eff.params||{};
-      if(p.condition==='own_pokemon_knocked_out_last_opponent_turn'&&!this.wasOwnPokemonKnockedOutLastOpponentTurn(pl))continue;
+      if(p.condition==='own_pokemon_knocked_out_last_opponent_turn'){if(!this.wasOwnPokemonKnockedOutLastOpponentTurn(pl))continue;total+=p.amount||0;continue;}
+      if(p.condition==='opponent_retreat_cost'){total+=(p.amount||0)*(defender?.retreatCostOverride??defender?.retreatCost??0);continue;}
+      if(p.condition==='opponent_active_energy_count'){total+=(p.amount||0)*(defender?.energy?.length||0);continue;}
       total+=p.amount||0;
     }
+    total+=this._applyTurnAttackModifiers(attacker,defender,move,pl);
     return total;}
+  isBenchProtectedFromOpponentAttack(owner,mon,kind='damage',attackerOwner=null){
+    if(!owner?.bench?.includes(mon))return false;
+    if(attackerOwner&&attackerOwner!==this.getOpponent(owner))return false;
+    for(const source of this.getPokemonInPlay(owner)){
+      if(!source?.ability?.effects?.length||source.abilityDisabled)continue;
+      for(const eff of this._enabledAbilityEffects(source).filter(e=>e.action==='bench_attack_shield')){
+        const p=eff.params||{};
+        if(p.target!=='own_bench')continue;
+        if(kind==='damage'&&p.preventDamage!==false)return true;
+        if(kind==='effect'&&p.preventEffect!==false)return true;
+      }
+    }
+    return false;}
   _isBasicPokemonInPlay(mon){const owner=[this.player1,this.player2].find(pl=>this.getPokemonInPlay(pl).includes(mon));
     const card=mon?.cardId&&this.cardResolver?.getCard?.(mon.cardId);
     if(card)return card.cardType==='pokemon'&&(!card.evolvesFrom)&&(!card.stage||card.stage==='基础');
