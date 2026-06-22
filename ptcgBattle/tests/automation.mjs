@@ -1520,11 +1520,14 @@ await test('水莲的照顾解析：保留合计3张与宝可梦/基本能量筛
 await test('水莲的照顾执行：只向 picker 暴露普通宝可梦与基本能量', async () => {
   const gs = new GameState();
   const pl = gs.player1;
-  pl.discard = ['normal-pokemon', 'rule-pokemon', 'basic-energy', 'special-energy', 'item-card'];
+  pl.discard = ['normal-pokemon', 'rule-pokemon', 'has-rulebox', 'radiant-pokemon', 'ruletext-pokemon', 'basic-energy', 'special-energy', 'item-card'];
   pl.hand = [];
   gs.cardResolver = fakeResolver({
     'normal-pokemon': { info:{ name:'普通宝可梦', number:null, type:'pokemon' }, card:{ cardType:'pokemon', name:'普通宝可梦' } },
     'rule-pokemon': { info:{ name:'皮卡丘ex', number:null, type:'pokemon' }, card:{ cardType:'pokemon', name:'皮卡丘ex', ruleBox:'ex' } },
+    'has-rulebox': { info:{ name:'规则盒测试', number:null, type:'pokemon' }, card:{ cardType:'pokemon', name:'规则盒测试', hasRuleBox:true } },
+    'radiant-pokemon': { info:{ name:'光辉伊布', number:null, type:'pokemon' }, card:{ cardType:'pokemon', name:'光辉伊布', isRadiant:true } },
+    'ruletext-pokemon': { info:{ name:'规则文本测试', number:null, type:'pokemon' }, card:{ cardType:'pokemon', name:'规则文本测试', ruleText:'拥有规则的宝可梦' } },
     'basic-energy': { info:{ name:'基本【水】能量', number:null, type:'energy' }, card:{ cardType:'energy', name:'基本【水】能量', element:'水' } },
     'special-energy': { info:{ name:'特殊能量', number:null, type:'specialEnergy' }, card:{ cardType:'specialEnergy', name:'特殊能量' } },
     'item-card': { info:{ name:'物品测试卡', number:null, type:'item' }, card:{ cardType:'trainer', trainerType:'item', name:'物品测试卡' } },
@@ -1543,6 +1546,9 @@ await test('水莲的照顾执行：只向 picker 暴露普通宝可梦与基本
   assert.deepEqual(pl.hand, ['normal-pokemon']);
   assert.equal(pl.discard.includes('basic-energy'), true);
   assert.equal(pl.discard.includes('rule-pokemon'), true);
+  assert.equal(pl.discard.includes('has-rulebox'), true);
+  assert.equal(pl.discard.includes('radiant-pokemon'), true);
+  assert.equal(pl.discard.includes('ruletext-pokemon'), true);
   assert.equal(pl.discard.includes('special-energy'), true);
   assert.equal(pl.discard.includes('item-card'), true);
 });
@@ -2307,6 +2313,35 @@ await test('CardResolver 保留真实卡牌撤退费用 0', () => {
   assert.ok(raw, 'missing zero-retreat pokemon in real data');
   const card = resolver._pokemon(raw);
   assert.equal(card.retreatCost, 0);
+});
+
+await test('CardResolver 标记ex、光辉与规则盒元数据', () => {
+  const resolver = new CardResolver();
+  const exRaw = loadJson('pokemon-cards.json').find(c => /ex/i.test(`${c['宝可梦名字'] || ''} ${c['规则'] || ''} ${c['规则2'] || ''}`));
+  const radiantRaw = loadJson('pokemon-cards.json').find(c => /^光辉/.test(c['宝可梦名字'] || '') || /光辉宝可梦/.test(`${c['规则'] || ''} ${c['规则2'] || ''}`));
+  assert.ok(exRaw, 'missing ex pokemon in real data');
+  assert.ok(radiantRaw, 'missing radiant pokemon in real data');
+  const exCard = resolver._pokemon(exRaw);
+  const radiantCard = resolver._pokemon(radiantRaw);
+  assert.equal(exCard.isEx, true);
+  assert.equal(exCard.hasRuleBox, true);
+  assert.equal(radiantCard.isRadiant, true);
+  assert.equal(radiantCard.hasRuleBox, true);
+});
+
+await test('CardResolver 真实道具：大气球、幸存锻炼器、超群眼镜解析为宝可梦道具', () => {
+  const resolver = new CardResolver();
+  const tools = loadJson('PokemonTool-cards.json');
+  const byId = id => tools.find(c => (c['卡牌ID'] || []).includes(id));
+  const airBall = resolver._trainer({ ...byId('9024'), _t:'tool' });
+  const survival = resolver._trainer({ ...byId('11176'), _t:'tool' });
+  const glasses = resolver._trainer({ ...byId('7035'), _t:'tool' });
+  assert.equal(airBall.trainerType, 'tool');
+  assert.equal(airBall.name, '大气球');
+  assert.equal(survival.trainerType, 'tool');
+  assert.equal(survival.name, '幸存锻炼器');
+  assert.equal(glasses.trainerType, 'tool');
+  assert.equal(glasses.name, '超群眼镜');
 });
 
 await test('手牌能量可附着到战斗宝可梦 active', () => {
@@ -4506,6 +4541,30 @@ await test('训练家使用限制：支援者一回合一次，竞技场替换�
   assert.deepEqual(pl.active.tool, { cardId:'toolCard', name:'道具A' });
 });
 
+await test('超群眼镜：真实本地文本仅作为道具附加且无额外效果', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  gs.currentPlayer = pl;
+  pl.active = mon('出战');
+  pl.hand = ['7035'];
+  const raw = loadJson('PokemonTool-cards.json').find(c => (c['卡牌ID'] || []).includes('7035'));
+  const glasses = new CardResolver()._trainer({ ...raw, _t:'tool' });
+  assert.equal(glasses.trainerType, 'tool');
+  const ok = await makeEngine(gs).useTrainer(0, glasses, 'active');
+  assert.equal(ok, true);
+  assert.deepEqual(pl.hand, []);
+  assert.deepEqual(pl.discard, []);
+  assert.deepEqual(pl.active.tool, { cardId:'7035', name:'超群眼镜' });
+  assert.equal(pl.active.hp, pl.active.maxHp);
+
+  pl.hand = ['7035b'];
+  const second = await makeEngine(gs).useTrainer(0, glasses, 'active');
+  assert.equal(second, false);
+  assert.deepEqual(pl.hand, ['7035b']);
+  assert.deepEqual(pl.discard, []);
+  assert.deepEqual(pl.active.tool, { cardId:'7035', name:'超群眼镜' });
+});
+
 await test('奖赏卡：击倒后拿奖赏，拿完判胜', () => {
   const gs = new GameState();
   const attacker = gs.player1;
@@ -4520,6 +4579,36 @@ await test('奖赏卡：击倒后拿奖赏，拿完判胜', () => {
   assert.equal(gs.winner, attacker);
 });
 
+await test('ex奖赏规则：出战与备战ex昏厥均拿2张且可触发胜利', async () => {
+  const gs = new GameState();
+  const attacker = gs.player1;
+  const defender = gs.player2;
+  attacker.prizes = ['p1', 'p2', 'p3'];
+  attacker.hand = [];
+  defender.active = mon('防守ex', 'def-ex');
+  defender.active.isEx = true;
+  defender.active.hp = 0;
+  defender.bench = [mon('替补')];
+  gs.knockout(defender);
+  assert.equal(attacker.prizes.length, 1);
+  assert.deepEqual(attacker.hand, ['p3', 'p2']);
+  assert.equal(defender.active.name, '替补');
+
+  const gs2 = new GameState();
+  const atk2 = gs2.player1;
+  const def2 = gs2.player2;
+  atk2.prizes = ['last1', 'last2'];
+  atk2.hand = [];
+  def2.active = mon('防守');
+  def2.bench = [mon('备战ex', 'bench-ex')];
+  def2.bench[0].isEx = true;
+  await executeEffects(gs2, atk2, [{ action:'damage_bench', params:{ target:'opponent_all', damage:70 } }]);
+  assert.deepEqual(atk2.hand, ['last2', 'last1']);
+  assert.equal(atk2.prizes.length, 0);
+  assert.equal(gs2.phase, PHASE.GAME_OVER);
+  assert.equal(gs2.winner, atk2);
+});
+
 await test('攻击修正：damage_modify 增伤后攻击造成更高伤害', async () => {
   const gs = new GameState();
   gs.phase = PHASE.BATTLE;
@@ -4531,6 +4620,66 @@ await test('攻击修正：damage_modify 增伤后攻击造成更高伤害', asy
   globalThis.setTimeout = () => 0;
   try { await makeEngine(gs).attack(); } finally { globalThis.setTimeout = realSetTimeout; }
   assert.equal(gs.player2.active.hp, 10);
+});
+
+await test('幸存锻炼器：仅满HP出战宝可梦受直接招式致命伤害时保留10HP并丢弃此道具', async () => {
+  const gs = new GameState();
+  gs.phase = PHASE.BATTLE;
+  gs.currentPlayer = gs.player1;
+  gs.player1.active = mon('攻击方', 'atk', [{ name:'重击', damage:80, cost:[], effects:[] }]);
+  gs.player2.active = mon('防守方', 'def');
+  gs.player2.active.tool = { cardId:'11176', name:'幸存锻炼器' };
+  const realSetTimeout = globalThis.setTimeout;
+  globalThis.setTimeout = () => 0;
+  try { await makeEngine(gs).attack(); } finally { globalThis.setTimeout = realSetTimeout; }
+  assert.equal(gs.player2.active.hp, 10);
+  assert.equal(gs.player2.active.tool, null);
+  assert.deepEqual(gs.player2.discard, ['11176']);
+
+  const damaged = new GameState();
+  damaged.phase = PHASE.BATTLE;
+  damaged.currentPlayer = damaged.player1;
+  damaged.player1.active = mon('攻击方', 'atk', [{ name:'重击', damage:50, cost:[], effects:[] }]);
+  damaged.player2.active = mon('已伤防守', 'def');
+  damaged.player2.active.hp = 50;
+  damaged.player2.active.tool = { cardId:'11176', name:'幸存锻炼器' };
+  damaged.player2.bench = [mon('替补')];
+  globalThis.setTimeout = () => 0;
+  try { await makeEngine(damaged).attack(); } finally { globalThis.setTimeout = realSetTimeout; }
+  assert.equal(damaged.player2.active.name, '替补');
+  assert.deepEqual(damaged.player2.discard, ['def']);
+
+  const nonLethal = new GameState();
+  nonLethal.phase = PHASE.BATTLE;
+  nonLethal.currentPlayer = nonLethal.player1;
+  nonLethal.player1.active = mon('攻击方', 'atk', [{ name:'轻击', damage:30, cost:[], effects:[] }]);
+  nonLethal.player2.active = mon('防守方', 'def');
+  nonLethal.player2.active.tool = { cardId:'11176', name:'幸存锻炼器' };
+  globalThis.setTimeout = () => 0;
+  try { await makeEngine(nonLethal).attack(); } finally { globalThis.setTimeout = realSetTimeout; }
+  assert.equal(nonLethal.player2.active.hp, 30);
+  assert.deepEqual(nonLethal.player2.active.tool, { cardId:'11176', name:'幸存锻炼器' });
+  assert.deepEqual(nonLethal.player2.discard, []);
+});
+
+await test('幸存锻炼器：伤害指示物与招式效果备战伤害不触发窄实现', async () => {
+  const gs = new GameState();
+  gs.player1.active = mon('攻击方');
+  gs.player2.active = mon('防守方', 'def');
+  gs.player2.active.tool = { cardId:'11176', name:'幸存锻炼器' };
+  gs.player2.bench = [mon('替补')];
+  await executeEffects(gs, gs.player1, [{ action:'damage_place', params:{ target:'opponent_active', count:6 } }]);
+  assert.equal(gs.player2.active.name, '替补');
+  assert.deepEqual(gs.player2.discard, ['def']);
+
+  const bench = new GameState();
+  bench.player1.active = mon('攻击方');
+  bench.player2.active = mon('防守方');
+  bench.player2.bench = [mon('备战防守', 'bench-def')];
+  bench.player2.bench[0].tool = { cardId:'11176', name:'幸存锻炼器' };
+  await executeEffects(bench, bench.player1, [{ action:'damage_bench', params:{ target:'opponent_all', damage:60 } }]);
+  assert.equal(bench.player2.bench.length, 0);
+  assert.deepEqual(bench.player2.discard, ['bench-def']);
 });
 
 await test('硬币效果：正面触发状态，反面不触发', async () => {
@@ -4731,6 +4880,33 @@ await test('撤退规则：真实0费用宝可梦不需要能量即可撤退', (
   assert.equal(pl.bench[0].name, 'free-retreat');
   assert.deepEqual(pl.discard, []);
   assert.equal(pl.retreatUsed, true);
+});
+
+await test('大气球：仅2阶宝可梦撤退费用归零且不丢能量', () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  pl.active = mon('2阶出战', 'stage2');
+  pl.active.stage = '2阶进化';
+  pl.active.retreatCost = 3;
+  pl.active.energy = ['能量A'];
+  pl.active.tool = { cardId:'9024', name:'大气球' };
+  pl.bench = [mon('备战')];
+  assert.equal(gs.effectiveRetreatCost(pl.active), 0);
+  assert.equal(gs.retreat(pl, 0), true);
+  assert.deepEqual(pl.discard, []);
+  assert.deepEqual(pl.bench[0].energy, ['能量A']);
+
+  const gs2 = new GameState();
+  const p2 = gs2.player1;
+  p2.active = mon('基础出战', 'basic');
+  p2.active.stage = '基础';
+  p2.active.retreatCost = 2;
+  p2.active.energy = ['能量A', '能量B'];
+  p2.active.tool = { cardId:'9024', name:'大气球' };
+  p2.bench = [mon('备战')];
+  assert.equal(gs2.effectiveRetreatCost(p2.active), 2);
+  assert.equal(gs2.retreat(p2, 0), true);
+  assert.deepEqual(p2.discard, ['能量B', '能量A']);
 });
 
 await test('retreat selected energy indices discard exact attached cards', () => {

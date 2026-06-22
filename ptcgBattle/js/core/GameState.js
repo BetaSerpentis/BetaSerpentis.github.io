@@ -71,6 +71,8 @@ export class GameState {
     this.turn++;this.setPhase(PHASE.DRAW);this.addLog(`第${this.turn}回合 — ${this.currentPlayer.name}`);this.currentPlayer.draw(1);this.recomputePassives();}
 
   _makeMon(cid,cd,n,hp){return {cardId:cid,name:n,hp,maxHp:hp,element:cd?.element||'colorless',weakness:cd?.weakness||null,resistance:cd?.resistance||null,
+    stage:cd?.stage||'基础',evolvesFrom:cd?.evolvesFrom||null,ruleText:cd?.ruleText||'',rule2Text:cd?.rule2Text||'',ruleBox:cd?.ruleBox||'',
+    isEx:!!cd?.isEx,isRadiant:!!cd?.isRadiant,hasRuleBox:!!cd?.hasRuleBox,
     attacks:cd?.attacks||[{name:'撞击',damage:20,cost:[],effect:''}],energy:[],status:null,placedThisTurn:true,evolvedThisTurn:false,
     tool:null,ability:cd?.ability||null,abilityUsed:false,abilityDisabled:false,abilityDisabledBy:null,damageMod:0,preventDamage:false,preventEffect:false,cannotAttackNext:false,cannotRetreat:false,
     ignore:[],costEliminated:false,retreatCost:cd?.retreatCost??1};}
@@ -155,6 +157,12 @@ export class GameState {
     return units>=cost;
   }
   _canPayRetreatCost(mon,cost){return (mon.energy||[]).reduce((sum,e)=>sum+this._energyUnitsForRetreat(e,mon),0)>=cost;}
+  getCardForMon(mon){return mon?.cardId&&this.cardResolver?.getCard?.(mon.cardId)||null;}
+  isStage2Pokemon(mon){const card=this.getCardForMon(mon);const stage=String(card?.stage||mon?.stage||'');return /^2阶/.test(stage)||/^stage\s*2$/i.test(stage);}
+  isExPokemon(mon){const card=this.getCardForMon(mon);return !!(card?.isEx||mon?.isEx||/(?:宝可梦)?【?ex】?|\bex\b/i.test(`${card?.name||''} ${mon?.name||''} ${card?.ruleBox||''} ${mon?.ruleBox||''} ${card?.ruleText||''} ${mon?.ruleText||''}`));}
+  isRadiantPokemonCard(card){return !!(card?.isRadiant||/光辉宝可梦|^光辉/.test(`${card?.name||''} ${card?.ruleBox||''} ${card?.ruleText||''}`));}
+  hasRuleBoxPokemonCard(card){return !!(card?.hasRuleBox||card?.isEx||card?.isRadiant||/(?:宝可梦)?(?:ex|EX|GX|V|VMAX|VSTAR|BREAK)\b|拥有规则的宝可梦|规则宝可梦|光辉宝可梦|太晶/.test(`${card?.name||''} ${card?.ruleBox||''} ${card?.ruleText||''} ${card?.rule2Text||''}`));}
+  effectiveRetreatCost(mon){let cost=mon?.retreatCostOverride??mon?.retreatCost??1;const tool=mon?.tool;if(tool&&(String(tool.cardId||'')==='9024'||tool.name==='大气球')){if(this.isStage2Pokemon(mon))cost=0;}return Math.max(0,cost||0);}
   _discardEnergyForRetreat(mon,count,pl,selectedIndices=null){
     if(count<=0)return true;
     if(selectedIndices){
@@ -175,7 +183,7 @@ export class GameState {
   }
   retreat(pl,benchIndex,selectedEnergyIndices=null){if(pl.retreatUsed){this.addLog('本回合已撤退过');return false;}if(!pl.active||!pl.bench[benchIndex]){this.addLog('撤退目标不存在');return false;}
     const st=pl.active.status||'';if(st.includes('sleep')||st.includes('paralysis')||pl.active.cannotRetreat){this.addLog('无法撤退');return false;}
-    const cost=pl.active.retreatCostOverride??pl.active.retreatCost??1;if(!this._canPayRetreatCost(pl.active,cost)){this.addLog('撤退能量不足');return false;}
+    const cost=this.effectiveRetreatCost(pl.active);if(!this._canPayRetreatCost(pl.active,cost)){this.addLog('撤退能量不足');return false;}
     if(!this._discardEnergyForRetreat(pl.active,cost,pl,selectedEnergyIndices))return false;const old=pl.active;pl.active=pl.bench.splice(benchIndex,1)[0];pl.bench.push(old);pl.retreatUsed=true;this.addLog(`${pl.name} 撤退，换上 ${pl.active.name}`);this.recomputePassives();return true;}
 
   evolve(pl,hi,cd,slot){const t=slot==='active'?pl.active:pl.bench[parseInt(slot.replace('bench-',''))];
@@ -184,6 +192,7 @@ export class GameState {
     if(t.placedThisTurn||t.evolvedThisTurn){this.addLog(`${t.name} 本回合刚出场或已进化，下回合才能进化`);return false;}
     const dmg=t.maxHp-t.hp;pl.hand.splice(hi,1);
     t.name=cd.name;t.maxHp=cd.hp;t.hp=Math.max(cd.hp-dmg,10);
+    t.stage=cd.stage||t.stage;t.evolvesFrom=cd.evolvesFrom||null;t.ruleText=cd.ruleText||'';t.rule2Text=cd.rule2Text||'';t.ruleBox=cd.ruleBox||'';t.isEx=!!cd.isEx;t.isRadiant=!!cd.isRadiant;t.hasRuleBox=!!cd.hasRuleBox;
     t.attacks=cd.attacks;t.element=cd.element;t.weakness=cd.weakness||null;t.resistance=cd.resistance||null;t.retreatCost=cd.retreatCost??1;t.ability=cd.ability||null;t.abilityUsed=false;t.abilityDisabled=false;t.abilityDisabledBy=null;t.placedThisTurn=false;t.evolvedThisTurn=true;
     this.addLog(`${pl.name} 的宝可梦进化成了 ${cd.name}！`);this.recomputePassives();return true;}
 
@@ -457,9 +466,11 @@ export class GameState {
 
   takePrize(pl){if(pl.prizes.length>0){const prize=pl.prizes.pop();pl.hand.push(prize);this.addLog(`${pl.name} 获奖品卡 剩${pl.prizes.length}`);
     if(pl.prizes.length===0){this.winner=pl;this.phase=PHASE.GAME_OVER;this.addLog(`${pl.name} 胜利！`);}}}
+  prizesForKnockout(mon){return this.isExPokemon(mon)?2:1;}
+  takePrizesForKnockout(pl,mon){const count=this.prizesForKnockout(mon);for(let i=0;i<count&&pl?.prizes?.length>0&&this.phase!==PHASE.GAME_OVER;i++)this.takePrize(pl);}
 
-  knockout(pl){if(!pl.active)return;this._recordKnockout(pl);pl.discard.push(pl.active.cardId);this.addLog(`${pl.name} 的 ${pl.active.name} 被击倒！`);
-    const opp=this.getOpponent(pl);this.takePrize(opp);
+  knockout(pl){if(!pl.active)return;const knockedOut=pl.active;this._recordKnockout(pl);pl.discard.push(knockedOut.cardId);this.addLog(`${pl.name} 的 ${knockedOut.name} 被击倒！`);
+    const opp=this.getOpponent(pl);this.takePrizesForKnockout(opp,knockedOut);
     if(pl.bench.length>0){pl.active=pl.bench.shift();this.addLog(`${pl.name} 换上 ${pl.active.name}`);this.recomputePassives();}
     else{this.winner=opp;this.phase=PHASE.GAME_OVER;this.addLog(`${opp.name} 胜利！`);}}
 

@@ -423,10 +423,21 @@ export class BattleEngine {
       damage = 0;
     }
 
-    // Apply damage
+    // Apply attack damage. 幸存锻炼器 is intentionally scoped to this direct
+    // BattleEngine.attack path: full-HP attached Pokemon that would be KO'd by
+    // opponent attack damage survives at 10 HP and discards the exact tool card.
     if (damage > 0) {
+      const beforeHp = def.active.hp;
+      const survivalTool = def.active.tool && (String(def.active.tool.cardId || '') === '11176' || def.active.tool.name === '幸存锻炼器') ? def.active.tool : null;
       def.active.hp -= damage;
       gs.addLog(`${atk.active.name} 使用了「${moveName}」！造成 ${damage} 伤害`);
+      if (survivalTool && beforeHp === def.active.maxHp && def.active.hp <= 0) {
+        const discarded = survivalTool.cardId || survivalTool.name || survivalTool;
+        def.discard.push(discarded);
+        def.active.tool = null;
+        def.active.hp = 10;
+        gs.addLog(`${def.active.name} 因「幸存锻炼器」以剩余HP 10 留在场上`);
+      }
       this.cb.onLog?.(`${moveName} → ${damage}伤害`);
     }
 
