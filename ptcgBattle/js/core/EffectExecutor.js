@@ -506,6 +506,12 @@ function _removeFirstFromDiscard(pl, card) {
   const idx = pl.discard.lastIndexOf(card);
   if (idx >= 0) pl.discard.splice(idx, 1);
 }
+function _conditionSatisfied(gs, player, condition) {
+  if (!condition) return true;
+  if (condition === 'second_player_first_turn') return !!(gs && player && gs.firstPlayer && player !== gs.firstPlayer && gs.turn === 2);
+  return false;
+}
+
 function _applyDamageToPokemon(gs, owner, mon, amount, logSuffix = '受到', options = {}) {
   if (!mon || !amount) return false;
   if (options.source === 'attack' && gs.isBenchProtectedFromOpponentAttack?.(owner, mon, 'damage')) { gs.addLog(`${mon.name} 防止了备战伤害`); return false; }
@@ -949,6 +955,7 @@ const EXECUTORS = {
 
   // ===== 状态异常 =====
   inflict_status(gs, pl, p) {
+    if (!_conditionSatisfied(gs, pl, p.condition)) return;
     const opp = _opponent(gs, pl);
     if (opp.active && p.statuses) { opp.active.status = p.statuses.join(','); gs.addLog(`对手 ${p.statuses.join('、')}`); }
   },
@@ -1212,7 +1219,8 @@ const EXECUTORS = {
     const count = p.count || 1;
     let heads = 0;
     for (let i = 0; i < count; i++) { if (Math.random() < 0.5) heads++; }
-    const extra = heads * (p.damage_per || 20);
+    const damagePer = Number.isFinite(p.damage_per) ? p.damage_per : (Number.isFinite(p.damage) ? p.damage : 20);
+    const extra = heads * damagePer;
     const opp = _opponent(gs, pl);
     if (opp.active && extra > 0) { opp.active.hp -= extra; gs.addLog(`硬币+${extra}伤害`); if (opp.active.hp <= 0) gs.knockout(opp); }
     return { heads };
