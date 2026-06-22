@@ -314,7 +314,8 @@ await test('真实数据：神奇糖果/洗翠沉重球/光辉伊布解析为可
   const heavyBall = items.find(c => c['卡牌名字'] === '洗翠的沉重球');
   const radiantEevee = loadJson('pokemon-cards.json').find(c => c['宝可梦名字'] === '光辉伊布');
   assert.ok(rareCandy && heavyBall && radiantEevee);
-  assert.equal(parseEffect(rareCandy['效果']).effects.some(e => e.action === 'evolve_rare_candy'), true);
+  const rareCandyParsed = parseEffect(rareCandy['效果']);
+  assert.equal(rareCandyParsed.effects.some(e => e.action === 'evolve_rare_candy' && e.params.noFirstTurn), true, JSON.stringify(rareCandyParsed));
   assert.equal(parseEffect(heavyBall['效果']).effects.some(e => e.action === 'prize_basic_pokemon_to_hand_exchange_trainer'), true);
   const eeveeParsed = parseEffect(radiantEevee['技能1']['效果']);
   const search = eeveeParsed.effects.find(e => e.action === 'search_deck_to_hand');
@@ -394,6 +395,21 @@ await test('真实数据：WP3 Skeledirge deck core cards parse to targeted effe
   const arrow = parseEffect(fez['技能1']['效果']).effects.find(e => e.action === 'damage_bench');
   assert.equal(arrow?.params.target, 'opponent_any');
   assert.equal(arrow?.params.damage, 100);
+});
+
+await test('真实数据：WP6 polish cards parse targeted automation effects', () => {
+  const pokemon = loadJson('pokemon-cards.json');
+  const items = loadJson('Item-cards.json');
+  const liepard = pokemon.find(c => c['特性名字'] === '交易');
+  const primeCatcher = items.find(c => c['卡牌名字'] === '顶尖捕捉器');
+  assert.ok(liepard && primeCatcher);
+
+  const trade = parseEffect(liepard['特性效果']);
+  assert.equal(trade.effects.some(e => e.action === 'ability_discard_cost' && e.params.count === 1 && !e.params.filter), true, JSON.stringify(trade));
+  assert.equal(trade.effects.some(e => e.action === 'draw' && e.params.count === 2), true, JSON.stringify(trade));
+
+  const catcher = parseEffect(primeCatcher['效果']);
+  assert.deepEqual(catcher.effects.filter(e => e.action === 'switch_pokemon').map(e => e.params.who), ['opponent', 'self'], JSON.stringify(catcher));
 });
 
 await test('真实数据：WP5 preset safety fixes parse conditional status, coin damage, and Mela prerequisite', () => {
@@ -1065,22 +1081,153 @@ await test('洗翠的沉重球：奖赏基础宝可梦与本卡互换', async ()
   assert.deepEqual(pl.discard, []);
 });
 
-await test('神奇糖果：基础宝可梦可跳过1阶进化为2阶', async () => {
+function setupRareCandyGame() {
   const gs = new GameState();
   const pl = gs.player1;
+  gs.currentPlayer = pl;
   pl.active = mon('小火龙');
   pl.active.placedThisTurn = false;
   pl.active.energy = ['基本【火】能量'];
-  pl.hand = ['charizard'];
+  pl.hand = ['神奇糖果', 'charizard'];
   gs.cardResolver = fakeResolver({
     charmeleon: { card:{ cardType:'pokemon', name:'火恐龙', stage:'1阶', evolvesFrom:'小火龙', hp:90 }, info:{ name:'火恐龙', number:null, type:'pokemon' } },
     charizard: { card:{ cardType:'pokemon', name:'喷火龙', stage:'2阶', evolvesFrom:'火恐龙', hp:150, attacks:[{ name:'火焰', damage:80, cost:[] }], element:'fire' }, info:{ name:'喷火龙', number:null, type:'pokemon' } },
   });
   gs.cardResolver.raw = { charmeleon:{}, charizard:{} };
+  const cardData = { cardType:'trainer', trainerType:'item', name:'神奇糖果', effects:[{ action:'evolve_rare_candy', params:{ noFirstTurn:true, noPlacedThisTurn:true } }] };
+  return { gs, pl, cardData, engine:makeEngine(gs) };
+}
+
+await test('神奇糖果：基础宝可梦可跳过1阶进化为2阶', async () => {
+  const { gs, pl } = setupRareCandyGame();
+  pl.hand = ['charizard'];
   await executeEffects(gs, pl, [{ action:'evolve_rare_candy', params:{} }]);
   assert.equal(pl.active.name, '喷火龙');
   assert.deepEqual(pl.active.energy, ['基本【火】能量']);
   assert.deepEqual(pl.hand, []);
+});
+
+await test('神奇糖果：自己的最初回合禁止且不消耗卡牌', async () => {
+  const { gs, pl, cardData, engine } = setupRareCandyGame();
+  gs.firstPlayer = pl;
+  gs.turn = 1;
+  gs.phase = PHASE.MAIN;
+  const before = { hand:[...pl.hand], discard:[...pl.discard], active:pl.active.name };
+  assert.equal(await engine.useTrainer(0, cardData), false);
+  assert.deepEqual(pl.hand, before.hand);
+  assert.deepEqual(pl.discard, before.discard);
+  assert.equal(pl.active.name, before.active);
+});
+
+await test('神奇糖果：必需目标取消回滚训练家消耗', async () => {
+  const { gs, pl, cardData, engine } = setupRareCandyGame();
+  gs.firstPlayer = pl;
+  gs.turn = 3;
+  gs.phase = PHASE.MAIN;
+  pl.bench = [mon('小火龙', 'bench-charmander')];
+  pl.bench[0].placedThisTurn = false;
+  gs._onPendingPokemonPick = pick => pick.resolve(null);
+  assert.equal(await engine.useTrainer(0, cardData), false);
+  assert.deepEqual(pl.hand, ['神奇糖果', 'charizard']);
+  assert.deepEqual(pl.discard, []);
+  assert.equal(pl.active.name, '小火龙');
+});
+
+await test('酷豹交易：需丢弃恰好1张手牌后抽2且成功后本回合一次', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  gs.currentPlayer = pl;
+  gs.phase = PHASE.MAIN;
+  pl.active = mon('酷豹', 'liepard');
+  pl.active.ability = { name:'交易', active:true, zone:'field', effects:[{ action:'ability_discard_cost', params:{ count:1, zone:'hand' } }, { action:'draw', params:{ count:2 } }] };
+  pl.hand = ['cost'];
+  pl.deck = ['draw-bottom', 'draw-top'];
+  const engine = makeEngine(gs);
+  assert.equal(await engine.useAbility(pl.active), true);
+  assert.equal(pl.discard.length, 1);
+  assert.equal(pl.hand.length, 2);
+  assert.equal(pl.deck.length, 0);
+  assert.equal(pl.active.abilityUsed, true);
+  assert.equal(await engine.useAbility(pl.active), false);
+});
+
+await test('酷豹交易：无可丢手牌或取消费用不标记使用且不变更状态', async () => {
+  let gs = new GameState();
+  let pl = gs.player1;
+  gs.currentPlayer = pl;
+  gs.phase = PHASE.MAIN;
+  pl.active = mon('酷豹', 'liepard');
+  pl.active.ability = { name:'交易', active:true, zone:'field', effects:[{ action:'ability_discard_cost', params:{ count:1, zone:'hand' } }, { action:'draw', params:{ count:2 } }] };
+  pl.deck = ['d1', 'd2'];
+  assert.equal(await makeEngine(gs).useAbility(pl.active), false);
+  assert.deepEqual(pl.hand, []);
+  assert.deepEqual(pl.discard, []);
+  assert.equal(pl.active.abilityUsed, false);
+
+  gs = new GameState();
+  pl = gs.player1;
+  gs.currentPlayer = pl;
+  gs.phase = PHASE.MAIN;
+  pl.active = mon('酷豹', 'liepard');
+  pl.active.ability = { name:'交易', active:true, zone:'field', effects:[{ action:'ability_discard_cost', params:{ count:1, zone:'hand' } }, { action:'draw', params:{ count:2 } }] };
+  pl.hand = ['cost-a', 'cost-b'];
+  pl.deck = ['d1', 'd2'];
+  gs._onPendingPick = pick => pick.resolve(null);
+  assert.equal(await makeEngine(gs).useAbility(pl.active), false);
+  assert.deepEqual(pl.hand, ['cost-a', 'cost-b']);
+  assert.deepEqual(pl.discard, []);
+  assert.equal(pl.deck.length, 2);
+  assert.equal(pl.active.abilityUsed, false);
+});
+
+function setupPrimeCatcherGame() {
+  const gs = new GameState();
+  const pl = gs.player1;
+  const opp = gs.player2;
+  gs.currentPlayer = pl;
+  gs.phase = PHASE.MAIN;
+  pl.hand = ['顶尖捕捉器'];
+  pl.active = mon('己方出战');
+  pl.bench = [mon('己方备战A'), mon('己方备战B')];
+  opp.active = mon('对手出战');
+  opp.bench = [mon('对手备战A'), mon('对手备战B')];
+  const cardData = { cardType:'trainer', trainerType:'item', name:'顶尖捕捉器', effects:[{ action:'switch_pokemon', params:{ who:'opponent' } }, { action:'switch_pokemon', params:{ who:'self' } }] };
+  return { gs, pl, opp, cardData, engine:makeEngine(gs) };
+}
+
+await test('顶尖捕捉器：按对手换位后己方换位顺序执行并消耗物品', async () => {
+  const { gs, pl, opp, cardData, engine } = setupPrimeCatcherGame();
+  const prompts = [];
+  gs._onPendingPokemonPick = pick => {
+    prompts.push(pick.options.side);
+    pick.resolve(pick.options.side === 'opponent' ? 'bench-1' : 'bench-0');
+  };
+  assert.equal(await engine.useTrainer(0, cardData), true);
+  assert.deepEqual(prompts, ['opponent', 'self']);
+  assert.equal(opp.active.name, '对手备战B');
+  assert.equal(pl.active.name, '己方备战A');
+  assert.deepEqual(pl.hand, []);
+  assert.deepEqual(pl.discard, ['顶尖捕捉器']);
+});
+
+await test('顶尖捕捉器：缺少/取消必需目标时回滚且不消耗物品', async () => {
+  let ctx = setupPrimeCatcherGame();
+  ctx.pl.bench = [];
+  assert.equal(await ctx.engine.useTrainer(0, ctx.cardData), false);
+  assert.equal(ctx.opp.active.name, '对手出战');
+  assert.deepEqual(ctx.pl.hand, ['顶尖捕捉器']);
+  assert.deepEqual(ctx.pl.discard, []);
+
+  ctx = setupPrimeCatcherGame();
+  ctx.gs._onPendingPokemonPick = pick => {
+    if (pick.options.side === 'opponent') pick.resolve('bench-0');
+    else pick.resolve(null);
+  };
+  assert.equal(await ctx.engine.useTrainer(0, ctx.cardData), false);
+  assert.equal(ctx.opp.active.name, '对手出战');
+  assert.equal(ctx.pl.active.name, '己方出战');
+  assert.deepEqual(ctx.pl.hand, ['顶尖捕捉器']);
+  assert.deepEqual(ctx.pl.discard, []);
 });
 
 await test('宝可齿轮3.0效果：picker 只看到支援者且 fallback 选择首个支援者', async () => {

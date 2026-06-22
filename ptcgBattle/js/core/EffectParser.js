@@ -66,6 +66,7 @@ function discardAttachParams(m, optional=false) {
 const RULES = [
   // ===== 训练家/特性使用前提：仅解析为元数据，不执行合法性或费用 =====
   { re: /若从自己的手牌将1张["“”]?基本【火】能量["“”]?卡丢弃/, act:'ability_discard_cost', p:m=>({ count:1, filter:'基本【火】能量', zone:'hand', raw:m[0] }) },
+  { re: /若将自己的1张手牌丢弃[，,]?则可使用1次/, act:'ability_discard_cost', p:m=>({ count:1, zone:'hand', raw:m[0] }) },
   { re: /在这个回合[，,]自己的宝可梦使用的招式[，,]对对手的战斗宝可梦造成的伤害["“]?\+60["”]?点/, act:'turn_damage_mod', p:()=>({ target:'own_field', amount:60, defender:'opponent_active', duration:'turn' }) },
   { re: /(?:双方玩家)?在(?:每个)?自己的回合时[，,]可使用1次/, act:'usage_condition', p:m=>trainerPrerequisite('once_per_turn', m[0]) },
   { re: /在这个回合[，,]若已经使出了其他的["“”]?(.+?)["“”]?[，,]则这个特性无法使用/, act:'usage_condition', p:m=>({ kind:'ability_name_once_per_turn', abilityName:m[1], raw:m[0] }) },
@@ -80,6 +81,8 @@ const RULES = [
   { re: /这张卡只有在将自己的(\d+)张手牌丢(?:到弃牌区|弃)才可使用/, act:'trainer_prerequisite', p:m=>({ kind:'discard_cost', raw:m[0], count:+m[1], zone:'hand' }) },
   { re: /这张卡只有在.+?时才可使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('condition', m[0]) },
   { re: /这张卡必须.+?丢弃才可使用/, act:'trainer_prerequisite', p:m=>discardCostParams(m[0]) },
+
+  { re: /则可使用1次/, act:'usage_condition', p:m=>trainerPrerequisite('once_per_turn', m[0]) },
 
   // ===== 特性：消除/被动光环 =====
   { re: /(?:对手的)?(?:战斗宝可梦|场上宝可梦|所有场上宝可梦|场上的.*?宝可梦).*?特性(?:（.*?除外）)?全部消除/, act:'ability_nullify', p:m=>abilityNullifyParams(m[0],m.input) },
