@@ -511,6 +511,9 @@ function _conditionSatisfied(gs, player, condition) {
   if (condition === 'second_player_first_turn') return !!(gs && player && gs.firstPlayer && player !== gs.firstPlayer && gs.turn === 2);
   return false;
 }
+function _isOwnFirstTurn(gs, player) {
+  return !!(gs && player && gs.firstPlayer && ((gs.turn === 1 && player === gs.firstPlayer) || (gs.turn === 2 && player !== gs.firstPlayer)));
+}
 
 function _applyDamageToPokemon(gs, owner, mon, amount, logSuffix = '受到', options = {}) {
   if (!mon || !amount) return false;
@@ -664,33 +667,43 @@ const EXECUTORS = {
 
   // ===== 神奇糖果：基础宝可梦跳过1阶进化为2阶 =====
   async evolve_rare_candy(gs, pl, p, eff, options) {
+    const failRequired = _effectIsRequired(eff, p, options);
+    if (p.noFirstTurn && _isOwnFirstTurn(gs, pl)) {
+      gs.addLog('自己的最初回合不能使用神奇糖果');
+      if (failRequired) _requiredFailure(eff?.action, 'required_first_turn_prohibited');
+      return;
+    }
     const stage2Candidates = (pl.hand || [])
       .map((card, index) => ({ card, index, data:gs.cardResolver?.getCard?.(card) }))
       .filter(item => item.data?.cardType === 'pokemon' && item.data.stage === '2阶' && item.data.evolvesFrom);
-    if (!stage2Candidates.length) { gs.addLog('手牌中没有可用的2阶进化宝可梦'); return; }
+    if (!stage2Candidates.length) { gs.addLog('手牌中没有可用的2阶进化宝可梦'); if (failRequired) _requiredFailure(eff?.action, 'required_no_stage2'); return; }
     const chosenCards = await _pickCardsFromZone(gs, pl, pl, pl.hand, 1, {
       source:'rare-candy-evolution-card',
       filter:card => stage2Candidates.some(item => item.card === card),
       excludeIndices:[],
-      prompt:'选择神奇糖果进化的2阶宝可梦'
+      prompt:'选择神奇糖果进化的2阶宝可梦',
+      failRequired,
+      requiredAction:eff?.action
     });
     const chosen = chosenCards[0];
-    if (!chosen) return;
+    if (!chosen) { if (failRequired) _requiredFailure(eff?.action, 'required_stage2_cancelled'); return; }
     const cd = gs.cardResolver?.getCard?.(chosen.card);
     const eligibleSlots = ['active', ...pl.bench.map((_, i) => `bench-${i}`)].filter(slot => {
       const mon = _getMon(pl, slot);
       return mon && !mon.placedThisTurn && !mon.evolvedThisTurn && _basicCanRareCandyTo(gs, mon, cd);
     });
-    if (!eligibleSlots.length) { gs.addLog('场上没有可用神奇糖果进化的基础宝可梦'); return; }
+    if (!eligibleSlots.length) { gs.addLog('场上没有可用神奇糖果进化的基础宝可梦'); if (failRequired) _requiredFailure(eff?.action, 'required_no_eligible_basic'); return; }
     const slot = await _pickPokemonTarget(gs, pl, pl, {
       mode:'evolve', side:'self', allowActive:true, allowBench:true, selectableSlots:eligibleSlots,
       slotFilter:candidateSlot => eligibleSlots.includes(candidateSlot),
-      prompt:'选择要使用神奇糖果进化的基础宝可梦'
+      prompt:'选择要使用神奇糖果进化的基础宝可梦',
+      failRequired,
+      requiredAction:eff?.action
     });
-    if (!eligibleSlots.includes(slot)) return;
+    if (!eligibleSlots.includes(slot)) { if (failRequired) _requiredFailure(eff?.action, 'required_rare_candy_target_cancelled'); return; }
     const mon = _getMon(pl, slot);
     const handIndex = pl.hand.indexOf(chosen.card);
-    if (handIndex < 0) return;
+    if (handIndex < 0) { if (failRequired) _requiredFailure(eff?.action, 'required_stage2_missing'); return; }
     pl.hand.splice(handIndex, 1);
     _applyEvolutionToMon(gs, mon, cd, true);
     gs.addLog(`${pl.name} 使用神奇糖果让 ${mon.name} 完成进化！`);
@@ -996,6 +1009,10 @@ const EXECUTORS = {
   },
   async switch_pokemon(gs, pl, p, eff, options) {
     const failRequired = _effectIsRequired(eff, p, options);
+    if (failRequired && p.who !== 'both') {
+      const targetPlayer = p.who === 'opponent' ? _opponent(gs, pl) : pl;
+      if (!targetPlayer.active || !(targetPlayer.bench || []).some(Boolean)) _requiredFailure(eff?.action, 'required_no_switch_target');
+    }
     if (p.who === 'opponent') {
       const opp = _opponent(gs, pl);
       const chooser = p.choose === 'opponent' ? opp : pl;
@@ -1009,6 +1026,7 @@ const EXECUTORS = {
       });
       const idx = slot?.startsWith('bench-') ? parseInt(slot.replace('bench-', '')) : -1;
       if (opp.bench[idx]) { const t = opp.active; opp.active = opp.bench.splice(idx,1)[0]; if (t) opp.bench.push(t); gs.addLog('对手换位'); }
+      else if (failRequired) _requiredFailure(eff?.action, 'required_invalid_switch_target');
     } else if (p.who === 'both') {
       for (const pp of [pl, _opponent(gs, pl)]) {
         if (pp.bench.length > 0) { const t = pp.active; pp.active = pp.bench.shift(); if (t) pp.bench.push(t); }
@@ -1018,6 +1036,7 @@ const EXECUTORS = {
       const slot = await _pickPokemonTarget(gs, pl, pl, { mode:'switch', side:'self', allowActive:false, allowBench:true, prompt:'选择换上场的备战宝可梦', failRequired, requiredAction:eff?.action });
       const idx = slot?.startsWith('bench-') ? parseInt(slot.replace('bench-', '')) : -1;
       if (pl.bench[idx]) { const t = pl.active; pl.active = pl.bench.splice(idx,1)[0]; if (t) pl.bench.push(t); gs.addLog('换位'); }
+      else if (failRequired) _requiredFailure(eff?.action, 'required_invalid_switch_target');
     }
   },
 

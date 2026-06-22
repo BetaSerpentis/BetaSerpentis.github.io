@@ -338,16 +338,18 @@ export class BattleEngine {
     const check = gs.canUseAbility ? gs.canUseAbility(pl, source, ab, options.zone) : { ok: !!ab, ability: ab, zone: options.zone || 'field' };
     if (!check.ok) { this.cb.onLog?.(check.message || gs._abilityReasonText?.(check.reason) || '无法使用特性'); return false; }
     const effects = (check.ability.effects || []).map(e => ({ ...e, params: { ...(e.params || {}) }, source, sourceAbility: check.ability, sourceZone: check.zone }));
+    const transaction = _snapshotTrainerTransaction(gs);
     try {
       await executeEffects(gs, pl, this._abilityCostEffects(effects), { propagateFailure: true });
+      gs.addLog(`${pl.name} 使用了特性「${check.ability.name}」`);
+      await executeEffects(gs, pl, effects.filter(e => e.action !== 'ability_discard_cost'), { propagateFailure: true });
+      gs.markAbilityUsed?.(pl, source, check.ability, check.zone);
     } catch(e) {
-      gs.addLog('特性费用未支付');
+      _restoreTrainerTransaction(gs, transaction);
+      gs.addLog(e?.message === 'ability_cost_unpaid' ? '特性费用未支付' : `特性「${check.ability.name}」使用取消：${e?.message || '效果未完成'}`);
       this.cb.onFieldUpdate?.();
       return false;
     }
-    gs.markAbilityUsed?.(pl, source, check.ability, check.zone);
-    gs.addLog(`${pl.name} 使用了特性「${check.ability.name}」`);
-    await executeEffects(gs, pl, effects.filter(e => e.action !== 'ability_discard_cost'));
     gs.recomputePassives?.();
     this.cb.onFieldUpdate?.();
     return true;
