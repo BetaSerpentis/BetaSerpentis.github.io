@@ -84,8 +84,16 @@ export class CardResolver {
     const abilityActive = /可使用1次|可使用/.test(abilityText);
     const ability = r['特性名字'] ? { name:r['特性名字'], effect:abilityText, effects:abilityParsed.effects,
       active:abilityActive, passive:!abilityActive, oncePerTurn:/可使用1次/.test(abilityText), zone:this._abilityZone(abilityText) } : null;
-    return { cardType:'pokemon', name:r['宝可梦名字']||'未知', number:r['编号']||null,
+    const ruleText = r['规则'] || '';
+    const rule2Text = r['规则2'] || '';
+    const ruleBox = [ruleText, rule2Text].filter(Boolean).join(' ');
+    const name = r['宝可梦名字'] || '未知';
+    const isEx = /(?:宝可梦)?【?ex】?|\bex\b/i.test(`${name} ${ruleBox}`);
+    const isRadiant = /光辉宝可梦|^光辉/.test(`${name} ${ruleBox}`);
+    const hasRuleBox = isEx || isRadiant || /(?:宝可梦)?(?:GX|V|VMAX|VSTAR|BREAK)\b|拥有规则的宝可梦|规则宝可梦|太晶/i.test(`${name} ${ruleBox}`);
+    return { cardType:'pokemon', name, number:r['编号']||null,
       stage:r['进化阶段']||'基础', evolvesFrom:r['进化自']||null,
+      ruleText, rule2Text, ruleBox, isEx, isRadiant, hasRuleBox,
       hp:parseInt(r['HP'])||60, element:ELEM[r['属性']]||'colorless',
       weakness:r['弱点']? (ELEM[r['弱点']]||r['弱点']) : null, resistance:r['抵抗力']? (ELEM[r['抵抗力']]||r['抵抗力']) : null,
       retreatCost:Number.isFinite(parseInt(r['撤退'],10))?parseInt(r['撤退'],10):1,

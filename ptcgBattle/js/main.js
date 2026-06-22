@@ -842,7 +842,7 @@ export class PTCGBattleApp {
     const pl = this.gs.player1;
     const benchIndex = this._selectedBenchIdx;
     if (!pl.bench[benchIndex]) return;
-    const cost = pl.active?.retreatCostOverride ?? pl.active?.retreatCost ?? 1;
+    const cost = this.gs.effectiveRetreatCost ? this.gs.effectiveRetreatCost(pl.active) : (pl.active?.retreatCostOverride ?? pl.active?.retreatCost ?? 1);
     if (cost > 0 && (pl.active.energy || []).length > 0) {
       if (!this.gs._canPayRetreatCost(pl.active, cost)) { this._showMessage('撤退能量不足'); return; }
       const picked = await this.gs.waitForPick((pl.active.energy || []).map(energyLabel), (pl.active.energy || []).length, { source:'retreat-energy', cost, allowEmpty:true });

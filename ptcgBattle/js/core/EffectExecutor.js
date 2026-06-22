@@ -278,8 +278,9 @@ function _isNonElementQualifier(value) {
   return /^(基础|基本|进化|一阶|1阶|二阶|2阶|太晶|规则)$/i.test(String(value || '').trim());
 }
 function _isRuleBoxPokemon(meta, card) {
-  const raw = `${meta.label || ''} ${meta.full?.ruleBox || ''} ${card?.ruleBox || ''} ${(meta.full?.tags || []).join(' ')} ${(card?.tags || []).join(' ')}`;
-  if (/拥有规则的宝可梦|规则宝可梦|\b(rule\s*box|pokemon\s+with\s+a\s+rule\s+box)\b/i.test(raw)) return true;
+  if (meta.full?.hasRuleBox || card?.hasRuleBox || meta.full?.isEx || card?.isEx || meta.full?.isRadiant || card?.isRadiant) return true;
+  const raw = `${meta.label || ''} ${meta.full?.ruleBox || ''} ${meta.full?.ruleText || ''} ${meta.full?.rule2Text || ''} ${card?.ruleBox || ''} ${card?.ruleText || ''} ${card?.rule2Text || ''} ${(meta.full?.tags || []).join(' ')} ${(card?.tags || []).join(' ')}`;
+  if (/拥有规则的宝可梦|规则宝可梦|光辉宝可梦|太晶|\b(rule\s*box|pokemon\s+with\s+a\s+rule\s+box)\b/i.test(raw)) return true;
   return /(?:宝可梦)?(?:ex|EX|GX|V|VMAX|VSTAR|BREAK)\b/.test(raw) || /(?:ex|EX|GX|V|VMAX|VSTAR|BREAK)(?:宝可梦)?/.test(raw);
 }
 function _metaHasPokemonType(meta, cnType) {
@@ -369,6 +370,14 @@ function _makeBenchPokemonFromCard(gs, cid) {
     placedThisTurn: true,
     tool: null,
     ability: cd?.ability || null,
+    stage: cd?.stage || '基础',
+    evolvesFrom: cd?.evolvesFrom || null,
+    ruleText: cd?.ruleText || '',
+    rule2Text: cd?.rule2Text || '',
+    ruleBox: cd?.ruleBox || '',
+    isEx: !!cd?.isEx,
+    isRadiant: !!cd?.isRadiant,
+    hasRuleBox: !!cd?.hasRuleBox,
     abilityUsed: false,
     abilityDisabled: false,
     abilityDisabledBy: null,
@@ -485,6 +494,9 @@ function _basicCanRareCandyTo(gs, mon, stage2) {
 function _applyEvolutionToMon(gs, mon, cd, evolvedThisTurn = true) {
   const dmg = mon.maxHp - mon.hp;
   mon.name = cd.name; mon.maxHp = cd.hp; mon.hp = Math.max(cd.hp - dmg, 10);
+  mon.stage = cd.stage || mon.stage; mon.evolvesFrom = cd.evolvesFrom || null;
+  mon.ruleText = cd.ruleText || ''; mon.rule2Text = cd.rule2Text || ''; mon.ruleBox = cd.ruleBox || '';
+  mon.isEx = !!cd.isEx; mon.isRadiant = !!cd.isRadiant; mon.hasRuleBox = !!cd.hasRuleBox;
   mon.attacks = cd.attacks; mon.element = cd.element; mon.weakness = cd.weakness || null; mon.resistance = cd.resistance || null;
   mon.retreatCost = cd.retreatCost ?? 1; mon.ability = cd.ability || null; mon.abilityUsed = false; mon.abilityDisabled = false; mon.abilityDisabledBy = null;
   mon.placedThisTurn = false; mon.evolvedThisTurn = evolvedThisTurn;
@@ -515,7 +527,7 @@ function _knockoutPokemon(gs, owner, mon) {
   gs.addLog(`${owner.name} 的 ${mon.name} 被击倒！`);
   const prizeTaker = gs.getOpponent?.(owner) || [gs.player1, gs.player2].find(p => p !== owner);
   if (typeof gs._recordKnockout === 'function') gs._recordKnockout(owner);
-  if (prizeTaker) gs.takePrize(prizeTaker);
+  if (prizeTaker) gs.takePrizesForKnockout?.(prizeTaker, mon) ?? gs.takePrize(prizeTaker);
   gs.recomputePassives?.();
 }
 
