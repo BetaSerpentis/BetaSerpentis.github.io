@@ -396,6 +396,31 @@ await test('真实数据：WP3 Skeledirge deck core cards parse to targeted effe
   assert.equal(arrow?.params.damage, 100);
 });
 
+await test('真实数据：WP5 preset safety fixes parse conditional status, coin damage, and Mela prerequisite', () => {
+  const pokemon = loadJson('pokemon-cards.json');
+  const supporters = loadJson('Supporter-cards.json');
+  const purrloin = pokemon.find(c => (c['卡牌ID'] || []).includes('7654'));
+  const cryogonal = pokemon.find(c => (c['卡牌ID'] || []).includes('9539'));
+  const mela = supporters.find(c => (c['卡牌ID'] || []).includes('10024'));
+  assert.ok(purrloin && cryogonal && mela);
+
+  const purrloinParsed = parseEffect(purrloin['技能1']['效果']);
+  const coinDamage = purrloinParsed.effects.find(e => e.action === 'coin_flip_damage');
+  assert.equal(coinDamage?.params.count, 3, JSON.stringify(purrloinParsed));
+  assert.equal(coinDamage?.params.damage_per, 10, JSON.stringify(purrloinParsed));
+
+  const cryogonalParsed = parseEffect(cryogonal['技能1']['效果']);
+  const status = cryogonalParsed.effects.find(e => e.action === 'inflict_status');
+  assert.equal(status?.params.condition, 'second_player_first_turn', JSON.stringify(cryogonalParsed));
+  assert.deepEqual(status?.params.statuses, ['paralysis']);
+  assert.equal(cryogonalParsed.unparsed, '', `cryogonal residual=${cryogonalParsed.unparsed}`);
+
+  const melaParsed = parseEffect(mela['效果']);
+  assert.equal(melaParsed.effects.some(e => e.action === 'trainer_prerequisite' && e.params?.kind === 'own_pokemon_knocked_out_last_opponent_turn'), true, JSON.stringify(melaParsed));
+  assert.equal(melaParsed.effects.some(e => e.action === 'attach_energy_from_discard'), true, JSON.stringify(melaParsed));
+  assert.equal(melaParsed.effects.some(e => e.action === 'draw_until' && e.params?.target === 6), true, JSON.stringify(melaParsed));
+});
+
 await test('解析覆盖：训练家使用前提解析为元数据且不残留', () => {
   const cases = [
     ['帮忙铃', '这张卡只可在后攻玩家的最初回合使用。', 'trainer_prerequisite', 'first_turn'],
@@ -403,6 +428,7 @@ await test('解析覆盖：训练家使用前提解析为元数据且不残留',
     ['反击捕捉器', '这张卡只有在自己剩余奖赏卡的张数比对手剩余奖赏卡的张数多时才可使用。', 'trainer_prerequisite', 'own_prizes_more_than_opponent'],
     ['玻璃喇叭', '这张卡只有在自己的场上有"太晶"宝可梦时才可使用。', 'trainer_prerequisite', 'condition'],
     ['大地之容器', '这张卡必须将自己的1张手牌丢弃才可使用。', 'trainer_prerequisite', 'discard_cost'],
+    ['梅洛可', '这张卡必须在上个对手的回合自己的宝可梦【昏厥】了才可使用。', 'trainer_prerequisite', 'own_pokemon_knocked_out_last_opponent_turn'],
     ['大姐姐', '这张卡可在先攻玩家的最初回合使用。', 'trainer_prerequisite', 'first_player_first_turn_supporter_exception'],
     ['火力工厂◇', '在自己的回合时，可使用1次。', 'usage_condition', 'once_per_turn'],
     ['潺潺之丘', '双方玩家在自己的回合时，可使用1次。', 'usage_condition', 'once_per_turn'],
@@ -3199,6 +3225,30 @@ await test('状态异常效果：对手战斗宝可梦获得 poison/confusion', 
   assert.equal(gs.player2.active.status, 'poison,confusion');
 });
 
+await test('WP5 几何雪花快速冻凝：麻痹只在后攻玩家最初回合适用', async () => {
+  const effects = parseEffect('若在后攻玩家的最初回合，则将对手的战斗宝可梦【麻痹】。').effects;
+  assert.equal(effects[0]?.action, 'inflict_status');
+  assert.equal(effects[0]?.params.condition, 'second_player_first_turn');
+
+  const legal = new GameState();
+  legal.firstPlayer = legal.player1;
+  legal.currentPlayer = legal.player2;
+  legal.turn = 2;
+  legal.player1.active = mon('先攻出战');
+  legal.player2.active = mon('几何雪花');
+  await executeEffects(legal, legal.player2, effects);
+  assert.equal(legal.player1.active.status, 'paralysis');
+
+  const illegal = new GameState();
+  illegal.firstPlayer = illegal.player1;
+  illegal.currentPlayer = illegal.player1;
+  illegal.turn = 3;
+  illegal.player1.active = mon('先攻出战');
+  illegal.player2.active = mon('后攻出战');
+  await executeEffects(illegal, illegal.player1, effects);
+  assert.equal(illegal.player2.active.status, null);
+});
+
 await test('伤害指示物与备战伤害执行', async () => {
   const gs = new GameState();
   gs.player1.active = mon('我方');
@@ -4680,6 +4730,37 @@ await test('幸存锻炼器：伤害指示物与招式效果备战伤害不触�
   await executeEffects(bench, bench.player1, [{ action:'damage_bench', params:{ target:'opponent_all', damage:60 } }]);
   assert.equal(bench.player2.bench.length, 0);
   assert.deepEqual(bench.player2.discard, ['bench-def']);
+});
+
+await test('WP5 扒手猫乱抓：3次硬币按正面×10伤害且无额外固定10', async () => {
+  const realRandom = Math.random;
+  const gs = new GameState();
+  gs.player1.active = mon('扒手猫');
+  gs.player2.active = mon('对手', 'def');
+  gs.player2.active.hp = 100;
+  gs.player2.active.maxHp = 100;
+  try {
+    const rolls = [0.1, 0.2, 0.9];
+    Math.random = () => rolls.shift() ?? 0.9;
+    await executeEffects(gs, gs.player1, [{ action:'coin_flip_damage', params:{ count:3, damage_per:10 } }]);
+  } finally {
+    Math.random = realRandom;
+  }
+  assert.equal(gs.player2.active.hp, 80);
+});
+
+await test('WP5 coin_flip_damage：单硬币damage参数按每正面伤害兼容执行', async () => {
+  const realRandom = Math.random;
+  const gs = new GameState();
+  gs.player1.active = mon('攻击方');
+  gs.player2.active = mon('对手');
+  try {
+    Math.random = () => 0.1;
+    await executeEffects(gs, gs.player1, [{ action:'coin_flip_damage', params:{ count:1, damage:30 } }]);
+  } finally {
+    Math.random = realRandom;
+  }
+  assert.equal(gs.player2.active.hp, 30);
 });
 
 await test('硬币效果：正面触发状态，反面不触发', async () => {
