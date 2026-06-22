@@ -17,3 +17,6 @@ build/
 
 # IDE 配置文件（如果你使用特定编辑器，如 VSCode）
 .vscode/
+
+# 本地测试 ROM（不要提交版权游戏文件）
+#emulator/roms/
