@@ -1119,6 +1119,11 @@ export class AIChatService {
         const targetAttrName = attrNames[targetAttr] || targetAttr;
         const restrictedToType = abilityText.includes(targetAttrName + '宝可梦') || abilityText.includes('基本' + targetAttrName + '能量');
 
+        // 判断目标卡是"提供能量"还是"消耗能量"
+        const targetEffects = (targetData['特性效果'] || '') + ' ' + (targetData['效果'] || '');
+        const providesEnergy = /附着.*能量|能量.*附着|填能/.test(targetEffects) &&
+            /弃牌区|牌库|手牌|特性/.test(targetEffects);
+
         const allCards = new Map();
 
         // 0. 基础池：所有同属性 + 所有伤指物相关的宝可梦（不管有没有被后续搜索命中）
@@ -1134,10 +1139,11 @@ export class AIChatService {
             }
         }
 
-        // 高能量需求打手：用结构化数据搜索
-        const highEnergyCards = this._findHighEnergyAttackers(targetData);
-        if (highEnergyCards.length > 0) {
-            results.push(`\n## 高能量需求打手\n(需3能以上+${targetAttr}能量，直接从招式消耗数据筛选，${highEnergyCards.length}张)\n`);
+        // 高能量需求打手：仅在目标卡提供能量时推荐（否则是抢能量，不是协同）
+        if (providesEnergy) {
+            const highEnergyCards = this._findHighEnergyAttackers(targetData);
+            if (highEnergyCards.length > 0) {
+                results.push(`\n## 高能量需求打手\n(目标卡可提供能量加速，需3能以上+${targetAttr}能量，${highEnergyCards.length}张)\n`);
             results.push(highEnergyCards.slice(0, 40).map((c, i) => {
                 const existing = allCards.get(c.id);
                 if (existing) {
@@ -1193,6 +1199,26 @@ export class AIChatService {
                 }
                 results.push(section);
             } catch (e) { /* skip failed pattern */ }
+            }
+        } else {
+            // 目标卡不提供能量 → 搜索能量加速辅助卡
+            results.push(`\n## 能量加速辅助 (目标卡需要大量${targetAttr}能量)\n`);
+            const accelCards = [];
+            for (const [id, data] of this._jsonCache) {
+                if (!data['宝可梦名字'] && data['卡牌类型'] && !data['卡牌类型'].includes('宝可梦')) continue;
+                const text = this._jsonCardToSearchText(data);
+                const version = Array.isArray(data['卡牌版本']) ? data['卡牌版本'][0] : (data['卡牌版本'] || '');
+                if (version && !'FGHI'.includes(version.toUpperCase())) continue;
+                if (text.includes('能量') && (text.includes('附着') || text.includes('填能') || text.includes('弃牌区')) &&
+                    (text.includes(targetAttr) || data['属性'] === targetAttr)) {
+                    accelCards.push({ id, name: data['宝可梦名字'] || data['卡牌名字'] || id, data });
+                }
+            }
+            if (accelCards.length > 0) {
+                results.push(accelCards.slice(0, 8).map(c => `- **${c.name}** [ID:${c.id}]`).join('\n'));
+            } else {
+                results.push('(未找到专用能量加速卡，可考虑通用填能支援者如赤松等)');
+            }
         }
 
         // 4. 统一打分 + 去重 (v6 新评分引擎)
