@@ -13,6 +13,10 @@ import { CardBrowser } from './features/CardBrowser.js';
 import { DeckManager } from './core/DeckManager.js';
 import { DeckEditor } from './features/DeckEditor.js';
 
+import { ApiKeyManager } from './core/ApiKeyManager.js';
+import { AIChatService } from './services/AIChatService.js';
+import { AIChatPanel } from './features/AIChatPanel.js';
+
 import { ButtonManager } from './utils/ButtonManager.js';
 import { TouchManager } from './utils/TouchManager.js';
 import { debugLog } from './utils/constants.js';
@@ -48,7 +52,19 @@ class PTCGApp {
             // 初始化卡组管理器
             this.deckManager = new DeckManager(this.storageService, this.cardManager);
             this.deckManager.init();
-            
+
+            // 初始化 AI 服务
+            this.apiKeyManager = new ApiKeyManager(this.storageService);
+            this.aiChatService = new AIChatService(this.cardManager, this.apiKeyManager);
+            this.aiChatPanel = new AIChatPanel(
+                this.aiChatService,
+                this.deckManager,
+                this.cardManager,
+                this.imageLoader,
+                this.apiKeyManager
+            );
+            this.aiChatPanel.init();
+
             // 先初始化基础的UI组件
             this.modalView = new ModalView(this.cardManager, this.imageLoader);
             this.statsManager = new StatsManager(this.cardManager, this.onStatsChange.bind(this));
@@ -97,7 +113,8 @@ class PTCGApp {
             this.buttonManager = new ButtonManager(
                 this.deckEditor,
                 this.statsManager,
-                this.cardManager
+                this.cardManager,
+                this.aiChatPanel
             );
 
             // 确保 ButtonManager 可以访问 DeckManager
@@ -123,8 +140,12 @@ class PTCGApp {
             
             // 首屏渲染完成后，后台预加载卡组排序/封面需要的基础信息。
             // 不调用 loadCardData，避免滚动分页时污染当前页签的 cards/filteredCards。
-            setTimeout(() => {
-                this.cardManager.preloadAllCardBaseInfo();
+            setTimeout(async () => {
+                await this.cardManager.preloadAllCardBaseInfo();
+                // AI 搜索需要跨类型的 searchText — 预加载完成后补上
+                if (this.aiChatService) {
+                    await this.aiChatService.ensureSearchDataLoaded();
+                }
             }, 2000);
 
         } catch (error) {

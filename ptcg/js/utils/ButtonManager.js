@@ -1,12 +1,13 @@
 // ptcg/js/utils/ButtonManager.js
 export class ButtonManager {
-    constructor(deckEditor, statsManager, cardManager) {
+    constructor(deckEditor, statsManager, cardManager, aiChatPanel = null) {
         this.deckEditor = deckEditor;
         this.statsManager = statsManager;
         this.cardManager = cardManager;
+        this.aiChatPanel = aiChatPanel;
         this.container = null;
         this.importExportContainer = null;
-        
+
         this.init();
     }
 
@@ -31,10 +32,18 @@ export class ButtonManager {
         document.body.appendChild(this.importExportContainer);
     }
 
-    // 浏览模式：卡组 + 统计 + 导入导出
+    // 浏览模式：AI分析 + 卡组 + 统计 + 导入导出
     showBrowseMode() {
         this.container.innerHTML = '';
         this.importExportContainer.innerHTML = '';
+
+        // AI 分析按钮
+        if (this.aiChatPanel) {
+            const aiButton = this.createButton('AI分析', 'ai-button', () => {
+                this.aiChatPanel.toggle();
+            });
+            this.container.appendChild(aiButton);
+        }
 
         // 左下角：卡组 + 统计
         const deckButton = this.createButton('卡组', 'deck-button', () => {
@@ -53,10 +62,18 @@ export class ButtonManager {
         this.createImportExportButtons();
     }
 
-    // 卡组模式：查卡 + 编辑 + 导入导出
+    // 卡组模式：AI分析 + 查卡 + 编辑 + 导入导出
     showDeckMode() {
         this.container.innerHTML = '';
         this.importExportContainer.innerHTML = '';
+
+        // AI 分析按钮
+        if (this.aiChatPanel) {
+            const aiButton = this.createButton('AI分析', 'ai-button', () => {
+                this.aiChatPanel.toggle();
+            });
+            this.container.appendChild(aiButton);
+        }
 
         const searchButton = this.createButton('查卡', 'deck-search-button', () => {
             this.deckEditor.exitDeckMode();

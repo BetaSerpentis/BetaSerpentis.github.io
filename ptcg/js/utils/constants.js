@@ -61,6 +61,15 @@ export const CONFIG = {
     debug: false
 };
 
+// AI 分析配置（DeepSeek API，OpenAI 兼容格式）
+export const CONFIG_AI = {
+    model: 'deepseek-chat',
+    maxTokens: 4096,
+    maxContextCards: 50,
+    maxHistoryMessages: 20,
+    apiEndpoint: 'https://api.deepseek.com/v1/chat/completions'
+};
+
 export function debugLog(...args) {
     if (CONFIG.debug) {
         console.log(...args);
@@ -70,6 +79,9 @@ export function debugLog(...args) {
 // 本地存储键名 - 保持原有键名兼容，只添加新的卡组键
 export const STORAGE_KEYS = {
     CARD_QUANTITIES: 'pokemonCardQuantities',  // 保持原有键名
-    LAST_SAVED: 'lastSaved',                   // 保持原有键名  
-    DECKS: 'ptcg_decks'                        // 新增卡组存储键
+    LAST_SAVED: 'lastSaved',                   // 保持原有键名
+    DECKS: 'ptcg_decks',                       // 新增卡组存储键
+    AI_API_KEY: 'ptcg_ai_api_key',             // AI API Key
+    AI_CHAT_HISTORY: 'ptcg_ai_chat_history',   // AI 聊天历史
+    AI_SETTINGS: 'ptcg_ai_settings'            // AI 设置（模型选择等）
 };
