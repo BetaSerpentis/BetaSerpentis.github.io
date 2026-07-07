@@ -1609,24 +1609,50 @@ export class AIChatService {
             }
         }
 
-        // 追加非宝可梦快速索引（名+ID，一行一个，供组卡组参考）
-        const nonPokeIdx = [];
-        const seenNames = new Set();
+        // 追加非宝可梦索引（按目标卡需求打分排序）
+        const nonPokeScored = [];
+        const seenNpNames = new Set();
+        const targetText = this._jsonCardToSearchText(targetData);
+        const isEvo = (targetData['进化阶段'] || '').includes('2');
+        const hasDmg = targetText.includes('伤害指示物');
+        const hasEnergy = targetText.includes('能量') && targetText.includes('附着');
+        const targetType = targetData['属性'] || '';
+
         for (const [id, data] of this._jsonCache) {
-            if (data['宝可梦名字']) continue; // 跳过宝可梦
+            if (data['宝可梦名字']) continue;
             const name = data['卡牌名字'] || '';
-            if (!name || seenNames.has(name)) continue;
+            if (!name || seenNpNames.has(name)) continue;
             const version = Array.isArray(data['卡牌版本']) ? data['卡牌版本'][0] : (data['卡牌版本'] || '');
             if (version && !'FGHI'.includes(version.toUpperCase())) continue;
-            seenNames.add(name);
+            seenNpNames.add(name);
             const type = (data['卡牌类型'] || '').replace('卡', '');
-            const eff = (data['效果'] || '').slice(0, 40);
-            nonPokeIdx.push(`[${type}] ${name} ID:${id} ${eff}`);
+            const eff = (data['效果'] || '');
+            const text = eff + (data['特性效果'] || '');
+
+            // 按目标卡需求打分
+            let score = 1; // 基础分
+            if (isEvo && (text.includes('进化') && (text.includes('牌库') || text.includes('糖果')))) score += 5;
+            if (isEvo && (text.includes('基础') && text.includes('牌库'))) score += 3;
+            if (hasDmg && text.includes('伤害指示物')) score += 4;
+            if (hasEnergy && text.includes('弃牌区') && text.includes('能量')) score += 3;
+            if (text.includes('牌库') && text.includes('抽出')) score += 2;
+            if (text.includes('回收') || text.includes('加入手牌')) score += 2;
+            if (text.includes('抓') || text.includes('战斗场')) score += 2;
+            if (text.includes(targetType + '能量')) score += 3;
+
+            nonPokeScored.push({ name, id, type, eff: eff.slice(0, 50), score });
         }
-        if (nonPokeIdx.length > 0) {
-            results.push(`\n---\n## 📦 支援者/物品/道具/竞技场索引 (仅F-I标，${nonPokeIdx.length}张)`);
-            results.push('> 组卡组时可从以下真实卡中选择。用 search_cards 搜具体名字确认。\n');
-            results.push(nonPokeIdx.join('\n'));
+        nonPokeScored.sort((a, b) => b.score - a.score);
+
+        if (nonPokeScored.length > 0) {
+            results.push(`\n---\n## 📦 推荐泛用卡 (按${targetName}需求打分，仅F-I标)`);
+            results.push(`> 前20张最相关的支援者/物品/道具/竞技场。组卡组时优先从前10选。\n`);
+            const top20 = nonPokeScored.slice(0, 20);
+            top20.forEach((s, i) => {
+                const star = i < 5 ? '⭐' : (i < 10 ? '★' : '');
+                results.push(`${star}[${s.type}] **${s.name}** ID:${s.id} (${s.score}分) ${s.eff}`);
+            });
+            results.push(`\n> 更多卡请用 search_cards 按类型搜索。`);
         }
 
         if (sections.length === 0) {
