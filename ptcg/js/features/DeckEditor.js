@@ -379,13 +379,13 @@ export class DeckEditor {
         // 使用 CardGrid 的统计模式检测方法
         const isStatsMode = this.cardGrid.isStatsModeActive ? this.cardGrid.isStatsModeActive() : false;
         
-        debugLog('=== DeckEditor.handleCardClick ===', {
+        debugLog(() => ['=== DeckEditor.handleCardClick ===', {
             index,
-            button,  // 这里改成 button
+            button,
             isSelectingCover: this.deckManager.isSelectingCover,
             isInAddMode: this.isInAddMode,
             isEditing: this.deckManager.isEditing
-        });
+        }]);
         
         // 封面选择模式处理 - 最高优先级
         if (this.deckManager.isSelectingCover) {
@@ -494,7 +494,7 @@ export class DeckEditor {
 
     // 新增：专门处理添加卡牌到卡组
     addCardToDeck(index, change) {
-        debugLog('=== DeckEditor.addCardToDeck ===', { index, change });
+        debugLog(() => ['=== DeckEditor.addCardToDeck ===', { index, change }]);
         
         // 获取当前显示的卡牌
         const cards = this.cardManager.getDisplayCards();
@@ -541,7 +541,7 @@ export class DeckEditor {
 
     // 新增：在添加模式下更新卡牌显示
     updateAddModeCardDisplay(cardId, quantity) {
-        debugLog('🔄 DeckEditor.updateAddModeCardDisplay', { cardId, quantity });
+        debugLog(() => ['🔄 DeckEditor.updateAddModeCardDisplay', { cardId, quantity }]);
         
         const cardElements = document.querySelectorAll('.card');
         
@@ -588,12 +588,12 @@ export class DeckEditor {
         if (result) {
             const newQuantity = result.quantity;
             
-            debugLog('🔄 DeckEditor.handleQuantityChange', {
+            debugLog(() => ['🔄 DeckEditor.handleQuantityChange', {
                 cardId: card.id,
                 oldQuantity,
                 newQuantity,
                 change
-            });
+            }]);
             
             // 判断是否需要重新渲染
             const needsRerender = this.shouldRerenderAfterQuantityChange(oldQuantity, newQuantity);

@@ -528,59 +528,25 @@ export class CardManager {
     }
 
     // 获取所有卡牌的数量数据（用于导出）
+    // 委托给 StorageService，额外提供动态加载后备
     async getAllCardQuantities() {
-        let quantitiesByType = {}; // 改为 let
         const cardTypes = this.getAllCardTypes();
-        
-        // 初始化所有类型
-        cardTypes.forEach(type => {
-            quantitiesByType[type] = [];
-        });
-        
-        try {
-            // 方法1：从本地存储获取所有数据（推荐，性能更好）
-            const allQuantities = await this.getAllQuantitiesFromStorage();
-            
-            // 按类型分组
-            cardTypes.forEach(cardType => {
-                if (allQuantities[cardType]) {
-                    quantitiesByType[cardType] = allQuantities[cardType]
-                        .filter(card => card.quantity > 0)
-                        .map(card => ({
-                            id: card.id,
-                            quantity: card.quantity
-                        }));
-                }
+
+        // 方法1：从 StorageService 同步读取（涵盖初始化/分组）
+        const stored = this.storageService.getAllCardQuantities();
+        const hasAny = cardTypes.some(type => (stored[type] || []).length > 0);
+
+        if (hasAny) {
+            // 过滤掉数量为 0 的条目，只返回有数量的
+            const result = {};
+            cardTypes.forEach(type => {
+                result[type] = (stored[type] || []).filter(c => c.quantity > 0);
             });
-            
-            // console.log('✅ 从本地存储获取所有卡牌数量数据');
-            
-        } catch (error) {
-            console.warn('❌ 从本地存储获取数据失败，尝试动态加载:', error);
-            
-            // 方法2：动态加载所有类型（备用方案）
-            quantitiesByType = await this.getAllQuantitiesByLoading();
-        }
-        
-        return quantitiesByType;
-    }
-
-    // 从本地存储获取所有卡牌数量数据
-    async getAllQuantitiesFromStorage() {
-        const localData = localStorage.getItem(STORAGE_KEYS.CARD_QUANTITIES);
-        if (!localData) {
-            // console.log('📦 本地存储中没有卡牌数量数据');
-            return this.initializeEmptyQuantities();
+            return result;
         }
 
-        try {
-            const allQuantities = JSON.parse(localData);
-            // console.log('📦 从本地存储读取到卡牌数据:', allQuantities.length, '条记录');
-            return this.groupQuantitiesByType(allQuantities);
-        } catch (e) {
-            console.warn('❌ 解析本地存储数据失败:', e);
-            return this.initializeEmptyQuantities();
-        }
+        // 方法2：localStorage 为空则动态加载所有类型（备用方案）
+        return this.getAllQuantitiesByLoading();
     }
 
     // 动态加载所有卡牌类型数据
@@ -631,32 +597,6 @@ export class CardManager {
         }
         
         return quantitiesByType;
-    }
-
-    // 新增：按类型分组卡牌数量数据
-    groupQuantitiesByType(flatQuantities) {
-        const grouped = this.initializeEmptyQuantities();
-        
-        flatQuantities.forEach(item => {
-            if (item.type && grouped[item.type] !== undefined) {
-                grouped[item.type].push({
-                    id: item.id,
-                    quantity: item.quantity
-                });
-            }
-        });
-        
-        return grouped;
-    }
-
-    // 新增：初始化空的卡牌数量结构
-    initializeEmptyQuantities() {
-        const quantities = {};
-        const cardTypes = this.getAllCardTypes();
-        cardTypes.forEach(type => {
-            quantities[type] = [];
-        });
-        return quantities;
     }
 
     // 批量更新所有卡牌数量（用于导入）- 简化版

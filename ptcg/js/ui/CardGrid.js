@@ -258,7 +258,7 @@ export class CardGrid {
                 
                 // 检查是否达到拖拽阈值
                 if (!touchState.hasMoved && (deltaX > touchState.dragThreshold || deltaY > touchState.dragThreshold)) {
-                    debugLog('🔄 CardGrid: 开始拖拽', { deltaX, deltaY });
+                    debugLog(() => ['🔄 CardGrid: 开始拖拽', { deltaX, deltaY }]);
                     touchState.hasMoved = true;
                     
                     // 清除长按计时器，因为用户开始拖拽了
@@ -288,7 +288,7 @@ export class CardGrid {
                 if (!changedTouch) return;
                 
                 const touchDuration = Date.now() - touchState.startTime;
-                debugLog('📊 CardGrid: 触摸统计', {
+                debugLog(() => ['📊 CardGrid: 触摸统计', {
                     touchDuration,
                     isDragging: touchState.isDragging, 
                     hasMoved: touchState.hasMoved,
@@ -391,7 +391,7 @@ export class CardGrid {
         const change = action === 'increment' ? 1 : -1;
         const buttonType = action === 'increment' ? 'left' : 'right';
         
-        debugLog('🃏 CardGrid: 触发卡牌动作', { index, action, change, buttonType });
+        debugLog(() => ['🃏 CardGrid: 触发卡牌动作', { index, action, change, buttonType }]);
         
         if (this.onCardClick) {
             debugLog('✅ CardGrid: 使用 onCardClick 回调');

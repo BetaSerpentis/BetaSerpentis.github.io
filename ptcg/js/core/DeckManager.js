@@ -270,7 +270,7 @@ export class DeckManager {
 
     // 更新卡组中的卡牌数量 - 确保排序被正确调用
     updateCardQuantity(cardId, change) {
-        debugLog('🔄 DeckManager: 更新卡牌数量', { cardId, change });
+        debugLog(() => ['🔄 DeckManager: 更新卡牌数量', { cardId, change }]);
         
         const deck = this.getCurrentDeck();
         if (!deck) {
