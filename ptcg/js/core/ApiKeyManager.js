@@ -1,5 +1,6 @@
 // ptcg/js/core/ApiKeyManager.js
 import { STORAGE_KEYS, CONFIG_AI } from '../utils/constants.js';
+import { showToast } from '../utils/helpers.js';
 
 export class ApiKeyManager {
     constructor(storageService) {
@@ -208,30 +209,7 @@ export class ApiKeyManager {
         }
     }
 
-    // 显示提示消息
     _showToast(message) {
-        const toast = document.createElement('div');
-        toast.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(76, 175, 80, 0.95);
-            color: white;
-            padding: 16px 28px;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            z-index: 20000;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            animation: fadeInOut 2s ease forwards;
-        `;
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        setTimeout(() => {
-            if (document.body.contains(toast)) {
-                document.body.removeChild(toast);
-            }
-        }, 2200);
+        showToast(message, 'success', 2200);
     }
 }

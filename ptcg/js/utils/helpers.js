@@ -13,59 +13,30 @@ export function debounce(func, wait = CONFIG.debounceTime) {
     };
 }
 
-// 显示成功消息
-export function showSaveSuccess(message) {
-    const successMsg = document.createElement('div');
-    successMsg.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: rgba(76, 175, 80, 0.95);
-        color: white;
-        padding: 20px 30px;
-        border-radius: 10px;
-        font-size: 1.2rem;
-        font-weight: bold;
-        z-index: 10000;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+/** 统一 Toast 通知
+ * @param {string} message - 消息文本
+ * @param {'success'|'error'|'info'} type - 类型
+ * @param {number} [duration=2000] - 显示毫秒数
+ */
+export function showToast(message, type = 'success', duration = 2000) {
+    const bgColor = type === 'error' ? 'rgba(244, 67, 54, 0.9)'
+                  : type === 'info'  ? 'rgba(0, 0, 0, 0.8)'
+                  : 'rgba(76, 175, 80, 0.95)';
+    const el = document.createElement('div');
+    el.style.cssText = `
+        position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+        background:${bgColor};color:white;padding:16px 28px;
+        border-radius:10px;font-size:1.1rem;font-weight:bold;
+        z-index:20000;box-shadow:0 4px 15px rgba(0,0,0,0.3);
     `;
-    successMsg.textContent = message;
-    
-    document.body.appendChild(successMsg);
-    
-    setTimeout(() => {
-        if (document.body.contains(successMsg)) {
-            document.body.removeChild(successMsg);
-        }
-    }, 2000);
+    el.textContent = message;
+    document.body.appendChild(el);
+    setTimeout(() => { if (document.body.contains(el)) el.remove(); }, duration);
 }
 
-// 显示错误消息
-export function showSaveError(message) {
-    const errorMsg = document.createElement('div');
-    errorMsg.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: rgba(244, 67, 54, 0.9);
-        color: white;
-        padding: 20px 30px;
-        border-radius: 10px;
-        font-size: 1.2rem;
-        font-weight: bold;
-        z-index: 10000;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    `;
-    errorMsg.textContent = message;
-    
-    document.body.appendChild(errorMsg);
-    
-    setTimeout(() => {
-        document.body.removeChild(errorMsg);
-    }, 3000);
-}
+// 向下兼容的别名
+export const showSaveSuccess = (msg, dur) => showToast(msg, 'success', dur);
+export const showSaveError = (msg, dur) => showToast(msg, 'error', dur || 3000);
 
 // 生成图片文件名
 export function generateImageFilename(id) {

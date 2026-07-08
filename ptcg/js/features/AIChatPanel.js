@@ -1,4 +1,5 @@
 // ptcg/js/features/AIChatPanel.js
+import { showToast } from '../utils/helpers.js';
 
 export class AIChatPanel {
     constructor(aiChatService, deckManager, cardManager, imageLoader, apiKeyManager) {
@@ -357,10 +358,10 @@ export class AIChatPanel {
             this.deckManager.saveDecks();
 
             // 成功提示
-            this._showToast(`✅ 已导入卡组「${deck.name}」，共 ${newDeck.totalCount} 张`);
+            showToast(`✅ 已导入卡组「${deck.name}」，共 ${newDeck.totalCount} 张`, 'success', 2500);
 
         } catch (e) {
-            this._showToast('❌ 导入失败，请重试');
+            showToast('❌ 导入失败，请重试', 'error', 2500);
             console.error('导入卡组失败:', e);
         }
     }
@@ -396,31 +397,7 @@ export class AIChatPanel {
         this._errorBar.style.display = 'none';
     }
 
-    _showToast(message) {
-        const toast = document.createElement('div');
-        toast.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(76, 175, 80, 0.95);
-            color: white;
-            padding: 16px 28px;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            z-index: 20000;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            animation: fadeInOut 2.5s ease forwards;
-        `;
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        setTimeout(() => {
-            if (document.body.contains(toast)) {
-                document.body.removeChild(toast);
-            }
-        }, 2700);
-    }
+
 
     _escapeHtml(text) {
         const div = document.createElement('div');
