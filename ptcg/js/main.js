@@ -155,7 +155,7 @@ class PTCGApp {
 
     // ===== 新增：统一的卡牌点击处理 =====
     handleCardClick(index, button) {
-        debugLog('🔄 Main: 卡牌点击事件分发', { index, button });
+        debugLog(() => ['🔄 Main: 卡牌点击事件分发', { index, button }]);
         
         // 检查统计模式（最高优先级）
         if (this.statsManager.isStatModeActive()) {
@@ -182,7 +182,7 @@ class PTCGApp {
 
     // ===== 新增：统一的数量变化处理 =====
     handleQuantityChange(index, change) {
-        debugLog('🔄 Main: 数量变化事件分发', { index, change });
+        debugLog(() => ['🔄 Main: 数量变化事件分发', { index, change }]);
         
         // 统计模式处理
         if (this.statsManager.isStatModeActive()) {

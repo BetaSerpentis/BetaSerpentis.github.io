@@ -70,9 +70,13 @@ export const CONFIG_AI = {
     apiEndpoint: 'https://api.deepseek.com/v1/chat/completions'
 };
 
-export function debugLog(...args) {
-    if (CONFIG.debug) {
-        console.log(...args);
+// debug 关闭时跳过所有参数求值；需懒求值时传函数：debugLog(() => ['msg', obj])
+export function debugLog(fnOrMsg, ...rest) {
+    if (!CONFIG.debug) return;
+    if (typeof fnOrMsg === 'function') {
+        console.log(...fnOrMsg());
+    } else {
+        console.log(fnOrMsg, ...rest);
     }
 }
 
