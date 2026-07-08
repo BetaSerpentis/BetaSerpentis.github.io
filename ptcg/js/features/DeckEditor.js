@@ -1,5 +1,6 @@
 // ptcg/js/features/DeckEditor.js
 import { debugLog } from '../utils/constants.js';
+import { showToast } from '../utils/helpers.js';
 
 export class DeckEditor {
     constructor(deckManager, cardManager, imageLoader, cardGrid, modalView) {
@@ -534,28 +535,8 @@ export class DeckEditor {
         this.showOperationFeedback(card.name, change);
     }
 
-    // 添加操作反馈
     showOperationFeedback(cardName, change) {
-        const feedback = document.createElement('div');
-        feedback.className = 'deck-operation-feedback';
-        feedback.textContent = `${cardName} ${change > 0 ? '添加' : '移除'}成功`;
-        feedback.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            z-index: 1001;
-            font-size: 1rem;
-        `;
-        
-        document.body.appendChild(feedback);
-        setTimeout(() => {
-            feedback.remove();
-        }, 1000);
+        showToast(`${cardName} ${change > 0 ? '添加' : '移除'}成功`, 'info', 1000);
     }
 
     // 新增：在添加模式下更新卡牌显示
@@ -1241,58 +1222,12 @@ export class DeckEditor {
         }
     }
 
-    // 新增：显示删除成功反馈
     showDeletionSuccess() {
-        const feedback = document.createElement('div');
-        feedback.className = 'deck-operation-feedback';
-        feedback.textContent = '卡组删除成功';
-        feedback.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(76, 175, 80, 0.9);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 8px;
-            z-index: 1001;
-            font-size: 1.1rem;
-            font-weight: bold;
-        `;
-        
-        document.body.appendChild(feedback);
-        setTimeout(() => {
-            if (feedback.parentNode) {
-                feedback.parentNode.removeChild(feedback);
-            }
-        }, 2000);
+        showToast('卡组删除成功', 'success', 2000);
     }
 
-    // 新增：显示删除错误反馈
     showDeletionError() {
-        const feedback = document.createElement('div');
-        feedback.className = 'deck-operation-feedback';
-        feedback.textContent = '删除失败，无法删除最后一个卡组';
-        feedback.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(244, 67, 54, 0.9);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 8px;
-            z-index: 1001;
-            font-size: 1.1rem;
-            font-weight: bold;
-        `;
-        
-        document.body.appendChild(feedback);
-        setTimeout(() => {
-            if (feedback.parentNode) {
-                feedback.parentNode.removeChild(feedback);
-            }
-        }, 3000);
+        showToast('删除失败，无法删除最后一个卡组', 'error', 3000);
     }
 
     // 修复 resetToDeckCards 方法，确保使用最新数据

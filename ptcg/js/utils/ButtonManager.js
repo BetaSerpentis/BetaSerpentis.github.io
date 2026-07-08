@@ -1,4 +1,6 @@
 // ptcg/js/utils/ButtonManager.js
+import { showToast } from './helpers.js';
+
 export class ButtonManager {
     constructor(deckEditor, statsManager, cardManager, aiChatPanel = null) {
         this.deckEditor = deckEditor;
@@ -238,61 +240,13 @@ export class ButtonManager {
         }
     }
 
-    // 新增：显示导入成功消息
     showImportSuccess(result) {
-        const message = result.message || `成功导入 ${result.cardsUpdated} 张卡牌和 ${result.decksUpdated} 个卡组`;
-        
-        // 使用现有的成功提示
-        const successMsg = document.createElement('div');
-        successMsg.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(76, 175, 80, 0.95);
-            color: white;
-            padding: 20px 30px;
-            border-radius: 10px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            z-index: 10000;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        `;
-        successMsg.textContent = message;
-        
-        document.body.appendChild(successMsg);
-        
-        setTimeout(() => {
-            if (document.body.contains(successMsg)) {
-                document.body.removeChild(successMsg);
-            }
-        }, 3000);
+        const msg = result.message || `成功导入 ${result.cardsUpdated} 张卡牌和 ${result.decksUpdated} 个卡组`;
+        showToast(msg, 'success', 3000);
     }
 
-    // 新增：显示导入错误消息
     showImportError(error) {
-        const errorMsg = document.createElement('div');
-        errorMsg.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(244, 67, 54, 0.9);
-            color: white;
-            padding: 20px 30px;
-            border-radius: 10px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            z-index: 10000;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        `;
-        errorMsg.textContent = `导入失败: ${error}`;
-        
-        document.body.appendChild(errorMsg);
-        
-        setTimeout(() => {
-            document.body.removeChild(errorMsg);
-        }, 3000);
+        showToast(`导入失败: ${error}`, 'error', 3000);
     }
 
     // 新增：导入后刷新显示
