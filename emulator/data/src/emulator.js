@@ -1378,6 +1378,34 @@ class EmulatorJS {
         }
     }
     updateGamepadLabels() {
+        // Auto-assign connected but unassigned gamepads to empty player slots.
+        // This handles the case where a gamepad was already connected before the
+        // emulator's control UI finished initialising (e.g. Xbox controller plugged
+        // in before page load), so the original "connected" event fired before
+        // gamepadSelection had any slots.
+        if (this.gamepad && this.gamepad.gamepads && this.gamepad.gamepads.length > 0) {
+            for (let g = 0; g < this.gamepad.gamepads.length; g++) {
+                const gp = this.gamepad.gamepads[g];
+                if (!gp) continue;
+                const gid = gp.id + "_" + gp.index;
+                let assigned = false;
+                for (let i = 0; i < this.gamepadSelection.length; i++) {
+                    if (this.gamepadSelection[i] === gid) {
+                        assigned = true;
+                        break;
+                    }
+                }
+                if (!assigned) {
+                    for (let i = 0; i < this.gamepadSelection.length; i++) {
+                        if (!this.gamepadSelection[i] || this.gamepadSelection[i] === "") {
+                            this.gamepadSelection[i] = gid;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
         for (let i = 0; i < this.gamepadLabels.length; i++) {
             this.gamepadLabels[i].innerHTML = ""
             const def = this.createElement("option");
