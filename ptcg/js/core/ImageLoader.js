@@ -1,10 +1,16 @@
 import { CONFIG } from '../utils/constants.js';
 
+const MAX_CONCURRENT = 6;
+
 export class ImageLoader {
     constructor() {
         this.loadedImages = new Set();
         this.failedImages = new Set();
         this.observer = null;
+
+        // 并发控制
+        this._activeCount = 0;
+        this._pendingQueue = [];
     }
 
     // 初始化懒加载观察器
@@ -36,42 +42,58 @@ export class ImageLoader {
         }, { rootMargin: '200px 0px', threshold: 0.01 });
     }
 
-    // 带重试的图片加载
-    // ImageLoader.js - 在 loadImageWithRetry 方法中添加调试信息
+    // 带重试的图片加载（入口：排队等待并发槽位）
     loadImageWithRetry(img, src, key, retries) {
         if (img.dataset.loading === 'true') return;
         img.dataset.loading = 'true';
+        this._pendingQueue.push({ img, src, key, retries });
+        this._drainQueue();
+    }
 
-        // // console.log('🖼️ 开始加载图片:', src, 'key:', key);
-        
+    // 从队列中取出等待任务，控制在 MAX_CONCURRENT 以内
+    _drainQueue() {
+        while (this._activeCount < MAX_CONCURRENT && this._pendingQueue.length > 0) {
+            const task = this._pendingQueue.shift();
+            this._activeCount++;
+            this._doLoad(task);
+        }
+    }
+
+    _doLoad({ img, src, key, retries }) {
         const tempImg = new Image();
-        
-        tempImg.onload = function() {
-            // // console.log('✅ 图片加载成功:', src);
+
+        tempImg.onload = () => {
             img.src = src;
             img.classList.add('loaded');
             img.classList.remove('error');
             this.loadedImages.add(key);
             this.failedImages.delete(key);
             img.dataset.loading = 'false';
-        }.bind(this);
-        
-        tempImg.onerror = function() {
-            // console.log('❌ 图片加载失败:', src, '剩余重试次数:', retries);
+            this._finishOne();
+        };
+
+        tempImg.onerror = () => {
             if (retries > 0) {
                 setTimeout(() => {
-                    this.loadImageWithRetry(img, src, key, retries - 1);
+                    this._pendingQueue.push({ img, src, key, retries: retries - 1 });
+                    this._drainQueue();
                 }, 500);
             } else {
-                const svgPlaceholder = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="252" height="352" viewBox="0 0 252 352"><rect width="252" height="352" fill="%23FFCC00"/><text x="126" y="176" font-family="Arial" font-size="14" text-anchor="middle" fill="%23000000">图片加载失败</text></svg>`;
+                const svgPlaceholder = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="252" height="352" viewBox="0 0 252 352"><rect width="252" height="352" fill="%23FFCC00"/><text x="126" y="176" font-family="Arial" font-size="14" text-anchor="middle" fill="%23000000">加载失败</text></svg>`;
                 img.src = svgPlaceholder;
                 img.classList.add('error');
                 this.failedImages.add(key);
                 img.dataset.loading = 'false';
             }
-        }.bind(this);
-        
+            this._finishOne();
+        };
+
         tempImg.src = src;
+    }
+
+    _finishOne() {
+        this._activeCount--;
+        this._drainQueue();
     }
 
     // 观察图片元素
