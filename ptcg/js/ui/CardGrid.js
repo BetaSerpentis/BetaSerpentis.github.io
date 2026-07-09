@@ -293,7 +293,7 @@ export class CardGrid {
                     isDragging: touchState.isDragging, 
                     hasMoved: touchState.hasMoved,
                     hasLongPressTimer: !!touchState.longPressTimer
-                });
+                }]);
                 
                 // 处理长按（如果长按计时器仍在运行，说明长按已触发）
                 if (touchState.longPressInterval) {
