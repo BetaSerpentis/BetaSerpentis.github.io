@@ -3,32 +3,71 @@ import { debugLog } from '../utils/constants.js';
 import { showToast } from '../utils/helpers.js';
 
 export class DeckEditor {
+    static MODE = Object.freeze({
+        BROWSE:       'browse',
+        DECK_VIEW:    'deck-view',
+        DECK_EDIT:    'deck-edit',
+        DECK_ADD:     'deck-add',
+        COVER_SELECT: 'cover-select'
+    });
+
     constructor(deckManager, cardManager, imageLoader, cardGrid, modalView) {
         this.deckManager = deckManager;
         this.cardManager = cardManager;
         this.imageLoader = imageLoader;
         this.cardGrid = cardGrid;
         this.modalView = modalView;
-                
-        this.isInAddMode = false;
-        this.mode = 'browse'; // 'browse'|'deck-view'|'deck-edit'|'deck-add'|'cover-select'
+
+        this.mode = DeckEditor.MODE.BROWSE;
         this.isMissingMode = false;
         this.deckTabsContainer = null;
         this.defaultGetDisplayCards = cardManager.getDisplayCards.bind(cardManager);
 
+        // 模式 → 点击行为分发
+        this._clickHandlers = {
+            [DeckEditor.MODE.COVER_SELECT]: this._onCoverSelectClick.bind(this),
+            [DeckEditor.MODE.DECK_ADD]:     this._onDeckAddClick.bind(this),
+            [DeckEditor.MODE.DECK_EDIT]:    this._onDeckEditClick.bind(this),
+            [DeckEditor.MODE.DECK_VIEW]:    this._onViewClick.bind(this),
+            [DeckEditor.MODE.BROWSE]:       this._onBrowseClick.bind(this)
+        };
+        // 封面选择遮罩层
+        this._coverSelectOverlay = null;
+
         this.init();
     }
 
-    // 修改 init 方法，添加延迟设置回调
-    // 在 init 方法中，移除 forceSetCardGridCallbacks 的调用
+    // ---- 统一模式 UI ----
+    _applyModeUI(mode) {
+        const M = DeckEditor.MODE;
+        const showSearch  = mode === M.BROWSE || mode === M.DECK_ADD;
+        const showFeatTab = mode === M.BROWSE || mode === M.DECK_ADD;
+        const showDeckTab = mode === M.DECK_VIEW || mode === M.DECK_EDIT;
+        const showGenTab  = mode === M.BROWSE;
+
+        const el = (s) => document.querySelector(s);
+        const setVis = (el, show) => { if (el) el.style.display = show ? '' : 'none'; };
+
+        setVis(el('.search-header'), showSearch);
+        setVis(el('.feature-tabs'), showFeatTab);
+        setVis(document.getElementById('generation-tabs'), showGenTab);
+        if (this.deckTabsContainer) {
+            setVis(this.deckTabsContainer, showDeckTab);
+        }
+    }
+
+    // ---- 模式切换（仅改状态 + UI，业务逻辑由调用方处理）----
+    _switchMode(newMode) {
+        this.mode = newMode;
+        if (this.cardGrid) this.cardGrid.setMode(newMode);
+        this._applyModeUI(newMode);
+    }
+
     init() {
         this.setupModalPrevention();
-        
-        // 确保 CardGrid 可以访问 deckManager
         if (this.cardGrid) {
             this.cardGrid.deckManager = this.deckManager;
         }
-        
         debugLog('🔍 DeckEditor 初始化检查:', {
             cardGrid: !!this.cardGrid,
             deckManager: !!this.deckManager
@@ -60,26 +99,10 @@ export class DeckEditor {
         await this.cardManager.preloadAllCardBaseInfo();
         this.saveOriginalState();
         
-        // 隐藏搜索栏和筛选栏，显示卡组页签
-        document.querySelector('.search-header').style.display = 'none';
-        document.querySelector('.feature-tabs').style.display = 'none';
-        const genTabs = document.getElementById('generation-tabs');
-        if (genTabs) genTabs.style.display = 'none';
-        
-        // 通知 ButtonManager 切换到卡组模式
-        if (window.buttonManager) {
-            window.buttonManager.showDeckMode();
-        }
-        
-        // 创建卡组界面
         this.createDeckInterface();
-        
-        // 更新显式模式
-        this.mode = 'deck-view';
-        if (this.cardGrid) this.cardGrid.setMode('deck-view');
-        
-        // 渲染当前卡组
+        this._switchMode(DeckEditor.MODE.DECK_VIEW);
         this.renderCurrentDeck();
+        if (window.buttonManager) window.buttonManager.showDeckMode();
     }
 
     /*// 统一的按钮管理方法
@@ -321,10 +344,7 @@ export class DeckEditor {
 
     // 渲染当前卡组 - 修复数据显示问题
     renderCurrentDeck() {
-        if (this.isInAddMode) {
-            // 添加模式：显示所有卡牌
-            return;
-        }
+        if (this.mode === DeckEditor.MODE.DECK_ADD) return;
 
         const deckCards = this.isMissingMode
             ? this.deckManager.getDeckMissingCards()
@@ -358,137 +378,51 @@ export class DeckEditor {
         this.renderCurrentDeck();
     }
 
-    // 处理卡牌点击 - 修复编辑模式逻辑
-    // 修改 handleCardClick 方法的开头部分
-    handleCardClick(index, button) {  // 这里参数名应该是 button
-        // 添加拖拽检测
+    // ---- 卡牌点击：按模式分发给对应 handler ----
+    handleCardClick(index, button) {
         const cardGrid = document.querySelector('.card-grid');
-        if (cardGrid && cardGrid.classList.contains('dragging')) {
-            debugLog('🔄 拖拽滚动中，忽略卡牌点击');
-            return;
-        }
-        
-        debugLog('=== DeckEditor: 卡牌点击事件 ===');
-        debugLog('索引:', index, '按钮:', button);
-        
-        // 检测当前模式（显式状态变量，不再依赖 DOM 查询）
-        const isDeckMode = this.mode !== 'browse';
-        const isDeckAddMode = this.mode === 'deck-add' || this.mode === 'cover-select';
-        const isDeckEditMode = this.mode === 'deck-edit';
-        
-        // 使用 CardGrid 的统计模式检测方法
-        const isStatsMode = this.cardGrid.isStatsModeActive ? this.cardGrid.isStatsModeActive() : false;
-        
-        debugLog(() => ['=== DeckEditor.handleCardClick ===', {
-            index,
-            button,
-            isSelectingCover: this.deckManager.isSelectingCover,
-            isInAddMode: this.isInAddMode,
-            isEditing: this.deckManager.isEditing
-        }]);
-        
-        // 封面选择模式处理 - 最高优先级
-        if (this.deckManager.isSelectingCover) {
-            debugLog('🖼️ 封面选择模式处理');
-            const cards = this.cardManager.getDisplayCards();
-            
-            if (index < 0 || index >= cards.length) {
-                debugLog('❌ 索引超出范围');
-                return;
-            }
-            
-            const card = cards[index];
-            debugLog(`✅ 设置封面: ${card.name} (ID: ${card.id})`);
-            
-            // 设置封面
-            const success = this.deckManager.setDeckCover(card.id);
-            debugLog('封面设置结果:', success);
-            
-            // 退出封面选择模式
-            this.deckManager.setSelectingCoverMode(false);
-            
-            // 移除全局点击事件
-            if (this.coverSelectionCancelHandler) {
-                document.removeEventListener('click', this.coverSelectionCancelHandler, true);
-                this.coverSelectionCancelHandler = null;
-            }
-            
-            // 重新渲染卡组页签以显示新封面
-            this.renderDeckTabs();
-            
-            // 退出添加模式，回到编辑模式
-            this.exitAddMode();
-            return;
-        }
+        if (cardGrid && cardGrid.classList.contains('dragging')) return;
 
-        // 统计模式处理 - 在卡组模式之前检查
-        if (isStatsMode && !isDeckMode) {
-            debugLog('📊 统计模式处理');
-            
-            // 获取当前显示的卡牌
-            const cards = this.cardManager.getDisplayCards();
-            if (index < 0 || index >= cards.length) {
-                debugLog('❌ 索引超出范围');
-                return;
-            }
-            
-            const card = cards[index];
-            debugLog('📊 统计模式操作卡牌:', card.name, 'ID:', card.id, '按钮:', button);
-            
-            if (button === 'left') {
-                // 左键：增加数量
-                debugLog('➕ 统计模式增加数量');
-                const newQuantity = this.cardManager.updateCardQuantity(card.id, 1);
-                this.cardGrid.updateCardQuantityDisplay(card.id, newQuantity);
-                this.cardManager.debouncedSave();
-            } else if (button === 'right') {
-                // 右键：减少数量
-                debugLog('➖ 统计模式减少数量');
-                const newQuantity = this.cardManager.updateCardQuantity(card.id, -1);
-                this.cardGrid.updateCardQuantityDisplay(card.id, newQuantity);
-                this.cardManager.debouncedSave();
-            }
-            return;
+        const handler = this._clickHandlers[this.mode];
+        if (handler) {
+            handler(index, button);
         }
+    }
 
-        // 卡组添加模式
-        if (isDeckAddMode || this.isInAddMode) {
-            debugLog('添加模式处理 - 执行添加卡牌逻辑');
-            if (button === 'left') {
-                debugLog('左键点击 - 添加卡牌');
-                this.addCardToDeck(index, 1);
-            } else if (button === 'right') {
-                debugLog('右键点击 - 移除卡牌');
-                this.addCardToDeck(index, -1);
-            }
-            return;
+    // 各模式下的点击行为
+    _onCoverSelectClick(index, button) {
+        const cards = this.cardManager.getDisplayCards();
+        if (index < 0 || index >= cards.length) return;
+        const card = cards[index];
+        this.deckManager.setDeckCover(card.id);
+        this.renderDeckTabs();
+        // 选完封面回到编辑模式
+        this._cleanupCoverSelectIfNeeded();
+        this._switchMode(DeckEditor.MODE.DECK_EDIT);
+        this.cardManager.getDisplayCards = this.defaultGetDisplayCards;
+        if (this.originalFilteredCards) {
+            this.cardManager.filteredCards = this.originalFilteredCards;
         }
-        
-        // 卡组编辑模式（非添加模式）
-        if (isDeckEditMode && isDeckMode && !isDeckAddMode) {
-            debugLog('编辑模式处理');
-            const deckCards = this.deckManager.getDeckDisplayCards();
-            if (index < deckCards.length) {
-                if (button === 'left') {
-                    this.handleQuantityChange(index, 1);
-                } else if (button === 'right') {
-                    this.handleQuantityChange(index, -1);
-                }
-            } else {
-                debugLog('❌ 索引超出卡组范围');
-            }
-            return;
+        this.renderCurrentDeck();
+        if (window.buttonManager) window.buttonManager.showEditMode();
+    }
+
+    _onDeckAddClick(index, button) {
+        this.addCardToDeck(index, button === 'left' ? 1 : -1);
+    }
+
+    _onDeckEditClick(index, button) {
+        const deckCards = this.deckManager.getDeckDisplayCards();
+        if (index >= 0 && index < deckCards.length) {
+            this.handleQuantityChange(index, button === 'left' ? 1 : -1);
         }
-        
-        // 卡组浏览模式
-        if (isDeckMode && !isDeckEditMode && !isDeckAddMode) {
-            debugLog('卡组浏览模式 - 打开模态框');
-            this.modalView.show(index);
-            return;
-        }
-        
-        // 正常浏览模式
-        debugLog('正常模式 - 打开模态框');
+    }
+
+    _onViewClick(index, button) {
+        this.modalView.show(index);
+    }
+
+    _onBrowseClick(index, button) {
         this.modalView.show(index);
     }
 
@@ -659,30 +593,14 @@ export class DeckEditor {
 
     // 修改 enterEditMode 方法，添加删除按钮
     enterEditMode() {
-        // debugLog('🔄 进入编辑模式');
         this.isMissingMode = false;
         this.deckManager.setEditingMode(true);
-        this.mode = 'deck-edit';
-        if (this.cardGrid) this.cardGrid.setMode('deck-edit');
-        
-        // 强制设置回调，确保编辑模式点击有效
+        this._switchMode(DeckEditor.MODE.DECK_EDIT);
         this.forceSetCardGridCallbacks();
-        
-        // 更新卡组页签为可编辑状态
         this.makeDeckTabsEditable();
-        
-        // 添加删除按钮
         this.addDeleteButtonsToDecks();
-        
-        // 添加编辑模式CSS类
         document.body.classList.add('deck-edit-mode');
-        
-        // 通知 ButtonManager 切换到编辑模式
-        if (window.buttonManager) {
-            window.buttonManager.showEditMode();
-        }
-        
-        // debugLog('✅ 编辑模式进入完成');
+        if (window.buttonManager) window.buttonManager.showEditMode();
     }
 
     // 使卡组页签可编辑
@@ -856,128 +774,78 @@ export class DeckEditor {
         }
     }
 
-    // 新增：进入封面选择模式
-    // 修改 enterCoverSelectionMode 方法（如果需要）
+    // ---- 封面选择（用遮罩层替代全局 click 捕获）----
     enterCoverSelectionMode() {
-        // debugLog('🎯 进入封面选择模式 - 开始');
-        
-        // 设置模式状态
         this.deckManager.setSelectingCoverMode(true);
-        this.isInAddMode = true;
-        this.mode = 'cover-select';
-        if (this.cardGrid) this.cardGrid.setMode('cover-select');
-        
-        debugLog('✅ 模式状态设置完成:', {
-            isSelectingCover: this.deckManager.isSelectingCover,
-            isInAddMode: this.isInAddMode
-        });
-        
-        // 保存原始状态
+        this._switchMode(DeckEditor.MODE.COVER_SELECT);
+
+        // 保存状态
         this.originalFilteredCards = [...this.cardManager.filteredCards];
         this.originalGetDisplayCards = this.cardManager.getDisplayCards;
-        
-        // debugLog('✅ 原始状态保存完成');
-        
-        // 显示当前卡组内的卡牌，而不是所有卡牌
+
+        // 显示卡组内卡牌供选择封面
         const deckCards = this.deckManager.getDeckDisplayCards();
-        // debugLog('📊 卡组内卡牌数量:', deckCards.length);
-        
-        this.cardManager.filteredCards = deckCards.map(deckCard => {
-            const fullCard = this.cardManager.cards.find(c => c.id === deckCard.id);
-            return {
-                ...deckCard,
-                name: fullCard?.name || deckCard.name,
-                image: fullCard?.image || deckCard.image,
-                type: fullCard?.type || '未知',
-                number: fullCard?.number
-            };
+        this.cardManager.filteredCards = deckCards.map(dc => {
+            const fc = this.cardManager.cards.find(c => c.id === dc.id);
+            return { ...dc, name: fc?.name || dc.name, image: fc?.image || dc.image, type: fc?.type || '未知', number: fc?.number };
         });
-        
         this.cardManager.getDisplayCards = () => this.cardManager.filteredCards;
-        
-        // 隐藏搜索栏和卡牌类型页签（封面选择模式下不需要）
-        document.querySelector('.search-header').style.display = 'none';
-        document.querySelector('.feature-tabs').style.display = 'none';
-        
-        // debugLog('✅ 界面元素调整完成');
-        
-        // 强制重新设置回调
         this.forceSetCardGridCallbacks();
-        
-        // 渲染卡组内的卡牌
         this.cardGrid.render();
-        
-        // debugLog('✅ 卡牌渲染完成');
-        
-        // 显示封面选择提示
         this.showCoverSelectionHint();
-        
-        // 通知 ButtonManager 切换到添加模式（封面选择也是添加模式的一种）
-        if (window.buttonManager) {
-            window.buttonManager.showAddMode();
-        }
-        
-        // 添加全局点击事件，用于取消封面选择
-        this.coverSelectionCancelHandler = (e) => {
-            // 如果点击的不是卡牌，则取消封面选择
-            if (!e.target.closest('.card')) {
-                // debugLog('❌ 点击非卡牌区域，取消封面选择');
-                this.cancelCoverSelection();
-            }
-        };
-        
-        document.addEventListener('click', this.coverSelectionCancelHandler, true);
-        
-        // debugLog('🎯 进入封面选择模式 - 完成');
+
+        // 透明遮罩：点击卡片以外区域 = 取消
+        this._setupCoverSelectOverlay();
+
+        if (window.buttonManager) window.buttonManager.showAddMode();
     }
 
-    // 新增：取消封面选择
-    // 修改 cancelCoverSelection 方法
-    cancelCoverSelection() {
-        // debugLog('🚫 取消封面选择');
-        this.deckManager.setSelectingCoverMode(false);
-        this.isInAddMode = false;
-        this.mode = 'deck-edit';
-        if (this.cardGrid) this.cardGrid.setMode('deck-edit');
-        
-        // 移除全局点击事件
-        if (this.coverSelectionCancelHandler) {
-            document.removeEventListener('click', this.coverSelectionCancelHandler, true);
-            this.coverSelectionCancelHandler = null;
+    _setupCoverSelectOverlay() {
+        this._removeCoverSelectOverlay();
+        const overlay = document.createElement('div');
+        overlay.className = 'cover-select-overlay';
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:900;background:transparent;';
+        overlay.addEventListener('click', (e) => {
+            // 点击的不是卡片 → 取消
+            if (!e.target.closest('.card')) {
+                this._cancelCoverSelection();
+            }
+        });
+        document.body.appendChild(overlay);
+        this._coverSelectOverlay = overlay;
+    }
+
+    _removeCoverSelectOverlay() {
+        if (this._coverSelectOverlay) {
+            this._coverSelectOverlay.remove();
+            this._coverSelectOverlay = null;
         }
-        
-        // 恢复原始状态
+    }
+
+    _cancelCoverSelection() {
+        this.deckManager.setSelectingCoverMode(false);
+        this._switchMode(DeckEditor.MODE.DECK_EDIT);
         this.cardManager.getDisplayCards = this.defaultGetDisplayCards;
         if (this.originalFilteredCards) {
             this.cardManager.filteredCards = this.originalFilteredCards;
         }
-        
-        // 隐藏搜索栏和卡牌类型页签
-        document.querySelector('.search-header').style.display = 'none';
-        document.querySelector('.feature-tabs').style.display = 'none';
-        
-        // 通知 ButtonManager 切换回编辑模式
-        if (window.buttonManager) {
-            window.buttonManager.showEditMode();
-        }
-        
-        // 重新渲染当前卡组
+        this._removeCoverSelectOverlay();
         this.renderCurrentDeck();
-        
-        // debugLog('✅ 封面选择已取消');
+        if (window.buttonManager) window.buttonManager.showEditMode();
+    }
+
+    _cleanupCoverSelectIfNeeded() {
+        this.deckManager.setSelectingCoverMode(false);
+        this._removeCoverSelectOverlay();
     }
 
     // 为选择封面进入添加模式
     enterAddModeForCover() {
-        this.isInAddMode = true;
         this.cardManager.filteredCards = [...this.cardManager.cards];
         this.cardGrid.render();
-        
-        // 显示提示
         this.showCoverSelectionHint();
     }
 
-    // 显示选择封面提示（保留清理入口，不再弹出遮挡视线的说明浮层）
     showCoverSelectionHint() {
         const oldHint = document.querySelector('.cover-selection-hint');
         if (oldHint) oldHint.remove();
@@ -986,115 +854,37 @@ export class DeckEditor {
     // 进入添加模式 - 修复界面切换
     // 修改 enterAddMode 方法
     enterAddMode() {
-        // debugLog('🔍 进入添加模式');
-        
         this.isMissingMode = false;
-        this.isInAddMode = true;
-        this.mode = 'deck-add';
-        if (this.cardGrid) this.cardGrid.setMode('deck-add');
-        
-        // 显示搜索栏，隐藏卡组页签
-        document.querySelector('.search-header').style.display = 'block';
-        document.querySelector('.feature-tabs').style.display = 'block';
-        if (this.deckTabsContainer) {
-            this.deckTabsContainer.style.display = 'none';
-        }
-        
-        // 显示所有卡牌
+        this._switchMode(DeckEditor.MODE.DECK_ADD);
         this.cardManager.filteredCards = [...this.cardManager.cards];
         this.cardManager.getDisplayCards = () => this.cardManager.filteredCards;
-        
         this.cardGrid.render();
-        
-        // 通知 ButtonManager 切换到添加模式
-        if (window.buttonManager) {
-            window.buttonManager.showAddMode();
-        }
-        
-        // debugLog('🔍 进入添加模式完成');
+        if (window.buttonManager) window.buttonManager.showAddMode();
     }
 
     // 修改 exitAddMode 方法
     exitAddMode() {
-        // debugLog('🚪 退出添加模式');
-        this.isInAddMode = false;
-        this.deckManager.setSelectingCoverMode(false);
-        this.mode = 'deck-edit';
-        if (this.cardGrid) this.cardGrid.setMode('deck-edit');
-        
-        // 移除封面选择的全局点击事件
-        if (this.coverSelectionCancelHandler) {
-            document.removeEventListener('click', this.coverSelectionCancelHandler, true);
-            this.coverSelectionCancelHandler = null;
-        }
-        
-        // 恢复原始状态
+        this._cleanupCoverSelectIfNeeded();
+        this._switchMode(DeckEditor.MODE.DECK_EDIT);
         this.cardManager.getDisplayCards = this.defaultGetDisplayCards;
         if (this.originalFilteredCards) {
             this.cardManager.filteredCards = this.originalFilteredCards;
         }
-        
-        // 隐藏搜索栏和卡牌类型页签，显示卡组页签
-        document.querySelector('.search-header').style.display = 'none';
-        document.querySelector('.feature-tabs').style.display = 'none';
-        if (this.deckTabsContainer) {
-            this.deckTabsContainer.style.display = '';
-        }
-        
-        // 通知 ButtonManager 切换回编辑模式
-        if (window.buttonManager) {
-            window.buttonManager.showEditMode();
-        }
-        
-        // 强制重新渲染，确保数量显示规则更新
         this.renderCurrentDeck();
-        
-        // debugLog('✅ 添加模式退出完成');
+        if (window.buttonManager) window.buttonManager.showEditMode();
     }
 
     // 修改 exitEditMode 方法，清理删除按钮
     exitEditMode() {
-        // debugLog('🚪 退出编辑模式');
         this.deckManager.setEditingMode(false);
         this.isMissingMode = false;
-        this.isInAddMode = false;
-        this.deckManager.setSelectingCoverMode(false);
-        this.mode = 'deck-view';
-        if (this.cardGrid) this.cardGrid.setMode('deck-view');
-        
-        // 移除编辑模式CSS类
+        this._cleanupCoverSelectIfNeeded();
+        this._switchMode(DeckEditor.MODE.DECK_VIEW);
         document.body.classList.remove('deck-edit-mode');
-        
-        // 移除删除按钮
         this.removeDeleteButtonsFromDecks();
-        
-        // 移除封面选择的全局点击事件
-        if (this.coverSelectionCancelHandler) {
-            document.removeEventListener('click', this.coverSelectionCancelHandler, true);
-            this.coverSelectionCancelHandler = null;
-        }
-        
-        // 确保隐藏搜索栏和卡牌类型页签
-        document.querySelector('.search-header').style.display = 'none';
-        document.querySelector('.feature-tabs').style.display = 'none';
-        
-        // 确保显示卡组页签
-        if (this.deckTabsContainer) {
-            this.deckTabsContainer.style.display = '';
-        }
-        
-        // 通知 ButtonManager 切换回卡组模式
-        if (window.buttonManager) {
-            window.buttonManager.showDeckMode();
-        }
-        
-        // 重新渲染卡组页签
         this.renderDeckTabs();
-        
-        // 使用最新的卡组状态重置显示
         this.resetToDeckCards();
-        
-        // debugLog('✅ 编辑模式退出完成');
+        if (window.buttonManager) window.buttonManager.showDeckMode();
     }
 
     // 新增：为卡组添加删除按钮
@@ -1309,34 +1099,17 @@ export class DeckEditor {
     // 在 DeckEditor.js 中彻底修复退出卡组模式的问题
     // 修改 exitDeckMode 方法
     exitDeckMode() {
-        debugLog('🔙 退出卡组模式');
-        
-        // 显示卡牌浏览相关元素
-        document.querySelector('.search-header').style.display = 'block';
-        document.querySelector('.feature-tabs').style.display = 'block';
+        document.querySelectorAll('.deck-tabs-container').forEach(c => c.remove());
+        this.deckTabsContainer = null;
+        this.isMissingMode = false;
+        this._switchMode(DeckEditor.MODE.BROWSE);
         // 如果当前是宝可梦标签页，恢复世代筛选栏
         const genTabs2 = document.getElementById('generation-tabs');
         if (genTabs2 && this.originalCurrentTab === '宝可梦') {
-            genTabs2.style.display = 'block';
+            genTabs2.style.display = '';
         }
-        
-        // 移除卡组界面元素（包括异常残留的旧容器）
-        document.querySelectorAll('.deck-tabs-container').forEach(container => container.remove());
-        this.deckTabsContainer = null;
-
-        this.mode = 'browse';
-        this.isMissingMode = false;
-        if (this.cardGrid) this.cardGrid.setMode('browse');
-        
-        // 通知 ButtonManager 切换回浏览模式
-        if (window.buttonManager) {
-            window.buttonManager.showBrowseMode();
-        }
-        
-        // 恢复卡牌管理器状态并直接渲染（不再 fetch，数据已在内存）
+        if (window.buttonManager) window.buttonManager.showBrowseMode();
         this.simpleCardManagerReset();
-        
-        debugLog('✅ 卡组模式退出完成');
     }
 
     // 新增：通过 CardBrowser 重新加载当前标签页
@@ -1415,14 +1188,8 @@ export class DeckEditor {
         
         // 覆盖 modalView.show - 只在编辑模式下阻止模态框
         this.modalView.show = (index) => {
-            debugLog('🛑 DeckEditor: ModalView.show 检查', {
-                isSelectingCover: this.deckManager.isSelectingCover,
-                isInAddMode: this.isInAddMode,
-                isEditing: this.deckManager.isEditing
-            });
-            
-            // 只在封面选择模式下阻止模态框
-            if (this.deckManager.isSelectingCover) {
+            // 只在封面选择 / 添加模式下阻止模态框
+            if (this.mode === DeckEditor.MODE.COVER_SELECT || this.mode === DeckEditor.MODE.DECK_ADD) {
                 debugLog('🚫 封面选择模式下阻止模态框');
                 return;
             }
