@@ -1,5 +1,5 @@
 // 定义缓存名称和版本，便于后续更新和管理
-const CACHE_NAME = 'ptcg-cache-v10';
+const CACHE_NAME = 'ptcg-cache-v12';
 // 需要预缓存的关键静态资源列表
 const urlsToCache = [
   '/ptcg/',
@@ -21,6 +21,10 @@ const urlsToCache = [
   '/ptcg/js/features/CardBrowser.js',
   '/ptcg/js/features/AIChatPanel.js',
   '/ptcg/js/services/AIChatService.js',
+  '/ptcg/js/services/AISystemPrompt.js',
+  '/ptcg/js/services/AICardDataService.js',
+  '/ptcg/js/services/AIAnalysisService.js',
+  '/ptcg/data/meta.json',
   '/ptcg/js/core/ApiKeyManager.js',
   '/ptcg/js/utils/helpers.js',
   '/ptcg/js/utils/ButtonManager.js',
