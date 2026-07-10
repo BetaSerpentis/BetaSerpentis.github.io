@@ -324,40 +324,57 @@ export class AIChatPanel {
     }
 
     // 导入卡组到收藏
-    _importDeckToCollection(deck) {
+    async _importDeckToCollection(deck) {
         try {
-            // 创建新卡组
             const newDeck = this.deckManager.createNewDeck();
             newDeck.name = deck.name || 'AI 推荐卡组';
+            if (deck.cards.length > 0) newDeck.coverCardId = deck.cards[0].id;
 
-            // 设置封面为第一张卡
-            if (deck.cards.length > 0) {
-                newDeck.coverCardId = deck.cards[0].id;
+            // 确保数据已加载
+            if (typeof this.aiChatService.ensureDataLoaded === 'function') {
+                await this.aiChatService.ensureDataLoaded();
             }
 
-            // 直接构建卡牌列表（避免 updateCardQuantity 只在当前类型中查找的限制）
+            // 优先用 AI 服务的全局 JSON 缓存验证（跨所有卡牌类型）
+            const jsonCache = this.aiChatService._data?._jsonCache;
+            const allCardsCache = this.cardManager.allCardsCache || [];
+
             for (const card of deck.cards) {
-                // 从全局缓存获取完整信息
-                const baseInfo = this.cardManager.getCardBaseInfo(card.id);
-                const cacheCard = (this.cardManager.allCardsCache || [])
-                    .find(c => c.id === card.id);
+                const cid = String(card.id);
+                let cardInfo = null;
 
-                newDeck.cards.push({
-                    id: card.id,
-                    name: baseInfo.name || card.name,
-                    image: baseInfo.image || card.image,
-                    type: baseInfo.type || card.type || '未知',
-                    number: (cacheCard && cacheCard.number) || '',
-                    quantity: card.quantity
-                });
+                if (jsonCache && jsonCache.has(cid)) {
+                    const jd = jsonCache.get(cid);
+                    cardInfo = {
+                        id: cid,
+                        name: jd['宝可梦名字'] || jd['卡牌名字'] || cid,
+                        image: `images/hk${cid.padStart(8, '0')}.webp`,
+                        type: jd['宝可梦名字'] ? '宝可梦' : (jd['卡牌类型'] || '').replace('卡', ''),
+                        number: jd['编号'] || ''
+                    };
+                } else {
+                    const baseInfo = this.cardManager.getCardBaseInfo(cid);
+                    if (baseInfo && baseInfo.name && !baseInfo.name.startsWith('卡牌 ')) {
+                        const cacheCard = allCardsCache.find(c => c.id === cid);
+                        cardInfo = {
+                            id: cid,
+                            name: baseInfo.name,
+                            image: baseInfo.image,
+                            type: baseInfo.type || '未知',
+                            number: (cacheCard && cacheCard.number) || ''
+                        };
+                    }
+                }
+
+                if (cardInfo) {
+                    newDeck.cards.push({ ...cardInfo, quantity: card.quantity });
+                }
             }
 
-            // 排序并保存
             this.deckManager.sortDeckCards(newDeck);
             newDeck.totalCount = newDeck.cards.reduce((sum, c) => sum + c.quantity, 0);
             this.deckManager.saveDecks();
 
-            // 成功提示
             showToast(`✅ 已导入卡组「${deck.name}」，共 ${newDeck.totalCount} 张`, 'success', 2500);
 
         } catch (e) {

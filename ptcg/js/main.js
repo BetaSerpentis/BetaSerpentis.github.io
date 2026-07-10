@@ -52,10 +52,10 @@ class PTCGApp {
             // 初始化卡组管理器
             this.deckManager = new DeckManager(this.storageService, this.cardManager);
             this.deckManager.init();
-
-            // 初始化 AI 服务
+            
+            // 初始化 AI 服务（需要在 deckManager 之后）
             this.apiKeyManager = new ApiKeyManager(this.storageService);
-            this.aiChatService = new AIChatService(this.cardManager, this.apiKeyManager);
+            this.aiChatService = new AIChatService(this.cardManager, this.apiKeyManager, this.deckManager);
             this.aiChatPanel = new AIChatPanel(
                 this.aiChatService,
                 this.deckManager,
@@ -144,7 +144,7 @@ class PTCGApp {
                 await this.cardManager.preloadAllCardBaseInfo();
                 // AI 搜索需要跨类型的 searchText — 预加载完成后补上
                 if (this.aiChatService) {
-                    await this.aiChatService.ensureSearchDataLoaded();
+                    await this.aiChatService.ensureDataLoaded();
                 }
             }, 2000);
 
