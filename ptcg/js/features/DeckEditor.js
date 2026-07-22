@@ -105,49 +105,6 @@ export class DeckEditor {
         if (window.buttonManager) window.buttonManager.showDeckMode();
     }
 
-    /*// 统一的按钮管理方法
-    updateButtonContainer(mode) {
-        const buttonContainer = document.querySelector('.deck-button-container');
-        if (!buttonContainer) return;
-        
-        buttonContainer.innerHTML = '';
-        
-        switch(mode) {
-            case 'browse':
-                // 浏览模式：卡组 + 统计
-                this.createBrowseModeButtons(buttonContainer);
-                break;
-            case 'deck':
-                // 卡组模式：查卡 + 编辑
-                this.createDeckModeButtons(buttonContainer);
-                break;
-            case 'edit':
-                // 编辑模式：新增 + 保存
-                this.createEditModeButtons(buttonContainer);
-                break;
-            case 'add':
-                // 添加模式：完成 + 保存
-                this.createAddModeButtons(buttonContainer);
-                break;
-        }
-    }
-    */
-
-    createBrowseModeButtons(container) {
-        const deckButton = document.createElement('button');
-        deckButton.className = 'deck-button';
-        deckButton.textContent = '卡组';
-        deckButton.addEventListener('click', () => this.enterDeckMode());
-        
-        const statsButton = document.createElement('button');
-        statsButton.className = 'stats-button';
-        statsButton.textContent = '统计';
-        statsButton.id = 'stats-button';
-        
-        container.appendChild(deckButton);
-        container.appendChild(statsButton);
-    }
-
     // 在 DeckEditor.js 中优化保存原始状态的方法
     saveOriginalState() {
         // debugLog('💾 保存原始状态');

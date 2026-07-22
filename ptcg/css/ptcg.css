@@ -269,69 +269,6 @@
     box-shadow: 0 5px 15px rgba(0,0,0,0.35);
 }
 
-/* 确保统计按钮也在统一容器中 */
-.stats-button {
-    /* 移除原有的固定定位 */
-    position: static;
-    /* 其他样式保持不变 */
-    padding: 12px 24px;
-    background: rgba(129,140,248,0.12);
-    border: 1px solid rgba(129,140,248,0.2);
-    border-radius: 20px;
-    color: #e4e4e7;
-    font-weight: bold;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.45);
-    min-width: 100px;
-    text-align: center;
-}
-
-.stats-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.5);
-}
-
-.stats-button.active {
-    background: #6366f1;
-}
-
-/* 导入导出按钮样式 - 也统一尺寸 */
-.import-export-buttons {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px; /* 统一间距 */
-    z-index: 1000;
-}
-
-.import-button, .export-button {
-    padding: 12px 20px; /* 调整内边距与其他按钮协调 */
-    background: #2196F3;
-    border: none;
-    border-radius: 20px; /* 统一圆角 */
-    color: #e4e4e7;
-    font-weight: bold;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.45);
-    min-width: 100px; /* 统一最小宽度 */
-    text-align: center;
-}
-
-.import-button:hover, .export-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.5);
-}
-
-.export-button {
-    background: #FF9800;
-}
-
 /* 卡牌网格 - 修改为与搜索栏相同宽度 */
 .card-grid {
     display: grid;
@@ -636,65 +573,12 @@
 /* 响应式设计 - 所有端统一调整 */
 @media (max-width: 768px) {
     /* 平板端统一调整 */
-    .deck-init-button-container {
-        bottom: 70px;
-        left: 15px;
-        gap: 6px;
-    }
-    
-    .deck-button {
-        padding: 10px 20px;
-        font-size: 0.95rem;
-        min-width: 90px;
-        border-radius: 18px;
-    }
-    
-    .stats-button {
-        bottom: 15px;
-        left: 15px;
-        padding: 10px 20px;
-        font-size: 0.95rem;
-        min-width: 90px;
-        border-radius: 18px;
-    }
-    
-    .deck-button-container {
-        bottom: 15px;
-        left: 15px;
-        gap: 6px;
-    }
-    
-    .deck-search-button,
-    .deck-edit-button,
-    .deck-add-button,
-    .deck-save-button,
-    .deck-complete-button,
-    .deck-save-in-add-button {
-        padding: 10px 20px;
-        font-size: 0.95rem;
-        min-width: 90px;
-        border-radius: 18px;
-    }
-    
-    .import-export-buttons {
-        bottom: 15px;
-        right: 15px;
-        gap: 6px;
-    }
-    
-    .import-button, .export-button {
-        padding: 10px 20px;
-        font-size: 0.95rem;
-        min-width: 90px;
-        border-radius: 18px;
-    }
-
     .search-button {
         padding: 10px 20px;
         font-size: 0.9rem;
         border-radius: 18px;
     }
-    
+
     /* 移动端搜索栏固定 */
     .search-header {
         position: fixed;
@@ -750,65 +634,12 @@
 
 @media (max-width: 480px) {
     /* 手机端统一调整 */
-    .deck-init-button-container {
-        bottom: 65px;
-        left: 10px;
-        gap: 5px;
-    }
-    
-    .deck-button {
-        padding: 8px 16px;
-        font-size: 0.9rem;
-        min-width: 80px;
-        border-radius: 16px;
-    }
-    
-    .stats-button {
-        bottom: 10px;
-        left: 10px;
-        padding: 8px 16px;
-        font-size: 0.9rem;
-        min-width: 80px;
-        border-radius: 16px;
-    }
-    
-    .deck-button-container {
-        bottom: 10px;
-        left: 10px;
-        gap: 5px;
-    }
-    
-    .deck-search-button,
-    .deck-edit-button,
-    .deck-add-button,
-    .deck-save-button,
-    .deck-complete-button,
-    .deck-save-in-add-button {
-        padding: 8px 16px;
-        font-size: 0.9rem;
-        min-width: 80px;
-        border-radius: 16px;
-    }
-    
-    .import-export-buttons {
-        bottom: 10px;
-        right: 10px;
-        gap: 5px;
-    }
-    
-    .import-button, .export-button {
-        padding: 8px 16px;
-        font-size: 0.9rem;
-        min-width: 80px;
-        border-radius: 16px;
-    }
-        
     .search-button {
         padding: 8px 16px;
         font-size: 0.85rem;
         border-radius: 16px;
     }
-    
+
     /* 手机端搜索栏调整 */
     .search-header {
         padding: 10px 12px 0 12px;
@@ -864,33 +695,6 @@
         aspect-ratio: 63/88;
         min-height: 180px;
     }
-}
-
-/* 移除独立的卡组按钮容器 */
-.deck-init-button-container {
-    display: none; /* 隐藏独立的容器 */
-}
-
-/* 统一的按钮基础样式 */
-.deck-button, .stats-button {
-    padding: 12px 24px;
-    border: none;
-    border-radius: 20px;
-    color: #e4e4e7;
-    font-weight: bold;
-    background: #4f46e5;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.45);
-    min-width: 100px;
-    text-align: center;
-}
-
-.deck-button:hover {
-    transform: none;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.45);
-    background: rgba(129,140,248,0.2);
 }
 
 /* 卡组页签容器 - 固定在顶部，与搜索栏样式一致 */
@@ -1140,72 +944,6 @@
     color: #a5b4fc;
 }
 
-/* 统一的按钮容器 */
-.deck-button-container {
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    z-index: 1000;
-}
-
-/* 卡组功能按钮通用样式 - 完全统一尺寸 */
-.deck-search-button,
-.deck-edit-button,
-.deck-add-button,
-.deck-save-button,
-.deck-complete-button,
-.deck-save-in-add-button {
-    padding: 12px 24px; /* 完全统一内边距 */
-    border: none;
-    border-radius: 20px; /* 完全统一圆角 */
-    color: #e4e4e7;
-    font-weight: bold;
-    font-size: 1rem; /* 完全统一字体大小 */
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.45);
-    min-width: 100px; /* 完全统一最小宽度 */
-    text-align: center;
-}
-
-.deck-search-button:hover,
-.deck-edit-button:hover,
-.deck-add-button:hover,
-.deck-save-button:hover,
-.deck-complete-button:hover,
-.deck-save-in-add-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.5);
-}
-
-/* 具体按钮颜色（旧） */
-.deck-search-button-old {
-    background: #2563eb;
-}
-
-.deck-edit-button-old {
-    background: #7c3aed;
-}
-
-.deck-add-button {
-    background: rgba(129,140,248,0.15); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.25);
-}
-
-.deck-save-button {
-    background: #6366f1;
-}
-
-.deck-complete-button {
-    background: rgba(129,140,248,0.15); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.25);
-}
-
-.deck-save-in-add-button {
-    background: #6366f1;
-}
-
 /* 编辑模式下的特殊样式 */
 .deck-edit-mode .card {
     cursor: pointer;
@@ -1265,67 +1003,6 @@
     transform: scale(1.02);
 }
 
-/* 响应式设计 - 移动端优化 */
-@media (max-width: 768px) {
-    /* 卡牌查看界面的按钮 */
-    .deck-init-button-container {
-        bottom: 70px; /* 在移动端更靠近统计按钮 */
-        left: 15px;
-        gap: 6px; /* 移动端更小的间距 */
-    }
-    
-    .deck-button {
-        padding: 10px 20px;
-        font-size: 0.95rem;
-        min-width: 90px;
-        border-radius: 18px;
-    }
-    
-    .stats-button {
-        bottom: 15px;
-        left: 15px;
-        padding: 10px 20px;
-        font-size: 0.95rem;
-        min-width: 90px;
-        border-radius: 18px;
-    }
-    
-    /* 卡组界面的按钮 */
-    .deck-button-container {
-        bottom: 15px;
-        left: 15px;
-        gap: 6px; /* 移动端更小的间距 */
-    }
-    
-    .deck-search-button,
-    .deck-edit-button,
-    .deck-add-button,
-    .deck-save-button,
-    .deck-complete-button,
-    .deck-save-in-add-button {
-        padding: 10px 20px;
-        font-size: 0.95rem;
-        min-width: 90px;
-        border-radius: 18px;
-    }
-}
-
-/* 大屏幕设备（桌面端） */
-@media (min-width: 1025px) {
-    .deck-init-button-container {
-        bottom: 80px; /* 桌面端也使用调整后的位置 */
-        gap: 8px; /* 桌面端也使用紧凑间距 */
-    }
-    
-    .deck-button-container {
-        gap: 8px; /* 桌面端也使用紧凑间距 */
-    }
-    
-    .import-export-buttons {
-        gap: 8px; /* 桌面端也使用紧凑间距 */
-    }
-}
-
 @keyframes fadeIn {
     from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
     to { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -1353,126 +1030,173 @@
     100% { opacity: 0; }
 }
 
-/* === 统一的按钮样式 === */
+/* === FAB (Floating Action Button) === */
 
-/* 统一的全局按钮容器 - 左下角 */
-.global-button-container {
+.fab-container {
     position: fixed;
     bottom: max(20px, env(safe-area-inset-bottom, 0px));
     left: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
     z-index: 1000;
-    background: rgba(13,13,15,0.55);
-    border-radius: 16px;
-    padding: 6px;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.06);
 }
 
-/* 统一的按钮基础样式 */
-.global-button {
-    padding: 12px 24px;
-    border: none;
-    border-radius: 20px;
-    color: #e4e4e7;
-    font-weight: bold;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.45);
-    min-width: 100px;
-    text-align: center;
-}
-
-.global-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.5);
-}
-
-.global-button.deck-button:hover {
-    transform: none;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.45);
-    background: rgba(129,140,248,0.2);
-}
-
-/* 具体按钮颜色 */
-.deck-button { background: rgba(129,140,248,0.2); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.35); }
-.stats-button { background: rgba(129,140,248,0.2); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.35); }
-.stats-button.active { background: rgba(129,140,248,0.38); border: 1px solid rgba(129,140,248,0.5); }
-.deck-search-button { background: rgba(129,140,248,0.2); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.35); }
-.deck-edit-button { background: rgba(129,140,248,0.2); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.35); }
-.deck-add-button { background: rgba(129,140,248,0.2); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.35); }
-.deck-save-button { background: rgba(129,140,248,0.2); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.35); }
-.deck-complete-button { background: rgba(129,140,248,0.2); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.35); }
-.import-button { background: rgba(129,140,248,0.15); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.25); }
-.export-button { background: rgba(129,140,248,0.15); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.25); }
-
-/* 导入导出按钮容器 - 右下角 */
-.import-export-buttons {
+/* ---- Backdrop (click to close) ---- */
+.fab-backdrop {
     position: fixed;
-    bottom: max(20px, env(safe-area-inset-bottom, 0px));
-    right: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    z-index: 1000;
-    background: rgba(13,13,15,0.55);
-    border-radius: 16px;
-    padding: 6px;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.06);
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+    z-index: 999;
 }
 
-.import-button, .export-button {
+.fab-container.fab-expanded .fab-backdrop {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+/* ---- FAB trigger button ---- */
+.fab-button {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: rgba(13, 13, 15, 0.88);
+    color: #a0a0b0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, color 0.25s ease;
+    user-select: none;
+}
+
+.fab-button:hover {
+    color: #c7d2fe;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
+    border-color: rgba(129, 140, 248, 0.25);
+}
+
+.fab-container.fab-expanded .fab-button {
+    transform: rotate(90deg);
+    color: #c7d2fe;
+    border-color: rgba(129, 140, 248, 0.35);
+    box-shadow: 0 4px 18px rgba(129, 140, 248, 0.15);
+}
+
+/* ---- Menu panel (absolute, positioned above FAB button) ---- */
+.fab-menu {
+    position: absolute;
+    bottom: 62px; /* button 52px + 10px gap */
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: rgba(13, 13, 15, 0.88);
+    border-radius: 16px;
+    padding: 8px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px) scale(0.95);
+    pointer-events: none;
+    transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+    transform-origin: bottom left;
+}
+
+.fab-container.fab-expanded .fab-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+
+/* ---- Menu items ---- */
+.fab-menu-item {
     padding: 12px 24px;
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 20px;
-    color: #e4e4e7;
+    color: #a0a0b0;
     font-weight: bold;
     font-size: 1rem;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.45);
+    transition: all 0.2s ease;
     min-width: 100px;
     text-align: center;
+    background: rgba(255, 255, 255, 0.05);
+    white-space: nowrap;
 }
 
-.import-button { background: rgba(129,140,248,0.15); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.25); }
-.export-button { background: rgba(129,140,248,0.15); color: #c7d2fe; border: 1px solid rgba(129,140,248,0.25); }
-
-.import-button:hover, .export-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+.fab-menu-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #e4e4e7;
+    border-color: rgba(255, 255, 255, 0.15);
 }
 
-/* 隐藏旧的初始化按钮容器 */
-.deck-init-button-container {
-    display: none !important;
+/* Active state (stats toggle) */
+.fab-menu-item.active {
+    background: rgba(129, 140, 248, 0.2);
+    border-color: rgba(129, 140, 248, 0.35);
+    color: #c7d2fe;
 }
 
-/* 响应式设计 */
+/* Import/export subtle style */
+.fab-menu-item.import-button,
+.fab-menu-item.export-button {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.06);
+    font-size: 0.9rem;
+}
+
+/* ---- Divider ---- */
+.fab-menu-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 4px 12px;
+    flex-shrink: 0;
+}
+
+/* ---- AI button accent (subtle purple tint in dark theme) ---- */
+.fab-menu-item.ai-button {
+    background: rgba(129, 140, 248, 0.1);
+    color: #b0b8d8;
+    border: 1px solid rgba(129, 140, 248, 0.15);
+}
+.fab-menu-item.ai-button:hover {
+    background: rgba(129, 140, 248, 0.18);
+    color: #c7d2fe;
+    border-color: rgba(129, 140, 248, 0.3);
+}
+
+/* ---- Responsive: tablet ---- */
 @media (max-width: 768px) {
-    .global-button-container,
-    .import-export-buttons {
+    .fab-container {
         bottom: 15px;
-        gap: 6px;
-    }
-    
-    .global-button-container {
         left: 15px;
     }
-    
-    .import-export-buttons {
-        right: 15px;
+
+    .fab-button {
+        width: 46px;
+        height: 46px;
+        font-size: 20px;
     }
-    
-    .global-button,
-    .import-button, 
-    .export-button {
+
+    .fab-menu {
+        bottom: 54px; /* 46px + 8px */
+        gap: 5px;
+        padding: 6px;
+        border-radius: 14px;
+    }
+
+    .fab-menu-item {
         padding: 10px 20px;
         font-size: 0.95rem;
         min-width: 90px;
@@ -1480,24 +1204,27 @@
     }
 }
 
+/* ---- Responsive: phone ---- */
 @media (max-width: 480px) {
-    .global-button-container,
-    .import-export-buttons {
+    .fab-container {
         bottom: 10px;
-        gap: 5px;
-    }
-    
-    .global-button-container {
         left: 10px;
     }
-    
-    .import-export-buttons {
-        right: 10px;
+
+    .fab-button {
+        width: 42px;
+        height: 42px;
+        font-size: 18px;
     }
-    
-    .global-button,
-    .import-button, 
-    .export-button {
+
+    .fab-menu {
+        bottom: 48px; /* 42px + 6px */
+        gap: 4px;
+        padding: 5px;
+        border-radius: 12px;
+    }
+
+    .fab-menu-item {
         padding: 8px 16px;
         font-size: 0.9rem;
         min-width: 80px;
