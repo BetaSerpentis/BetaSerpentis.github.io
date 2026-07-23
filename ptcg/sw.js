@@ -1,5 +1,5 @@
 // 定义缓存名称和版本，便于后续更新和管理
-const CACHE_NAME = 'ptcg-cache-v12';
+const CACHE_NAME = 'ptcg-cache-v13';
 // 需要预缓存的关键静态资源列表
 const urlsToCache = [
   '/ptcg/',
