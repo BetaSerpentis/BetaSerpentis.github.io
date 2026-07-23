@@ -1,0 +1,630 @@
+#dtl1
+CBB1C-1701	抛掷1次硬币如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Studio Bora inc.	宝石包 VOL.1	★★		G	Poké Ball
+CBB1C-1702	查看自己牌库上方7张卡牌。选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Studio Bora inc.	宝石包 VOL.1	★★		G	Great Ball
+CBB1C-1703	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ayaka Yoshida	宝石包 VOL.1	★★		G	Ultra Ball
+CBB2C-1001	抛掷1次硬币如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Studio Bora Inc.	宝石包 VOL.2	★★		F	Poké Ball
+CBB3C-1901	选择自己弃牌区中的宝可梦和基本能量合计最多3张，在给对手看过之后，放回牌库并重洗牌库。				Toyste Beach	宝石包 VOL.3	★★		G	Super Rod
+CBB3C-1902	选择自己牌库中的1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	宝石包 VOL.3	★★		G	Nest Ball
+CBB3C-1903	将自己的战斗宝可梦与备战宝可梦互换。				Studio Bora Inc.	宝石包 VOL.3	★★		G	Switch
+CS1.5C-044	查看自己牌库上方7张卡牌。选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Toyste Beach	极巨攻防	U		D	Great Ball
+CS1DC-164	选择自己弃牌区中最多2张基本能量，在给对手看过之后，加入手牌。				Ryo Ueda	起始卡组 极巨争锋V	无标记		D	Energy Retrieval
+CS1DC-165	选择附着于自己场上宝可梦身上的1个基本能量，转附于自己其他宝可梦身上。				Toyste Beach	起始卡组 极巨争锋V	无标记		D	Energy Switch
+CS1DC-166	选择自己牌库中的1张基本能量，在给对手看过之后，加入手牌。并重洗牌库。				Studio Bora Inc.	起始卡组 极巨争锋V	无标记		D	Energy Search
+CS1DC-167	选择自己的1只宝可梦，回复其「30」点HP。				Ryo Ueda	起始卡组 极巨争锋V	无标记		D	Potion
+CS1DC-169	抛掷1次硬币如果为正面，则选择附着于对手场上宝可梦身上的1个能量，放于弃牌区。				sadaji	起始卡组 极巨争锋V	无标记		D	Crushing Hammer
+CS1DC-171	查看自己牌库上方7张卡牌。选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Toyste Beach	起始卡组 极巨争锋V	无标记		D	Great Ball
+CS1DC-174	选择自己弃牌区中最多2张支援者，在给对手看过之后，放回牌库并重洗牌库。				Ryo Ueda	起始卡组 极巨争锋V	无标记		D	Pal Pad
+CS1DC-176	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito	起始卡组 极巨争锋V	无标记		D	Rare Candy
+CS1DC-178	查看自己牌库上方7张卡牌。选择其中1张支援者，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Ryo Ueda	起始卡组 极巨争锋V	无标记		D	Pokégear 3.0
+CS1DC-179	将自己的战斗宝可梦与备战宝可梦互换。				Studio Bora Inc.	起始卡组 极巨争锋V	无标记		D	Switch
+CS1DC-180	抛掷1次硬币如果为正面，则选择对手的1只备战宝可梦，将其与战斗宝可梦互换。				Ryo Ueda	起始卡组 极巨争锋V	无标记		D	Pokémon Catcher
+CS1DC-183	抛掷1次硬币如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Studio Bora Inc.	起始卡组 极巨争锋V	无标记		D	Poké Ball
+CS1bC-124	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito	极巨争锋 焰	U		D	Rare Candy
+CS2.1C-003	选择自己弃牌区中最多2张支援者，在给对手看过之后，放回牌库并重洗牌库。				Ryo Ueda	专题包 喵喵小妙招	无标记		D	Pal Pad
+CS2DaC-040	选择自己的1只宝可梦，回复其「30」点HP。				Ryo Ueda	宝可梦卡牌 家庭组合	无标记		D	Potion
+CS2DaC-041	抛掷1次硬币如果为正面，则选择附着于对手场上宝可梦身上的1个能量，放于弃牌区。				sadaji	宝可梦卡牌 家庭组合	无标记		D	Crushing Hammer
+CS2DaC-042	查看自己牌库上方7张卡牌。选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Toyste Beach	宝可梦卡牌 家庭组合	无标记		D	Great Ball
+CS2DaC-043	将自己的战斗宝可梦与备战宝可梦互换。				Studio Bora Inc.	宝可梦卡牌 家庭组合	无标记		D	Switch
+CS2DaC-044	抛掷1次硬币如果为正面，则选择对手的1只备战宝可梦，将其与战斗宝可梦互换。				Ryo Ueda	宝可梦卡牌 家庭组合	无标记		D	Pokémon Catcher
+CS3.5C-056	查看自己牌库上方7张卡牌。选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Toyste Beach	怒炎灼天	U		D	Great Ball
+CS3DC-128	选择自己弃牌区中最多2张基本能量，在给对手看过之后，加入手牌。				Ryo Ueda	起始卡组 洪荒演武V	无标记		D	Energy Retrieval
+CS3DC-129	选择附着于自己场上宝可梦身上的1个基本能量，转附于自己其他宝可梦身上。				Toyste Beach	起始卡组 洪荒演武V	无标记		D	Energy Switch
+CS3DC-136	查看自己牌库上方7张卡牌。选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Toyste Beach	起始卡组 洪荒演武V	无标记		D	Great Ball
+CS3DC-139	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito	起始卡组 洪荒演武V	无标记		D	Rare Candy
+CS3DC-140	将自己的战斗宝可梦与备战宝可梦互换。				Studio Bora Inc.	起始卡组 洪荒演武V	无标记		D	Switch
+CS3DC-141	抛掷1次硬币如果为正面，则选择对手的1只备战宝可梦，将其与战斗宝可梦互换。				Ryo Ueda	起始卡组 洪荒演武V	无标记		D	Pokémon Catcher
+CS4DaC-365	选择自己弃牌区中最多2张基本能量，在给对手看过之后，加入手牌。				Ryo Ueda	起始卡组100	无标记		F	Energy Retrieval
+CS4DaC-366	选择附着于自己场上宝可梦身上的1个基本能量，转附于自己其他宝可梦身上。				Toyste Beach	起始卡组100	无标记		F	Energy Switch
+CS4DaC-367	选择自己牌库中的1张基本能量，在给对手看过之后，加入手牌。并重洗牌库。				Studio Bora Inc.	起始卡组100	无标记		F	Energy Search
+CS4DaC-370	选择自己的1只宝可梦，回复其「30」点HP。				Ryo Ueda	起始卡组100	无标记		F	Potion
+CS4DaC-372	抛掷1次硬币如果为正面，则选择附着于对手场上宝可梦身上的1个能量，放于弃牌区。				sadaji	起始卡组100	无标记		F	Crushing Hammer
+CS4DaC-373	查看自己牌库上方7张卡牌。选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Toyste Beach	起始卡组100	无标记		F	Great Ball
+CS4DaC-375	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				sadaji	起始卡组100	无标记		F	Ultra Ball
+CS4DaC-376	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito	起始卡组100	无标记		F	Rare Candy
+CS4DaC-377	将自己的战斗宝可梦与备战宝可梦互换。				Studio Bora Inc.	起始卡组100	无标记		F	Switch
+CS4DaC-378	抛掷1次硬币如果为正面，则选择对手的1只备战宝可梦，将其与战斗宝可梦互换。				Ryo Ueda	起始卡组100	无标记		F	Pokémon Catcher
+CS4DaC-379	抛掷1次硬币如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Studio Bora Inc.	起始卡组100	无标记		F	Poké Ball
+CS5.5C-059	选择自己场上1只宝可梦身上放置的最多2个伤害指示物，以任意方式转放于自己的其他宝可梦身上。				sadaji	暗影夺辉	U		F	Damage Pump
+CS5.5C-060	查看自己所有反面朝上的奖赏卡。选择其中1张【基础】宝可梦，在给对手看过之后，与这张「洗翠的沉重球」互换，加入手牌。将查看过的奖赏卡及被换入的卡牌反面朝上重洗过后，作为奖赏卡放置。				Studio Bora Inc.	暗影夺辉	U		F	Hisuian Heavy Ball
+CS5DC-113	这张卡牌，只有在后攻玩家的最初回合才可使用，如果使用了，则自己的回合结束。\n\n选择自己牌库中的1张基本能量，附着于自己的宝可梦身上。并重洗牌库。				sadaji	起始卡组 勇魅群星V	无标记		F	Wait and See Turbo
+CS5DC-115	查看自己牌库上方1张卡牌，再放回原处。若希望，可选择1张反面朝上的自己的奖赏卡，将其与自己牌库最上方的卡牌，在反面朝上的状态下互换。				5ban Graphics	起始卡组 勇魅群星V	无标记		F	Arc Phone
+CS5DC-116	将自己战斗场上的【基础】宝可梦与备战宝可梦互换。然后，回复被换入备战区的宝可梦「30」点HP。				Toyste Beach	起始卡组 勇魅群星V	无标记		F	Switch Cart
+CS5DC-117	查看自己牌库上方7张卡牌。选择其中1张能量，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				ORBITALLINK Inc.	起始卡组 勇魅群星V	无标记		F	Energy Loto
+CS5DC-118	选择自己弃牌区中最多2张基本能量，在给对手看过之后，加入手牌。				Ryo Ueda	起始卡组 勇魅群星V	无标记		F	Energy Retrieval
+CS5DC-119	选择附着于自己场上宝可梦身上的1个基本能量，转附于自己其他宝可梦身上。				Toyste Beach	起始卡组 勇魅群星V	无标记		F	Energy Switch
+CS5DC-120	将自己所有宝可梦的HP，各回复「20」点。				AYUMI ODASHIMA	起始卡组 勇魅群星V	无标记		F	Fresh Water Set
+CS5DC-121	将自己牌库上方的1张卡牌翻到正面，如果该卡牌是【斗】能量的话，则附着于自己的备战宝可梦身上。如果不是【斗】能量的话，则在给对手看过之后，加入手牌。				Eske Yoshinob	起始卡组 勇魅群星V	无标记		F	Gutsy Pickaxe
+CS5DC-122	选择自己的1只宝可梦，回复其「30」点HP。				Ryo Ueda	起始卡组 勇魅群星V	无标记		F	Potion
+CS5DC-125	查看自己牌库上方7张卡牌。选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Toyste Beach	起始卡组 勇魅群星V	无标记		F	Great Ball
+CS5DC-126	选择自己弃牌区中的1张「基本【恶】能量」，附着于备战区的【恶】宝可梦身上。				Ryo Ueda	起始卡组 勇魅群星V	无标记		F	Dark Patch
+CS5DC-128	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				sadaji	起始卡组 勇魅群星V	无标记		F	Ultra Ball
+CS5DC-130	将自己的战斗宝可梦与备战宝可梦互换。				Studio Bora Inc.	起始卡组 勇魅群星V	无标记		F	Switch
+CS5DC-131	抛掷1次硬币如果为正面，则选择对手的1只备战宝可梦，将其与战斗宝可梦互换。				Ryo Ueda	起始卡组 勇魅群星V	无标记		F	Pokémon Catcher
+CS5DC-163	选择附着于自己场上宝可梦身上的1个基本能量，转附于自己其他宝可梦身上。				Toyste Beach	起始卡组 勇魅群星V	无标记		F	Energy Switch
+CS5aC-112	查看自己牌库上方1张卡牌，再放回原处。若希望，可选择1张反面朝上的自己的奖赏卡，将其与自己牌库最上方的卡牌，在反面朝上的状态下互换。				5ban Graphics	勇魅群星 魅	U		F	Arc Phone
+CS5aC-113	在这个回合结束前，对手战斗宝可梦的特性，全部消除。（也包括新被放于战斗场的宝可梦。）				Studio Bora Inc.	勇魅群星 魅	U		F	Canceling Cologne
+CS5aC-114	选择自己弃牌区中的1张「基本【恶】能量」，附着于备战区的【恶】宝可梦身上。				Ryo Ueda	勇魅群星 魅	U		F	Dark Patch
+CS5aC-115	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				sadaji	勇魅群星 魅	U		F	Ultra Ball
+CS5aC-116	选择自己牌库中的1张没有【撤退】所需能量的宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Studio Bora Inc.	勇魅群星 魅	U		F	Feather Ball
+CS5aC-173	选择自己弃牌区中的1张「基本【恶】能量」，附着于备战区的【恶】宝可梦身上。				Ryo Ueda	勇魅群星 魅	UR		F	Dark Patch
+CS5bC-114	这张卡牌，只有在后攻玩家的最初回合才可使用，如果使用了，则自己的回合结束。\n\n选择自己牌库中的1张基本能量，附着于自己的宝可梦身上。并重洗牌库。				sadaji	勇魅群星 勇	U		F	Wait and See Turbo
+CS5bC-115	选择自己的1只宝可梦。抛掷硬币直到出现反面，回复该宝可梦正面次数×40点HP。				ORBITALLINK Inc.	勇魅群星 勇	U		F	Sweet Honey
+CS5bC-116	将自己战斗场上的【基础】宝可梦与备战宝可梦互换。然后，回复被换入备战区的宝可梦「30」点HP。				Toyste Beach	勇魅群星 勇	U		F	Switch Cart
+CS5bC-117	这张卡牌，可以作为HP为60的【无】属性的【基础】宝可梦，放于场上。\n如果在自己的回合的话，则可将处于场上的这张卡牌放于弃牌区。\n\n这张卡牌，无法撤退。				AYUMI ODASHIMA	勇魅群星 勇	C		F	Unidentified Fossil
+CS5bC-118	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				sadaji	勇魅群星 勇	U		F	Ultra Ball
+CS5bC-175	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				sadaji	勇魅群星 勇	UR		F	Ultra Ball
+CS6.5C-062	查看自己牌库上方7张卡牌，选择其中任意数量的「宝可梦道具」，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				AYUMI ODASHIMA	胜象星引	U		F	Tool Box
+CS6.5C-063	查看自己牌库上方1张卡牌，将那张卡牌加入手牌。或者，将那张卡牌放于弃牌区，从自己牌库上方抽取1张卡牌。				Toyste Beach	胜象星引	U		F	Trekking Shoes
+CS6.5C-094	查看自己牌库上方1张卡牌，将那张卡牌加入手牌。或者，将那张卡牌放于弃牌区，从自己牌库上方抽取1张卡牌。				Toyste Beach	胜象星引	UR		F	Trekking Shoes
+CS6aC-120	抛掷1次硬币。如果为正面则从自己牌库中选择1张进化宝可梦，如果为反面则从自己牌库中选择1张【基础】宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				sadaji	碧海暗影 啸	U		F	Capturing Aroma
+CS6aC-121	「四尖石」可以使用1张或是同时使用4张，根据使用的张数不同效果也不同。\n\n◆如果使用1张，则回复自己的战斗宝可梦「10」点HP。\n\n◆如果同时使用4张，则将自己所有宝可梦的HP，全部回复。（这个效果，4张卡牌只发动1次。）				sadaji	碧海暗影 啸	U		F	Quad Stone
+CS6aC-122	这张卡牌，可以作为HP为60的【无】属性的【基础】宝可梦，放于场上。\n如果在自己的回合的话，则可将处于场上的这张卡牌放于弃牌区。\n\n这张卡牌，无法撤退。				AYUMI ODASHIMA	碧海暗影 啸	C		F	Unidentified Fossil
+CS6bC-121	这张卡牌，可以作为HP为60的【无】属性的【基础】宝可梦，放于场上。\n如果在自己的回合的话，则可将处于场上的这张卡牌放于弃牌区。\n\n这张卡牌，无法撤退。				AYUMI ODASHIMA	碧海暗影 逐	C		F	Unidentified Fossil
+CS6bC-122	这张卡牌，只有在自己放逐区有7张以上（包含7张）卡牌时才可使用。\n \n从自己牌库中，选择最多2张属性各不同的基本能量，以任意方式附着于自己的宝可梦身上。并重洗牌库。				sadaji	碧海暗影 逐	U		F	Mirage Gate
+CS6bC-123	这张卡牌，只有将自己的1张手牌，放于放逐区后才可使用。\n\n选择放于双方场上宝可梦身上的「宝可梦道具」以及场上的「竞技场」中的1张，放于放逐区。				Toyste Beach	碧海暗影 逐	U		F	Lost Vacuum
+CS6bC-170	这张卡牌，只有将自己的1张手牌，放于放逐区后才可使用。\n\n选择放于双方场上宝可梦身上的「宝可梦道具」以及场上的「竞技场」中的1张，放于放逐区。				Toyste Beach	碧海暗影 逐	UR		F	Lost Vacuum
+CSAC-012	查看自己牌库上方7张卡牌。选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Toyste Beach	卡组构筑礼盒 极巨争锋	无标记		D	Great Ball
+CSAC-013	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito	卡组构筑礼盒 极巨争锋	无标记		D	Rare Candy
+CSAC-015	查看自己牌库上方7张卡牌。选择其中1张支援者，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Ryo Ueda	卡组构筑礼盒 极巨争锋	无标记		D	Pokégear 3.0
+CSBC-011	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito	卡组构筑礼盒 洪荒演武 茂	无标记		D	Rare Candy
+CSCC-011	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito	卡组构筑礼盒 洪荒演武 激	无标记		D	Rare Candy
+CSJC-010	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				sadaji	精灵球/高级球礼盒 宝可梦艺术插画庆典 景	无标记		F	Ultra Ball
+CSJC-011	抛掷1次硬币如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Studio Bora Inc.	精灵球/高级球礼盒 宝可梦艺术插画庆典 景	无标记		F	Poké Ball
+CSM1DC-228	查看自己牌库上方7张卡牌。可将其中的1张能量，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Yoshinobu Saito	起始卡组 横空出世GX	无标记		A	Energy Loto
+CSM1DC-230	将自己弃牌区中的2张基本能量，在给对手看过之后，加入手牌。				Toyste Beach	起始卡组 横空出世GX	无标记		A	Energy Retrieval
+CSM1DC-232	将附着于自己场上宝可梦身上的1个基本能量，转附于自己其他宝可梦身上。				Ken Ikuji	起始卡组 横空出世GX	无标记		A	Energy Switch
+CSM1DC-236	这张卡牌，只有在自己的剩余奖赏卡张数，比对手的剩余奖赏卡张数多时才可使用。\n\n选择1只对手的备战宝可梦，将其与战斗宝可梦互换。				Toyste Beach	起始卡组 横空出世GX	无标记		A	Counter Catcher
+CSM1DC-237	回复自己1只宝可梦「30」点HP。				Toyste Beach	起始卡组 横空出世GX	无标记		A	Potion
+CSM1DC-239	抛掷1次硬币如果为正面，则将附着于对手场上宝可梦身上的1个能量，放于弃牌区。				Yoshinobu Saito	起始卡组 横空出世GX	无标记		A	Crushing Hammer
+CSM1DC-240	查看自己牌库上方7张卡牌。可将其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Ryo Ueda	起始卡组 横空出世GX	无标记		A	Great Ball
+CSM1DC-246	将自己弃牌区中的2张支援者，在给对手看过之后，放回牌库并重洗牌库。				Toyste Beach	起始卡组 横空出世GX	无标记		B	Pal Pad
+CSM1DC-247	将自己牌库中1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	起始卡组 横空出世GX	无标记		A	Nest Ball
+CSM1DC-249	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n将自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ryo Ueda	起始卡组 横空出世GX	无标记		A	Ultra Ball
+CSM1DC-253	将自己手牌中的1张【2阶进化】宝可梦，放于自己场上1只能够进化成该宝可梦的【基础】宝可梦身上进行进化。（在自己最初的回合，以及对这个回合刚出场的【基础】宝可梦无法使用。）				Toyste Beach	起始卡组 横空出世GX	无标记		A	Rare Candy
+CSM1DC-257	将自己的战斗宝可梦与备战宝可梦互换。				Ryo Ueda	起始卡组 横空出世GX	无标记		A	Switch
+CSM1DC-258	抛掷1次硬币如果为正面，则选择对手的1只备战宝可梦，将其与战斗宝可梦互换。				Toyste Beach	起始卡组 横空出世GX	无标记		A	Pokémon Catcher
+CSM1DC-261	抛掷1次硬币如果为正面，则将自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				RyoUeda	起始卡组 横空出世GX	无标记		A	Poké Ball
+CSM1DC-334	抛掷1次硬币如果为正面，则将附着于对手场上宝可梦身上的1个能量，放于弃牌区。				Yoshinobu Saito	起始卡组 横空出世GX	无标记		A	Crushing Hammer
+CSM1aC-120	将自己弃牌区中的2张基本能量，在给对手看过之后，加入手牌。				Toyste Beach	横空出世 赫	U		A	Energy Retrieval
+CSM1aC-122	将附着于对手场上宝可梦身上的1个特殊能量，放于弃牌区。				Yoshinobu Saito	横空出世 赫	U		A	Enhanced Hammer
+CSM1aC-123	将自己牌库中1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	横空出世 赫	U		A	Nest Ball
+CSM1aC-206	将自己牌库中1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	横空出世 赫	UR		A	Nest Ball
+CSM1bC-121	将自己弃牌区中的2张支援者，在给对手看过之后，放回牌库并重洗牌库。				Toyste Beach	横空出世 苍	C		B	Pal Pad
+CSM1bC-123	将自己手牌中的1张【2阶进化】宝可梦，放于自己场上1只能够进化成该宝可梦的【基础】宝可梦身上进行进化。（在自己最初的回合，以及对这个回合刚出场的【基础】宝可梦无法使用。）				Toyste Beach	横空出世 苍	U		A	Rare Candy
+CSM1bC-198	将自己手牌中的1张【2阶进化】宝可梦，放于自己场上1只能够进化成该宝可梦的【基础】宝可梦身上进行进化。（在自己最初的回合，以及对这个回合刚出场的【基础】宝可梦无法使用。）				Toyste Beach	横空出世 苍	UR		A	Rare Candy
+CSM1bC-200	将自己的战斗宝可梦与备战宝可梦互换。				Ryo Ueda	横空出世 苍	UR		A	Switch
+CSM1cC-120	查看自己牌库上方7张卡牌。可将其中的1张能量，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Yoshinobu Saito	横空出世 泽	U		A	Energy Loto
+CSM1cC-122	这张卡牌，只有在自己的剩余奖赏卡张数，比对手的剩余奖赏卡张数多时才可使用。\n\n选择1只对手的备战宝可梦，将其与战斗宝可梦互换。				Toyste Beach	横空出世 泽	U		A	Counter Catcher
+CSM1cC-125	这张卡牌，可以作为HP为60属性为【无】的【基础】宝可梦，放于场上。\n如果在自己的回合的话，可将处于场上的这张卡牌放于弃牌区。\n\n这张卡牌，无法撤退。				Toyste Beach	横空出世 泽	C		B	Unidentified Fossil
+CSM1cC-126	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n将自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ryo Ueda	横空出世 泽	U		A	Ultra Ball
+CSM1cC-207	这张卡牌，只有在自己的剩余奖赏卡张数，比对手的剩余奖赏卡张数多时才可使用。\n\n选择1只对手的备战宝可梦，将其与战斗宝可梦互换。				Toyste Beach	横空出世 泽	UR		A	Counter Catcher
+CSM1cC-209	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n将自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ryo Ueda	横空出世 泽	UR		A	Ultra Ball
+CSM2.1C-004	将附着于对手场上宝可梦身上的1个特殊能量，放于弃牌区。				Yoshinobu Saito	辉金能量系列礼盒	无标记		A	Enhanced Hammer
+CSM2.1C-006	将自己弃牌区中的2张支援者，在给对手看过之后，放回牌库并重洗牌库。				Toyste Beach	辉金能量系列礼盒	无标记		B	Pal Pad
+CSM2.1C-007	将自己牌库中1张【基础】宝可梦，放于备战区。并重洗牌库。				Ryo Ueda	辉金能量系列礼盒	无标记		A	Nest Ball
+CSM2.1C-009	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n将自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ryo Ueda	辉金能量系列礼盒	无标记		A	Ultra Ball
+CSM2.1C-015	查看自己牌库上方7张卡牌。将其中1张支援者，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Studio Bora Inc.	辉金能量系列礼盒	无标记		C	Pokégear 3.0
+CSM2DC-235	查看自己牌库上方7张卡牌。可将其中的1张能量，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Yoshinobu Saito	起始卡组 交相辉映GX	无标记		A	Energy Loto
+CSM2DC-236	将自己弃牌区中的2张基本能量，在给对手看过之后，加入手牌。				Toyste Beach	起始卡组 交相辉映GX	无标记		A	Energy Retrieval
+CSM2DC-239	将附着于自己场上宝可梦身上的1个基本能量，转附于自己其他宝可梦身上。				Ryo Ueda	起始卡组 交相辉映GX	无标记		A	Energy Switch
+CSM2DC-244	将附着于对手场上宝可梦身上的1个特殊能量，放于弃牌区。				Yoshinobu Saito	起始卡组 交相辉映GX	无标记		A	Enhanced Hammer
+CSM2DC-245	这张卡牌，只有在自己的剩余奖赏卡张数，比对手的剩余奖赏卡张数多时才可使用。\n\n选择1只对手的备战宝可梦，将其与战斗宝可梦互换。				Toyste Beach	起始卡组 交相辉映GX	无标记		A	Counter Catcher
+CSM2DC-246	回复自己1只宝可梦「30」点HP。				Toyste Beach	起始卡组 交相辉映GX	无标记		A	Potion
+CSM2DC-247	抛掷1次硬币如果为正面，则将附着于对手场上宝可梦身上的1个能量，放于弃牌区。				Yoshinobu Saito	起始卡组 交相辉映GX	无标记		A	Crushing Hammer
+CSM2DC-250	查看自己牌库上方7张卡牌。可将其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Ryo Ueda	起始卡组 交相辉映GX	无标记		A	Great Ball
+CSM2DC-255	将自己弃牌区中的2张支援者，在给对手看过之后，放回牌库并重洗牌库。				Toyste Beach	起始卡组 交相辉映GX	无标记		B	Pal Pad
+CSM2DC-256	将自己牌库中1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	起始卡组 交相辉映GX	无标记		A	Nest Ball
+CSM2DC-258	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n将自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ryo Ueda	起始卡组 交相辉映GX	无标记		A	Ultra Ball
+CSM2DC-260	将自己手牌中的1张【2阶进化】宝可梦，放于自己场上1只能够进化成该宝可梦的【基础】宝可梦身上进行进化。（在自己最初的回合，以及对这个回合刚出场的【基础】宝可梦无法使用。）				Toyste Beach	起始卡组 交相辉映GX	无标记		A	Rare Candy
+CSM2DC-262	查看自己牌库上方7张卡牌。将其中1张支援者，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Studio Bora Inc.	起始卡组 交相辉映GX	无标记		C	Pokégear 3.0
+CSM2DC-263	将自己的战斗宝可梦与备战宝可梦互换。				Ryo Ueda	起始卡组 交相辉映GX	无标记		A	Switch
+CSM2DC-264	抛掷1次硬币如果为正面，则选择对手的1只备战宝可梦，将其与战斗宝可梦互换。				Toyste Beach	起始卡组 交相辉映GX	无标记		A	Pokémon Catcher
+CSM2aC-133	查看自己牌库上方7张卡牌。将其中1张支援者，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Studio Bora Inc.	交相辉映 沐	U		C	Pokégear 3.0
+CSM2aC-189	查看自己牌库上方7张卡牌。将其中1张支援者，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Studio Bora Inc.	交相辉映 沐	UR		C	Pokégear 3.0
+CSM2bC-129	这张卡牌，可以作为HP为60属性为【无】的【基础】宝可梦，放于场上。\n如果在自己的回合的话，可将处于场上的这张卡牌放于弃牌区。\n\n这张卡牌，无法撤退。				Toyste Beach	交相辉映 魁	C		B	Unidentified Fossil
+CSMAC-003	将附着于自己场上宝可梦身上的1个基本能量，转附于自己其他宝可梦身上。				Ryo Ueda	卡组构筑进阶礼盒 阿尔宙斯&帝牙卢卡&帕路奇亚GX	无标记		A	Energy Switch
+CSMAC-005	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n将自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ryo Ueda	卡组构筑进阶礼盒 阿尔宙斯&帝牙卢卡&帕路奇亚GX	无标记		A	Ultra Ball
+CSMJC-010	抛掷1次硬币如果为正面，则将自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ryo Ueda	精灵球礼盒 闪耀宝可梦	无标记		A	Poké Ball
+CSMPaC-009	将附着于自己场上宝可梦身上的1个基本能量，转附于自己其他宝可梦身上。				Ryo Ueda	对战派对组合 草	无标记		A	Energy Switch
+CSMPaC-011	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。 \n\n将自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ryo Ueda	对战派对组合 草	无标记		A	Ultra Ball
+CSMPaC-012	将自己手牌中的1张【2阶进化】宝可梦，放于自己场上1只能够进化成该宝可梦的【基础】宝可梦身上进行进化。（在自己最初的回合，以及对这个回合刚出场的【基础】宝可梦无法使用。）				Toyste Beach	对战派对组合 草	无标记		A	Rare Candy
+CSMPaC-013	查看自己牌库上方7张卡牌。将其中1张支援者，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Studio Bora Inc.	对战派对组合 草	无标记		C	Pokégear 3.0
+CSMPaC-014	将自己的战斗宝可梦与备战宝可梦互换。				Ryo Ueda	对战派对组合 草	无标记		A	Switch
+CSMPbC-009	将自己牌库中1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	对战派对组合 火	无标记		A	Nest Ball
+CSMPbC-010	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。 \n\n将自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ryo Ueda	对战派对组合 火	无标记		A	Ultra Ball
+CSMPbC-012	将自己手牌中的1张【2阶进化】宝可梦，放于自己场上1只能够进化成该宝可梦的【基础】宝可梦身上进行进化。（在自己最初的回合，以及对这个回合刚出场的【基础】宝可梦无法使用。）				Toyste Beach	对战派对组合 火	无标记		A	Rare Candy
+CSMPbC-013	查看自己牌库上方7张卡牌。将其中1张支援者，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Studio Bora Inc.	对战派对组合 火	无标记		C	Pokégear 3.0
+CSMPbC-014	将自己的战斗宝可梦与备战宝可梦互换。				Ryo Ueda	对战派对组合 火	无标记		A	Switch
+CSMPcC-012	将自己弃牌区中的2张基本能量，在给对手看过之后，加入手牌。				Toyste Beach	对战派对组合 水	无标记		A	Energy Retrieval
+CSMPcC-013	将自己牌库中1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	对战派对组合 水	无标记		A	Nest Ball
+CSMPcC-014	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。 \n\n将自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ryo Ueda	对战派对组合 水	无标记		A	Ultra Ball
+CSMPcC-015	查看自己牌库上方7张卡牌。将其中1张支援者，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Studio Bora Inc.	对战派对组合 水	无标记		C	Pokégear 3.0
+CSMPdC-009	将自己牌库中1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	对战派对组合 雷	无标记		A	Nest Ball
+CSMPdC-010	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。 \n\n将自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ryo Ueda	对战派对组合 雷	无标记		A	Ultra Ball
+CSMPdC-011	将自己的战斗宝可梦与备战宝可梦互换。				Ryo Ueda	对战派对组合 雷	无标记		A	Switch
+CSMPeC-010	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n将自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ryo Ueda	对战派对组合 超	无标记		A	Ultra Ball
+CSMPeC-011	将自己的战斗宝可梦与备战宝可梦互换。				Ryo Ueda	对战派对组合 超	无标记		A	Switch
+CSMPfC-008	将自己牌库中1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	对战派对组合 斗	无标记		A	Nest Ball
+CSMPfC-009	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n将自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ryo Ueda	对战派对组合 斗	无标记		A	Ultra Ball
+CSMPfC-010	将自己手牌中的1张【2阶进化】宝可梦，放于自己场上1只能够进化成该宝可梦的【基础】宝可梦身上进行进化。（在自己最初的回合，以及对这个回合刚出场的【基础】宝可梦无法使用。）				Toyste Beach	对战派对组合 斗	无标记		A	Rare Candy
+CSMPfC-011	将自己的战斗宝可梦与备战宝可梦互换。				Ryo Ueda	对战派对组合 斗	无标记		A	Switch
+CSMPgC-008	查看自己牌库上方7张卡牌。可将其中的1张能量，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Yoshinobu Saito	对战派对组合 恶	无标记		A	Energy Loto
+CSMPgC-009	将自己牌库中1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	对战派对组合 恶	无标记		A	Nest Ball
+CSMPgC-010	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n将自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ryo Ueda	对战派对组合 恶	无标记		A	Ultra Ball
+CSMPgC-011	查看自己牌库上方7张卡牌。将其中1张支援者，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Studio Bora Inc.	对战派对组合 恶	无标记		C	Pokégear 3.0
+CSMPgC-012	将自己的战斗宝可梦与备战宝可梦互换。				Ryo Ueda	对战派对组合 恶	无标记		A	Switch
+CSMPhC-010	查看自己牌库上方7张卡牌。可将其中的1张能量，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Yoshinobu Saito	对战派对组合 钢	无标记		A	Energy Loto
+CSMPhC-012	将自己牌库中1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	对战派对组合 钢	无标记		A	Nest Ball
+CSMPhC-013	将自己的战斗宝可梦与备战宝可梦互换。				Ryo Ueda	对战派对组合 钢	无标记		A	Switch
+CSMPkC-007	将附着于自己场上宝可梦身上的1个基本能量，转附于自己其他宝可梦身上。				Ryo Ueda	对战派对组合改造包 火	无标记		A	Energy Switch
+CSMPkC-010	将自己弃牌区中的2张支援者，在给对手看过之后，放回牌库并重洗牌库。				Toyste Beach	对战派对组合改造包 火	无标记		B	Pal Pad
+CSMPlC-008	将自己弃牌区中的2张基本能量，在给对手看过之后，加入手牌。				Toyste Beach	对战派对组合改造包 水	无标记		A	Energy Retrieval
+CSMPmC-007	将附着于自己场上宝可梦身上的1个基本能量，转附于自己其他宝可梦身上。				Ryo Ueda	对战派对组合改造包 雷	无标记		A	Energy Switch
+CSMPnC-007	这张卡牌，只有在自己的剩余奖赏卡张数，比对手的剩余奖赏卡张数多时才可使用。\n\n选择1只对手的备战宝可梦，将其与战斗宝可梦互换。				Toyste Beach	对战派对组合改造包 超	无标记		A	Counter Catcher
+CSMPoC-007	将自己弃牌区中的2张支援者，在给对手看过之后，放回牌库并重洗牌库。				Toyste Beach	对战派对组合改造包 斗	无标记		B	Pal Pad
+CSNC-012	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				sadaji	卡组构筑礼盒 勇魅群星	无标记		F	Ultra Ball
+CSNC-014	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito	卡组构筑礼盒 勇魅群星	无标记		F	Rare Candy
+CSNC-016	将自己的战斗宝可梦与备战宝可梦互换。				Studio Bora Inc.	卡组构筑礼盒 勇魅群星	无标记		F	Switch
+CSOC-005	将自己战斗场上的【基础】宝可梦与备战宝可梦互换。然后，回复被换入备战区的宝可梦「30」点HP。				Toyste Beach	卡组构筑进阶礼盒 汇流	无标记		F	Switch Cart
+CSOC-009	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				sadaji	卡组构筑进阶礼盒 汇流	无标记		F	Ultra Ball
+CSV10C-189	回复自己1只宝可梦「60」HP。然后，选择回复了HP的宝可梦身上附着的1个能量，放于弃牌区。				Studio Bora Inc.	共逐荣光	U		I	
+CSV10C-190	选择自己弃牌区中的1张基本能量，附着于备战区中的「N的宝可梦」身上。				Toyste Beach	共逐荣光	U		I	
+CSV10C-191	选择自己弃牌区中最多5张基本能量，在给对手看过之后放回牌库并重洗牌库。				Toyste Beach	共逐荣光	U		I	Energy Recycler
+CSV10C-192	选择自己弃牌区中最多5张宝可梦，在给对手看过之后放回牌库并重洗牌库。				Eske Yoshinob	共逐荣光	U		I	
+CSV10C-193	数过自己的奖赏卡张数后，将奖赏卡全部反面朝上重洗，放回牌库下方。然后，从牌库上方抽取与被放回牌库的奖赏卡张数相同数量的卡牌，作为奖赏卡放置。				Studio Bora Inc.	共逐荣光	U		I	
+CSV10C-194	回复自己的战斗宝可梦「30」HP。如果那只宝可梦是「派帕的宝可梦」的话，则回复的HP变为「100」。				AYUMI ODASHIMA	共逐荣光	U		I	
+CSV10C-195	选择自己牌库中最多2张【基础】宝可梦的「赫普的宝可梦」，放于备战区。并重洗牌库。				AYUMI ODASHIMA	共逐荣光	U		I	
+CSV10C-196	选择对手反面朝上的1张奖赏卡，以及在不看正面的前提下选择对手1张手牌，各查看其正面。若希望，可以令对手将被选择的卡牌互换。（在对战结束前，那张奖赏卡一直保持正面朝上状态。）				Toyste Beach	共逐荣光	U		I	
+CSV10C-197	抛掷1次硬币。如果为正面，则选择自己牌库中的1张进化宝可梦的「火箭队的宝可梦」，如果为反面，则选择自己牌库中的1张【基础】宝可梦的「火箭队的宝可梦」，在给对手看过之后加入手牌。并重洗牌库。				Toyste Beach	共逐荣光	U		I	
+CSV10C-198	抛掷1次硬币，如果为正面，则给对手的1只宝可梦身上放置2个伤害指示物。如果为反面，则给自己的战斗宝可梦身上放置2个伤害指示物。				Toyste Beach	共逐荣光	U		I	
+CSV10C-199	选择自己牌库中1张名字中带有「火箭队」的支援者，在给对手看过之后加入手牌。并重洗牌库。				inose yukie	共逐荣光	U		I	
+CSV1C-107	查看自己牌库上方5张卡牌，选择其中最多2张「基本【雷】能量」，以任意方式附着于备战区的【雷】宝可梦身上。将剩余的卡牌放回牌库并重洗牌库。				Toyste Beach	亘古开来	U		G	Electric Generator
+CSV1C-108	抛掷1次硬币如果为正面，则选择对手场上宝可梦身上附着的1个能量，放于弃牌区。				Ayaka Yoshida	亘古开来	U		G	Crushing Hammer
+CSV1C-109	选择自己弃牌区中的宝可梦和基本能量合计最多3张，在给对手看过之后，放回牌库并重洗牌库。				Toyste Beach	亘古开来	U		G	Super Rod
+CSV1C-110	查看对手的手牌，选择其中1张宝可梦，放回对手的牌库下方。				inose yukie	亘古开来	U		G	Grabber
+CSV1C-111	选择自己弃牌区中最多2张支援者，在给对手看过之后，放回牌库并重洗牌库。				Studio Bora Inc.	亘古开来	U		G	Pal Pad
+CSV1C-112	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ayaka Yoshida	亘古开来	U		G	Ultra Ball
+CSV1C-113	将自己的战斗宝可梦与备战宝可梦互换。				Studio Bora Inc.	亘古开来	U		G	Switch
+CSV1C-166	选择自己弃牌区中的宝可梦和基本能量合计最多3张，在给对手看过之后，放回牌库并重洗牌库。				Toyste Beach	亘古开来	UR		G	Super Rod
+CSV1C-167	将自己的战斗宝可梦与备战宝可梦互换。				Studio Bora Inc.	亘古开来	UR		G	Switch
+CSV2C-110	选择自己牌库中的1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	奇迹启程	U		G	Nest Ball
+CSV2C-111	这张卡牌，只有在上一个对手的回合，自己的宝可梦【昏厥】时才可使用。\n\n选择自己牌库中最多3张基本能量，在给对手看过之后，加入手牌。并重洗牌库。				Toyste Beach	奇迹启程	U		G	Letter of Encouragement
+CSV2C-112	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.	奇迹启程	U		G	Rare Candy
+CSV2C-113	查看自己牌库上方7张卡牌，选择其中1张支援者，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Toyste Beach	奇迹启程	U		G	Pokégear 3.0
+CSV3C-115	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己弃牌区中最多4张基本能量，在给对手看过之后，加入手牌。（无法选择因为这张卡牌的效果而被放于弃牌区的能量。）				Studio Bora Inc.	无畏太晶	U		G	Superior Energy Retrieval
+CSV3C-116	查看自己牌库上方7张卡牌。选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Studio Bora Inc.	无畏太晶	U		G	Great Ball
+CSV3C-117	将双方所有宝可梦的HP，各回复「30」。				OKACHEKE	无畏太晶	U		G	Picnic Basket
+CSV3C-164	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n \n 选择自己弃牌区中最多4张基本能量，在给对手看过之后，加入手牌。（无法选择因为这张卡牌的效果而被放于弃牌区的能量。）				Studio Bora Inc.	无畏太晶	UR		G	Superior Energy Retrieval
+CSV4C-115	选择自己弃牌区中最多2张基本能量，在给对手看过之后，加入手牌。				Studio Bora Inc.	嘉奖回合	U		G	Energy Retrieval
+CSV4C-116	抛掷2次硬币，如果全为正面的话，则选择自己牌库中任意1张卡牌，加入手牌。并重洗牌库。				inose yukie	嘉奖回合	U		G	Delivery Drone
+CSV4C-163	选择自己牌库中的1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	嘉奖回合	UR		G	Nest Ball
+CSV5C-114	抛掷1次硬币如果为正面，则选择自己弃牌区中的1张基本能量，附着于备战宝可梦身上。				Ayaka Yoshida	黑晶炽诚	U		G	Energy Sticker
+CSV5C-115	在对战准备中要将宝可梦放于场上时，如果这张卡牌在手牌中的话，则可将这张卡牌作为HP为120属性为【无】的【基础】宝可梦，反面朝上放于场上。（这张卡牌，在对战准备以外无法放于场上。）\n如果在自己的回合的话，则可将处于场上的这张卡牌放于弃牌区。\n\n这张卡牌，不会陷入特殊状态，也无法撤退。即使这张卡牌【昏厥】，对手也无法拿取奖赏卡。				AYUMI ODASHIMA	黑晶炽诚	U		G	Snorlax Doll
+CSV5C-116	这张卡牌，只有在自己的剩余奖赏卡张数，比对手的剩余奖赏卡张数多时才可使用。\n\n回复自己1只宝可梦「60」HP。				Ayaka Yoshida	黑晶炽诚	U		G	Fighting Au Lait
+CSV5C-163	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.	黑晶炽诚	UR		G	Rare Candy
+CSV6C-114	这张卡牌，只有在自己的剩余奖赏卡张数，比对手的剩余奖赏卡张数多时才可使用。\n\n选择对手的1只备战宝可梦，将其与战斗宝可梦互换。				Toyste Beach	真实玄虚	U		G	Counter Catcher
+CSV6C-115	这张卡牌，只有将自己的1张手牌放于弃牌区后才可使用。\n\n选择自己牌库中最多2张基本能量，在给对手看过之后，加入手牌。并重洗牌库。				AYUMI ODASHIMA	真实玄虚	U		G	Earthen Vessel
+CSV6C-116	这张卡牌，只有将自己的1张手牌放于弃牌区后才可使用。\n\n选择自己牌库中最多2张「未来」宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				inose yukie	真实玄虚	U		G	Techno Radar
+CSV6C-117	选择自己弃牌区中最多2张「妮莫」，在给对手看过之后，加入手牌。				AYUMI ODASHIMA	真实玄虚	U		G	Nemona's Backpack
+CSV6C-162	这张卡牌，只有在自己的剩余奖赏卡张数，比对手的剩余奖赏卡张数多时才可使用。\n\n选择对手的1只备战宝可梦，将其与战斗宝可梦互换。				Toyste Beach	真实玄虚	UR		G	Counter Catcher
+CSV6C-163	选择自己弃牌区中最多2张支援者，在给对手看过之后，放回牌库并重洗牌库。				Studio Bora Inc.	真实玄虚	UR		G	Pal Pad
+CSV7C-174	如果使用了这张卡牌的话，则自己的回合结束。\n\n选择自己牌库中最多2张物品，在给对手看过之后，加入手牌。并重洗牌库。				Studio Bora Inc.	利刃猛醒	U		H	Boxed Order
+CSV7C-175	选择对手场上宝可梦身上附着的1个特殊能量，放于弃牌区。				Eske Yoshinob	利刃猛醒	U		H	Enhanced Hammer
+CSV7C-176	从牌库上方抽取与自己场上「古代」宝可梦数量相同数量的卡牌。				Toyste Beach	利刃猛醒	ACE		H	Awakening Drum
+CSV7C-177	选择自己牌库中，最多2张HP在「70」及以下的【基础】宝可梦，放于备战区。并重洗牌库。				AYUMI ODASHIMA	利刃猛醒	U		H	Buddy-Buddy Poffin
+CSV7C-178	选择自己牌库中最多3张【1阶进化】宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Toyste Beach	利刃猛醒	ACE	ACE SPEC	H	Hyper Aroma
+CSV7C-179	双方玩家，各将自己的手牌放于弃牌区，直到手牌变为5张为止。（由对手开始放于弃牌区。手牌在5张及以下的玩家无需将手牌放于弃牌区。）				Ayaka Yoshida	利刃猛醒	U		H	Hand Trimmer
+CSV7C-180	选择对手的1只备战宝可梦，将其与战斗宝可梦互换。然后，将自己的战斗宝可梦与备战宝可梦互换。				Toyste Beach	利刃猛醒	ACE	ACE SPEC	H	Prime Catcher
+CSV7C-181	选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Studio Bora Inc.	利刃猛醒	ACE	ACE SPEC	H	Master Ball
+CSV7C-182	选择自己牌库中，与对手场上宝可梦名字相同的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Studio Bora Inc.	利刃猛醒	U		H	Love Ball
+CSV7C-183	给自己所有的「未来」宝可梦，各附着1张弃牌区中的基本能量。				inose yukie	利刃猛醒	ACE		H	Reboot Pod
+CSV7C-257	这张卡牌，只有将自己的1张手牌放于弃牌区后才可使用。\n\n选择自己牌库中最多2张基本能量，在给对手看过之后，加入手牌。并重洗牌库。				AYUMI ODASHIMA	利刃猛醒	UR		G	Earthen Vessel
+CSV7C-258	选择自己牌库中，最多2张HP在「70」及以下的【基础】宝可梦，放于备战区。并重洗牌库。				AYUMI ODASHIMA	利刃猛醒	UR		H	Buddy-Buddy Poffin
+CSV8C-173	这张卡牌，只有在上一个对手的回合，自己的宝可梦【昏厥】时才可使用。\n\n双方玩家，各将所有手牌放回牌库并重洗牌库。然后，自己从牌库上方抽取5张卡牌，对手从牌库上方抽取2张卡牌。				Toyste Beach	璀璨诡幻	ACE	ACE SPEC	H	Unfair Stamp
+CSV8C-174	选择自己弃牌区中，1张名字中带有「厄诡椪」的「宝可梦【ex】」，与自己场上的，1只名字中带有「厄诡椪」的「宝可梦【ex】」互换（继承所有放于其身上的卡牌、伤害指示物、特殊状态、效果等等）。将被互换的宝可梦放于弃牌区。				5ban Graphics	璀璨诡幻	U		H	Ogre's Mask
+CSV8C-175	将对手牌库上方5张卡牌翻到正面，选择其中任意数量的【基础】宝可梦，放于对手的备战区。将剩余的卡牌放回牌库并重洗牌库。				AYUMI ODASHIMA	璀璨诡幻	U		H	Accompanying Flute
+CSV8C-176	这张卡牌，只有将自己的3张手牌放于弃牌区后才可使用。\n \n选择自己牌库中「物品」「宝可梦道具」「支援者」「竞技场」各1张，在给对手看过之后，加入手牌。并重洗牌库。				Toyste Beach	璀璨诡幻	ACE	ACE SPEC	H	Secret Box
+CSV8C-177	查看自己牌库下方7张卡牌，选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Studio Bora Inc.	璀璨诡幻	U		H	Dusk Ball
+CSV8C-178	令对手的战斗宝可梦陷入【灼伤】和【混乱】状态。				inose yukie	璀璨诡幻	ACE	ACE SPEC	H	Dangerous Laser
+CSV8C-179	对手在数过对手自己的手牌后，将所有手牌反面朝上重洗，放回牌库下方。然后，对手从牌库上方抽取与放回牌库的卡牌张数相同数量的卡牌。				Ayaka Yoshida	璀璨诡幻	U		H	Meddling Memo
+CSV8C-180	回复自己1只宝可梦「150」HP。\n\n这张卡牌，只要在弃牌区，就无法加入手牌，也无法放回牌库。				Toyste Beach	璀璨诡幻	ACE	ACE SPEC	H	Poké Vital A
+CSV8C-181	选择自己场上的1只宝可梦，将那只宝可梦，以及放于其身上的所有卡牌，放回手牌。				Toyste Beach	璀璨诡幻	ACE	ACE SPEC	H	Scoop Up Cyclone
+CSV8C-182	查看自己牌库上方7张卡牌，选择其中的【草】宝可梦和「基本【草】能量」合计最多2张，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				AYUMI ODASHIMA	璀璨诡幻	U		H	Bug Catching Set
+CSV8C-183	选择自己弃牌区中的1张宝可梦或1张基本能量，在给对手看过之后，加入手牌。				Toyste Beach	璀璨诡幻	U		H	Night Stretcher
+CSV8C-259	选择对手场上宝可梦身上附着的1个特殊能量，放于弃牌区。				Eske Yoshinob	璀璨诡幻	UR		H	Enhanced Hammer
+CSV9.5C-157	选择自己弃牌区中，1张名字中带有「厄诡椪」的「宝可梦【ex】」，与自己场上的，1只名字中带有「厄诡椪」的「宝可梦【ex】」互换（继承所有放于其身上的卡牌、伤害指示物、特殊状态、效果等等）。将被互换的宝可梦放于弃牌区。				5ban Graphics	太晶盛聚	U		H	Ogre's Mask
+CSV9.5C-158	选择对手场上宝可梦身上附着的1个特殊能量，放于弃牌区。				Eske Yoshinob	太晶盛聚	U		H	Enhanced Hammer
+CSV9.5C-159	这张卡牌，只有在自己的剩余奖赏卡张数，比对手的剩余奖赏卡张数多时才可使用。\n\n选择对手的1只备战宝可梦，将其与战斗宝可梦互换。				Toyste Beach	太晶盛聚	U		G	Counter Catcher
+CSV9.5C-160	这张卡牌，只有在自己场上有「太晶」宝可梦时才可使用。\n\n选择自己备战区中最多2只【无】宝可梦，各附着1张弃牌区中的基本能量。				Toyste Beach	太晶盛聚	U		H	Glass Trumpet
+CSV9.5C-161	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己弃牌区中最多4张基本能量，在给对手看过之后，加入手牌。（无法选择因为这张卡牌的效果而被放于弃牌区的能量。）				Studio Bora Inc.	太晶盛聚	U		G	Superior Energy Retrieval
+CSV9.5C-162	这张卡牌，只有将自己的1张手牌放于弃牌区后才可使用。\n\n选择自己牌库中最多2张基本能量，在给对手看过之后，加入手牌。并重洗牌库。				AYUMI ODASHIMA	太晶盛聚	U		G	Earthen Vessel
+CSV9.5C-163	选择自己弃牌区中的宝可梦和基本能量合计最多5张，在给对手看过之后，加入手牌。				Toyste Beach	太晶盛聚	ACE	ACE SPEC	H	Max Rod
+CSV9.5C-164	这张卡牌，只有将自己的1张手牌放于弃牌区后才可使用。\n\n选择自己牌库中最多2张「未来」宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				inose yukie	太晶盛聚	U		G	Techno Radar
+CSV9.5C-165	选择自己牌库中的1张「太晶」宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ayaka Yoshida	太晶盛聚	U		H	Tera Orb
+CSV9.5C-166	选择自己牌库中最多5张「宝可梦道具」，在给对手看过之后，加入手牌。并重洗牌库。				inose yukie	太晶盛聚	ACE	ACE SPEC	H	Treasure Tracker
+CSV9.5C-167	选择自己牌库中，最多2张HP在「70」及以下的【基础】宝可梦，放于备战区。并重洗牌库。				AYUMI ODASHIMA	太晶盛聚	U		H	Buddy-Buddy Poffin
+CSV9.5C-168	选择对手的1只备战宝可梦，将其与战斗宝可梦互换。然后，将自己的战斗宝可梦与备战宝可梦互换。				Toyste Beach	太晶盛聚	ACE	ACE SPEC	H	Prime Catcher
+CSV9.5C-169	选择自己场上的1只宝可梦，将那只宝可梦，以及放于其身上的所有卡牌，放回手牌。				Toyste Beach	太晶盛聚	ACE	ACE SPEC	H	Scoop Up Cyclone
+CSV9.5C-170	查看自己牌库上方7张卡牌，选择其中的【草】宝可梦和「基本【草】能量」合计最多2张，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				AYUMI ODASHIMA	太晶盛聚	U		H	Bug Catching Set
+CSV9.5C-171	选择自己弃牌区中的1张宝可梦或1张基本能量，在给对手看过之后，加入手牌。				Toyste Beach	太晶盛聚	U		H	Night Stretcher
+CSV9C-176	从自己牌库中，选择任意数量的属性各不相同的基本能量，在给对手看过之后，加入手牌，并重洗牌库。				Toyste Beach	星彩晶璃	ACE	ACE SPEC	H	Energy Search Pro
+CSV9C-177	这张卡牌，只有在后攻玩家的最初回合才可使用。\n\n选择自己牌库中的1张支援者，在给对手看过之后，加入手牌。并重洗牌库。				Ayaka Yoshida	星彩晶璃	U		H	Call Bell
+CSV9C-178	这张卡牌，只有在自己场上有「太晶」宝可梦时才可使用。\n\n选择自己备战区中最多2只【无】宝可梦，各附着1张弃牌区中的基本能量。				Toyste Beach	星彩晶璃	U		H	Glass Trumpet
+CSV9C-179	查看自己牌库上方3张卡牌，以任意顺序重新排列，放回牌库上方。或者，将那些卡牌全部翻到反面重洗，放回牌库下方。				AYUMI ODASHIMA	星彩晶璃	U		H	Deduction Kit
+CSV9C-180	将自己的战斗宝可梦与备战宝可梦互换。然后，选择被换入备战区的宝可梦身上附着的任意数量的能量，转附于新的战斗宝可梦身上。				Ayaka Yoshida	星彩晶璃	ACE	ACE SPEC	H	Scramble Switch
+CSV9C-181	选择自己牌库中的1张「太晶」宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ayaka Yoshida	星彩晶璃	U		H	Tera Orb
+CSV9C-182	这张卡牌，只有在后攻玩家的最初回合才可使用。\n\n选择对手场上宝可梦身上附着的1个能量，放回对手的手牌。				AYUMI ODASHIMA	星彩晶璃	U		H	Chill Teaser Toy
+CSV9C-183	选择自己牌库中任意卡牌最多5张，放于弃牌区。并重洗牌库。				Toyste Beach	星彩晶璃	ACE	ACE SPEC	H	Brilliant Blender
+CSV9C-184	这张卡牌，可以作为HP为60的【无】属性的【基础】宝可梦，放于场上。这张卡牌，不会陷入特殊状态，也无法撤退。\n如果在自己的回合的话，则可将处于场上的这张卡牌放于弃牌区。只要这只宝可梦在战斗场上，对手的【基础】宝可梦，使用招式所需能量，就会增加1个【无】能量。[特性] 原始之根只要这只宝可梦在战斗场上，对手的【基础】宝可梦，使用招式所需能量，就会增加1个【无】能量。				AYUMI ODASHIMA	星彩晶璃	C		H	Antique Root Fossil
+CSV9C-185	这张卡牌，可以作为HP为60的【无】属性的【基础】宝可梦，放于场上。这张卡牌，不会陷入特殊状态，也无法撤退。\n如果在自己的回合的话，则可将处于场上的这张卡牌放于弃牌区。这只宝可梦，不会受到对手宝可梦所使用招式的效果影响。[特性] 背盖守护这只宝可梦，不会受到对手宝可梦所使用招式的效果影响。				AYUMI ODASHIMA	星彩晶璃	C		H	Antique Cover Fossil
+CSV9C-186	选择自己牌库中任意数量的【基础】宝可梦，放于备战区。并重洗牌库。				inose yukie	星彩晶璃	ACE	ACE SPEC	H	Precious Trolley
+CSV9C-187	选择自己弃牌区中最多2张支援者，在给对手看过之后，加入手牌。				inose yukie	星彩晶璃	ACE	ACE SPEC	H	Miracle Headset
+CSV9C-188	将对手所有宝可梦身上的「宝可梦道具」和「特殊能量」，以及场上的「竞技场」，全部放于弃牌区。				Toyste Beach	星彩晶璃	ACE	ACE SPEC	H	Megaton Blower
+CSV9C-189	回复自己战斗场上【龙】宝可梦「60」HP。				AYUMI ODASHIMA	星彩晶璃	U		H	Dragon Elixir
+CSV9C-263	选择自己弃牌区中的1张宝可梦或1张基本能量，在给对手看过之后，加入手牌。				Toyste Beach	星彩晶璃	UR		H	Night Stretcher
+CSVE1C-101	将自己战斗场上的【基础】宝可梦与备战宝可梦互换。然后，回复被换入备战区的宝可梦「30」点HP。				Toyste Beach	对战派对 共梦	无标记		F	Switch Cart
+CSVE1C-103	查看自己牌库上方7张卡牌。选择其中1张能量，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				ORBITALLINK Inc.	对战派对 共梦	无标记		F	Energy Loto
+CSVE1C-104	选择自己弃牌区中最多2张基本能量，在给对手看过之后，加入手牌。				Studio Bora Inc.	对战派对 共梦	无标记		G	Energy Retrieval
+CSVE1C-105	选择自己牌库中的1张基本能量，在给对手看过之后，加入手牌。并重洗牌库。				Toyste Beach	对战派对 共梦	无标记		G	Energy Search
+CSVE1C-106	选择自己场上宝可梦身上附着的1个基本能量，转附于自己其他宝可梦身上。				Studio Bora Inc.	对战派对 共梦	无标记		G	Energy Switch
+CSVE1C-108	查看自己牌库上方5张卡牌，选择其中最多2张「基本【雷】能量」，以任意方式附着于备战区的【雷】宝可梦身上。将剩余的卡牌放回牌库并重洗牌库。				Toyste Beach	对战派对 共梦	无标记		G	Electric Generator
+CSVE1C-110	将自己牌库上方的1张卡牌翻到正面，如果该卡牌是【斗】能量的话，则附着于自己的备战宝可梦身上。如果不是【斗】能量的话，则在给对手看过之后，加入手牌。				Eske Yoshinob	对战派对 共梦	无标记		F	Gutsy Pickaxe
+CSVE1C-112	选择自己弃牌区中的宝可梦和基本能量合计最多3张，在给对手看过之后，放回牌库并重洗牌库。				Toyste Beach	对战派对 共梦	无标记		G	Super Rod
+CSVE1C-113	选择自己弃牌区中的1张「基本【恶】能量」，附着于备战区的【恶】宝可梦身上。				Ryo Ueda	对战派对 共梦	无标记		F	Dark Patch
+CSVE1C-114	查看自己牌库上方7张卡牌，选择其中任意数量的「宝可梦道具」，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				AYUMI ODASHIMA	对战派对 共梦	无标记		F	Tool Box
+CSVE1C-115	选择自己弃牌区中最多2张支援者，在给对手看过之后，放回牌库并重洗牌库。				Studio Bora Inc.	对战派对 共梦	无标记		G	Pal Pad
+CSVE1C-116	查看自己牌库上方1张卡牌，将那张卡牌加入手牌。或者，将那张卡牌放于弃牌区，从自己牌库上方抽取1张卡牌。				Toyste Beach	对战派对 共梦	无标记		F	Trekking Shoes
+CSVE1C-117	选择自己牌库中的1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	对战派对 共梦	无标记		G	Nest Ball
+CSVE1C-118	这张卡牌，只有在将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ayaka Yoshida	对战派对 共梦	无标记		G	Ultra Ball
+CSVE1C-120	查看自己所有反面朝上的奖赏卡。选择其中1张【基础】宝可梦，在给对手看过之后，与这张「洗翠的沉重球」互换，加入手牌。将查看过的奖赏卡及被换入的卡牌反面朝上重洗过后，作为奖赏卡放置。				Studio Bora Inc.	对战派对 共梦	无标记		F	Hisuian Heavy Ball
+CSVE1C-121	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.	对战派对 共梦	无标记		G	Rare Candy
+CSVE1C-122	查看自己牌库上方7张卡牌，选择其中1张支援者，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Toyste Beach	对战派对 共梦	无标记		G	Pokégear 3.0
+CSVE1C-123	将自己的战斗宝可梦与备战宝可梦互换。				Studio Bora Inc.	对战派对 共梦	无标记		G	Switch
+CSVE1pC-008	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.	对战派对 共梦 奖赏包	无标记		G	Rare Candy
+CSVE1pC-020	选择自己牌库中的1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	对战派对 共梦 奖赏包	无标记		G	Nest Ball
+CSVE2C-135	将自己战斗场上的【基础】宝可梦与备战宝可梦互换。然后，回复被换入备战区的宝可梦「30」点HP。				Toyste Beach	对战派对 耀梦	无标记		F	Switch Cart
+CSVE2C-136	查看自己牌库上方7张卡牌。选择其中1张能量，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				ORBITALLINK Inc.	对战派对 耀梦	无标记		F	Energy Loto
+CSVE2C-137	选择自己弃牌区中最多2张基本能量，在给对手看过之后，加入手牌。				Studio Bora Inc.	对战派对 耀梦	无标记		G	Energy Retrieval
+CSVE2C-138	选择自己场上宝可梦身上附着的1个基本能量，转附于自己其他宝可梦身上。				Studio Bora Inc.	对战派对 耀梦	无标记		G	Energy Switch
+CSVE2C-139	选择自己牌库中的1张基本能量，在给对手看过之后，加入手牌。并重洗牌库。				Toyste Beach	对战派对 耀梦	无标记		G	Energy Search
+CSVE2C-141	查看自己牌库上方5张卡牌，选择其中最多2张「基本【雷】能量」，以任意方式附着于备战区的【雷】宝可梦身上。将剩余的卡牌放回牌库并重洗牌库。				Toyste Beach	对战派对 耀梦	无标记		G	Electric Generator
+CSVE2C-142	将自己牌库上方的1张卡牌翻到正面，如果该卡牌是【斗】能量的话，则附着于自己的备战宝可梦身上。如果不是【斗】能量的话，则在给对手看过之后，加入手牌。				Eske Yoshinob	对战派对 耀梦	无标记		F	Gutsy Pickaxe
+CSVE2C-144	抛掷1次硬币如果为正面，则选择对手场上宝可梦身上附着的1个能量，放于弃牌区。				Ayaka Yoshida	对战派对 耀梦	无标记		G	Crushing Hammer
+CSVE2C-145	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己弃牌区中最多4张基本能量，在给对手看过之后，加入手牌。（无法选择因为这张卡牌的效果而被放于弃牌区的能量。）				Studio Bora Inc.	对战派对 耀梦	无标记		G	Superior Energy Retrieval
+CSVE2C-146	选择自己弃牌区中的宝可梦和基本能量合计最多3张，在给对手看过之后，放回牌库并重洗牌库。				Toyste Beach	对战派对 耀梦	无标记		G	Super Rod
+CSVE2C-147	查看对手的手牌，选择其中1张宝可梦，放回对手的牌库下方。				inose yukie	对战派对 耀梦	无标记		G	Grabber
+CSVE2C-149	选择自己弃牌区中的1张「基本【恶】能量」，附着于备战区的【恶】宝可梦身上。				Ryo Ueda	对战派对 耀梦	无标记		F	Dark Patch
+CSVE2C-150	选择自己场上1只宝可梦身上放置的最多2个伤害指示物，以任意方式转放于自己的其他宝可梦身上。				sadaji	对战派对 耀梦	无标记		F	Damage Pump
+CSVE2C-151	选择自己弃牌区中最多2张支援者，在给对手看过之后，放回牌库并重洗牌库。				Studio Bora Inc.	对战派对 耀梦	无标记		G	Pal Pad
+CSVE2C-152	查看自己牌库上方1张卡牌，将那张卡牌加入手牌。或者，将那张卡牌放于弃牌区，从自己牌库上方抽取1张卡牌。				Toyste Beach	对战派对 耀梦	无标记		F	Trekking Shoes
+CSVE2C-153	选择自己牌库中的1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	对战派对 耀梦	无标记		G	Nest Ball
+CSVE2C-154	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ayaka Yoshida	对战派对 耀梦	无标记		G	Ultra Ball
+CSVE2C-155	这张卡牌，只有在上一个对手的回合，自己的宝可梦【昏厥】时才可使用。\n\n选择自己牌库中最多3张基本能量，在给对手看过之后，加入手牌。并重洗牌库。				Toyste Beach	对战派对 耀梦	无标记		G	Letter of Encouragement
+CSVE2C-157	查看自己所有反面朝上的奖赏卡。选择其中1张【基础】宝可梦，在给对手看过之后，与这张「洗翠的沉重球」互换，加入手牌。将查看过的奖赏卡及被换入的卡牌反面朝上重洗过后，作为奖赏卡放置。				Studio Bora Inc.	对战派对 耀梦	无标记		F	Hisuian Heavy Ball
+CSVE2C-158	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.	对战派对 耀梦	无标记		G	Rare Candy
+CSVE2C-159	查看自己牌库上方7张卡牌，选择其中1张支援者，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Toyste Beach	对战派对 耀梦	无标记		G	Pokégear 3.0
+CSVE2C-160	将自己的战斗宝可梦与备战宝可梦互换。				Studio Bora Inc.	对战派对 耀梦	无标记		G	Switch
+CSVE2pC-008	将自己战斗场上的【基础】宝可梦与备战宝可梦互换。然后，回复被换入备战区的宝可梦「30」点HP。				Toyste Beach	对战派对 耀梦 奖赏包	无标记		F	Switch Cart
+CSVE2pC-009	选择自己弃牌区中的1张「基本【恶】能量」，附着于备战区的【恶】宝可梦身上。				Ryo Ueda	对战派对 耀梦 奖赏包	无标记		F	Dark Patch
+CSVE2pC-020	查看自己牌库上方5张卡牌，选择其中最多2张「基本【雷】能量」，以任意方式附着于备战区的【雷】宝可梦身上。将剩余的卡牌放回牌库并重洗牌库。				Toyste Beach	对战派对 耀梦 奖赏包	无标记		G	Electric Generator
+CSVE2pC-021	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己弃牌区中最多4张基本能量，在给对手看过之后，加入手牌。（无法选择因为这张卡牌的效果而被放于弃牌区的能量。）				Studio Bora Inc.	对战派对 耀梦 奖赏包	无标记		G	Superior Energy Retrieval
+CSVE2pC-022	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ayaka Yoshida	对战派对 耀梦 奖赏包	无标记		G	Ultra Ball
+CSVH1C-034	选择自己弃牌区中最多2张基本能量，在给对手看过之后，加入手牌。				Studio Bora Inc.	嗨皮组合 皮卡丘&皮皮&草苗龟&索财灵	无标记		G	Energy Retrieval
+CSVH1C-035	选择自己牌库中的1张基本能量，在给对手看过之后，加入手牌。并重洗牌库。				Toyste Beach	嗨皮组合 皮卡丘&皮皮&草苗龟&索财灵	无标记		G	Energy Search
+CSVH1C-037	查看自己牌库上方5张卡牌，选择其中最多2张「基本【雷】能量」，以任意方式附着于备战区的【雷】宝可梦身上。将剩余的卡牌放回牌库并重洗牌库。				Toyste Beach	嗨皮组合 皮卡丘&皮皮&草苗龟&索财灵	无标记		G	Electric Generator
+CSVH1C-038	回复自己1只宝可梦「30」HP。				Ayaka Yoshida	嗨皮组合 皮卡丘&皮皮&草苗龟&索财灵	无标记		G	Potion
+CSVH1C-040	抛掷1次硬币如果为正面，则选择对手场上宝可梦身上附着的1个能量，放于弃牌区。				Ayaka Yoshida	嗨皮组合 皮卡丘&皮皮&草苗龟&索财灵	无标记		G	Crushing Hammer
+CSVH1C-041	选择自己弃牌区中的宝可梦和基本能量合计最多3张，在给对手看过之后，放回牌库并重洗牌库				Toyste Beach	嗨皮组合 皮卡丘&皮皮&草苗龟&索财灵	无标记		G	Super Rod
+CSVH1C-042	查看自己牌库上方1张卡牌，将那张卡牌加入手牌。或者，将那张卡牌放于弃牌区，从自己牌库上方抽取1张卡牌。				Toyste Beach	嗨皮组合 皮卡丘&皮皮&草苗龟&索财灵	无标记		F	Trekking Shoes
+CSVH1C-043	选择自己牌库中的1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	嗨皮组合 皮卡丘&皮皮&草苗龟&索财灵	无标记		G	Nest Ball
+CSVH1C-044	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ayaka Yoshida	嗨皮组合 皮卡丘&皮皮&草苗龟&索财灵	无标记		G	Ultra Ball
+CSVH1C-045	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用				Studio Bora Inc.	嗨皮组合 皮卡丘&皮皮&草苗龟&索财灵	无标记		G	Rare Candy
+CSVH1C-046	将自己的战斗宝可梦与备战宝可梦互换。				Studio Bora Inc.	嗨皮组合 皮卡丘&皮皮&草苗龟&索财灵	无标记		G	Switch
+CSVH1C-047	抛掷1次硬币如果为正面，则选择对手的1只备战宝可梦，将其与战斗宝可梦互换。				Studio Bora Inc.	嗨皮组合 皮卡丘&皮皮&草苗龟&索财灵	无标记		G	Pokémon Catcher
+CSVH1aC-008	选择自己场上宝可梦身上附着的1个基本能量，转附于自己其他宝可梦身上。				Studio Bora Inc.	嗨皮组合 皮卡丘&皮皮&草苗龟&索财灵 改造包	无标记		G	Energy Switch
+CSVH1aC-009	抛掷1次硬币。如果为正面则从自己牌库中选择1张进化宝可梦，如果为反面则从自己牌库中选择1张【基础】宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				sadaji	嗨皮组合 皮卡丘&皮皮&草苗龟&索财灵 改造包	无标记		F	Capturing Aroma
+CSVH1aC-011	抛掷1次硬币如果为正面，则选择对手场上宝可梦身上附着的1个能量，放于弃牌区。				Ayaka Yoshida	嗨皮组合 皮卡丘&皮皮&草苗龟&索财灵 改造包	无标记		G	Crushing Hammer
+CSVH2C-038	选择自己场上宝可梦身上附着的1个基本能量，转附于自己其他宝可梦身上。				Studio Bora Inc.	嗨皮组合 路卡利欧&甲贺忍蛙&藏玛然特&獒教父	无标记		G	Energy Switch
+CSVH2C-040	回复自己1只宝可梦「30」HP。				Ayaka Yoshida	嗨皮组合 路卡利欧&甲贺忍蛙&藏玛然特&獒教父	无标记		G	Potion
+CSVH2C-041	选择自己弃牌区中的宝可梦和基本能量合计最多3张，在给对手看过之后，放回牌库并重洗牌库。				Toyste Beach	嗨皮组合 路卡利欧&甲贺忍蛙&藏玛然特&獒教父	无标记		G	Super Rod
+CSVH2C-042	选择自己弃牌区中的1张「基本【恶】能量」，附着于备战区的【恶】宝可梦身上。				Ryo Ueda	嗨皮组合 路卡利欧&甲贺忍蛙&藏玛然特&獒教父	无标记		F	Dark Patch
+CSVH2C-043	选择自己牌库中的1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	嗨皮组合 路卡利欧&甲贺忍蛙&藏玛然特&獒教父	无标记		G	Nest Ball
+CSVH2C-044	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ayaka Yoshida	嗨皮组合 路卡利欧&甲贺忍蛙&藏玛然特&獒教父	无标记		G	Ultra Ball
+CSVH2C-045	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.	嗨皮组合 路卡利欧&甲贺忍蛙&藏玛然特&獒教父	无标记		G	Rare Candy
+CSVH2C-046	将自己的战斗宝可梦与备战宝可梦互换。				Studio Bora Inc.	嗨皮组合 路卡利欧&甲贺忍蛙&藏玛然特&獒教父	无标记		G	Switch
+CSVH2C-047	抛掷1次硬币如果为正面，则选择对手的1只备战宝可梦，将其与战斗宝可梦互换。				Studio Bora Inc.	嗨皮组合 路卡利欧&甲贺忍蛙&藏玛然特&獒教父	无标记		G	Pokémon Catcher
+CSVH2aC-007	这张卡牌，只有在后攻玩家的最初回合才可使用，如果使用了，则自己的回合结束。\n\n选择自己牌库中的1张基本能量，附着于自己的宝可梦身上。并重洗牌库。				sadaji	嗨皮组合 路卡利欧&甲贺忍蛙&藏玛然特&獒教父 改造包	无标记		F	Wait and See Turbo
+CSVH2aC-008	抛掷1次硬币。如果为正面则从自己牌库中选择1张进化宝可梦，如果为反面则从自己牌库中选择1张【基础】宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				sadaji	嗨皮组合 路卡利欧&甲贺忍蛙&藏玛然特&獒教父 改造包	无标记		F	Capturing Aroma
+CSVH2aC-009	抛掷1次硬币如果为正面，则选择对手场上宝可梦身上附着的1个能量，放于弃牌区。				Ayaka Yoshida	嗨皮组合 路卡利欧&甲贺忍蛙&藏玛然特&獒教父 改造包	无标记		G	Crushing Hammer
+CSVH2aC-010	查看对手的手牌，选择其中1张宝可梦，放回对手的牌库下方。				inose yukie	嗨皮组合 路卡利欧&甲贺忍蛙&藏玛然特&獒教父 改造包	无标记		G	Grabber
+CSVH2aC-012	选择自己弃牌区中最多2张支援者，在给对手看过之后，放回牌库并重洗牌库。				Studio Bora Inc.	嗨皮组合 路卡利欧&甲贺忍蛙&藏玛然特&獒教父 改造包	无标记		G	Pal Pad
+CSVH3C-036	查看自己牌库上方7张卡牌。选择其中1张能量，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				ORBITALLINK Inc.	嗨皮卡组 七夕青鸟&拉帝欧斯&烈焰猴&一家鼠	无标记		F	Energy Loto
+CSVH3C-037	选择自己弃牌区中最多2张基本能量，在给对手看过之后，加入手牌。				Studio Bora Inc.	嗨皮卡组 七夕青鸟&拉帝欧斯&烈焰猴&一家鼠	无标记		G	Energy Retrieval
+CSVH3C-038	选择自己牌库中的1张基本能量，在给对手看过之后，加入手牌。并重洗牌库。				Toyste Beach	嗨皮卡组 七夕青鸟&拉帝欧斯&烈焰猴&一家鼠	无标记		G	Energy Search
+CSVH3C-040	回复自己1只宝可梦「30」HP。				Ayaka Yoshida	嗨皮卡组 七夕青鸟&拉帝欧斯&烈焰猴&一家鼠	无标记		G	Potion
+CSVH3C-041	选择自己弃牌区中的宝可梦和基本能量合计最多3张，在给对手看过之后，放回牌库并重洗牌库。				Toyste Beach	嗨皮卡组 七夕青鸟&拉帝欧斯&烈焰猴&一家鼠	无标记		G	Super Rod
+CSVH3C-042	选择自己牌库中的1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	嗨皮卡组 七夕青鸟&拉帝欧斯&烈焰猴&一家鼠	无标记		G	Nest Ball
+CSVH3C-043	选择自己弃牌区中最多2张「妮莫」，在给对手看过之后，加入手牌。				AYUMI ODASHIMA	嗨皮卡组 七夕青鸟&拉帝欧斯&烈焰猴&一家鼠	无标记		G	Nemona's Backpack
+CSVH3C-044	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ayaka Yoshida	嗨皮卡组 七夕青鸟&拉帝欧斯&烈焰猴&一家鼠	无标记		G	Ultra Ball
+CSVH3C-045	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.	嗨皮卡组 七夕青鸟&拉帝欧斯&烈焰猴&一家鼠	无标记		G	Rare Candy
+CSVH3C-046	将自己的战斗宝可梦与备战宝可梦互换。				Studio Bora Inc.	嗨皮卡组 七夕青鸟&拉帝欧斯&烈焰猴&一家鼠	无标记		G	Switch
+CSVH3C-047	抛掷1次硬币如果为正面，则选择对手的1只备战宝可梦，将其与战斗宝可梦互换。				Studio Bora Inc.	嗨皮卡组 七夕青鸟&拉帝欧斯&烈焰猴&一家鼠	无标记		G	Pokémon Catcher
+CSVH3aC-007	将自己战斗场上的【基础】宝可梦与备战宝可梦互换。然后，回复被换入备战区的宝可梦「30」点HP。				Toyste Beach	嗨皮组合 七夕青鸟&拉帝欧斯&烈焰猴&一家鼠 改造包	无标记		F	Switch Cart
+CSVH3aC-008	抛掷1次硬币如果为正面，则选择自己弃牌区中的1张基本能量，附着于备战宝可梦身上。				Ayaka Yoshida	嗨皮组合 七夕青鸟&拉帝欧斯&烈焰猴&一家鼠 改造包	无标记		G	Energy Sticker
+CSVH3aC-009	选择自己场上宝可梦身上附着的1个基本能量，转附于自己其他宝可梦身上。				Studio Bora Inc.	嗨皮组合 七夕青鸟&拉帝欧斯&烈焰猴&一家鼠 改造包	无标记		G	Energy Switch
+CSVH3aC-010	查看自己牌库上方1张卡牌，将那张卡牌加入手牌。或者，将那张卡牌放于弃牌区，从自己牌库上方抽取1张卡牌。				Toyste Beach	嗨皮组合 七夕青鸟&拉帝欧斯&烈焰猴&一家鼠 改造包	无标记		F	Trekking Shoes
+CSVH3aC-011	这张卡牌，只有在自己的剩余奖赏卡张数，比对手的剩余奖赏卡张数多时才可使用。\n\n回复自己1只宝可梦「60」HP。				Ayaka Yoshida	嗨皮组合 七夕青鸟&拉帝欧斯&烈焰猴&一家鼠 改造包	无标记		G	Fighting Au Lait
+CSVH3aC-012	查看自己牌库上方7张卡牌，选择其中1张支援者，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Toyste Beach	嗨皮组合 七夕青鸟&拉帝欧斯&烈焰猴&一家鼠 改造包	无标记		G	Pokégear 3.0
+CSVH4C-031	选择自己牌库中的1张基本能量，在给对手看过之后，加入手牌。并重洗牌库。				Toyste Beach	嗨皮卡组 狙射树枭&美录梅塔&故勒顿&密勒顿	无标记		G	Energy Search
+CSVH4C-032	查看自己牌库上方7张卡牌。选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Studio Bora Inc.	嗨皮卡组 狙射树枭&美录梅塔&故勒顿&密勒顿	无标记		G	Great Ball
+CSVH4C-033	选择自己弃牌区中的宝可梦和基本能量合计最多3张，在给对手看过之后，放回牌库并重洗牌库。				Toyste Beach	嗨皮卡组 狙射树枭&美录梅塔&故勒顿&密勒顿	无标记		G	Super Rod
+CSVH4C-034	这张卡牌，只有将自己的1张手牌放于弃牌区后才可使用。\n\n选择自己牌库中最多2张基本能量，在给对手看过之后，加入手牌。并重洗牌库。				AYUMI ODASHIMA	嗨皮卡组 狙射树枭&美录梅塔&故勒顿&密勒顿	无标记		G	Earthen Vessel
+CSVH4C-035	这张卡牌，只有将自己的1张手牌放于弃牌区后才可使用。\n\n选择自己牌库中最多2张「未来」宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				inose yukie	嗨皮卡组 狙射树枭&美录梅塔&故勒顿&密勒顿	无标记		G	Techno Radar
+CSVH4C-036	选择自己牌库中的1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	嗨皮卡组 狙射树枭&美录梅塔&故勒顿&密勒顿	无标记		G	Nest Ball
+CSVH4C-037	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ayaka Yoshida	嗨皮卡组 狙射树枭&美录梅塔&故勒顿&密勒顿	无标记		G	Ultra Ball
+CSVH4C-038	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.	嗨皮卡组 狙射树枭&美录梅塔&故勒顿&密勒顿	无标记		G	Rare Candy
+CSVH4C-039	将自己的战斗宝可梦与备战宝可梦互换。				Studio Bora Inc.	嗨皮卡组 狙射树枭&美录梅塔&故勒顿&密勒顿	无标记		G	Switch
+CSVH4C-040	抛掷1次硬币如果为正面，则选择对手的1只备战宝可梦，将其与战斗宝可梦互换。				Studio Bora Inc.	嗨皮卡组 狙射树枭&美录梅塔&故勒顿&密勒顿	无标记		G	Pokémon Catcher
+CSVH4C-041	查看自己牌库上方7张卡牌，选择其中的【草】宝可梦和「基本【草】能量」合计最多2张，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				AYUMI ODASHIMA	嗨皮卡组 狙射树枭&美录梅塔&故勒顿&密勒顿	无标记		H	Bug Catching Set
+CSVH4aC-007	抛掷1次硬币如果为正面，则选择自己弃牌区中的1张基本能量，附着于备战宝可梦身上。				Ayaka Yoshida	嗨皮组合 狙射树枭&美录梅塔&故勒顿&密勒顿 改造包	无标记		G	Energy Sticker
+CSVH4aC-008	这张卡牌，只有在自己的剩余奖赏卡张数，比对手的剩余奖赏卡张数多时才可使用。\n\n选择对手的1只备战宝可梦，将其与战斗宝可梦互换。				Toyste Beach	嗨皮组合 狙射树枭&美录梅塔&故勒顿&密勒顿 改造包	无标记		G	Counter Catcher
+CSVH4aC-009	查看自己牌库上方1张卡牌，将那张卡牌加入手牌。或者，将那张卡牌放于弃牌区，从自己牌库上方抽取1张卡牌。				Toyste Beach	嗨皮组合 狙射树枭&美录梅塔&故勒顿&密勒顿 改造包	无标记		F	Trekking Shoes
+CSVH4aC-010	这张卡牌，只有在上一个对手的回合，自己的宝可梦【昏厥】时才可使用。\n\n选择自己牌库中最多3张基本能量，在给对手看过之后，加入手牌。并重洗牌库。				Toyste Beach	嗨皮组合 狙射树枭&美录梅塔&故勒顿&密勒顿 改造包	无标记		G	Letter of Encouragement
+CSVH4aC-011	将双方所有宝可梦的HP，各回复「30」。				OKACHEKE	嗨皮组合 狙射树枭&美录梅塔&故勒顿&密勒顿 改造包	无标记		G	Picnic Basket
+CSVH4aC-012	选择自己弃牌区中的1张宝可梦或1张基本能量，在给对手看过之后，加入手牌。				Toyste Beach	嗨皮组合 狙射树枭&美录梅塔&故勒顿&密勒顿 改造包	无标记		H	Night Stretcher
+CSVH5C-034	选择自己弃牌区中最多2张基本能量，在给对手看过之后，加入手牌。				Studio Bora Inc.	嗨皮组合 快龙&超梦&喷火驼&来悲粗茶	无标记		G	Energy Retrieval
+CSVH5C-035	选择自己场上宝可梦身上附着的1个基本能量，转附于自己其他宝可梦身上。				Studio Bora Inc.	嗨皮组合 快龙&超梦&喷火驼&来悲粗茶	无标记		G	Energy Switch
+CSVH5C-036	选择自己牌库中的1张基本能量，在给对手看过之后，加入手牌。并重洗牌库。				Toyste Beach	嗨皮组合 快龙&超梦&喷火驼&来悲粗茶	无标记		G	Energy Search
+CSVH5C-037	回复自己1只宝可梦「30」HP。				Ayaka Yoshida	嗨皮组合 快龙&超梦&喷火驼&来悲粗茶	无标记		G	Potion
+CSVH5C-038	查看自己牌库上方7张卡牌，选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Studio Bora Inc.	嗨皮组合 快龙&超梦&喷火驼&来悲粗茶	无标记		G	Great Ball
+CSVH5C-039	查看自己牌库上方3张卡牌，以任意顺序重新排列，放回牌库上方。或者，将那些卡牌全部翻到反面重洗，放回牌库下方。				AYUMI ODASHIMA	嗨皮组合 快龙&超梦&喷火驼&来悲粗茶	无标记		H	Deduction Kit
+CSVH5C-040	选择自己弃牌区中的宝可梦和基本能量合计最多3张，在给对手看过之后，放回牌库并重洗牌库。				Toyste Beach	嗨皮组合 快龙&超梦&喷火驼&来悲粗茶	无标记		G	Super Rod
+CSVH5C-041	选择自己牌库中的1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	嗨皮组合 快龙&超梦&喷火驼&来悲粗茶	无标记		G	Nest Ball
+CSVH5C-042	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ayaka Yoshida	嗨皮组合 快龙&超梦&喷火驼&来悲粗茶	无标记		G	Ultra Ball
+CSVH5C-043	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.	嗨皮组合 快龙&超梦&喷火驼&来悲粗茶	无标记		G	Rare Candy
+CSVH5C-044	将自己的战斗宝可梦与备战宝可梦互换。				Studio Bora Inc.	嗨皮组合 快龙&超梦&喷火驼&来悲粗茶	无标记		G	Switch
+CSVH5C-045	抛掷1次硬币如果为正面，则选择对手的1只备战宝可梦，将其与战斗宝可梦互换。				Studio Bora Inc.	嗨皮组合 快龙&超梦&喷火驼&来悲粗茶	无标记		G	Pokémon Catcher
+CSVH5aC-007	回复自己1只宝可梦「60」HP。然后，选择回复了HP的宝可梦身上附着的1个能量，放于弃牌区。				Studio Bora Inc.	嗨皮组合 快龙&超梦&喷火驼&来悲粗茶 改造包	无标记		I	Super Potion
+CSVH5aC-008	这张卡牌，只有在后攻玩家的最初回合才可使用。\n\n选择自己牌库中的1张支援者，在给对手看过之后，加入手牌。并重洗牌库。				Ayaka Yoshida	嗨皮组合 快龙&超梦&喷火驼&来悲粗茶 改造包	无标记		H	Call Bell
+CSVH5aC-009	这张卡牌，只有在自己的剩余奖赏卡张数，比对手的剩余奖赏卡张数多时才可使用。\n\n选择对手的1只备战宝可梦，将其与战斗宝可梦互换。				Toyste Beach	嗨皮组合 快龙&超梦&喷火驼&来悲粗茶 改造包	无标记		G	Counter Catcher
+CSVH5aC-010	数过自己的奖赏卡张数后，将奖赏卡全部反面朝上重洗，放回牌库下方。然后，从牌库上方抽取与被放回牌库的奖赏卡张数相同数量的卡牌，作为奖赏卡放置。				Studio Bora Inc.	嗨皮组合 快龙&超梦&喷火驼&来悲粗茶 改造包	无标记		I	Redeemable Ticket
+CSVH5aC-011	对手在数过对手自己的手牌后，将所有手牌反面朝上重洗，放回牌库下方。然后，对手从牌库上方抽取与放回牌库的卡牌张数相同数量的卡牌。				Ayaka Yoshida	嗨皮组合 快龙&超梦&喷火驼&来悲粗茶 改造包	无标记		H	Meddling Memo
+CSVH5aC-012	选择自己弃牌区中的1张宝可梦或1张基本能量，在给对手看过之后，加入手牌。				Toyste Beach	嗨皮组合 快龙&超梦&喷火驼&来悲粗茶 改造包	无标记		H	Night Stretcher
+CSVM1aC-011	这张卡牌，只有在自己的剩余奖赏卡张数，比对手的剩余奖赏卡张数多时才可使用。\n\n选择对手的1只备战宝可梦，将其与战斗宝可梦互换。				Toyste Beach	大师战略卡组构筑套装 喷火龙ex	无标记		G	Counter Catcher
+CSVM1aC-012	选择自己弃牌区中的宝可梦和基本能量合计最多3张，在给对手看过之后，放回牌库并重洗牌库。				Toyste Beach	大师战略卡组构筑套装 喷火龙ex	无标记		G	Super Rod
+CSVM1aC-013	选择自己牌库中，最多2张HP在「70」及以下的【基础】宝可梦，放于备战区。并重洗牌库。				AYUMI ODASHIMA	大师战略卡组构筑套装 喷火龙ex	无标记		H	Buddy-Buddy Poffin
+CSVM1aC-014	选择自己牌库中的1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	大师战略卡组构筑套装 喷火龙ex	无标记		G	Nest Ball
+CSVM1aC-015	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ayaka Yoshida	大师战略卡组构筑套装 喷火龙ex	无标记		G	Ultra Ball
+CSVM1aC-016	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.	大师战略卡组构筑套装 喷火龙ex	无标记		G	Rare Candy
+CSVM1aC-017	将自己的战斗宝可梦与备战宝可梦互换。				Studio Bora Inc.	大师战略卡组构筑套装 喷火龙ex	无标记		G	Switch
+CSVM1aC-018	这张卡牌，只有将自己的1张手牌，放于放逐区后才可使用。\n\n选择放于双方场上宝可梦身上的「宝可梦道具」以及场上的「竞技场」中的1张，放于放逐区。				Toyste Beach	大师战略卡组构筑套装 喷火龙ex	无标记		F	Lost Vacuum
+CSVM1bC-015	这张卡牌，只有在自己的剩余奖赏卡张数，比对手的剩余奖赏卡张数多时才可使用。\n\n选择对手的1只备战宝可梦，将其与战斗宝可梦互换。				Toyste Beach	大师战略卡组构筑套装 沙奈朵ex	无标记		G	Counter Catcher
+CSVM1bC-016	选择自己弃牌区中的宝可梦和基本能量合计最多3张，在给对手看过之后，放回牌库并重洗牌库。				Toyste Beach	大师战略卡组构筑套装 沙奈朵ex	无标记		G	Super Rod
+CSVM1bC-017	这张卡牌，只有将自己的1张手牌放于弃牌区后才可使用。\n\n选择自己牌库中最多2张基本能量，在给对手看过之后，加入手牌。并重洗牌库。				AYUMI ODASHIMA	大师战略卡组构筑套装 沙奈朵ex	无标记		G	Earthen Vessel
+CSVM1bC-018	选择自己牌库中，最多2张HP在「70」及以下的【基础】宝可梦，放于备战区。并重洗牌库。				AYUMI ODASHIMA	大师战略卡组构筑套装 沙奈朵ex	无标记		H	Buddy-Buddy Poffin
+CSVM1bC-019	选择自己牌库中的1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	大师战略卡组构筑套装 沙奈朵ex	无标记		G	Nest Ball
+CSVM1bC-020	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ayaka Yoshida	大师战略卡组构筑套装 沙奈朵ex	无标记		G	Ultra Ball
+CSVM1bC-021	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.	大师战略卡组构筑套装 沙奈朵ex	无标记		G	Rare Candy
+CSVM1bC-022	这张卡牌，只有将自己的1张手牌，放于放逐区后才可使用。\n\n选择放于双方场上宝可梦身上的「宝可梦道具」以及场上的「竞技场」中的1张，放于放逐区。				Toyste Beach	大师战略卡组构筑套装 沙奈朵ex	无标记		F	Lost Vacuum
+CSVM1cC-008	将自己战斗场上的【基础】宝可梦与备战宝可梦互换。然后，回复被换入备战区的宝可梦「30」点HP。				Toyste Beach	大师战略卡组构筑套装 密勒顿ex	无标记		F	Switch Cart
+CSVM1cC-009	抛掷1次硬币如果为正面，则选择自己弃牌区中的1张基本能量，附着于备战宝可梦身上。				Ayaka Yoshida	大师战略卡组构筑套装 密勒顿ex	无标记		G	Energy Sticker
+CSVM1cC-010	查看自己牌库上方5张卡牌，选择其中最多2张「基本【雷】能量」，以任意方式附着于备战区的【雷】宝可梦身上。将剩余的卡牌放回牌库并重洗牌库。				Toyste Beach	大师战略卡组构筑套装 密勒顿ex	无标记		G	Electric Generator
+CSVM1cC-011	选择自己弃牌区中的宝可梦和基本能量合计最多3张，在给对手看过之后，放回牌库并重洗牌库。				Toyste Beach	大师战略卡组构筑套装 密勒顿ex	无标记		G	Super Rod
+CSVM1cC-012	选择自己牌库中的1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	大师战略卡组构筑套装 密勒顿ex	无标记		G	Nest Ball
+CSVM1cC-013	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ayaka Yoshida	大师战略卡组构筑套装 密勒顿ex	无标记		G	Ultra Ball
+CSVM1cC-014	抛掷1次硬币如果为正面，则选择对手的1只备战宝可梦，将其与战斗宝可梦互换。				Studio Bora Inc.	大师战略卡组构筑套装 密勒顿ex	无标记		G	Pokémon Catcher
+CSVM1cC-015	这张卡牌，只有将自己的1张手牌，放于放逐区后才可使用。\n\n选择放于双方场上宝可梦身上的「宝可梦道具」以及场上的「竞技场」中的1张，放于放逐区。				Toyste Beach	大师战略卡组构筑套装 密勒顿ex	无标记		F	Lost Vacuum
+CSVM2aC-013	选择自己弃牌区中最多2张基本能量，在给对手看过之后，加入手牌。				Studio Bora Inc.	大师战略卡组构筑套装 猛雷鼓ex	无标记		G	Energy Retrieval
+CSVM2aC-014	选择自己场上宝可梦身上附着的1个基本能量，转附于自己其他宝可梦身上。				Studio Bora Inc.	大师战略卡组构筑套装 猛雷鼓ex	无标记		G	Energy Switch
+CSVM2aC-015	这张卡牌，只有在自己的剩余奖赏卡张数，比对手的剩余奖赏卡张数多时才可使用。\n\n选择对手的1只备战宝可梦，将其与战斗宝可梦互换。				Toyste Beach	大师战略卡组构筑套装 猛雷鼓ex	无标记		G	Counter Catcher
+CSVM2aC-016	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己弃牌区中最多4张基本能量，在给对手看过之后，加入手牌。（无法选择因为这张卡牌的效果而被放于弃牌区的能量。）				Studio Bora Inc.	大师战略卡组构筑套装 猛雷鼓ex	无标记		G	Superior Energy Retrieval
+CSVM2aC-017	这张卡牌，只有将自己的1张手牌放于弃牌区后才可使用。\n\n选择自己牌库中最多2张基本能量，在给对手看过之后，加入手牌。并重洗牌库。				AYUMI ODASHIMA	大师战略卡组构筑套装 猛雷鼓ex	无标记		G	Earthen Vessel
+CSVM2aC-018	选择自己牌库中的1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	大师战略卡组构筑套装 猛雷鼓ex	无标记		G	Nest Ball
+CSVM2aC-019	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ayaka Yoshida	大师战略卡组构筑套装 猛雷鼓ex	无标记		G	Ultra Ball
+CSVM2aC-020	将双方所有宝可梦的HP，各回复「30」。				OKACHEKE	大师战略卡组构筑套装 猛雷鼓ex	无标记		G	Picnic Basket
+CSVM2aC-021	选择对手的1只备战宝可梦，将其与战斗宝可梦互换。然后，将自己的战斗宝可梦与备战宝可梦互换。				Toyste Beach	大师战略卡组构筑套装 猛雷鼓ex	无标记	ACE SPEC	H	Prime Catcher
+CSVM2aC-022	将自己的战斗宝可梦与备战宝可梦互换。				Studio Bora Inc.	大师战略卡组构筑套装 猛雷鼓ex	无标记		G	Switch
+CSVM2aC-023	选择自己弃牌区中的1张宝可梦或1张基本能量，在给对手看过之后，加入手牌。				Toyste Beach	大师战略卡组构筑套装 猛雷鼓ex	无标记		H	Night Stretcher
+CSVM2bC-010	这张卡牌，只有在上一个对手的回合，自己的宝可梦【昏厥】时才可使用。\n\n双方玩家，各将所有手牌放回牌库并重洗牌库。然后，自己从牌库上方抽取5张卡牌，对手从牌库上方抽取2张卡牌。				Toyste Beach	大师战略卡组构筑套装 多龙巴鲁托ex	无标记	ACE SPEC	H	Unfair Stamp
+CSVM2bC-011	这张卡牌，只有在自己的剩余奖赏卡张数，比对手的剩余奖赏卡张数多时才可使用。\n\n选择对手的1只备战宝可梦，将其与战斗宝可梦互换。				Toyste Beach	大师战略卡组构筑套装 多龙巴鲁托ex	无标记		G	Counter Catcher
+CSVM2bC-012	这张卡牌，只有将自己的1张手牌放于弃牌区后才可使用。\n\n选择自己牌库中最多2张基本能量，在给对手看过之后，加入手牌。并重洗牌库。				AYUMI ODASHIMA	大师战略卡组构筑套装 多龙巴鲁托ex	无标记		G	Earthen Vessel
+CSVM2bC-013	选择自己牌库中，最多2张HP在「70」及以下的【基础】宝可梦，放于备战区。并重洗牌库。				AYUMI ODASHIMA	大师战略卡组构筑套装 多龙巴鲁托ex	无标记		H	Buddy-Buddy Poffin
+CSVM2bC-014	选择自己牌库中的1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	大师战略卡组构筑套装 多龙巴鲁托ex	无标记		G	Nest Ball
+CSVM2bC-015	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ayaka Yoshida	大师战略卡组构筑套装 多龙巴鲁托ex	无标记		G	Ultra Ball
+CSVM2bC-016	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.	大师战略卡组构筑套装 多龙巴鲁托ex	无标记		G	Rare Candy
+CSVM2bC-017	将自己的战斗宝可梦与备战宝可梦互换。				Studio Bora Inc.	大师战略卡组构筑套装 多龙巴鲁托ex	无标记		G	Switch
+CSVM2bC-018	选择自己弃牌区中的1张宝可梦或1张基本能量，在给对手看过之后，加入手牌。				Toyste Beach	大师战略卡组构筑套装 多龙巴鲁托ex	无标记		H	Night Stretcher
+CSVM2cC-010	选择自己弃牌区中最多2张基本能量，在给对手看过之后，加入手牌。				Studio Bora Inc.	大师战略卡组构筑套装 赛富豪ex	无标记		G	Energy Retrieval
+CSVM2cC-011	这张卡牌，只有在自己的剩余奖赏卡张数，比对手的剩余奖赏卡张数多时才可使用。\n\n选择对手的1只备战宝可梦，将其与战斗宝可梦互换。				Toyste Beach	大师战略卡组构筑套装 赛富豪ex	无标记		G	Counter Catcher
+CSVM2cC-012	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己弃牌区中最多4张基本能量，在给对手看过之后，加入手牌。（无法选择因为这张卡牌的效果而被放于弃牌区的能量。）				Studio Bora Inc.	大师战略卡组构筑套装 赛富豪ex	无标记		G	Superior Energy Retrieval
+CSVM2cC-013	这张卡牌，只有将自己的1张手牌放于弃牌区后才可使用。\n\n选择自己牌库中最多2张基本能量，在给对手看过之后，加入手牌。并重洗牌库。				AYUMI ODASHIMA	大师战略卡组构筑套装 赛富豪ex	无标记		G	Earthen Vessel
+CSVM2cC-014	选择自己牌库中，最多2张HP在「70」及以下的【基础】宝可梦，放于备战区。并重洗牌库。				AYUMI ODASHIMA	大师战略卡组构筑套装 赛富豪ex	无标记		H	Buddy-Buddy Poffin
+CSVM2cC-015	选择自己牌库中的1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	大师战略卡组构筑套装 赛富豪ex	无标记		G	Nest Ball
+CSVM2cC-016	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ayaka Yoshida	大师战略卡组构筑套装 赛富豪ex	无标记		G	Ultra Ball
+CSVM2cC-017	将双方所有宝可梦的HP，各回复「30」。				OKACHEKE	大师战略卡组构筑套装 赛富豪ex	无标记		G	Picnic Basket
+CSVM2cC-018	选择对手的1只备战宝可梦，将其与战斗宝可梦互换。然后，将自己的战斗宝可梦与备战宝可梦互换。				Toyste Beach	大师战略卡组构筑套装 赛富豪ex	无标记	ACE SPEC	H	Prime Catcher
+CSVM2cC-019	查看自己牌库上方7张卡牌，选择其中1张支援者，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Toyste Beach	大师战略卡组构筑套装 赛富豪ex	无标记		G	Pokégear 3.0
+CSVM2cC-020	将自己的战斗宝可梦与备战宝可梦互换。				Studio Bora Inc.	大师战略卡组构筑套装 赛富豪ex	无标记		G	Switch
+CSVM2cC-021	选择自己弃牌区中的1张宝可梦或1张基本能量，在给对手看过之后，加入手牌。				Toyste Beach	大师战略卡组构筑套装 赛富豪ex	无标记		H	Night Stretcher
+CSVNC-032	选择自己弃牌区中，1张名字中带有「厄诡椪」的「宝可梦【ex】」，与自己场上的，1只名字中带有「厄诡椪」的「宝可梦【ex】」互换（继承所有放于其身上的卡牌、伤害指示物、特殊状态、效果等等）。将被互换的宝可梦放于弃牌区。				5ban Graphics	北上乡专题包	U		H	Ogre's Mask
+CSVSC-049	选择自己弃牌区中最多2张基本能量，在给对手看过之后，加入手牌。				Studio Bora Inc.	对战学院	无标记		G	Energy Retrieval
+CSVSC-050	回复自己1只宝可梦「30」HP。				Ayaka Yoshida	对战学院	无标记		G	Potion
+CSVSC-051	抛掷1次硬币如果为正面，则选择对手场上宝可梦身上附着的1个能量，放于弃牌区。				Ayaka Yoshida	对战学院	无标记		G	Crushing Hammer
+CSVSC-052	查看自己牌库上方7张卡牌。选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Studio Bora Inc.	对战学院	无标记		G	Great Ball
+CSVSC-053	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.	对战学院	无标记		G	Rare Candy
+CSVSC-054	将自己的战斗宝可梦与备战宝可梦互换。				Studio Bora Inc.	对战学院	无标记		G	Switch
+CSVSC-055	抛掷1次硬币如果为正面，则选择对手的1只备战宝可梦，将其与战斗宝可梦互换。				Studio Bora Inc.	对战学院	无标记		G	Pokémon Catcher
+CSVSC-056	抛掷1次硬币如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Studio Bora Inc.	对战学院	无标记		G	Poké Ball
+CSXC-006	将自己战斗场上的【基础】宝可梦与备战宝可梦互换。然后，回复被换入备战区的宝可梦「30」点HP。				Toyste Beach	卡组构筑进阶礼盒 骑拉帝纳VSTAR	无标记		F	Switch Cart
+CSXC-008	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				sadaji	卡组构筑进阶礼盒 骑拉帝纳VSTAR	无标记		F	Ultra Ball
+CSXC-010	查看自己所有反面朝上的奖赏卡。选择其中1张【基础】宝可梦，在给对手看过之后，与这张「洗翠的沉重球」互换，加入手牌。将查看过的奖赏卡及被换入的卡牌反面朝上重洗过后，作为奖赏卡放置。				Studio Bora Inc.	卡组构筑进阶礼盒 骑拉帝纳VSTAR	无标记		F	Hisuian Heavy Ball
+CSXC-011	这张卡牌，只有在自己放逐区有7张以上（包含7张）卡牌时才可使用。\n \n从自己牌库中，选择最多2张属性各不同的基本能量，以任意方式附着于自己的宝可梦身上。并重洗牌库。				sadaji	卡组构筑进阶礼盒 骑拉帝纳VSTAR	无标记		F	Mirage Gate
+CSXC-013	这张卡牌，只有将自己的1张手牌，放于放逐区后才可使用。\n\n选择放于双方场上宝可梦身上的「宝可梦道具」以及场上的「竞技场」中的1张，放于放逐区。				Toyste Beach	卡组构筑进阶礼盒 骑拉帝纳VSTAR	无标记		F	Lost Vacuum
+CSYC-010	抛掷1次硬币如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Studio Bora Inc.	精灵球/等级球礼盒 宝可梦艺术插画庆典 聚	无标记		F	Poké Ball
+CSZC-030	将自己战斗场上的【基础】宝可梦与备战宝可梦互换。然后，回复被换入备战区的宝可梦「30」点HP。				Toyste Beach	收藏周边礼盒 百变宝盒	无标记		F	Switch Cart
+CSZC-031	选择附着于自己场上宝可梦身上的1个基本能量，转附于自己其他宝可梦身上。				Toyste Beach	收藏周边礼盒 百变宝盒	无标记		F	Energy Switch
+CSZC-032	抛掷1次硬币。如果为正面则从自己牌库中选择1张进化宝可梦，如果为反面则从自己牌库中选择1张【基础】宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				sadaji	收藏周边礼盒 百变宝盒	无标记		F	Capturing Aroma
+CSZC-033	在这个回合结束前，对手战斗宝可梦的特性，全部消除。（也包括新被放于战斗场的宝可梦。）				Studio Bora Inc.	收藏周边礼盒 百变宝盒	无标记		F	Canceling Cologne
+CSZC-034	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				sadaji	收藏周边礼盒 百变宝盒	无标记		F	Ultra Ball
+CSZC-036	查看自己所有反面朝上的奖赏卡。选择其中1张【基础】宝可梦，在给对手看过之后，与这张「洗翠的沉重球」互换，加入手牌。将查看过的奖赏卡及被换入的卡牌反面朝上重洗过后，作为奖赏卡放置。				Studio Bora Inc.	收藏周边礼盒 百变宝盒	无标记		F	Hisuian Heavy Ball
+CSZC-037	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito	收藏周边礼盒 百变宝盒	无标记		F	Rare Candy
+CSZC-038	将自己的战斗宝可梦与备战宝可梦互换。				Studio Bora Inc.	收藏周边礼盒 百变宝盒	无标记		F	Switch
+CSZC-040	这张卡牌，只有将自己的1张手牌，放于放逐区后才可使用。\n\n选择放于双方场上宝可梦身上的「宝可梦道具」和场上的「竞技场」中的1张，放于放逐区。				Toyste Beach	收藏周边礼盒 百变宝盒	无标记		F	Lost Vacuum
+SMP-NaN10	查看自己牌库上方7张卡牌。选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Ryo Ueda		无标记		A	Great Ball
+SMP-NaN11	查看自己牌库上方7张卡牌。选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Ryo Ueda		无标记		A	Great Ball
+SMP-NaN12	查看自己牌库上方7张卡牌。选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Ryo Ueda		无标记		A	Great Ball
+SMP-NaN13	查看自己牌库上方7张卡牌。选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Ryo Ueda		无标记		A	Great Ball
+SMP-NaN4	将自己手牌中的1张【2阶进化】宝可梦，放于自己场上1只能够进化成该宝可梦的【基础】宝可梦身上进行进化。（在自己最初的回合，以及对这个回合刚出场的【基础】宝可梦无法使用。）				Toyste Beach		无标记		A	Rare Candy
+SMP-NaN5	将自己手牌中的1张【2阶进化】宝可梦，放于自己场上1只能够进化成该宝可梦的【基础】宝可梦身上进行进化。（在自己最初的回合，以及对这个回合刚出场的【基础】宝可梦无法使用。）				Toyste Beach		无标记		A	Rare Candy
+SMP-NaN6	将自己手牌中的1张【2阶进化】宝可梦，放于自己场上1只能够进化成该宝可梦的【基础】宝可梦身上进行进化。（在自己最初的回合，以及对这个回合刚出场的【基础】宝可梦无法使用。）				Toyste Beach		无标记		A	Rare Candy
+SMP-NaN7	将自己手牌中的1张【2阶进化】宝可梦，放于自己场上1只能够进化成该宝可梦的【基础】宝可梦身上进行进化。（在自己最初的回合，以及对这个回合刚出场的【基础】宝可梦无法使用。）				Toyste Beach		无标记		A	Rare Candy
+SMP-NaN8	将自己手牌中的1张【2阶进化】宝可梦，放于自己场上1只能够进化成该宝可梦的【基础】宝可梦身上进行进化。（在自己最初的回合，以及对这个回合刚出场的【基础】宝可梦无法使用。）				Toyste Beach		无标记		A	Rare Candy
+SMP-NaN9	将自己手牌中的1张【2阶进化】宝可梦，放于自己场上1只能够进化成该宝可梦的【基础】宝可梦身上进行进化。（在自己最初的回合，以及对这个回合刚出场的【基础】宝可梦无法使用。）				Toyste Beach		无标记		A	Rare Candy
+SSP-173	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Amelicart		无标记		F	Ultra Ball
+SSP-195					Studio Bora Inc.		无标记		F	Hisuian Heavy Ball
+SSP-196	选择自己牌库中的1张没有【撤退】所需能量的宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Studio Bora Inc.		无标记		F	Feather Ball
+SSP-209	查看自己牌库上方1张卡牌，将那张卡牌加入手牌。或者，将那张卡牌放于弃牌区，从自己牌库上方抽取1张卡牌。				Amelicart		无标记		F	Trekking Shoes
+SSP-210	这张卡牌，只有将自己的1张手牌，放于放逐区后才可使用。\n\n选择放于双方场上宝可梦身上的「宝可梦道具」和场上的「竞技场」中的1张，放于放逐区。				Amelicart		无标记		F	Lost Vacuum
+SSP-NaN1	查看自己牌库上方7张卡牌。选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Toyste Beach		无标记		D	Great Ball
+SSP-NaN12	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		D	Rare Candy
+SSP-NaN13	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		D	Rare Candy
+SSP-NaN14	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		D	Rare Candy
+SSP-NaN15	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		D	Rare Candy
+SSP-NaN16	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		D	Rare Candy
+SSP-NaN17	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		D	Rare Candy
+SSP-NaN2	查看自己牌库上方7张卡牌。选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Toyste Beach		无标记		D	Great Ball
+SSP-NaN21	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		D	Rare Candy
+SSP-NaN22	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		D	Rare Candy
+SSP-NaN23	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		D	Rare Candy
+SSP-NaN24	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		D	Rare Candy
+SSP-NaN25	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		D	Rare Candy
+SSP-NaN26	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		D	Rare Candy
+SSP-NaN3	查看自己牌库上方7张卡牌。选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Toyste Beach		无标记		D	Great Ball
+SSP-NaN30	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		D	Rare Candy
+SSP-NaN31	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		D	Rare Candy
+SSP-NaN32	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		D	Rare Candy
+SSP-NaN33	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		D	Rare Candy
+SSP-NaN34	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		D	Rare Candy
+SSP-NaN35	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		D	Rare Candy
+SSP-NaN39	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		D	Rare Candy
+SSP-NaN4	查看自己牌库上方7张卡牌。选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Toyste Beach		无标记		D	Great Ball
+SSP-NaN40	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		D	Rare Candy
+SSP-NaN41	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		D	Rare Candy
+SSP-NaN42	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		D	Rare Candy
+SSP-NaN43	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		D	Rare Candy
+SSP-NaN44	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		D	Rare Candy
+SSP-NaN45	抛掷1次硬币如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Studio Bora Inc.		无标记		D	Poké Ball
+SSP-NaN46	抛掷1次硬币如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Studio Bora Inc.		无标记		D	Poké Ball
+SSP-NaN47	抛掷1次硬币如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Studio Bora Inc.		无标记		D	Poké Ball
+SSP-NaN48	将自己弃牌区中的2张支援者，在给对手看过之后，放回牌库并重洗牌库。				Ryo Ueda		无标记		D	Pal Pad
+SSP-NaN49	将自己弃牌区中的2张支援者，在给对手看过之后，放回牌库并重洗牌库。				Ryo Ueda		无标记		D	Pal Pad
+SSP-NaN5	查看自己牌库上方7张卡牌。选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Toyste Beach		无标记		F	Great Ball
+SSP-NaN50	将自己弃牌区中的2张支援者，在给对手看过之后，放回牌库并重洗牌库。				Ryo Ueda		无标记		D	Pal Pad
+SSP-NaN51	抛掷1次硬币如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Studio Bora Inc.		无标记		F	Poké Ball
+SSP-NaN52	抛掷1次硬币如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Studio Bora Inc.		无标记		F	Poké Ball
+SSP-NaN53	抛掷1次硬币如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Studio Bora Inc.		无标记		F	Poké Ball
+SSP-NaN57	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		F	Rare Candy
+SSP-NaN58	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		F	Rare Candy
+SSP-NaN59	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		F	Rare Candy
+SSP-NaN6	查看自己牌库上方7张卡牌。选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Toyste Beach		无标记		F	Great Ball
+SSP-NaN60	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		F	Rare Candy
+SSP-NaN61	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		F	Rare Candy
+SSP-NaN62	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		F	Rare Candy
+SSP-NaN66	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		F	Rare Candy
+SSP-NaN67	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		F	Rare Candy
+SSP-NaN68	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		F	Rare Candy
+SSP-NaN69	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		F	Rare Candy
+SSP-NaN7	查看自己牌库上方7张卡牌。选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Toyste Beach		无标记		F	Great Ball
+SSP-NaN70	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		F	Rare Candy
+SSP-NaN71	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		F	Rare Candy
+SSP-NaN75	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		F	Rare Candy
+SSP-NaN76	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		F	Rare Candy
+SSP-NaN77	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		F	Rare Candy
+SSP-NaN78	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		F	Rare Candy
+SSP-NaN79	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		F	Rare Candy
+SSP-NaN8	查看自己牌库上方7张卡牌。选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Toyste Beach		无标记		F	Great Ball
+SSP-NaN80	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Yoshinobu Saito		无标记		F	Rare Candy
+SVP-013	这张卡牌，可以作为HP为60的【无】属性的【基础】宝可梦，放于场上。这张卡牌，不会陷入特殊状态，也无法撤退。\n如果在自己的回合的话，则可将处于场上的这张卡牌放于弃牌区。				AYUMI ODASHIMA		无标记		G	Antique Helix Fossil
+SVP-014	这张卡牌，可以作为HP为60的【无】属性的【基础】宝可梦，放于场上。这张卡牌，不会陷入特殊状态，也无法撤退。\n如果在自己的回合的话，则可将处于场上的这张卡牌放于弃牌区。				AYUMI ODASHIMA		无标记		G	Antique Dome Fossil
+SVP-015	这张卡牌，可以作为HP为60的【无】属性的【基础】宝可梦，放于场上。这张卡牌，不会陷入特殊状态，也无法撤退。\n如果在自己的回合的话，则可将处于场上的这张卡牌放于弃牌区。				AYUMI ODASHIMA		无标记		G	Antique Old Amber
+SVP-151	选择自己弃牌区中的宝可梦和基本能量合计最多3张，在给对手看过之后，放回牌库并重洗牌库。				Toyste Beach		无标记		G	Super Rod
+SVP-152	这张卡牌，只有将自己的1张手牌放于弃牌区后才可使用。\n\n选择自己牌库中最多2张基本能量，在给对手看过之后，加入手牌。并重洗牌库。				AYUMI ODASHIMA		无标记		G	Earthen Vessel
+SVP-153	选择自己牌库中，名字中带有「招式学习器」的「宝可梦道具」最多3张，在给对手看过之后，加入手牌。并重洗牌库。				Studio Bora Inc.		无标记		H	TM Machine
+SVP-196	选择自己牌库中，最多2张HP在「70」及以下的【基础】宝可梦，放于备战区。并重洗牌库。				AYUMI ODASHIMA		无标记		H	Buddy-Buddy Poffin
+SVP-216	选择自己牌库中的1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach		无标记		G	Nest Ball
+SVP-217	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Ayaka Yoshida		无标记		G	Ultra Ball
+SVP-230	选择自己牌库中的1张【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach		无标记		G	Nest Ball
+SVP-231	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.		无标记		G	Rare Candy
+SVP-235	选择自己弃牌区中最多2张基本能量，在给对手看过之后，加入手牌。				Studio Bora Inc.		无标记		G	Energy Retrieval
+SVP-236	这张卡牌，只有将自己的2张手牌放于弃牌区后才可使用。\n\n选择自己弃牌区中最多4张基本能量，在给对手看过之后，加入手牌。（无法选择因为这张卡牌的效果而被放于弃牌区的能量。）				Studio Bora Inc.		无标记		G	Superior Energy Retrieval
+SVP-237	抛掷1次硬币如果为正面，则选择对手的1只备战宝可梦，将其与战斗宝可梦互换。				Studio Bora Inc.		无标记		G	Pokémon Catcher
+SVP-283	这张卡牌，只有在自己场上有「太晶」宝可梦时才可使用。\n\n选择自己备战区中最多2只【无】宝可梦，各附着1张弃牌区中的基本能量。				Toyste Beach		U		H	Glass Trumpet
+SVP-284	选择自己弃牌区中的1张宝可梦或1张基本能量，在给对手看过之后，加入手牌。				Toyste Beach		U		H	Night Stretcher
+SVP-293	选择自己场上宝可梦身上附着的1个基本能量，转附于自己其他宝可梦身上。				Studio Bora Inc.		无标记		G	Energy Switch
+SVP-294	将自己的战斗宝可梦与备战宝可梦互换。				Studio Bora Inc.		无标记		G	Switch
+SVP-NaN10	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.		无标记		G	Rare Candy
+SVP-NaN11	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.		无标记		G	Rare Candy
+SVP-NaN12	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.		无标记		G	Rare Candy
+SVP-NaN13	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.		无标记		G	Rare Candy
+SVP-NaN14	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.		无标记		G	Rare Candy
+SVP-NaN15	抛掷1次硬币如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Studio Bora Inc.		无标记		G	Poké Ball
+SVP-NaN16	抛掷1次硬币如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Studio Bora Inc.		无标记		G	Poké Ball
+SVP-NaN17	抛掷1次硬币如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Studio Bora Inc.		无标记		G	Poké Ball
+SVP-NaN18	选择自己弃牌区中最多2张支援者，在给对手看过之后，放回牌库并重洗牌库。				Studio Bora Inc.		无标记		G	Pal Pad
+SVP-NaN19	选择自己弃牌区中最多2张支援者，在给对手看过之后，放回牌库并重洗牌库。				Studio Bora Inc.		无标记		G	Pal Pad
+SVP-NaN2	查看自己牌库上方7张卡牌。选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Studio Bora Inc.		无标记		G	Great Ball
+SVP-NaN20	选择自己弃牌区中最多2张支援者，在给对手看过之后，放回牌库并重洗牌库。				Studio Bora Inc.		无标记		G	Pal Pad
+SVP-NaN21	抛掷1次硬币如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				5ban Graphics		无标记		G	
+SVP-NaN22	抛掷1次硬币如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				5ban Graphics		无标记		G	
+SVP-NaN23	抛掷1次硬币如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				5ban Graphics		无标记		G	
+SVP-NaN24	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.		无标记		G	Rare Candy
+SVP-NaN25	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.		无标记		G	Rare Candy
+SVP-NaN26	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.		无标记		G	Rare Candy
+SVP-NaN27	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.		无标记		G	Rare Candy
+SVP-NaN28	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.		无标记		G	Rare Candy
+SVP-NaN29	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.		无标记		G	Rare Candy
+SVP-NaN3	查看自己牌库上方7张卡牌。选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Studio Bora Inc.		无标记		G	Great Ball
+SVP-NaN31	抛掷1次硬币如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				5ban Graphics		无标记		G	
+SVP-NaN32	抛掷1次硬币如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				5ban Graphics		无标记		G	
+SVP-NaN33	抛掷1次硬币如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				5ban Graphics		无标记		G	
+SVP-NaN34	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.		无标记		G	Rare Candy
+SVP-NaN35	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.		无标记		G	Rare Candy
+SVP-NaN36	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.		无标记		G	Rare Candy
+SVP-NaN37	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.		无标记		G	Rare Candy
+SVP-NaN38	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.		无标记		G	Rare Candy
+SVP-NaN39	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.		无标记		G	Rare Candy
+SVP-NaN4	查看自己牌库上方7张卡牌。选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Studio Bora Inc.		无标记		G	Great Ball
+SVP-NaN40	抛掷1次硬币如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				5ban Graphics		无标记		G	
+SVP-NaN41	抛掷1次硬币如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				5ban Graphics		无标记		G	
+SVP-NaN42	抛掷1次硬币如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				5ban Graphics		无标记		G	
+SVP-NaN43	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.		无标记		G	Rare Candy
+SVP-NaN44	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.		无标记		G	Rare Candy
+SVP-NaN45	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.		无标记		G	Rare Candy
+SVP-NaN46	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.		无标记		G	Rare Candy
+SVP-NaN47	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.		无标记		G	Rare Candy
+SVP-NaN48	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.		无标记		G	Rare Candy
+SVP-NaN5	查看自己牌库上方7张卡牌。选择其中1张宝可梦，在给对手看过之后，加入手牌。将剩余的卡牌放回牌库并重洗牌库。				Studio Bora Inc.		无标记		G	Great Ball
+SVP-NaN6	抛掷1次硬币如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				5ban Graphics		无标记		G	
+SVP-NaN7	抛掷1次硬币如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				5ban Graphics		无标记		G	
+SVP-NaN8	抛掷1次硬币如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				5ban Graphics		无标记		G	
+SVP-NaN9	选择自己手牌中的1张【2阶进化】宝可梦，放于自己场上能够进化成该宝可梦的【基础】宝可梦身上，跳过【1阶进化】进行进化。（在自己最初的回合，以及对这个回合刚出场的宝可梦无法使用。）				Studio Bora Inc.		无标记		G	Rare Candy

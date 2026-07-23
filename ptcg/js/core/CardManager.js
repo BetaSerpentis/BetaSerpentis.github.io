@@ -398,8 +398,7 @@ export class CardManager {
 
     // 新增：生成默认图片（确保路径正确）
     generateDefaultImage(cardId) {
-        const paddedId = cardId.toString().padStart(8, '0');
-        return `images/hk${paddedId}.webp`;
+        return generateImageFilename(cardId);
     }
 
     // 处理卡牌数据

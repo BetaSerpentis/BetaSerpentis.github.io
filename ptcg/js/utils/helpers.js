@@ -38,10 +38,18 @@ export function showToast(message, type = 'success', duration = 2000) {
 export const showSaveSuccess = (msg, dur) => showToast(msg, 'success', dur);
 export const showSaveError = (msg, dur) => showToast(msg, 'error', dur || 3000);
 
-// 生成图片文件名
+// 生成图片文件名（兼容新旧两种 ID 格式）
+// 新格式: 151C-001 → images/151C/001.webp
+// 旧格式: 4521 → images/hk00004521.webp
 export function generateImageFilename(id) {
-    const paddedId = id.toString().padStart(8, '0');
-    return `hk${paddedId}.webp`;
+    const str = String(id);
+    if (str.includes('-')) {
+        const [setCode, cardIndex] = str.split('-');
+        return `images/${setCode}/${cardIndex}.webp`;
+    }
+    // Legacy fallback
+    const paddedId = str.padStart(8, '0');
+    return `images/hk${paddedId}.webp`;
 }
 
 // 检查元素是否在视口中
