@@ -126,9 +126,9 @@ def build_search_text(card, attacks, abilities):
              card.get("mechanic",""), card.get("label",""), card.get("energy_type",""),
              card.get("stage",""), card.get("set_code",""), card.get("regulation_mark","")]
     for atk in attacks:
-        parts.extend([atk.get("n",""), atk.get("c",""), atk.get("d",""), atk.get("t","")])
+        parts.extend([atk.get("name",""), atk.get("cost",""), atk.get("damage",""), atk.get("text","")])
     for abi in abilities:
-        parts.extend([abi.get("n",""), abi.get("t","")])
+        parts.extend([abi.get("name",""), abi.get("text","")])
     return re.sub(r"[，。；：！？、（）【】《》「」『』""'',\.;:!?()\[\]{}<>]", " ",
                   " ".join(p for p in parts if p)).lower()
 
@@ -154,6 +154,32 @@ def get_skill_damage(attacks):
     return ",".join(a.get("damage","") for a in sorted(attacks, key=lambda a: int(a.get("attack_order",0) or 0)))
 
 _EN_TO_DEX = {}  # English name → dex number, populated during mapping
+_BASE_NAME_DEX = {}  # Chinese base species name → dex, built during propagation
+
+# 手动补充：繁中/简中译名不同但英文名一致的宝可梦
+_HARDCODED_EN_DEX = {
+    "Alomomola": 594, "Cofagrigus": 563, "Cofagrigus ex": 563,
+    "Cornerstone Mask Ogerpon": 1017, "Cornerstone Mask Ogerpon ex": 1017,
+    "Finneon": 456, "Grafaiai ex": 945,
+    "Hearthflame Mask Ogerpon": 1017, "Hearthflame Mask Ogerpon ex": 1017,
+    "Hisuian Overqwil": 904, "Hisuian Typhlosion": 157,
+    "Hisuian Typhlosion V": 157, "Hisuian Typhlosion VSTAR": 157,
+    "Kingambit": 983, "Mimikyu": 778, "Mimikyu ex": 778,
+    "Nickit": 827, "Pangoro": 675, "Porygon-Z": 474, "Porygon2": 233,
+    "Primeape": 57,
+    "Teal Mask Ogerpon": 1017, "Teal Mask Ogerpon ex": 1017,
+    "Thievul": 828, "Toxel": 848,
+    "Wellspring Mask Ogerpon": 1017, "Wellspring Mask Ogerpon ex": 1017,
+    "Typhlosion": 157, "Pichu": 172, "Chingling": 433, "Wobbuffet": 202,
+    "Hydrapple": 1019, "Hydrapple ex": 1019,
+    # Direct card_key → dex for cards unresolvable via name chains for cards that can't be resolved via name chains
+    "CSV10C-014": 1019,  # 蜜集大蛇 = Hydrapple
+    "CSV10C-030": 157,   # 阿响的火暴兽 = Typhlosion
+    "CSV10C-069": 172,   # 阿响的皮丘 = Pichu
+    "CSV10C-089": 433,   # 火箭队的铃铛响 = Chingling
+    "CSV10C-099": 57,    # 火暴猴 = Primeape
+    "CSV10C-086": 202,   # 火箭队的果然翁 = Wobbuffet
+}
 
 # 稀有度排名（从低到高）
 RARITY_RANK = {
@@ -339,6 +365,22 @@ def get_dex_for_cn(card, cn_key_to_dex, mapping, dex_lookup, name_only_dex):
     if name_en and name_en in _EN_TO_DEX:
         return str(_EN_TO_DEX[name_en])
 
+    # 5. Hardcoded fallback for remaining species
+    if name_en and name_en in _HARDCODED_EN_DEX:
+        return str(_HARDCODED_EN_DEX[name_en])
+
+    # 6. Extract base species from prefixed names
+    import re as _re
+    base = cn_name
+    base = _re.sub(r'^(火箭队的|阿响的|竹兰的|派帕的|玛俐的|大吾的|小霞的|船长\s+)', '', base)
+    base = _re.sub(r'(ex|VMAX|VSTAR|GX|V)$', '', base)
+    if base != cn_name and base in _BASE_NAME_DEX:
+        return str(_BASE_NAME_DEX[base])
+
+    # 7. Direct card_key → dex hardcoded fallback
+    if ck in _HARDCODED_EN_DEX:
+        return str(_HARDCODED_EN_DEX[ck])
+
     return ""
 
 
@@ -430,6 +472,94 @@ def main():
         en = c.get("name_en", "")
         if ck in cn_key_to_dex and en and en not in _EN_TO_DEX:
             _EN_TO_DEX[en] = cn_key_to_dex[ck]
+
+    # Merge hardcoded entries into _EN_TO_DEX for propagation
+    _EN_TO_DEX.update(_HARDCODED_EN_DEX)
+
+    # Fixed-point: propagate dex numbers through English name matching
+    changed = True
+    while changed:
+        changed = False
+        for c in cards:
+            ck = c["card_key"]
+            if ck in cn_key_to_dex:
+                continue
+            en = c.get("name_en", "")
+            if en and en in _EN_TO_DEX:
+                cn_key_to_dex[ck] = _EN_TO_DEX[en]
+                changed = True
+
+    # Effect-chain propagation: load same_effect_cards to propagate dex by effect_id
+    print("  Propagating dex via same_effect_cards...")
+    ck_to_effect = {}
+    effect_to_dex = {}
+    for c in cards:
+        eid = (c.get("effect_id") or "").strip()
+        if eid:
+            ck_to_effect[c["card_key"]] = eid
+    for ck, dex in cn_key_to_dex.items():
+        eid = ck_to_effect.get(ck, "")
+        if eid and eid not in effect_to_dex:
+            effect_to_dex[eid] = dex
+
+    # Load same_effect_cards to expand effect groups
+    same_by_effect = defaultdict(set)
+    same_path = CN_TSV / "same_effect_cards.tsv"
+    with same_path.open("r", encoding="utf-8-sig", newline="") as f:
+        for row in csv.DictReader(f, delimiter="\t"):
+            eid = row.get("effect_id", "").strip()
+            if eid:
+                same_by_effect[eid].add(row["source_card_key"])
+                same_by_effect[eid].add(row["same_card_key"])
+
+    # 2nd fixed-point: propagate via effect groups
+    changed = True
+    while changed:
+        changed = False
+        for c in cards:
+            ck = c["card_key"]
+            if ck in cn_key_to_dex:
+                continue
+            eid = ck_to_effect.get(ck, "")
+            if eid and eid in effect_to_dex:
+                cn_key_to_dex[ck] = effect_to_dex[eid]
+                changed = True
+                continue
+            # Try expanded effect groups from same_effect_cards
+            if eid and eid in same_by_effect:
+                for other_ck in same_by_effect[eid]:
+                    if other_ck in cn_key_to_dex:
+                        cn_key_to_dex[ck] = cn_key_to_dex[other_ck]
+                        changed = True
+                        break
+
+    print(f"  After propagation: cn_key_to_dex={len(cn_key_to_dex)} effect_to_dex={len(effect_to_dex)}")
+
+    # Build base-name → dex index for trainer Pokémon lookups
+    global _BASE_NAME_DEX
+    prefixes = ['火箭队的','阿响的','竹兰的','派帕的','玛俐的','大吾的','小霞的','船长 ']
+    for ck, dex in cn_key_to_dex.items():
+        # Find the CN card
+        cn_card = next((x for x in cards if x['card_key'] == ck), None)
+        if not cn_card:
+            continue
+        name = cn_card['card_name']
+        # Add the raw name
+        if name not in _BASE_NAME_DEX:
+            _BASE_NAME_DEX[name] = dex
+        # Strip prefix and suffix, add base
+        for p in prefixes:
+            if name.startswith(p):
+                name = name[len(p):]
+                break
+        for s in ['ex','VMAX','VSTAR','GX','V']:
+            if name.endswith(s):
+                name = name[:-len(s)]
+                break
+        if name not in _BASE_NAME_DEX:
+            _BASE_NAME_DEX[name] = dex
+
+    print(f"  _BASE_NAME_DEX: {len(_BASE_NAME_DEX)} entries")
 
     print(f"  Mapped: {len(mapping)} IDs")
     print(f"  cn_key_to_dex: {len(cn_key_to_dex)} entries")
