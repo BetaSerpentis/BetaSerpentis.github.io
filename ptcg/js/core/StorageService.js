@@ -160,12 +160,9 @@ export class StorageService {
 
     // 验证导入数据格式
     validateImportData(data) {
-        return data && 
-               data.version === "1.0" &&
-               data.cards && 
-               typeof data.cards === 'object' &&
-               data.decks && 
-               Array.isArray(data.decks);
+        return data &&
+               data.cards &&
+               typeof data.cards === 'object';
     }
 
     // 执行导入操作
