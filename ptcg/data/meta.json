@@ -13,12 +13,12 @@
     "D",
     "E"
   ],
-  "description": "简中 PTCG 当前标准赛制为 F/G/H/I 标。A-E 标已退环境。数据来源：tcg.mik.moe",
+  "description": "简中 PTCG 当前标准赛制为 F/G/H/I 标。数据来源：tcg.mik.moe",
   "markSeries": {
-    "F": "SV1-SV3（朱&紫 起始套装VSTAR/EX 等）",
-    "G": "SV4-SV5（未来闪光/古代咆哮 等）",
-    "H": "SV6-SV7（变换的假面/黑炎支配者 等）",
-    "I": "SV8-SV9（乐园腾龙/巅峰之路 等）"
+    "F": "SV1-SV3",
+    "G": "SV4-SV5",
+    "H": "SV6-SV7",
+    "I": "SV8-SV9"
   },
   "basicEnergy": {
     "description": "基本能量卡ID速查表",
