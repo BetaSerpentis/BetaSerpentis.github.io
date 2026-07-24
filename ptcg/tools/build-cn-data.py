@@ -154,6 +154,16 @@ def get_skill_damage(attacks):
     return ",".join(a.get("damage","") for a in sorted(attacks, key=lambda a: int(a.get("attack_order",0) or 0)))
 
 _EN_TO_DEX = {}  # English name → dex number, populated during mapping
+
+# 稀有度排名（从低到高）
+RARITY_RANK = {
+    "无标记": 0, "C": 1, "U": 2, "R": 3, "RR": 4, "RRR": 5,
+    "ACE": 6, "S": 7, "K": 8, "闪": 9, "彩": 10, "异": 11, "CHR": 11,
+    "AR": 12, "CSR": 13, "SR": 14, "SSR": 15, "HR": 16, "UR": 17, "SAR": 18,
+    "SP": 6, "SM": 6, "SM-P": 6, "S-P": 6, "PR": 5,
+}
+def rarity_rank(rarity: str) -> int:
+    return RARITY_RANK.get(rarity, 0)
 def _score_cn_match(cn_card, old_card, dex_lookup):
     """给 CN 卡对旧卡的匹配打分：属性>特性>HP>阶段。返回 (score, cn_card)"""
     score = 0
@@ -374,6 +384,36 @@ def main():
                     }
 
     mapping, unmatched = build_old_to_new_map_v2(cards, dex_lookup, name_only_dex)
+
+    # ── 稀有度合并：同 effect_id 多稀有度 → 统一映射到最低稀有度 ──
+    print("  Consolidating rarities...")
+    effect_to_lowest = {}  # effect_id → lowest_rarity_card_key
+    ck_to_effect = {}      # card_key → effect_id
+    for c in cards:
+        eid = (c.get("effect_id") or "").strip()
+        if not eid or eid not in ck_to_effect.values():
+            pass
+        if eid:
+            ck_to_effect[c["card_key"]] = eid
+            rk = rarity_rank(c.get("rarity", ""))
+            if eid not in effect_to_lowest:
+                effect_to_lowest[eid] = (c["card_key"], rk)
+            elif rk < effect_to_lowest[eid][1]:
+                effect_to_lowest[eid] = (c["card_key"], rk)
+    # Simplify: key → card_key only
+    effect_to_lowest = {eid: ck for eid, (ck, _) in effect_to_lowest.items()}
+
+    consolidated = 0
+    for oid, info in mapping.items():
+        ck = info["new_key"]
+        eid = ck_to_effect.get(ck, "")
+        if eid and eid in effect_to_lowest:
+            low = effect_to_lowest[eid]
+            if low != ck:
+                info["new_key"] = low
+                info["method"] = info["method"] + "_rarity"
+                consolidated += 1
+    print(f"  Rarity consolidations: {consolidated}")
 
     # Build cn_card_key → dex_num reverse index
     cn_key_to_dex = {}
