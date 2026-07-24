@@ -1,7 +1,44 @@
 // 定义缓存名称和版本，便于后续更新和管理
-const CACHE_NAME = 'ptcg-cache-v15';
-// 需要预缓存的关键静态资源列表
+const CACHE_NAME = 'ptcg-cache-v16';
+// 需要预缓存的静态资源列表
 const urlsToCache = [
+  '/ptcg/',
+  '/ptcg/index.html',
+  '/ptcg/css/main.css',
+  '/ptcg/css/ptcg.css',
+  '/ptcg/js/main.js',
+  '/ptcg/js/core/CardManager.js',
+  '/ptcg/js/core/SearchEngine.js',
+  '/ptcg/js/core/StorageService.js',
+  '/ptcg/js/core/DeckManager.js',
+  '/ptcg/js/core/ImageLoader.js',
+  '/ptcg/js/core/TsvCardDataLoader.js',
+  '/ptcg/js/ui/CardGrid.js',
+  '/ptcg/js/ui/ModalView.js',
+  '/ptcg/js/ui/TabManager.js',
+  '/ptcg/js/ui/StatsManager.js',
+  '/ptcg/js/features/DeckEditor.js',
+  '/ptcg/js/features/CardBrowser.js',
+  '/ptcg/js/features/AIChatPanel.js',
+  '/ptcg/js/services/AIChatService.js',
+  '/ptcg/js/services/AISystemPrompt.js',
+  '/ptcg/js/services/AICardDataService.js',
+  '/ptcg/data/meta.json',
+  '/ptcg/js/core/ApiKeyManager.js',
+  '/ptcg/js/utils/helpers.js',
+  '/ptcg/js/utils/ButtonManager.js',
+  '/ptcg/js/utils/constants.js',
+  '/ptcg/js/utils/TouchManager.js',
+  '/ptcg/data_fast/pokemon.idx.tsv',
+  '/ptcg/data_fast/pokemon.search.tsv',
+  '/ptcg/data_fast/pokemon.filter.tsv',
+  '/ptcg/data_fast/supporter.idx.tsv',
+  '/ptcg/data_fast/item.idx.tsv',
+  '/ptcg/data_fast/pokemon-tool.idx.tsv',
+  '/ptcg/data_fast/stadium.idx.tsv',
+  '/ptcg/data_fast/basic-energy.idx.tsv',
+  '/ptcg/data_fast/special-energy.idx.tsv',
+];
   '/ptcg/',
   '/ptcg/index.html',
   '/ptcg/css/main.css',
@@ -85,40 +122,56 @@ self.addEventListener('activate', function(event) {
   );
 });
 
-// 拦截请求：使用Stale-While-Revalidate策略
+// 预缓存资源路径集合，用于快速查找
+const precacheSet = new Set(urlsToCache);
+
+// 检查是否是图片请求
+function isImageRequest(url) {
+  return /\.(png|webp|jpg|jpeg|gif|svg)(\?|$)/i.test(url) ||
+         url.includes('/ptcg/images/');
+}
+
+// 拦截请求
 self.addEventListener('fetch', function(event) {
-  // 检查请求是否为我们关心的类型（例如同源的GET请求）
   if (event.request.method !== 'GET' || !event.request.url.startsWith(self.location.origin)) {
-    return; // 直接放行不处理
+    return;
   }
 
-  event.respondWith(
-    caches.match(event.request)
-      .then(function(cachedResponse) {
-        // 无论缓存是否存在，都立即返回缓存的响应（stale）
-        const fetchPromise = fetch(event.request)
-          .then(function(networkResponse) {
-            // 网络请求成功，用新响应更新缓存
-            if (networkResponse && networkResponse.status === 200) {
-              const responseClone = networkResponse.clone();
-              caches.open(CACHE_NAME)
-                .then(function(cache) {
-                  cache.put(event.request, responseClone);
-                });
-            }
-            return networkResponse;
-          })
-          .catch(function() {
-            // 网络请求失败，如果连缓存也没有，可以根据情况返回一个兜底页面
-            if (!cachedResponse) {
-              // 例如，可以返回一个预设的离线页面
-              // return caches.match('/ptcg/offline.html');
-            }
-            // 如果没有兜底，这里返回undefined，最终会返回cachedResponse
-          });
+  const requestUrl = new URL(event.request.url);
+  const pathname = requestUrl.pathname;
 
-        // 优先返回缓存的内容，没有缓存则等待网络请求
-        return cachedResponse || fetchPromise;
+  // 图片请求：直接走网络，不缓存（由浏览器缓存层处理）
+  if (isImageRequest(pathname)) {
+    return; // 不拦截，浏览器原生处理
+  }
+
+  // 预缓存资源：Cache-First + 后台更新
+  if (precacheSet.has(pathname) || pathname.startsWith('/ptcg/data_fast/') ||
+      pathname.startsWith('/ptcg/js/') || pathname.startsWith('/ptcg/css/') ||
+      pathname === '/ptcg/' || pathname === '/ptcg/index.html') {
+    event.respondWith(
+      caches.match(event.request).then(function(cached) {
+        const fetched = fetch(event.request).then(function(networkResponse) {
+          if (networkResponse && networkResponse.status === 200) {
+            const clone = networkResponse.clone();
+            caches.open(CACHE_NAME).then(function(cache) {
+              cache.put(event.request, clone).catch(function(){});
+            });
+          }
+          return networkResponse;
+        }).catch(function(){
+          return cached || new Response('Offline', {status: 503});
+        });
+        return cached || fetched;
       })
+    );
+    return;
+  }
+
+  // 其他请求（data JSON、manifest 等）：网络优先，缓存兜底
+  event.respondWith(
+    fetch(event.request).catch(function() {
+      return caches.match(event.request);
+    })
   );
 });

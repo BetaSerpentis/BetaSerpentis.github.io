@@ -40,22 +40,23 @@ def main():
     dropped_details = []
 
     for card_type, card_list in export["cards"].items():
-        new_list = []
+        # Use dict to aggregate quantities when multiple old IDs → same new card_key
+        new_dict = {}
         for c in card_list:
             old_id = c["id"]
             qty = c["quantity"]
             if old_id in mapping:
-                new_list.append({"id": mapping[old_id]["new_key"], "quantity": qty})
-                total_mapped += 1
+                new_key = mapping[old_id]["new_key"]
+                new_dict[new_key] = new_dict.get(new_key, 0) + qty
                 total_qty_mapped += qty
             else:
                 total_dropped += 1
                 total_qty_dropped += qty
-                # Try to find the card name from the old data
                 dropped_details.append({"old_id": old_id, "type": card_type, "quantity": qty})
 
-        if new_list:
-            new_cards[card_type] = new_list
+        if new_dict:
+            new_cards[card_type] = [{"id": k, "quantity": v} for k, v in new_dict.items()]
+            total_mapped += len(new_dict)
 
     print(f"\n  Cards mapped: {total_mapped} ({total_qty_mapped} pcs)")
     print(f"  Cards dropped: {total_dropped} ({total_qty_dropped} pcs)")
@@ -63,16 +64,18 @@ def main():
     # Migrate decks
     new_decks = []
     for deck in export.get("decks", []):
-        new_deck_cards = []
+        new_deck_dict = {}  # aggregate quantities
         deck_dropped = 0
         for c in deck["cards"]:
             old_id = c["id"]
             if old_id in mapping:
-                new_deck_cards.append({"id": mapping[old_id]["new_key"], "quantity": c["quantity"]})
+                new_key = mapping[old_id]["new_key"]
+                new_deck_dict[new_key] = new_deck_dict.get(new_key, 0) + c["quantity"]
             else:
                 deck_dropped += 1
 
-        if new_deck_cards:
+        if new_deck_dict:
+            new_deck_cards = [{"id": k, "quantity": v} for k, v in new_deck_dict.items()]
             new_count = sum(c["quantity"] for c in new_deck_cards)
             new_decks.append({
                 "name": deck["name"],
