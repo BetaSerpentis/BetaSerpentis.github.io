@@ -301,6 +301,18 @@ def build_old_to_new_map_v2(cards, dex_lookup, name_only_dex):
                 else:
                     match = (cn_matches[0]["card_key"], "name_first")
 
+        # Parenthetical suffix stripping (老大的指令（坂木）→ 老大的指令)
+        if not match:
+            bare = re.sub(r"[（(][^)）]*[)）]$", "", old["name"]).strip()
+            if bare != old["name"]:
+                cm = cn_by_name.get(bare, [])
+                if len(cm) == 1:
+                    match = (cm[0]["card_key"], "parenthesis")
+                elif len(cm) > 1:
+                    mm = [m for m in cm if m.get("regulation_mark") == old["ver"]]
+                    if mm:
+                        match = (mm[0]["card_key"], "parenthesis_mark")
+
         # Energy special case
         if not match and old["type"] in ("基本能量", "特殊能量"):
             stripped = old["name"].replace("【", "").replace("】", "")
@@ -309,6 +321,8 @@ def build_old_to_new_map_v2(cards, dex_lookup, name_only_dex):
                 match = (cm[0]["card_key"], "energy_strip")
 
         # Effect text matching (restricted to same card type)
+        # Short effects: exact only (avoid subset false match like 老大的指令→古茲马)
+        # Long effects: fuzzy OK but require length ratio >0.7 and score >0.75
         if not match and old.get("effect") and len(old["effect"]) > 4:
             old_eff = norm_eff(old["effect"])
             old_cn_type = OLD_TO_CN_TYPE.get(old["type"], old["type"])
@@ -316,21 +330,35 @@ def build_old_to_new_map_v2(cards, dex_lookup, name_only_dex):
                     if c.get("description") and c.get("card_type") == old_cn_type]
             if not pool:
                 pool = [c for cl in cn_by_name.values() for c in cl if c.get("description")]
-            best, best_s = None, 0
+            best, best_s, best_len_ratio = None, 0, 0
+            old_n = len(old_eff)
             for c in pool:
                 c_eff = norm_eff(c.get("description", ""))
+                c_n = len(c_eff)
+                if c_n < 4:
+                    continue
                 if old_eff == c_eff:
                     best = (c["card_key"], "exact_effect")
                     break
-                if len(c_eff) > 5 and len(old_eff) > 5:
-                    if min(len(old_eff), len(c_eff)) / max(len(old_eff), len(c_eff)) > 0.3:
-                        matches = sum(1 for j in range(len(old_eff)-1) if old_eff[j:j+2] in c_eff)
-                        score = matches / max(len(old_eff)-1, 1)
-                        if score > best_s:
-                            best_s = score
-                            best = (c["card_key"], "fuzzy_effect")
-            if best and (best[1] != "fuzzy_effect" or best_s > 0.55):
-                match = best
+                len_ratio = min(old_n, c_n) / max(old_n, c_n)
+                # Require at least 70% length similarity for fuzzy matching
+                if len_ratio < 0.7:
+                    continue
+                # For short texts (<20 chars), only accept very high match (>0.90)
+                # to prevent subset matching
+                matches = sum(1 for j in range(old_n-1) if old_eff[j:j+2] in c_eff)
+                score = matches / max(old_n-1, 1)
+                min_score = 0.90 if old_n < 20 else (0.85 if old_n < 40 else 0.75)
+                if score > best_s and score >= min_score:
+                    best_s = score
+                    best_len_ratio = len_ratio
+                    best = (c["card_key"], "fuzzy_effect")
+            # Reject low-confidence fuzzy matches
+            if best and best[1] == "fuzzy_effect":
+                min_ok = 0.90 if old_n < 20 else (0.85 if old_n < 40 else 0.75)
+                if best_s < min_ok:
+                    best = None
+            match = best
 
         if match:
             mapping[oid] = {"new_key": match[0], "method": match[1], "name": old["name"]}
