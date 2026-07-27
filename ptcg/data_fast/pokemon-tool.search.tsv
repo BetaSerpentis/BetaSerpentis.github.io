@@ -1,179 +1,340 @@
 #srch1
-CS1DC-187	活力头带 vitality band tool cs1dc d
-CS1bC-126	活力头带 vitality band tool cs1bc d
+CS3aC-110	一击卷轴 愤怒之卷 single strike scroll of scorn tool  "single strike"  cs3ac e
+CSVE1C-127	一击卷轴 愤怒之卷 single strike scroll of scorn tool  "single strike"  csve1c e
+CS4aC-122	一击卷轴 牙龙之卷 single strike scroll of the fanged dragon tool  "single strike"  cs4ac e
+CS3aC-111	一击卷轴 贯通之卷 single strike scroll of piercing tool  "single strike"  cs3ac e
+CSM2bC-134	一般z 撞击 normalium z  tackle tool csm2bc c
+CSV1C-117	不服输头带 defiance band tool csv1c g
+CSV5C-164	不服输头带 defiance band tool csv5c g
+CSVE2C-169	不服输头带 defiance band tool csve2c g
+CSVH1aC-016	不服输头带 defiance band tool  "single strike"  csvh1ac g
+CSVH2aC-016	不服输头带 defiance band tool csvh2ac g
+CSVH3C-048	不服输头带 defiance band tool csvh3c g
+CSVH3aC-015	不服输头带 defiance band tool csvh3ac g
+CSVH4C-045	不服输头带 defiance band tool csvh4c g
+CSVM1aC-021	不服输头带 defiance band tool csvm1ac g
+CSVM2bC-021	不服输头带 defiance band tool csvm2bc g
+CSV4C-118	不服输背心 defiance vest tool csv4c g
+CS3.5C-058	伽勒尔胸甲 galarian chestplate tool cs3 5c e
+CS4DaC-384	伽勒尔胸甲 galarian chestplate tool cs4dac e
+CS4bC-120	余音大铃铛 farewell bell tool cs4bc e
+CS4.5C-053	元素徽章 elemental badge tool cs4 5c e
+CSVE2C-164	元素徽章 elemental badge tool csve2c e
+CS4DaC-385	全罩防守 full face guard tool cs4dac e
+CS4aC-124	全罩防守 full face guard tool cs4ac e
+CS4aC-181	全罩防守 full face guard tool cs4ac e
+CS5DC-137	全罩防守 full face guard tool cs5dc e
+CSM1DC-271	冲刺腰包 dashing pouch tool csm1dc a
+CSM1bC-130	冲刺腰包 dashing pouch tool csm1bc a
+CSM2DC-283	冲刺腰包 dashing pouch tool csm2dc a
+CSMPcC-018	冲刺腰包 dashing pouch tool csmpcc a
 CS2bC-107	凸凸头盔 rocky helmet tool cs2bc d
-CS3DC-144	学习装置 exp  share tool cs3dc e
-CS3DC-145	活力头带 vitality band tool cs3dc d
 CS3DC-146	凸凸头盔 rocky helmet tool cs3dc d
+CSV2C-116	凸凸头盔 rocky helmet tool csv2c g
+CSVE2C-167	凸凸头盔 rocky helmet tool csve2c g
+CSVH3aC-013	凸凸头盔 rocky helmet tool csvh3ac g
+CSV9C-193	刺耳果 colbur berry tool csv9c h
+CSV8C-188	力之沙漏 powerglass tool csv8c h
+CSV9C-265	力之沙漏 powerglass tool csv9c h
+CSVH5aC-014	力之沙漏 powerglass tool csvh5ac h
+CSV10C-200	竹兰的力量负重 tool csv10c i
+CSV1C-118	勇气护符 bravery charm tool csv1c g
+CSV8C-260	勇气护符 bravery charm tool csv8c g
+CSVE2C-170	勇气护符 bravery charm tool csve2c g
+CSVE2pC-010	勇气护符 bravery charm tool csve2pc g
+CSVH1aC-017	勇气护符 bravery charm tool  "single strike"  csvh1ac g
+CSVH3C-049	勇气护符 bravery charm tool csvh3c g
+CSVH4aC-014	勇气护符 bravery charm tool csvh4ac g
+CSVH5aC-016	勇气护符 bravery charm tool csvh5ac g
+CSVM1bC-024	勇气护符 bravery charm tool csvm1bc g
+CSVM1cC-021	勇气护符 bravery charm tool csvm1cc g
+CSVM2aC-024	勇气护符 bravery charm tool csvm2ac g
+SVP-295	勇气护符 bravery charm tool svp g
+CSV7C-184	千香果 passho berry tool csv7c h
+CSM1DC-267	反击增幅器 counter gain tool csm1dc b
+CSM1bC-128	反击增幅器 counter gain tool csm1bc b
+CSM2DC-276	反击增幅器 counter gain tool csm2dc b
+CSM2DC-357	反击增幅器 counter gain tool csm2dc b
+CSV9C-190	反击增幅器 counter gain tool csv9c h
+CSV9C-264	反击增幅器 counter gain tool csv9c h
+CS5bC-120	叶隐披风 leafy camo poncho tool cs5bc f
+CS5bC-177	叶隐披风 leafy camo poncho tool cs5bc f
+CSVE1C-134	叶隐披风 leafy camo poncho tool csve1c f
+CSV2C-117	吃剩的东西 leftovers tool csv2c g
+CSVE1C-133	吃剩的东西 leftovers tool csve1c g
+CSVH2aC-014	吃剩的东西 leftovers tool csvh2ac g
+CSVH3aC-014	吃剩的东西 leftovers tool csvh3ac g
+CSM1aC-133	咒术之符 spell tag tool csm1ac b
+CSM2DC-286	咒术之符 spell tag tool csm2dc b
+CSMPeC-015	咒术之符 spell tag tool csmpec b
+CS1aC-128	咒术之铲 cursed shovel tool cs1ac d
+CSV5C-117	咒术掸子 cursed duster tool csv5c g
+CSVE2C-168	咒术掸子 cursed duster tool csve2c g
+CSVH5aC-015	咒术掸子 cursed duster tool csvh5ac g
+CS2.5C-050	回忆胶囊 memory capsule tool cs2 5c d
+CS2.5C-079	回忆胶囊 memory capsule tool cs2 5c d
+CSM2DC-289	回转滑板 u-turn board tool csm2dc c
+CSM2aC-139	回转滑板 u-turn board tool csm2ac c
+CSM2aC-192	回转滑板 u-turn board tool csm2ac c
+CSV2C-114	坚硬束带 rigid band tool csv2c g
+CSVE2C-166	坚硬束带 rigid band tool csve2c g
+CSVH2C-049	坚硬束带 rigid band tool csvh2c g
+CSVM2cC-022	坚硬束带 rigid band tool csvm2cc g
+CS2aC-105	坚韧斗篷 cape of toughness tool cs2ac d
+CS2aC-143	坚韧斗篷 cape of toughness tool cs2ac d
+CSV3C-120	复仇拳箱 vengeful punch tool csv3c g
+CSVE2C-171	复仇拳箱 vengeful punch tool csve2c g
+CSVH2aC-017	复仇拳箱 vengeful punch tool csvh2ac g
+CSVH3aC-016	复仇拳箱 vengeful punch tool csvh3ac g
+CSVH4aC-015	复仇拳箱 vengeful punch tool csvh4ac g
+CSVM1aC-023	复仇拳箱 vengeful punch tool csvm1ac g
+CS6bC-124	大地封印石 earthen seal stone tool cs6bc f
+CS1DC-185	大护符 big charm tool cs1dc d
+CS1aC-125	大护符 big charm tool cs1ac d
+CS1aC-216	大护符 big charm tool cs1ac d
+CSAC-016	大护符 big charm tool csac d
+CSV3C-119	大气球 big air balloon tool csv3c g
+CS1bC-127	大阳伞 big parasol tool cs1bc d
+CS1bC-196	大阳伞 big parasol tool cs1bc d
+CS2.1C-005	大阳伞 big parasol tool cs2 1c d
+CS6aC-123	天空封印石 sky seal stone tool cs6ac f
+CSM2.5C-050	妖精坠饰  雷  fairy charm lightning tool csm2 5c c
+CSM2cC-136	妖精坠饰 特性 fairy charm ability tool csm2cc c
+CSM1.5C-042	妖精坠饰 究极异兽 fairy charm ub tool csm1 5c b
+CSM1.5C-043	妖精坠饰 斗  fairy charm fighting tool csm1 5c b
+CSM1cC-133	妖精坠饰 草  fairy charm grass tool csm1cc b
+CSM1cC-134	妖精坠饰 超  fairy charm psychic tool csm1cc b
+CSM1cC-135	妖精坠饰 龙  fairy charm dragon tool csm1cc b
+CSM1DC-268	学习装置 exp  share tool csm1dc a
+CSM1aC-130	学习装置 exp  share tool csm1ac a
+CSM2DC-277	学习装置 exp  share tool csm2dc a
+CSMPgC-016	学习装置 exp  share tool csmpgc a
+CSMPnC-008	学习装置 exp  share tool csmpnc a
+CS3DC-144	学习装置 exp  share tool cs3dc e
 CS3aC-112	学习装置 exp  share tool cs3ac e
 CS3aC-183	学习装置 exp  share tool cs3ac e
 CS4DaC-383	学习装置 exp  share tool cs4dac e
+CS5DC-134	学习装置 exp  share tool cs5dc e
+CSBC-013	学习装置 exp  share tool csbc e
+CSV1C-115	学习装置 exp  share tool csv1c g
+CSVE1C-129	学习装置 exp  share tool csve1c g
+CSVE2C-165	学习装置 exp  share tool csve2c g
+CSVH1C-048	学习装置 exp  share tool  "single strike"  csvh1c g
+CSVH1aC-014	学习装置 exp  share tool  "single strike"  csvh1ac g
+CSVH2C-048	学习装置 exp  share tool csvh2c g
+CSVH2aC-013	学习装置 exp  share tool csvh2ac g
+CSVH5C-046	学习装置 exp  share tool csvh5c g
+CSVM1cC-016	学习装置 exp  share tool csvm1cc g
+CSVM2bC-019	学习装置 exp  share tool csvm2bc g
+CSV3C-118	安全护目镜 protective goggles tool csv3c g
+CSV1C-114	岩石胸甲 rock chestplate tool csv1c g
+CSV5C-118	巡逻帽 patrol cap tool csv5c g
+CSV8C-185	巧可果 occa berry tool csv8c h
+CSM2cC-133	巨型炸弹 giant bomb tool csm2cc c
+CSM2cC-190	巨型炸弹 giant bomb tool csm2cc c
+CSV9C-191	希望护身符 amulet of hope tool ace spec csv9c h
+CSM1aC-134	干劲腰带 hustle belt tool csm1ac b
+CSM2DC-287	干劲腰带 hustle belt tool csm2dc b
+CSV7C-186	幸存锻炼器 survival brace tool ace spec csv7c h
+CSV7C-190	幸运头盔 lucky helmet tool csv7c h
+CSVH5aC-017	幸运头盔 lucky helmet tool csvh5ac h
+CS1DC-188	幸运蛋 lucky egg tool cs1dc d
+CS1aC-127	幸运蛋 lucky egg tool cs1ac d
+CS6.5C-064	应急果冻 emergency jelly tool cs6 5c f
+CSM2bC-135	异兽法宝 beast bringer tool csm2bc c
+CSM2aC-136	异兽秘石 beastite tool csm2ac c
+CSM1bC-129	弱点保险 weakness policy tool csm1bc a
+CSM2DC-282	弱点保险 weakness policy tool csm2dc a
+CSMPjC-007	弱点保险 weakness policy tool csmpjc a
+CS6.5C-065	恐慌面具 panic mask tool cs6 5c f
+CSM1cC-131	战斗存储碟 fire memory tool csm1cc a
+CSV8C-190	手持循环扇 handheld fan tool csv8c h
+CSVH1C-049	打空保险 blunder policy tool  "single strike"  csvh1c e
+SSP-124	打空保险 blunder policy tool ssp e
+CSV6C-120	招式学习器 临危一击 technical machine  crisis punch tool csv6c g
+CSVH3aC-017	招式学习器 临危一击 technical machine  crisis punch tool csvh3ac g
+CSV4C-120	招式学习器 暗中奇袭 technical machine  blindside tool csv4c g
+CSVH4aC-017	招式学习器 暗中奇袭 technical machine  blindside tool csvh4ac g
+CSV4C-119	招式学习器 能量涡轮 technical machine  turbo energize tool csv4c g
+CSVH4aC-016	招式学习器 能量涡轮 technical machine  turbo energize tool csvh4ac g
+CSV9C-195	招式学习器 萤石 technical machine  fluorite tool csv9c h
+CSV5C-119	招式学习器 进化 technical machine  evolution tool csv5c g
+CSV9.5C-180	招式学习器 进化 technical machine  evolution tool csv9 5c g
+CSVM1bC-025	招式学习器 进化 technical machine  evolution tool csvm1bc g
+CSVM2bC-022	招式学习器 进化 technical machine  evolution tool csvm2bc g
+CSVM2cC-023	招式学习器 进化 technical machine  evolution tool csvm2cc g
+CSV5C-120	招式学习器 退化 technical machine  devolution tool csv5c g
+CSV9.5C-181	招式学习器 退化 technical machine  devolution tool csv9 5c g
+CSVM1aC-024	招式学习器 退化 technical machine  devolution tool csvm1ac g
+CSVM2bC-023	招式学习器 退化 technical machine  devolution tool csvm2bc g
+CS4aC-121	挖洞手套 digging gloves tool cs4ac e
+CSVE1C-126	挖洞手套 digging gloves tool csve1c e
+CS1DC-186	文柚果 sitrus berry tool cs1dc d
+CS1aC-126	文柚果 sitrus berry tool cs1ac d
+CS4.5C-056	月亮与太阳徽章 moon & sun badge tool cs4 5c e
+CS2.1C-006	望远镜 telescopic sight tool cs2 1c d
+CS2bC-108	望远镜 telescopic sight tool cs2bc d
+CS2bC-143	望远镜 telescopic sight tool cs2bc d
+CS1DC-191	木子果 lum berry tool cs1dc d
+CS1bC-130	木子果 lum berry tool cs1bc d
 CS5.5C-061	机关臂 windup arm tool cs5 5c f
+CSV7C-189	极限腰带 maximum belt tool ace spec csv7c h
+CSV9.5C-179	极限腰带 maximum belt tool ace spec csv9 5c h
+CS6.5C-066	森林封印石 forest seal stone tool cs6 5c f
+CSVM1aC-022	森林封印石 forest seal stone tool csvm1ac f
+CSVM1cC-020	森林封印石 forest seal stone tool csvm1cc f
+CS4aC-123	橡胶手套 rubber gloves tool cs4ac e
+CS3bC-109	正义手套 justified gloves tool cs3bc e
+CSM1DC-272	毒针 poison barb tool csm1dc a
+CSM2DC-284	毒针 poison barb tool csm2dc a
+CS1DC-189	气球 air balloon tool cs1dc d
+CS1bC-128	气球 air balloon tool cs1bc d
+CS1bC-197	气球 air balloon tool cs1bc d
+CSAC-017	气球 air balloon tool csac d
+CSV7C-188	沉重接力棒 heavy baton tool csv7c h
+CSVM1cC-019	沉重接力棒 heavy baton tool csvm1cc h
+CS1DC-187	活力头带 vitality band tool cs1dc d
+CS1bC-126	活力头带 vitality band tool cs1bc d
+CS3DC-145	活力头带 vitality band tool cs3dc d
+CSV2C-115	活力头带 vitality band tool csv2c g
+CSVH1C-050	活力头带 vitality band tool  "single strike"  csvh1c g
+CSVH2C-050	活力头带 vitality band tool csvh2c g
+CSVH4C-042	活力头带 vitality band tool csvh4c g
+CSVM1aC-019	活力头带 vitality band tool csvm1ac g
+CSVSC-057	活力头带 vitality band tool csvsc g
+CS4.5C-055	海绵手套 spongy gloves tool cs4 5c e
+CS4bC-119	消灾手套 cleansing gloves tool cs4bc e
+CSVE1C-128	消灾手套 cleansing gloves tool csve1c e
+CSZC-041	消灾手套 cleansing gloves tool cszc e
+CSM1cC-128	清水存储碟 water memory tool csm1cc b
+CS2aC-106	滚滚浓烟 billowing smoke tool cs2ac d
+CSM1cC-132	火焰存储碟 fire memory tool csm1cc a
+CS4.5C-058	灵界面具 spirit mask tool cs4 5c e
+CS4DaC-386	灵界面具 spirit mask tool cs4dac e
+CSVE1C-136	灵界面具 spirit mask tool csve1c e
 CS5.5C-062	灾祸箱 box of disaster tool cs5 5c f
 CS5.5C-088	灾祸箱 box of disaster tool cs5 5c f
-CS5DC-134	学习装置 exp  share tool cs5dc e
+CS1DC-190	燃烧围巾 burning scarf tool cs1dc d
+CS1bC-129	燃烧围巾 burning scarf tool cs1bc d
+CS4bC-121	猎人手套 hunting gloves tool cs4bc e
+CSV8C-186	璀璨结晶 sparkling crystal tool ace spec csv8c h
+CSV9.5C-172	璀璨结晶 sparkling crystal tool ace spec csv9 5c h
+CS3aC-114	破坏手套 crushing gloves tool cs3ac e
+CSM1DC-273	祈愿接力棒 wishful baton tool csm1dc a
+CSM1bC-131	祈愿接力棒 wishful baton tool csm1bc a
+CSM1bC-202	祈愿接力棒 wishful baton tool csm1bc a
+CSM2DC-285	祈愿接力棒 wishful baton tool csm2dc a
+CSMPpC-007	祈愿接力棒 wishful baton tool csmppc a
+CSV8C-184	福禄果 payapa berry tool csv8c h
+CS3bC-108	粗硬头盔 rugged helmet tool cs3bc e
+CS3bC-178	粗硬头盔 rugged helmet tool cs3bc e
+CS4DaC-382	粗硬头盔 rugged helmet tool cs4dac e
+CSVE2C-163	粗硬头盔 rugged helmet tool csve2c e
+CSVH1aC-013	粗硬头盔 rugged helmet tool  "single strike"  csvh1ac e
+CSM1cC-130	精神存储碟 psychic memory tool csm1cc a
+CSM2DC-281	精神存储碟 psychic memory tool csm2dc a
+CSV7C-185	紧急滑板 rescue board tool csv7c h
+CSV7C-259	紧急滑板 rescue board tool csv7c h
+CSV9.5C-173	紧急滑板 rescue board tool csv9 5c h
+CSVH4aC-013	紧急滑板 rescue board tool csvh4ac h
+CSVH5aC-013	紧急滑板 rescue board tool csvh5ac h
+CSVM1cC-017	紧急滑板 rescue board tool csvm1cc h
+CSVM2bC-020	紧急滑板 rescue board tool csvm2bc h
+SVP-197	紧急滑板 rescue board tool svp h
+CSM2.5C-051	耳鸣铃铛 ear-ringing bell tool csm2 5c c
+CSM1bC-132	肌力哑铃 bodybuilding dumbbells tool csm1bc a
+CSM2DC-288	肌力哑铃 bodybuilding dumbbells tool csm2dc a
+CSM2aC-137	肌力护膝 buff padding tool csm2ac c
+CSMPjC-008	肌力护膝 buff padding tool csmpjc c
+CS2.5C-048	腐朽的剑 rusted sword tool cs2 5c d
+CS2.5C-049	腐朽的盾 rusted shield tool cs2 5c d
+CS2bC-106	英雄奖牌 hero s medal tool cs2bc d
+CS2bC-142	英雄奖牌 hero s medal tool cs2bc d
+CSV7C-187	英雄斗篷 hero s cape tool ace spec csv7c h
+CSV10C-202	莉莉艾的珍珠 tool csv10c i
+CSV9.5C-176	莓榴果 haban berry tool csv9 5c h
+CSM2cC-134	虹色之花 tool csm2cc c
+CS4.5C-057	蝴蝶结徽章 ribbon badge tool cs4 5c e
+CSVE1C-135	蝴蝶结徽章 ribbon badge tool csve1c e
+CSM1DC-269	讲究头带 choice band tool csm1dc a
+CSM1cC-129	讲究头带 choice band tool csm1cc a
+CSM1cC-210	讲究头带 choice band tool csm1cc a
+CSM2.1C-023	讲究头带 choice band tool csm2 1c a
+CSM2DC-279	讲究头带 choice band tool csm2dc a
+CSMAC-010	讲究头带 choice band tool csmac a
+CSMPnC-009	讲究头带 choice band tool csmpnc a
+CSMPoC-008	讲究头带 choice band tool csmpoc a
+CSMPqC-009	讲究头带 choice band tool csmpqc a
+CSM1DC-270	讲究头盔 choice helmet tool csm1dc b
+CSM1aC-132	讲究头盔 choice helmet tool csm1ac b
+CSM2DC-280	讲究头盔 choice helmet tool csm2dc b
+CSMPfC-015	讲究头盔 choice helmet tool csmpfc b
 CS5DC-135	讲究腰带 choice belt tool cs5dc f
-CS5DC-136	锅型头盔 pot helmet tool cs5dc f
-CS5aC-117	锅型头盔 pot helmet tool cs5ac f
-CS5aC-118	超群眼镜 supereffective glasses tool cs5ac f
 CS5bC-119	讲究腰带 choice belt tool cs5bc f
-CS5bC-120	叶隐披风 leafy camo poncho tool cs5bc f
 CS5bC-176	讲究腰带 choice belt tool cs5bc f
-CS5bC-177	叶隐披风 leafy camo poncho tool cs5bc f
-CS6.5C-064	应急果冻 emergency jelly tool cs6 5c f
-CS6.5C-065	恐慌面具 panic mask tool cs6 5c f
-CS6.5C-066	森林封印石 forest seal stone tool cs6 5c f
-CS6aC-123	天空封印石 sky seal stone tool cs6ac f
-CS6bC-124	大地封印石 earthen seal stone tool cs6bc f
-CSBC-013	学习装置 exp  share tool csbc e
-CSM1DC-267	反击增幅器 counter gain tool csm1dc b
-CSM1DC-268	学习装置 exp  share tool csm1dc a
-CSM1aC-130	学习装置 exp  share tool csm1ac a
-CSM1bC-128	反击增幅器 counter gain tool csm1bc b
-CSM2DC-276	反击增幅器 counter gain tool csm2dc b
-CSM2DC-277	学习装置 exp  share tool csm2dc a
-CSM2DC-357	反击增幅器 counter gain tool csm2dc b
-CSMPgC-016	学习装置 exp  share tool csmpgc a
-CSMPnC-008	学习装置 exp  share tool csmpnc a
 CSNC-018	讲究腰带 choice belt tool csnc f
 CSOC-012	讲究腰带 choice belt tool csoc f
-CSV10C-200	竹兰的力量负重 tool csv10c i
-CSV10C-201	赫普的讲究头带 tool csv10c i
-CSV10C-202	莉莉艾的珍珠 tool csv10c i
-CSV1C-114	岩石胸甲 rock chestplate tool csv1c g
-CSV1C-115	学习装置 exp  share tool csv1c g
-CSV1C-116	讲究腰带 choice belt tool csv1c g
-CSV1C-117	不服输头带 defiance band tool csv1c g
-CSV1C-118	勇气护符 bravery charm tool csv1c g
-CSV2C-114	坚硬束带 rigid band tool csv2c g
-CSV2C-115	活力头带 vitality band tool csv2c g
-CSV2C-116	凸凸头盔 rocky helmet tool csv2c g
-CSV2C-117	吃剩的东西 leftovers tool csv2c g
-CSV3C-118	安全护目镜 protective goggles tool csv3c g
-CSV3C-119	大气球 big air balloon tool csv3c g
-CSV3C-120	复仇拳箱 vengeful punch tool csv3c g
-CSV4C-117	豪华斗篷 luxurious cape tool csv4c g
-CSV4C-118	不服输背心 defiance vest tool csv4c g
-CSV4C-119	招式学习器 能量涡轮 technical machine  turbo energize tool csv4c g
-CSV4C-120	招式学习器 暗中奇袭 technical machine  blindside tool csv4c g
-CSV4C-164	豪华斗篷 luxurious cape tool csv4c g
-CSV5C-117	咒术掸子 cursed duster tool csv5c g
-CSV5C-118	巡逻帽 patrol cap tool csv5c g
-CSV5C-119	招式学习器 进化 technical machine  evolution tool csv5c g
-CSV5C-120	招式学习器 退化 technical machine  devolution tool csv5c g
-CSV5C-164	不服输头带 defiance band tool csv5c g
-CSV6C-118	驱劲能量 古代 ancient booster energy capsule tool  "ancient"  csv6c g
-CSV6C-119	驱劲能量 未来 future booster energy capsule tool  "future"  csv6c g
-CSV6C-120	招式学习器 临危一击 technical machine  crisis punch tool csv6c g
-CSV7C-184	千香果 passho berry tool csv7c h
-CSV7C-185	紧急滑板 rescue board tool csv7c h
-CSV7C-186	幸存锻炼器 survival brace tool ace spec csv7c h
-CSV7C-187	英雄斗篷 hero s cape tool ace spec csv7c h
-CSV7C-188	沉重接力棒 heavy baton tool csv7c h
-CSV7C-189	极限腰带 maximum belt tool ace spec csv7c h
-CSV7C-190	幸运头盔 lucky helmet tool csv7c h
-CSV7C-259	紧急滑板 rescue board tool csv7c h
-CSV8C-184	福禄果 payapa berry tool csv8c h
-CSV8C-185	巧可果 occa berry tool csv8c h
-CSV8C-186	璀璨结晶 sparkling crystal tool ace spec csv8c h
-CSV8C-187	锁链粘糕 binding mochi tool csv8c h
-CSV8C-188	力之沙漏 powerglass tool csv8c h
-CSV8C-189	豪华炸弹 deluxe bomb tool ace spec csv8c h
-CSV8C-190	手持循环扇 handheld fan tool csv8c h
-CSV8C-260	勇气护符 bravery charm tool csv8c g
-CSV9.5C-172	璀璨结晶 sparkling crystal tool ace spec csv9 5c h
-CSV9.5C-173	紧急滑板 rescue board tool csv9 5c h
-CSV9.5C-174	锁链粘糕 binding mochi tool csv9 5c h
-CSV9.5C-175	豪华斗篷 luxurious cape tool csv9 5c g
-CSV9.5C-176	莓榴果 haban berry tool csv9 5c h
-CSV9.5C-177	驱劲能量 古代 ancient booster energy capsule tool  "ancient"  csv9 5c g
-CSV9.5C-178	驱劲能量 未来 future booster energy capsule tool  "future"  csv9 5c g
-CSV9.5C-179	极限腰带 maximum belt tool ace spec csv9 5c h
-CSV9.5C-180	招式学习器 进化 technical machine  evolution tool csv9 5c g
-CSV9.5C-181	招式学习器 退化 technical machine  devolution tool csv9 5c g
-CSV9C-190	反击增幅器 counter gain tool csv9c h
-CSV9C-191	希望护身符 amulet of hope tool ace spec csv9c h
-CSV9C-192	重力之玉 gravity gemstone tool csv9c h
-CSV9C-193	刺耳果 colbur berry tool csv9c h
-CSV9C-194	霹霹果 babiri berry tool csv9c h
-CSV9C-195	招式学习器 萤石 technical machine  fluorite tool csv9c h
-CSV9C-264	反击增幅器 counter gain tool csv9c h
-CSV9C-265	力之沙漏 powerglass tool csv9c h
-CSVE1C-129	学习装置 exp  share tool csve1c g
-CSVE1C-131	讲究腰带 choice belt tool csve1c g
-CSVE1C-133	吃剩的东西 leftovers tool csve1c g
-CSVE1C-134	叶隐披风 leafy camo poncho tool csve1c f
-CSVE2C-165	学习装置 exp  share tool csve2c g
-CSVE2C-166	坚硬束带 rigid band tool csve2c g
-CSVE2C-167	凸凸头盔 rocky helmet tool csve2c g
-CSVE2C-168	咒术掸子 cursed duster tool csve2c g
-CSVE2C-169	不服输头带 defiance band tool csve2c g
-CSVE2C-170	勇气护符 bravery charm tool csve2c g
-CSVE2C-171	复仇拳箱 vengeful punch tool csve2c g
-CSVE2pC-010	勇气护符 bravery charm tool csve2pc g
-CSVH1C-048	学习装置 exp  share tool  "single strike"  csvh1c g
-CSVH1C-050	活力头带 vitality band tool  "single strike"  csvh1c g
-CSVH1aC-014	学习装置 exp  share tool  "single strike"  csvh1ac g
-CSVH1aC-015	锅型头盔 pot helmet tool  "single strike"  csvh1ac f
-CSVH1aC-016	不服输头带 defiance band tool  "single strike"  csvh1ac g
-CSVH1aC-017	勇气护符 bravery charm tool  "single strike"  csvh1ac g
-CSVH2C-048	学习装置 exp  share tool csvh2c g
-CSVH2C-049	坚硬束带 rigid band tool csvh2c g
-CSVH2C-050	活力头带 vitality band tool csvh2c g
-CSVH2aC-013	学习装置 exp  share tool csvh2ac g
-CSVH2aC-014	吃剩的东西 leftovers tool csvh2ac g
-CSVH2aC-016	不服输头带 defiance band tool csvh2ac g
-CSVH2aC-017	复仇拳箱 vengeful punch tool csvh2ac g
-CSVH3C-048	不服输头带 defiance band tool csvh3c g
-CSVH3C-049	勇气护符 bravery charm tool csvh3c g
-CSVH3aC-013	凸凸头盔 rocky helmet tool csvh3ac g
-CSVH3aC-014	吃剩的东西 leftovers tool csvh3ac g
-CSVH3aC-015	不服输头带 defiance band tool csvh3ac g
-CSVH3aC-016	复仇拳箱 vengeful punch tool csvh3ac g
-CSVH3aC-017	招式学习器 临危一击 technical machine  crisis punch tool csvh3ac g
-CSVH4C-042	活力头带 vitality band tool csvh4c g
-CSVH4C-043	驱劲能量 古代 ancient booster energy capsule tool  "ancient"  csvh4c g
-CSVH4C-044	驱劲能量 未来 future booster energy capsule tool  "future"  csvh4c g
-CSVH4C-045	不服输头带 defiance band tool csvh4c g
-CSVH4aC-013	紧急滑板 rescue board tool csvh4ac h
-CSVH4aC-014	勇气护符 bravery charm tool csvh4ac g
-CSVH4aC-015	复仇拳箱 vengeful punch tool csvh4ac g
-CSVH4aC-016	招式学习器 能量涡轮 technical machine  turbo energize tool csvh4ac g
-CSVH4aC-017	招式学习器 暗中奇袭 technical machine  blindside tool csvh4ac g
-CSVH5C-046	学习装置 exp  share tool csvh5c g
-CSVH5aC-013	紧急滑板 rescue board tool csvh5ac h
-CSVH5aC-014	力之沙漏 powerglass tool csvh5ac h
-CSVH5aC-015	咒术掸子 cursed duster tool csvh5ac g
-CSVH5aC-016	勇气护符 bravery charm tool csvh5ac g
-CSVH5aC-017	幸运头盔 lucky helmet tool csvh5ac h
-CSVM1aC-019	活力头带 vitality band tool csvm1ac g
-CSVM1aC-020	讲究腰带 choice belt tool csvm1ac g
-CSVM1aC-021	不服输头带 defiance band tool csvm1ac g
-CSVM1aC-022	森林封印石 forest seal stone tool csvm1ac f
-CSVM1aC-023	复仇拳箱 vengeful punch tool csvm1ac g
-CSVM1aC-024	招式学习器 退化 technical machine  devolution tool csvm1ac g
-CSVM1bC-023	豪华斗篷 luxurious cape tool csvm1bc g
-CSVM1bC-024	勇气护符 bravery charm tool csvm1bc g
-CSVM1bC-025	招式学习器 进化 technical machine  evolution tool csvm1bc g
-CSVM1cC-016	学习装置 exp  share tool csvm1cc g
-CSVM1cC-017	紧急滑板 rescue board tool csvm1cc h
-CSVM1cC-018	驱劲能量 未来 future booster energy capsule tool  "future"  csvm1cc g
-CSVM1cC-019	沉重接力棒 heavy baton tool csvm1cc h
-CSVM1cC-020	森林封印石 forest seal stone tool csvm1cc f
-CSVM1cC-021	勇气护符 bravery charm tool csvm1cc g
-CSVM2aC-024	勇气护符 bravery charm tool csvm2ac g
-CSVM2bC-019	学习装置 exp  share tool csvm2bc g
-CSVM2bC-020	紧急滑板 rescue board tool csvm2bc h
-CSVM2bC-021	不服输头带 defiance band tool csvm2bc g
-CSVM2bC-022	招式学习器 进化 technical machine  evolution tool csvm2bc g
-CSVM2bC-023	招式学习器 退化 technical machine  devolution tool csvm2bc g
-CSVM2cC-022	坚硬束带 rigid band tool csvm2cc g
-CSVM2cC-023	招式学习器 进化 technical machine  evolution tool csvm2cc g
-CSVNC-033	锁链粘糕 binding mochi tool csvnc h
-CSVSC-057	活力头带 vitality band tool csvsc g
 CSXC-014	讲究腰带 choice belt tool csxc f
 CSZC-042	讲究腰带 choice belt tool cszc f
-SVP-197	紧急滑板 rescue board tool svp h
+CSV1C-116	讲究腰带 choice belt tool csv1c g
+CSVE1C-131	讲究腰带 choice belt tool csve1c g
+CSVM1aC-020	讲究腰带 choice belt tool csvm1ac g
+CSM2.5C-049	诸岛巡礼之证 island challenge amulet tool csm2 5c c
+CSM2.5C-097	诸岛巡礼之证 island challenge amulet tool csm2 5c c
+CSV4C-117	豪华斗篷 luxurious cape tool csv4c g
+CSV4C-164	豪华斗篷 luxurious cape tool csv4c g
+CSV9.5C-175	豪华斗篷 luxurious cape tool csv9 5c g
+CSVM1bC-023	豪华斗篷 luxurious cape tool csvm1bc g
+CSV8C-189	豪华炸弹 deluxe bomb tool ace spec csv8c h
+CSV10C-201	赫普的讲究头带 tool csv10c i
+CS5aC-118	超群眼镜 supereffective glasses tool cs5ac f
+CS3bC-111	连击卷轴 滔天之卷 rapid strike scroll of the skies tool  "rapid strike"  cs3bc e
+CS3bC-112	连击卷轴 漩涡之卷 rapid strike scroll of swirls tool  "rapid strike"  cs3bc e
+CSVE1C-137	连击卷轴 漩涡之卷 rapid strike scroll of swirls tool  "rapid strike"  csve1c e
+CS4bC-122	连击卷轴 飞龙之卷 rapid strike scroll of the flying dragon tool  "rapid strike"  cs4bc e
+CSM1aC-129	逃脱滑板 escape board tool csm1ac b
+CSM1aC-209	逃脱滑板 escape board tool csm1ac b
+CSM2.1C-021	逃脱滑板 escape board tool csm2 1c b
+CSM2DC-275	逃脱滑板 escape board tool csm2dc b
+CS2aC-104	逆境手套 struggle gloves tool cs2ac d
+CS3.5C-059	道具妨碍器 tool jammer tool cs3 5c e
+CSVH2aC-015	道具妨碍器 tool jammer tool csvh2ac e
+CSZC-043	道具妨碍器 tool jammer tool cszc e
+CSV9C-192	重力之玉 gravity gemstone tool csv9c h
+CSM1aC-135	金属护目镜 metal goggles tool csm1ac b
+CSM2aC-138	金属核心屏障 metal core barrier tool csm2ac c
+CSM2aC-191	金属核心屏障 metal core barrier tool csm2ac c
+CSM1aC-131	钢铁平底锅 metal frying pan tool csm1ac b
+CSM1aC-210	钢铁平底锅 metal frying pan tool csm1ac b
+CSM2.1C-022	钢铁平底锅 metal frying pan tool csm2 1c b
+CSMPqC-008	钢铁平底锅 metal frying pan tool csmpqc b
+CSV8C-187	锁链粘糕 binding mochi tool csv8c h
+CSV9.5C-174	锁链粘糕 binding mochi tool csv9 5c h
+CSVNC-033	锁链粘糕 binding mochi tool csvnc h
+CS5DC-136	锅型头盔 pot helmet tool cs5dc f
+CS5aC-117	锅型头盔 pot helmet tool cs5ac f
+CSVH1aC-015	锅型头盔 pot helmet tool  "single strike"  csvh1ac f
+CS3bC-110	防火手套 fire-resistant gloves tool cs3bc e
+CSVE1C-132	防火手套 fire-resistant gloves tool csve1c e
+CS3aC-113	除草手套 weeding gloves tool cs3ac e
+CSVE1C-130	除草手套 weeding gloves tool csve1c e
+CSM2bC-132	隐秘风帽 stealthy hood tool csm2bc c
+CSMPmC-010	隐秘风帽 stealthy hood tool csmpmc c
+CS4.5C-054	雪叶徽章 snow leaf badge tool cs4 5c e
+CSV9C-194	霹霹果 babiri berry tool csv9c h
+CSM2cC-135	飞行z 空气之刃 flyinium z  air slash tool csm2cc c
+CSV6C-118	驱劲能量 古代 ancient booster energy capsule tool  "ancient"  csv6c g
+CSV9.5C-177	驱劲能量 古代 ancient booster energy capsule tool  "ancient"  csv9 5c g
+CSVH4C-043	驱劲能量 古代 ancient booster energy capsule tool  "ancient"  csvh4c g
 SVP-256	驱劲能量 古代 ancient booster energy capsule tool  "ancient"  svp g
+CSV6C-119	驱劲能量 未来 future booster energy capsule tool  "future"  csv6c g
+CSV9.5C-178	驱劲能量 未来 future booster energy capsule tool  "future"  csv9 5c g
+CSVH4C-044	驱劲能量 未来 future booster energy capsule tool  "future"  csvh4c g
+CSVM1cC-018	驱劲能量 未来 future booster energy capsule tool  "future"  csvm1cc g
 SVP-257	驱劲能量 未来 future booster energy capsule tool  "future"  svp g
-SVP-295	勇气护符 bravery charm tool svp g
+CSM2DC-278	黑带 karate belt tool csm2dc c
+CSM2bC-133	黑带 karate belt tool csm2bc c
+CSM2bC-191	黑带 karate belt tool csm2bc c
+CSMPfC-014	黑带 karate belt tool csmpfc c
+CSM2aC-135	龙z 龙爪 dragonium z  dragon claw tool csm2ac c
+CSM1bC-133	龙之钩爪 dragon talon tool csm1bc b

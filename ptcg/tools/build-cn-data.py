@@ -33,6 +33,14 @@ TYPE_MAP = {
     "Tool": "宝可梦道具", "Stadium": "竞技场",
     "Basic Energy": "基本能量", "Special Energy": "特殊能量",
 }
+OLD_TO_CN_TYPE = {v: k for k, v in TYPE_MAP.items()}  # 宝可梦→Pokemon etc
+
+MARK_RANK = {m: i for i, m in enumerate("ABCDEFGHIJ")}
+
+FORM_ORDER = {"": 0, "ex": 1, "GX": 2, "V": 3, "VMAX": 4, "VSTAR": 5, "BREAK": 6}
+FORM_PREFIXES = ["光辉", "洗翠", "阿罗拉", "伽勒尔", "帕底亚"]
+PREFIX_RE = re.compile(r"^(火箭队的|阿响的|竹兰的|派帕的|玛俐的|大吾的|小霞的|船长\s+|[A-Z]*的)")
+SUFFIX_RE = re.compile(r"(ex|VMAX|VSTAR|GX|V|BREAK)$")
 TYPE_SLUG = {
     "宝可梦": "pokemon", "支援者": "supporter", "物品": "item",
     "宝可梦道具": "pokemon-tool", "竞技场": "stadium",
@@ -69,8 +77,7 @@ def load_cn_cards():
     cards = []
     with (CN_TSV / "cards.tsv").open("r", encoding="utf-8-sig", newline="") as f:
         for row in csv.DictReader(f, delimiter="\t"):
-            if row.get("standard_legal") == "1":
-                cards.append(row)
+            cards.append(row)
     return cards
 
 def load_cn_attacks():
@@ -301,10 +308,14 @@ def build_old_to_new_map_v2(cards, dex_lookup, name_only_dex):
             if cm:
                 match = (cm[0]["card_key"], "energy_strip")
 
-        # Effect text matching
+        # Effect text matching (restricted to same card type)
         if not match and old.get("effect") and len(old["effect"]) > 4:
             old_eff = norm_eff(old["effect"])
-            pool = [c for cl in cn_by_name.values() for c in cl if c.get("description")]
+            old_cn_type = OLD_TO_CN_TYPE.get(old["type"], old["type"])
+            pool = [c for cl in cn_by_name.values() for c in cl
+                    if c.get("description") and c.get("card_type") == old_cn_type]
+            if not pool:
+                pool = [c for cl in cn_by_name.values() for c in cl if c.get("description")]
             best, best_s = None, 0
             for c in pool:
                 c_eff = norm_eff(c.get("description", ""))
@@ -593,15 +604,34 @@ def main():
     print("\n[5/6] Generating TSV layers...")
     OUT_TSV.mkdir(parents=True, exist_ok=True)
 
+    # ─ 通用排序键 ─
+    def build_sort_key(card):
+        name = card.get("card_name","")
+        is_poke = TYPE_MAP.get(card.get("card_type","")) == "宝可梦"
+        # dex (0=unknown → sort after known dex numbers)
+        dex_raw = int(get_dex_for_cn(card, cn_key_to_dex, mapping, dex_lookup, name_only_dex) or 0)
+        dex = dex_raw if dex_raw > 0 else 99999
+        # base name: strip prefixes & suffixes
+        base = SUFFIX_RE.sub("", PREFIX_RE.sub("", name))
+        form_key = 0
+        m = SUFFIX_RE.search(name)
+        if m:
+            form_key = FORM_ORDER.get(m.group(1), 99)
+            base = name[:m.start()]
+        base = PREFIX_RE.sub("", base)
+        # variant prefix boosts form order
+        for i, fp in enumerate(FORM_PREFIXES):
+            if name.startswith(fp):
+                form_key = 6 + i
+                break
+        # mark rank
+        mark = MARK_RANK.get(card.get("regulation_mark",""), 99)
+        return (dex, base, form_key, mark, card.get("set_code",""), card.get("card_index",""))
+
     for cn_type, clist in sorted(typed_cards.items()):
         slug = TYPE_SLUG[cn_type]
         is_pokemon = cn_type == "宝可梦"
-        # Sort by dex number first, then by set_code+card_index for tiebreakers
-        if is_pokemon:
-            def sort_key(c):
-                dex = int(get_dex_for_cn(c, cn_key_to_dex, mapping, dex_lookup, name_only_dex) or 0)
-                return (dex, c.get("set_code",""), c.get("card_index",""))
-            clist.sort(key=sort_key)
+        clist.sort(key=build_sort_key)
 
         idx_rows, search_rows, filter_rows, detail_rows = [], [], [], []
 
@@ -617,7 +647,8 @@ def main():
             attr_cn = ATTR_CODES.get(attr_en, attr_en) if attr_en else ""
             eq_key = (c.get("effect_id") or "")[:16]
 
-            idx_rows.append([ck, name, dex_num, attr_cn, "0", eq_key])
+            active = "1" if c.get("standard_legal") == "1" else "0"
+            idx_rows.append([ck, name, dex_num, attr_cn, "0", eq_key, active])
 
             # search
             st = build_search_text(c, atks, abis)

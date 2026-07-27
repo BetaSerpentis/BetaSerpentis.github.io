@@ -1,230 +1,235 @@
 #idx1
-CBB1C-1801	基本草能量			0	5e2d0ce37ca0c539
-CBB1C-1802	基本火能量			0	22db5405bf0cce61
-CBB1C-1803	基本水能量			0	0cf075ae61b8a0b4
-CBB1C-1804	基本草能量			0	5e2d0ce37ca0c539
-CBB1C-1805	基本火能量			0	22db5405bf0cce61
-CBB1C-1806	基本水能量			0	0cf075ae61b8a0b4
-CBB2C-1101	基本雷能量			0	45550fd10011f6ad
-CBB2C-1102	基本超能量			0	41b2d1a95fafc35e
-CBB2C-1103	基本恶能量			0	46c769fc57a6c250
-CBB2C-1104	基本雷能量			0	45550fd10011f6ad
-CBB2C-1105	基本超能量			0	41b2d1a95fafc35e
-CBB2C-1106	基本恶能量			0	46c769fc57a6c250
-CBB3C-2001	基本斗能量			0	9fedb80a97ddd5cc
-CBB3C-2002	基本钢能量			0	4557c01497b81767
-CBB3C-2004	基本斗能量			0	9fedb80a97ddd5cc
-CBB3C-2005	基本钢能量			0	4557c01497b81767
-CS2DaC-DAR	基本恶能量			0	46c769fc57a6c250
-CS2DaC-FIG	基本斗能量			0	9fedb80a97ddd5cc
-CS2DaC-FIR	基本火能量			0	22db5405bf0cce61
-CS2DaC-GRA	基本草能量			0	5e2d0ce37ca0c539
-CS2DaC-LIG	基本雷能量			0	45550fd10011f6ad
-CS2DaC-WAT	基本水能量			0	0cf075ae61b8a0b4
-CS4.1C-005	基本水能量			0	0cf075ae61b8a0b4
-CS4.1C-006	基本超能量			0	41b2d1a95fafc35e
-CS4DaC-426	基本草能量			0	5e2d0ce37ca0c539
-CS4DaC-427	基本火能量			0	22db5405bf0cce61
-CS4DaC-428	基本水能量			0	0cf075ae61b8a0b4
-CS4DaC-429	基本雷能量			0	45550fd10011f6ad
-CS4DaC-430	基本超能量			0	41b2d1a95fafc35e
-CS4DaC-431	基本斗能量			0	9fedb80a97ddd5cc
-CS4DaC-432	基本恶能量			0	46c769fc57a6c250
-CS4DaC-433	基本钢能量			0	4557c01497b81767
-CS4DaC-DAR	基本恶能量			0	46c769fc57a6c250
-CS4DaC-FIG	基本斗能量			0	9fedb80a97ddd5cc
-CS4DaC-FIR	基本火能量			0	22db5405bf0cce61
-CS4DaC-GRA	基本草能量			0	5e2d0ce37ca0c539
-CS4DaC-LIG	基本雷能量			0	45550fd10011f6ad
-CS4DaC-MET	基本钢能量			0	4557c01497b81767
-CS4DaC-PSY	基本超能量			0	41b2d1a95fafc35e
-CS4DaC-WAT	基本水能量			0	0cf075ae61b8a0b4
-CS4aC-183	基本火能量			0	22db5405bf0cce61
-CS4aC-184	基本恶能量			0	46c769fc57a6c250
-CS4bC-176	基本雷能量			0	45550fd10011f6ad
-CS4bC-177	基本超能量			0	41b2d1a95fafc35e
-CS5.1C-005	基本火能量			0	22db5405bf0cce61
-CS5.1C-006	基本斗能量			0	9fedb80a97ddd5cc
-CS5.1C-007	基本恶能量			0	46c769fc57a6c250
-CS6.1C-005	基本草能量			0	5e2d0ce37ca0c539
-CS6.1C-006	基本雷能量			0	45550fd10011f6ad
-CS6.1C-007	基本钢能量			0	4557c01497b81767
-CS6aC-168	基本草能量			0	5e2d0ce37ca0c539
-CS6aC-169	基本钢能量			0	4557c01497b81767
-CS6bC-171	基本水能量			0	0cf075ae61b8a0b4
-CS6bC-172	基本斗能量			0	9fedb80a97ddd5cc
-CSAC-DAR	基本恶能量			0	46c769fc57a6c250
-CSAC-FIG	基本斗能量			0	9fedb80a97ddd5cc
-CSAC-FIR	基本火能量			0	22db5405bf0cce61
-CSAC-GRA	基本草能量			0	5e2d0ce37ca0c539
-CSAC-LIG	基本雷能量			0	45550fd10011f6ad
-CSAC-MET	基本钢能量			0	4557c01497b81767
-CSAC-PSY	基本超能量			0	41b2d1a95fafc35e
-CSAC-WAT	基本水能量			0	0cf075ae61b8a0b4
-CSM1DC-DAR	基本恶能量			0	46c769fc57a6c250
-CSM1DC-FIG	基本斗能量			0	9fedb80a97ddd5cc
-CSM1DC-FIR	基本火能量			0	22db5405bf0cce61
-CSM1DC-GRA	基本草能量			0	5e2d0ce37ca0c539
-CSM1DC-LIG	基本雷能量			0	45550fd10011f6ad
-CSM1DC-MET	基本钢能量			0	4557c01497b81767
-CSM1DC-PSY	基本超能量			0	41b2d1a95fafc35e
-CSM1DC-WAT	基本水能量			0	0cf075ae61b8a0b4
-CSM2.1C-037	基本草能量			0	5e2d0ce37ca0c539
-CSM2.1C-038	基本火能量			0	22db5405bf0cce61
-CSM2.1C-039	基本水能量			0	0cf075ae61b8a0b4
-CSM2.1C-040	基本雷能量			0	45550fd10011f6ad
-CSM2.1C-041	基本超能量			0	41b2d1a95fafc35e
-CSM2.1C-042	基本斗能量			0	9fedb80a97ddd5cc
-CSM2.1C-043	基本恶能量			0	46c769fc57a6c250
-CSM2.1C-044	基本钢能量			0	4557c01497b81767
-CSMAC-DAR	基本恶能量			0	46c769fc57a6c250
-CSMAC-FIG	基本斗能量			0	9fedb80a97ddd5cc
-CSMAC-FIR	基本火能量			0	22db5405bf0cce61
-CSMAC-GRA	基本草能量			0	5e2d0ce37ca0c539
-CSMAC-LIG	基本雷能量			0	45550fd10011f6ad
-CSMAC-MET	基本钢能量			0	4557c01497b81767
-CSMAC-PSY	基本超能量			0	41b2d1a95fafc35e
-CSMAC-WAT	基本水能量			0	0cf075ae61b8a0b4
-CSMPiC-016	基本草能量			0	5e2d0ce37ca0c539
-CSMPiC-017	基本火能量			0	22db5405bf0cce61
-CSMPiC-018	基本水能量			0	0cf075ae61b8a0b4
-CSMPiC-019	基本雷能量			0	45550fd10011f6ad
-CSMPiC-020	基本超能量			0	41b2d1a95fafc35e
-CSMPiC-021	基本斗能量			0	9fedb80a97ddd5cc
-CSMPiC-022	基本恶能量			0	46c769fc57a6c250
-CSMPiC-023	基本钢能量			0	4557c01497b81767
-CSMPiC-035	基本草能量			0	5e2d0ce37ca0c539
-CSMPiC-036	基本火能量			0	22db5405bf0cce61
-CSMPiC-037	基本水能量			0	0cf075ae61b8a0b4
-CSMPiC-038	基本雷能量			0	45550fd10011f6ad
-CSMPiC-039	基本超能量			0	41b2d1a95fafc35e
-CSMPiC-040	基本斗能量			0	9fedb80a97ddd5cc
-CSMPiC-041	基本恶能量			0	46c769fc57a6c250
-CSMPiC-042	基本钢能量			0	4557c01497b81767
-CSVE1C-DAR	基本恶能量			0	46c769fc57a6c250
-CSVE1C-FIG	基本斗能量			0	9fedb80a97ddd5cc
-CSVE1C-FIR	基本火能量			0	22db5405bf0cce61
-CSVE1C-GRA	基本草能量			0	5e2d0ce37ca0c539
-CSVE1C-LIG	基本雷能量			0	45550fd10011f6ad
-CSVE1C-MET	基本钢能量			0	4557c01497b81767
-CSVE1C-PSY	基本超能量			0	41b2d1a95fafc35e
-CSVE1C-WAT	基本水能量			0	0cf075ae61b8a0b4
-CSVE1pC-012	基本雷能量			0	45550fd10011f6ad
-CSVE1pC-024	基本超能量			0	41b2d1a95fafc35e
-CSVE2pC-012	基本火能量			0	22db5405bf0cce61
-CSVE2pC-024	基本水能量			0	0cf075ae61b8a0b4
-CSVH1C-DAR	基本恶能量			0	46c769fc57a6c250
-CSVH1C-FIG	基本斗能量			0	9fedb80a97ddd5cc
-CSVH1C-FIR	基本火能量			0	22db5405bf0cce61
-CSVH1C-GRA	基本草能量			0	5e2d0ce37ca0c539
-CSVH1C-LIG	基本雷能量			0	45550fd10011f6ad
-CSVH1C-MET	基本钢能量			0	4557c01497b81767
-CSVH1C-PSY	基本超能量			0	41b2d1a95fafc35e
-CSVH1C-WAT	基本水能量			0	0cf075ae61b8a0b4
-CSVH1pC-DAR	基本恶能量			0	46c769fc57a6c250
-CSVH1pC-FIG	基本斗能量			0	9fedb80a97ddd5cc
-CSVH1pC-FIR	基本火能量			0	22db5405bf0cce61
-CSVH1pC-GRA	基本草能量			0	5e2d0ce37ca0c539
-CSVH1pC-LIG	基本雷能量			0	45550fd10011f6ad
-CSVH1pC-MET	基本钢能量			0	4557c01497b81767
-CSVH1pC-PSY	基本超能量			0	41b2d1a95fafc35e
-CSVH1pC-WAT	基本水能量			0	0cf075ae61b8a0b4
-CSVH3C-FIR	基本火能量			0	22db5405bf0cce61
-CSVH3C-MET	基本钢能量			0	4557c01497b81767
-CSVH3C-PSY	基本超能量			0	41b2d1a95fafc35e
-CSVH3C-WAT	基本水能量			0	0cf075ae61b8a0b4
-CSVH4C-FIG	基本斗能量			0	9fedb80a97ddd5cc
-CSVH4C-FIR	基本火能量			0	22db5405bf0cce61
-CSVH4C-GRA	基本草能量			0	5e2d0ce37ca0c539
-CSVH4C-LIG	基本雷能量			0	45550fd10011f6ad
-CSVH4C-MET	基本钢能量			0	4557c01497b81767
-CSVH4C-PSY	基本超能量			0	41b2d1a95fafc35e
-CSVH4pC-DAR	基本恶能量			0	46c769fc57a6c250
-CSVH4pC-FIG	基本斗能量			0	9fedb80a97ddd5cc
-CSVH4pC-FIR	基本火能量			0	22db5405bf0cce61
-CSVH4pC-GRA	基本草能量			0	5e2d0ce37ca0c539
-CSVH4pC-LIG	基本雷能量			0	45550fd10011f6ad
-CSVH4pC-MET	基本钢能量			0	4557c01497b81767
-CSVH4pC-PSY	基本超能量			0	41b2d1a95fafc35e
-CSVH4pC-WAT	基本水能量			0	0cf075ae61b8a0b4
-CSVH5C-FIR	基本火能量			0	22db5405bf0cce61
-CSVH5C-GRA	基本草能量			0	5e2d0ce37ca0c539
-CSVH5C-LIG	基本雷能量			0	45550fd10011f6ad
-CSVH5C-NaN1	基本草能量			0	5e2d0ce37ca0c539
-CSVH5C-PSY	基本超能量			0	41b2d1a95fafc35e
-CSVH5C-WAT	基本水能量			0	0cf075ae61b8a0b4
-CSVL1C-126	基本草能量			0	5e2d0ce37ca0c539
-CSVL1C-127	基本火能量			0	22db5405bf0cce61
-CSVL1C-128	基本水能量			0	0cf075ae61b8a0b4
-CSVL1C-129	基本雷能量			0	45550fd10011f6ad
-CSVL1C-130	基本超能量			0	41b2d1a95fafc35e
-CSVL1C-131	基本斗能量			0	9fedb80a97ddd5cc
-CSVL1C-132	基本恶能量			0	46c769fc57a6c250
-CSVL1C-133	基本钢能量			0	4557c01497b81767
-CSVL1C-DAR	基本恶能量			0	46c769fc57a6c250
-CSVL1C-FIG	基本斗能量			0	9fedb80a97ddd5cc
-CSVL1C-FIR	基本火能量			0	22db5405bf0cce61
-CSVL1C-GRA	基本草能量			0	5e2d0ce37ca0c539
-CSVL1C-LIG	基本雷能量			0	45550fd10011f6ad
-CSVL1C-MET	基本钢能量			0	4557c01497b81767
-CSVL1C-PSY	基本超能量			0	41b2d1a95fafc35e
-CSVL1C-WAT	基本水能量			0	0cf075ae61b8a0b4
-CSVL2C-132	基本草能量			0	5e2d0ce37ca0c539
-CSVL2C-133	基本火能量			0	22db5405bf0cce61
-CSVL2C-134	基本水能量			0	0cf075ae61b8a0b4
-CSVL2C-135	基本雷能量			0	45550fd10011f6ad
-CSVL2C-136	基本超能量			0	41b2d1a95fafc35e
-CSVL2C-137	基本斗能量			0	9fedb80a97ddd5cc
-CSVL2C-138	基本恶能量			0	46c769fc57a6c250
-CSVL2C-139	基本钢能量			0	4557c01497b81767
-CSVSC-DAR	基本恶能量			0	46c769fc57a6c250
-CSVSC-FIG	基本斗能量			0	9fedb80a97ddd5cc
-CSVSC-FIR	基本火能量			0	22db5405bf0cce61
-CSVSC-GRA	基本草能量			0	5e2d0ce37ca0c539
-CSVSC-LIG	基本雷能量			0	45550fd10011f6ad
-CSVSC-MET	基本钢能量			0	4557c01497b81767
-CSVSC-PSY	基本超能量			0	41b2d1a95fafc35e
-CSVSC-WAT	基本水能量			0	0cf075ae61b8a0b4
-CSZC-059	基本草能量			0	5e2d0ce37ca0c539
-CSZC-060	基本火能量			0	22db5405bf0cce61
-CSZC-061	基本水能量			0	0cf075ae61b8a0b4
-CSZC-062	基本雷能量			0	45550fd10011f6ad
-CSZC-063	基本超能量			0	41b2d1a95fafc35e
-CSZC-064	基本斗能量			0	9fedb80a97ddd5cc
-CSZC-065	基本恶能量			0	46c769fc57a6c250
-CSZC-066	基本钢能量			0	4557c01497b81767
-SMP-047	基本雷能量			0	45550fd10011f6ad
-SSP-038	基本雷能量			0	45550fd10011f6ad
-SSP-076	基本雷能量			0	45550fd10011f6ad
-SVP-DAR	基本恶能量			0	46c769fc57a6c250
-SVP-DAR-1	基本恶能量			0	46c769fc57a6c250
-SVP-DAR-2	基本恶能量			0	46c769fc57a6c250
-SVP-DAR-3	基本恶能量			0	46c769fc57a6c250
-SVP-FIG	基本斗能量			0	9fedb80a97ddd5cc
-SVP-FIG-1	基本斗能量			0	9fedb80a97ddd5cc
-SVP-FIG-2	基本斗能量			0	9fedb80a97ddd5cc
-SVP-FIG-3	基本斗能量			0	9fedb80a97ddd5cc
-SVP-FIR	基本火能量			0	22db5405bf0cce61
-SVP-FIR-1	基本火能量			0	22db5405bf0cce61
-SVP-FIR-2	基本火能量			0	22db5405bf0cce61
-SVP-FIR-3	基本火能量			0	22db5405bf0cce61
-SVP-GRA	基本草能量			0	5e2d0ce37ca0c539
-SVP-GRA-1	基本草能量			0	5e2d0ce37ca0c539
-SVP-GRA-2	基本草能量			0	5e2d0ce37ca0c539
-SVP-GRA-3	基本草能量			0	5e2d0ce37ca0c539
-SVP-LIG	基本雷能量			0	45550fd10011f6ad
-SVP-LIG-1	基本雷能量			0	45550fd10011f6ad
-SVP-LIG-2	基本雷能量			0	45550fd10011f6ad
-SVP-LIG-3	基本雷能量			0	45550fd10011f6ad
-SVP-MET	基本钢能量			0	4557c01497b81767
-SVP-MET-1	基本钢能量			0	4557c01497b81767
-SVP-MET-2	基本钢能量			0	4557c01497b81767
-SVP-MET-3	基本钢能量			0	4557c01497b81767
-SVP-PSY	基本超能量			0	41b2d1a95fafc35e
-SVP-PSY-1	基本超能量			0	41b2d1a95fafc35e
-SVP-PSY-2	基本超能量			0	41b2d1a95fafc35e
-SVP-PSY-3	基本超能量			0	41b2d1a95fafc35e
-SVP-WAT	基本水能量			0	0cf075ae61b8a0b4
-SVP-WAT-1	基本水能量			0	0cf075ae61b8a0b4
-SVP-WAT-2	基本水能量			0	0cf075ae61b8a0b4
-SVP-WAT-3	基本水能量			0	0cf075ae61b8a0b4
+CSM2.1C-045	基本妖能量			0	ab565063366ad849	0
+CSMAC-FAI	基本妖能量			0	ab565063366ad849	0
+CSMPiC-024	基本妖能量			0	ab565063366ad849	0
+CSMPiC-043	基本妖能量			0	ab565063366ad849	0
+CSM1DC-FAI	基本妖能量			0	ab565063366ad849	0
+CSM2.1C-043	基本恶能量			0	46c769fc57a6c250	1
+CSMAC-DAR	基本恶能量			0	46c769fc57a6c250	1
+CSMPiC-022	基本恶能量			0	46c769fc57a6c250	1
+CSMPiC-041	基本恶能量			0	46c769fc57a6c250	1
+CS2DaC-DAR	基本恶能量			0	46c769fc57a6c250	1
+CS4aC-184	基本恶能量			0	46c769fc57a6c250	1
+CS4DaC-432	基本恶能量			0	46c769fc57a6c250	1
+CS4DaC-DAR	基本恶能量			0	46c769fc57a6c250	1
+CS5.1C-007	基本恶能量			0	46c769fc57a6c250	1
+CSZC-065	基本恶能量			0	46c769fc57a6c250	1
+CBB2C-1103	基本恶能量			0	46c769fc57a6c250	1
+CBB2C-1106	基本恶能量			0	46c769fc57a6c250	1
+CSVL1C-132	基本恶能量			0	46c769fc57a6c250	1
+CSVL2C-138	基本恶能量			0	46c769fc57a6c250	1
+SVP-DAR	基本恶能量			0	46c769fc57a6c250	1
+SVP-DAR-1	基本恶能量			0	46c769fc57a6c250	1
+SVP-DAR-2	基本恶能量			0	46c769fc57a6c250	1
+SVP-DAR-3	基本恶能量			0	46c769fc57a6c250	1
+CSVH4pC-DAR	基本恶能量			0	46c769fc57a6c250	1
+CSVSC-DAR	基本恶能量			0	46c769fc57a6c250	1
+CSAC-DAR	基本恶能量			0	46c769fc57a6c250	1
+CSM1DC-DAR	基本恶能量			0	46c769fc57a6c250	1
+CSVE1C-DAR	基本恶能量			0	46c769fc57a6c250	1
+CSVH1C-DAR	基本恶能量			0	46c769fc57a6c250	1
+CSVH1pC-DAR	基本恶能量			0	46c769fc57a6c250	1
+CSVL1C-DAR	基本恶能量			0	46c769fc57a6c250	1
+CSM2.1C-042	基本斗能量			0	9fedb80a97ddd5cc	1
+CSMAC-FIG	基本斗能量			0	9fedb80a97ddd5cc	1
+CSMPiC-021	基本斗能量			0	9fedb80a97ddd5cc	1
+CSMPiC-040	基本斗能量			0	9fedb80a97ddd5cc	1
+CS2DaC-FIG	基本斗能量			0	9fedb80a97ddd5cc	1
+CS4DaC-431	基本斗能量			0	9fedb80a97ddd5cc	1
+CS4DaC-FIG	基本斗能量			0	9fedb80a97ddd5cc	1
+CS5.1C-006	基本斗能量			0	9fedb80a97ddd5cc	1
+CS6bC-172	基本斗能量			0	9fedb80a97ddd5cc	1
+CSZC-064	基本斗能量			0	9fedb80a97ddd5cc	1
+CBB3C-2001	基本斗能量			0	9fedb80a97ddd5cc	1
+CBB3C-2004	基本斗能量			0	9fedb80a97ddd5cc	1
+CSVL1C-131	基本斗能量			0	9fedb80a97ddd5cc	1
+CSVL2C-137	基本斗能量			0	9fedb80a97ddd5cc	1
+SVP-FIG	基本斗能量			0	9fedb80a97ddd5cc	1
+SVP-FIG-1	基本斗能量			0	9fedb80a97ddd5cc	1
+SVP-FIG-2	基本斗能量			0	9fedb80a97ddd5cc	1
+SVP-FIG-3	基本斗能量			0	9fedb80a97ddd5cc	1
+CSVH4C-FIG	基本斗能量			0	9fedb80a97ddd5cc	1
+CSVH4pC-FIG	基本斗能量			0	9fedb80a97ddd5cc	1
+CSVSC-FIG	基本斗能量			0	9fedb80a97ddd5cc	1
+CSAC-FIG	基本斗能量			0	9fedb80a97ddd5cc	1
+CSM1DC-FIG	基本斗能量			0	9fedb80a97ddd5cc	1
+CSVE1C-FIG	基本斗能量			0	9fedb80a97ddd5cc	1
+CSVH1C-FIG	基本斗能量			0	9fedb80a97ddd5cc	1
+CSVH1pC-FIG	基本斗能量			0	9fedb80a97ddd5cc	1
+CSVL1C-FIG	基本斗能量			0	9fedb80a97ddd5cc	1
+CSM2.1C-039	基本水能量			0	0cf075ae61b8a0b4	1
+CSMAC-WAT	基本水能量			0	0cf075ae61b8a0b4	1
+CSMPiC-018	基本水能量			0	0cf075ae61b8a0b4	1
+CSMPiC-037	基本水能量			0	0cf075ae61b8a0b4	1
+CS2DaC-WAT	基本水能量			0	0cf075ae61b8a0b4	1
+CS4DaC-428	基本水能量			0	0cf075ae61b8a0b4	1
+CS4DaC-WAT	基本水能量			0	0cf075ae61b8a0b4	1
+CS6bC-171	基本水能量			0	0cf075ae61b8a0b4	1
+CSZC-061	基本水能量			0	0cf075ae61b8a0b4	1
+CBB1C-1803	基本水能量			0	0cf075ae61b8a0b4	1
+CBB1C-1806	基本水能量			0	0cf075ae61b8a0b4	1
+CSVE2pC-024	基本水能量			0	0cf075ae61b8a0b4	1
+CSVH3C-WAT	基本水能量			0	0cf075ae61b8a0b4	1
+CSVH5C-WAT	基本水能量			0	0cf075ae61b8a0b4	1
+CSVL1C-128	基本水能量			0	0cf075ae61b8a0b4	1
+CSVL2C-134	基本水能量			0	0cf075ae61b8a0b4	1
+SVP-WAT	基本水能量			0	0cf075ae61b8a0b4	1
+SVP-WAT-1	基本水能量			0	0cf075ae61b8a0b4	1
+SVP-WAT-2	基本水能量			0	0cf075ae61b8a0b4	1
+SVP-WAT-3	基本水能量			0	0cf075ae61b8a0b4	1
+CSVH4pC-WAT	基本水能量			0	0cf075ae61b8a0b4	1
+CSVSC-WAT	基本水能量			0	0cf075ae61b8a0b4	1
+CS4.1C-005	基本水能量			0	0cf075ae61b8a0b4	1
+CSAC-WAT	基本水能量			0	0cf075ae61b8a0b4	1
+CSM1DC-WAT	基本水能量			0	0cf075ae61b8a0b4	1
+CSVE1C-WAT	基本水能量			0	0cf075ae61b8a0b4	1
+CSVH1C-WAT	基本水能量			0	0cf075ae61b8a0b4	1
+CSVH1pC-WAT	基本水能量			0	0cf075ae61b8a0b4	1
+CSVL1C-WAT	基本水能量			0	0cf075ae61b8a0b4	1
+CSM2.1C-038	基本火能量			0	22db5405bf0cce61	1
+CSMAC-FIR	基本火能量			0	22db5405bf0cce61	1
+CSMPiC-017	基本火能量			0	22db5405bf0cce61	1
+CSMPiC-036	基本火能量			0	22db5405bf0cce61	1
+CS2DaC-FIR	基本火能量			0	22db5405bf0cce61	1
+CS4aC-183	基本火能量			0	22db5405bf0cce61	1
+CS4DaC-427	基本火能量			0	22db5405bf0cce61	1
+CS4DaC-FIR	基本火能量			0	22db5405bf0cce61	1
+CS5.1C-005	基本火能量			0	22db5405bf0cce61	1
+CSZC-060	基本火能量			0	22db5405bf0cce61	1
+CBB1C-1802	基本火能量			0	22db5405bf0cce61	1
+CBB1C-1805	基本火能量			0	22db5405bf0cce61	1
+CSVE2pC-012	基本火能量			0	22db5405bf0cce61	1
+CSVH3C-FIR	基本火能量			0	22db5405bf0cce61	1
+CSVH5C-FIR	基本火能量			0	22db5405bf0cce61	1
+CSVL1C-127	基本火能量			0	22db5405bf0cce61	1
+CSVL2C-133	基本火能量			0	22db5405bf0cce61	1
+SVP-FIR	基本火能量			0	22db5405bf0cce61	1
+SVP-FIR-1	基本火能量			0	22db5405bf0cce61	1
+SVP-FIR-2	基本火能量			0	22db5405bf0cce61	1
+SVP-FIR-3	基本火能量			0	22db5405bf0cce61	1
+CSVH4C-FIR	基本火能量			0	22db5405bf0cce61	1
+CSVH4pC-FIR	基本火能量			0	22db5405bf0cce61	1
+CSVSC-FIR	基本火能量			0	22db5405bf0cce61	1
+CSAC-FIR	基本火能量			0	22db5405bf0cce61	1
+CSM1DC-FIR	基本火能量			0	22db5405bf0cce61	1
+CSVE1C-FIR	基本火能量			0	22db5405bf0cce61	1
+CSVH1C-FIR	基本火能量			0	22db5405bf0cce61	1
+CSVH1pC-FIR	基本火能量			0	22db5405bf0cce61	1
+CSVL1C-FIR	基本火能量			0	22db5405bf0cce61	1
+CSM2.1C-037	基本草能量			0	5e2d0ce37ca0c539	1
+CSMAC-GRA	基本草能量			0	5e2d0ce37ca0c539	1
+CSMPiC-016	基本草能量			0	5e2d0ce37ca0c539	1
+CSMPiC-035	基本草能量			0	5e2d0ce37ca0c539	1
+CS2DaC-GRA	基本草能量			0	5e2d0ce37ca0c539	1
+CS4DaC-426	基本草能量			0	5e2d0ce37ca0c539	1
+CS4DaC-GRA	基本草能量			0	5e2d0ce37ca0c539	1
+CS6.1C-005	基本草能量			0	5e2d0ce37ca0c539	1
+CS6aC-168	基本草能量			0	5e2d0ce37ca0c539	1
+CSZC-059	基本草能量			0	5e2d0ce37ca0c539	1
+CBB1C-1801	基本草能量			0	5e2d0ce37ca0c539	1
+CBB1C-1804	基本草能量			0	5e2d0ce37ca0c539	1
+CSVH1C-GRA	基本草能量			0	5e2d0ce37ca0c539	1
+CSVH5C-GRA	基本草能量			0	5e2d0ce37ca0c539	1
+CSVH5C-NaN1	基本草能量			0	5e2d0ce37ca0c539	1
+CSVL1C-126	基本草能量			0	5e2d0ce37ca0c539	1
+CSVL2C-132	基本草能量			0	5e2d0ce37ca0c539	1
+SVP-GRA	基本草能量			0	5e2d0ce37ca0c539	1
+SVP-GRA-1	基本草能量			0	5e2d0ce37ca0c539	1
+SVP-GRA-2	基本草能量			0	5e2d0ce37ca0c539	1
+SVP-GRA-3	基本草能量			0	5e2d0ce37ca0c539	1
+CSVH4C-GRA	基本草能量			0	5e2d0ce37ca0c539	1
+CSVH4pC-GRA	基本草能量			0	5e2d0ce37ca0c539	1
+CSVSC-GRA	基本草能量			0	5e2d0ce37ca0c539	1
+CSAC-GRA	基本草能量			0	5e2d0ce37ca0c539	1
+CSM1DC-GRA	基本草能量			0	5e2d0ce37ca0c539	1
+CSVE1C-GRA	基本草能量			0	5e2d0ce37ca0c539	1
+CSVH1pC-GRA	基本草能量			0	5e2d0ce37ca0c539	1
+CSVL1C-GRA	基本草能量			0	5e2d0ce37ca0c539	1
+CSM2.1C-041	基本超能量			0	41b2d1a95fafc35e	1
+CSMAC-PSY	基本超能量			0	41b2d1a95fafc35e	1
+CSMPiC-020	基本超能量			0	41b2d1a95fafc35e	1
+CSMPiC-039	基本超能量			0	41b2d1a95fafc35e	1
+CS4bC-177	基本超能量			0	41b2d1a95fafc35e	1
+CS4DaC-430	基本超能量			0	41b2d1a95fafc35e	1
+CS4DaC-PSY	基本超能量			0	41b2d1a95fafc35e	1
+CSZC-063	基本超能量			0	41b2d1a95fafc35e	1
+CBB2C-1102	基本超能量			0	41b2d1a95fafc35e	1
+CBB2C-1105	基本超能量			0	41b2d1a95fafc35e	1
+CSVE1pC-024	基本超能量			0	41b2d1a95fafc35e	1
+CSVH1C-PSY	基本超能量			0	41b2d1a95fafc35e	1
+CSVH3C-PSY	基本超能量			0	41b2d1a95fafc35e	1
+CSVH5C-PSY	基本超能量			0	41b2d1a95fafc35e	1
+CSVL1C-130	基本超能量			0	41b2d1a95fafc35e	1
+CSVL2C-136	基本超能量			0	41b2d1a95fafc35e	1
+SVP-PSY	基本超能量			0	41b2d1a95fafc35e	1
+SVP-PSY-1	基本超能量			0	41b2d1a95fafc35e	1
+SVP-PSY-2	基本超能量			0	41b2d1a95fafc35e	1
+SVP-PSY-3	基本超能量			0	41b2d1a95fafc35e	1
+CSVH4C-PSY	基本超能量			0	41b2d1a95fafc35e	1
+CSVH4pC-PSY	基本超能量			0	41b2d1a95fafc35e	1
+CSVSC-PSY	基本超能量			0	41b2d1a95fafc35e	1
+CS4.1C-006	基本超能量			0	41b2d1a95fafc35e	1
+CSAC-PSY	基本超能量			0	41b2d1a95fafc35e	1
+CSM1DC-PSY	基本超能量			0	41b2d1a95fafc35e	1
+CSVE1C-PSY	基本超能量			0	41b2d1a95fafc35e	1
+CSVH1pC-PSY	基本超能量			0	41b2d1a95fafc35e	1
+CSVL1C-PSY	基本超能量			0	41b2d1a95fafc35e	1
+CSM2.1C-044	基本钢能量			0	4557c01497b81767	1
+CSMAC-MET	基本钢能量			0	4557c01497b81767	1
+CSMPiC-023	基本钢能量			0	4557c01497b81767	1
+CSMPiC-042	基本钢能量			0	4557c01497b81767	1
+CS4DaC-433	基本钢能量			0	4557c01497b81767	1
+CS4DaC-MET	基本钢能量			0	4557c01497b81767	1
+CS6.1C-007	基本钢能量			0	4557c01497b81767	1
+CS6aC-169	基本钢能量			0	4557c01497b81767	1
+CSZC-066	基本钢能量			0	4557c01497b81767	1
+CBB3C-2002	基本钢能量			0	4557c01497b81767	1
+CBB3C-2005	基本钢能量			0	4557c01497b81767	1
+CSVH1C-MET	基本钢能量			0	4557c01497b81767	1
+CSVH3C-MET	基本钢能量			0	4557c01497b81767	1
+CSVL1C-133	基本钢能量			0	4557c01497b81767	1
+CSVL2C-139	基本钢能量			0	4557c01497b81767	1
+SVP-MET	基本钢能量			0	4557c01497b81767	1
+SVP-MET-1	基本钢能量			0	4557c01497b81767	1
+SVP-MET-2	基本钢能量			0	4557c01497b81767	1
+SVP-MET-3	基本钢能量			0	4557c01497b81767	1
+CSVH4C-MET	基本钢能量			0	4557c01497b81767	1
+CSVH4pC-MET	基本钢能量			0	4557c01497b81767	1
+CSVSC-MET	基本钢能量			0	4557c01497b81767	1
+CSAC-MET	基本钢能量			0	4557c01497b81767	1
+CSM1DC-MET	基本钢能量			0	4557c01497b81767	1
+CSVE1C-MET	基本钢能量			0	4557c01497b81767	1
+CSVH1pC-MET	基本钢能量			0	4557c01497b81767	1
+CSVL1C-MET	基本钢能量			0	4557c01497b81767	1
+SMP-047	基本雷能量			0	45550fd10011f6ad	1
+CSM2.1C-040	基本雷能量			0	45550fd10011f6ad	1
+CSMAC-LIG	基本雷能量			0	45550fd10011f6ad	1
+CSMPiC-019	基本雷能量			0	45550fd10011f6ad	1
+CSMPiC-038	基本雷能量			0	45550fd10011f6ad	1
+SSP-038	基本雷能量			0	45550fd10011f6ad	1
+SSP-076	基本雷能量			0	45550fd10011f6ad	1
+CS2DaC-LIG	基本雷能量			0	45550fd10011f6ad	1
+CS4bC-176	基本雷能量			0	45550fd10011f6ad	1
+CS4DaC-429	基本雷能量			0	45550fd10011f6ad	1
+CS4DaC-LIG	基本雷能量			0	45550fd10011f6ad	1
+CS6.1C-006	基本雷能量			0	45550fd10011f6ad	1
+CSZC-062	基本雷能量			0	45550fd10011f6ad	1
+CBB2C-1101	基本雷能量			0	45550fd10011f6ad	1
+CBB2C-1104	基本雷能量			0	45550fd10011f6ad	1
+CSVE1pC-012	基本雷能量			0	45550fd10011f6ad	1
+CSVH1C-LIG	基本雷能量			0	45550fd10011f6ad	1
+CSVH5C-LIG	基本雷能量			0	45550fd10011f6ad	1
+CSVL1C-129	基本雷能量			0	45550fd10011f6ad	1
+CSVL2C-135	基本雷能量			0	45550fd10011f6ad	1
+SVP-LIG	基本雷能量			0	45550fd10011f6ad	1
+SVP-LIG-1	基本雷能量			0	45550fd10011f6ad	1
+SVP-LIG-2	基本雷能量			0	45550fd10011f6ad	1
+SVP-LIG-3	基本雷能量			0	45550fd10011f6ad	1
+CSVH4C-LIG	基本雷能量			0	45550fd10011f6ad	1
+CSVH4pC-LIG	基本雷能量			0	45550fd10011f6ad	1
+CSVSC-LIG	基本雷能量			0	45550fd10011f6ad	1
+CSAC-LIG	基本雷能量			0	45550fd10011f6ad	1
+CSM1DC-LIG	基本雷能量			0	45550fd10011f6ad	1
+CSVE1C-LIG	基本雷能量			0	45550fd10011f6ad	1
+CSVH1pC-LIG	基本雷能量			0	45550fd10011f6ad	1
+CSVL1C-LIG	基本雷能量			0	45550fd10011f6ad	1

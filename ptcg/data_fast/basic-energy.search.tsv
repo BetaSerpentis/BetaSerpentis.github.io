@@ -1,230 +1,235 @@
 #srch1
-CBB1C-1801	基本草能量 grass energy basic energy cbb1c g
-CBB1C-1802	基本火能量 fire energy basic energy cbb1c g
-CBB1C-1803	基本水能量 water energy basic energy cbb1c g
-CBB1C-1804	基本草能量 grass energy basic energy cbb1c g
-CBB1C-1805	基本火能量 fire energy basic energy cbb1c g
-CBB1C-1806	基本水能量 water energy basic energy cbb1c g
-CBB2C-1101	基本雷能量 lightning energy basic energy cbb2c g
-CBB2C-1102	基本超能量 psychic energy basic energy cbb2c g
-CBB2C-1103	基本恶能量 darkness energy basic energy cbb2c g
-CBB2C-1104	基本雷能量 lightning energy basic energy cbb2c g
-CBB2C-1105	基本超能量 psychic energy basic energy cbb2c g
-CBB2C-1106	基本恶能量 darkness energy basic energy cbb2c g
-CBB3C-2001	基本斗能量 fighting energy basic energy cbb3c g
-CBB3C-2002	基本钢能量 metal energy basic energy cbb3c g
-CBB3C-2004	基本斗能量 fighting energy basic energy cbb3c g
-CBB3C-2005	基本钢能量 metal energy basic energy cbb3c g
-CS2DaC-DAR	基本恶能量 darkness energy basic energy cs2dac e
-CS2DaC-FIG	基本斗能量 fighting energy basic energy cs2dac e
-CS2DaC-FIR	基本火能量 fire energy basic energy cs2dac e
-CS2DaC-GRA	基本草能量 grass energy basic energy cs2dac e
-CS2DaC-LIG	基本雷能量 lightning energy basic energy cs2dac e
-CS2DaC-WAT	基本水能量 water energy basic energy cs2dac e
-CS4.1C-005	基本水能量 water energy basic energy cs4 1c
-CS4.1C-006	基本超能量 psychic energy basic energy cs4 1c
-CS4DaC-426	基本草能量 grass energy basic energy cs4dac f
-CS4DaC-427	基本火能量 fire energy basic energy cs4dac f
-CS4DaC-428	基本水能量 water energy basic energy cs4dac f
-CS4DaC-429	基本雷能量 lightning energy basic energy cs4dac f
-CS4DaC-430	基本超能量 psychic energy basic energy cs4dac f
-CS4DaC-431	基本斗能量 fighting energy basic energy cs4dac f
-CS4DaC-432	基本恶能量 darkness energy basic energy cs4dac f
-CS4DaC-433	基本钢能量 metal energy basic energy cs4dac f
-CS4DaC-DAR	基本恶能量 darkness energy basic energy cs4dac f
-CS4DaC-FIG	基本斗能量 fighting energy basic energy cs4dac f
-CS4DaC-FIR	基本火能量 fire energy basic energy cs4dac f
-CS4DaC-GRA	基本草能量 grass energy basic energy cs4dac f
-CS4DaC-LIG	基本雷能量 lightning energy basic energy cs4dac f
-CS4DaC-MET	基本钢能量 metal energy basic energy cs4dac f
-CS4DaC-PSY	基本超能量 psychic energy basic energy cs4dac f
-CS4DaC-WAT	基本水能量 water energy basic energy cs4dac f
-CS4aC-183	基本火能量 fire energy basic energy cs4ac e
-CS4aC-184	基本恶能量 darkness energy basic energy cs4ac e
-CS4bC-176	基本雷能量 lightning energy basic energy cs4bc e
-CS4bC-177	基本超能量 psychic energy basic energy cs4bc e
-CS5.1C-005	基本火能量 fire energy basic energy cs5 1c f
-CS5.1C-006	基本斗能量 fighting energy basic energy cs5 1c f
-CS5.1C-007	基本恶能量 darkness energy basic energy cs5 1c f
-CS6.1C-005	基本草能量 grass energy basic energy cs6 1c f
-CS6.1C-006	基本雷能量 lightning energy basic energy cs6 1c f
-CS6.1C-007	基本钢能量 metal energy basic energy cs6 1c f
-CS6aC-168	基本草能量 grass energy basic energy cs6ac f
-CS6aC-169	基本钢能量 metal energy basic energy cs6ac f
-CS6bC-171	基本水能量 water energy basic energy cs6bc f
-CS6bC-172	基本斗能量 fighting energy basic energy cs6bc f
-CSAC-DAR	基本恶能量 darkness energy basic energy csac
-CSAC-FIG	基本斗能量 fighting energy basic energy csac
-CSAC-FIR	基本火能量 fire energy basic energy csac
-CSAC-GRA	基本草能量 grass energy basic energy csac
-CSAC-LIG	基本雷能量 lightning energy basic energy csac
-CSAC-MET	基本钢能量 metal energy basic energy csac
-CSAC-PSY	基本超能量 psychic energy basic energy csac
-CSAC-WAT	基本水能量 water energy basic energy csac
-CSM1DC-DAR	基本恶能量 darkness energy basic energy csm1dc
-CSM1DC-FIG	基本斗能量 fighting energy basic energy csm1dc
-CSM1DC-FIR	基本火能量 fire energy basic energy csm1dc
-CSM1DC-GRA	基本草能量 grass energy basic energy csm1dc
-CSM1DC-LIG	基本雷能量 lightning energy basic energy csm1dc
-CSM1DC-MET	基本钢能量 metal energy basic energy csm1dc
-CSM1DC-PSY	基本超能量 psychic energy basic energy csm1dc
-CSM1DC-WAT	基本水能量 water energy basic energy csm1dc
-CSM2.1C-037	基本草能量 grass energy basic energy csm2 1c c
-CSM2.1C-038	基本火能量 fire energy basic energy csm2 1c c
-CSM2.1C-039	基本水能量 water energy basic energy csm2 1c c
-CSM2.1C-040	基本雷能量 lightning energy basic energy csm2 1c c
-CSM2.1C-041	基本超能量 psychic energy basic energy csm2 1c c
-CSM2.1C-042	基本斗能量 fighting energy basic energy csm2 1c c
+CSM2.1C-045	基本妖能量 fairy energy basic energy csm2 1c c
+CSMAC-FAI	基本妖能量 fairy energy basic energy csmac c
+CSMPiC-024	基本妖能量 fairy energy basic energy csmpic c
+CSMPiC-043	基本妖能量 fairy energy basic energy csmpic c
+CSM1DC-FAI	基本妖能量 fairy energy basic energy csm1dc
 CSM2.1C-043	基本恶能量 darkness energy basic energy csm2 1c c
-CSM2.1C-044	基本钢能量 metal energy basic energy csm2 1c c
 CSMAC-DAR	基本恶能量 darkness energy basic energy csmac c
-CSMAC-FIG	基本斗能量 fighting energy basic energy csmac c
-CSMAC-FIR	基本火能量 fire energy basic energy csmac c
-CSMAC-GRA	基本草能量 grass energy basic energy csmac c
-CSMAC-LIG	基本雷能量 lightning energy basic energy csmac c
-CSMAC-MET	基本钢能量 metal energy basic energy csmac c
-CSMAC-PSY	基本超能量 psychic energy basic energy csmac c
-CSMAC-WAT	基本水能量 water energy basic energy csmac c
-CSMPiC-016	基本草能量 grass energy basic energy csmpic c
-CSMPiC-017	基本火能量 fire energy basic energy csmpic c
-CSMPiC-018	基本水能量 water energy basic energy csmpic c
-CSMPiC-019	基本雷能量 lightning energy basic energy csmpic c
-CSMPiC-020	基本超能量 psychic energy basic energy csmpic c
-CSMPiC-021	基本斗能量 fighting energy basic energy csmpic c
 CSMPiC-022	基本恶能量 darkness energy basic energy csmpic c
-CSMPiC-023	基本钢能量 metal energy basic energy csmpic c
-CSMPiC-035	基本草能量 grass energy basic energy csmpic c
-CSMPiC-036	基本火能量 fire energy basic energy csmpic c
-CSMPiC-037	基本水能量 water energy basic energy csmpic c
-CSMPiC-038	基本雷能量 lightning energy basic energy csmpic c
-CSMPiC-039	基本超能量 psychic energy basic energy csmpic c
-CSMPiC-040	基本斗能量 fighting energy basic energy csmpic c
 CSMPiC-041	基本恶能量 darkness energy basic energy csmpic c
-CSMPiC-042	基本钢能量 metal energy basic energy csmpic c
-CSVE1C-DAR	基本恶能量 darkness energy basic energy csve1c
-CSVE1C-FIG	基本斗能量 fighting energy basic energy csve1c
-CSVE1C-FIR	基本火能量 fire energy basic energy csve1c
-CSVE1C-GRA	基本草能量 grass energy basic energy csve1c
-CSVE1C-LIG	基本雷能量 lightning energy basic energy csve1c
-CSVE1C-MET	基本钢能量 metal energy basic energy csve1c
-CSVE1C-PSY	基本超能量 psychic energy basic energy csve1c
-CSVE1C-WAT	基本水能量 water energy basic energy csve1c
-CSVE1pC-012	基本雷能量 lightning energy basic energy csve1pc g
-CSVE1pC-024	基本超能量 psychic energy basic energy csve1pc g
-CSVE2pC-012	基本火能量 fire energy basic energy csve2pc g
-CSVE2pC-024	基本水能量 water energy basic energy csve2pc g
-CSVH1C-DAR	基本恶能量 darkness energy basic energy csvh1c
-CSVH1C-FIG	基本斗能量 fighting energy basic energy csvh1c
-CSVH1C-FIR	基本火能量 fire energy basic energy csvh1c
-CSVH1C-GRA	基本草能量 grass energy basic energy csvh1c g
-CSVH1C-LIG	基本雷能量 lightning energy basic energy csvh1c g
-CSVH1C-MET	基本钢能量 metal energy basic energy csvh1c g
-CSVH1C-PSY	基本超能量 psychic energy basic energy csvh1c g
-CSVH1C-WAT	基本水能量 water energy basic energy csvh1c
-CSVH1pC-DAR	基本恶能量 darkness energy basic energy csvh1pc
-CSVH1pC-FIG	基本斗能量 fighting energy basic energy csvh1pc
-CSVH1pC-FIR	基本火能量 fire energy basic energy csvh1pc
-CSVH1pC-GRA	基本草能量 grass energy basic energy csvh1pc
-CSVH1pC-LIG	基本雷能量 lightning energy basic energy csvh1pc
-CSVH1pC-MET	基本钢能量 metal energy basic energy csvh1pc
-CSVH1pC-PSY	基本超能量 psychic energy basic energy csvh1pc
-CSVH1pC-WAT	基本水能量 water energy basic energy csvh1pc
-CSVH3C-FIR	基本火能量 fire energy basic energy csvh3c g
-CSVH3C-MET	基本钢能量 metal energy basic energy csvh3c g
-CSVH3C-PSY	基本超能量 psychic energy basic energy csvh3c g
-CSVH3C-WAT	基本水能量 water energy basic energy csvh3c g
-CSVH4C-FIG	基本斗能量 fighting energy basic energy csvh4c h
-CSVH4C-FIR	基本火能量 fire energy basic energy csvh4c h
-CSVH4C-GRA	基本草能量 grass energy basic energy csvh4c h
-CSVH4C-LIG	基本雷能量 lightning energy basic energy csvh4c h
-CSVH4C-MET	基本钢能量 metal energy basic energy csvh4c h
-CSVH4C-PSY	基本超能量 psychic energy basic energy csvh4c h
-CSVH4pC-DAR	基本恶能量 darkness energy basic energy csvh4pc h
-CSVH4pC-FIG	基本斗能量 fighting energy basic energy csvh4pc h
-CSVH4pC-FIR	基本火能量 fire energy basic energy csvh4pc h
-CSVH4pC-GRA	基本草能量 grass energy basic energy csvh4pc h
-CSVH4pC-LIG	基本雷能量 lightning energy basic energy csvh4pc h
-CSVH4pC-MET	基本钢能量 metal energy basic energy csvh4pc h
-CSVH4pC-PSY	基本超能量 psychic energy basic energy csvh4pc h
-CSVH4pC-WAT	基本水能量 water energy basic energy csvh4pc h
-CSVH5C-FIR	基本火能量 fire energy basic energy csvh5c g
-CSVH5C-GRA	基本草能量 grass energy basic energy csvh5c g
-CSVH5C-LIG	基本雷能量 lightning energy basic energy csvh5c g
-CSVH5C-NaN1	基本草能量 grass energy basic energy csvh5c g
-CSVH5C-PSY	基本超能量 psychic energy basic energy csvh5c g
-CSVH5C-WAT	基本水能量 water energy basic energy csvh5c g
-CSVL1C-126	基本草能量 grass energy basic energy csvl1c g
-CSVL1C-127	基本火能量 fire energy basic energy csvl1c g
-CSVL1C-128	基本水能量 water energy basic energy csvl1c g
-CSVL1C-129	基本雷能量 lightning energy basic energy csvl1c g
-CSVL1C-130	基本超能量 psychic energy basic energy csvl1c g
-CSVL1C-131	基本斗能量 fighting energy basic energy csvl1c g
-CSVL1C-132	基本恶能量 darkness energy basic energy csvl1c g
-CSVL1C-133	基本钢能量 metal energy basic energy csvl1c g
-CSVL1C-DAR	基本恶能量 darkness energy basic energy csvl1c
-CSVL1C-FIG	基本斗能量 fighting energy basic energy csvl1c
-CSVL1C-FIR	基本火能量 fire energy basic energy csvl1c
-CSVL1C-GRA	基本草能量 grass energy basic energy csvl1c
-CSVL1C-LIG	基本雷能量 lightning energy basic energy csvl1c
-CSVL1C-MET	基本钢能量 metal energy basic energy csvl1c
-CSVL1C-PSY	基本超能量 psychic energy basic energy csvl1c
-CSVL1C-WAT	基本水能量 water energy basic energy csvl1c
-CSVL2C-132	基本草能量 grass energy basic energy csvl2c g
-CSVL2C-133	基本火能量 fire energy basic energy csvl2c g
-CSVL2C-134	基本水能量 water energy basic energy csvl2c g
-CSVL2C-135	基本雷能量 lightning energy basic energy csvl2c g
-CSVL2C-136	基本超能量 psychic energy basic energy csvl2c g
-CSVL2C-137	基本斗能量 fighting energy basic energy csvl2c g
-CSVL2C-138	基本恶能量 darkness energy basic energy csvl2c g
-CSVL2C-139	基本钢能量 metal energy basic energy csvl2c g
-CSVSC-DAR	基本恶能量 darkness energy basic energy csvsc h
-CSVSC-FIG	基本斗能量 fighting energy basic energy csvsc h
-CSVSC-FIR	基本火能量 fire energy basic energy csvsc h
-CSVSC-GRA	基本草能量 grass energy basic energy csvsc h
-CSVSC-LIG	基本雷能量 lightning energy basic energy csvsc h
-CSVSC-MET	基本钢能量 metal energy basic energy csvsc h
-CSVSC-PSY	基本超能量 psychic energy basic energy csvsc h
-CSVSC-WAT	基本水能量 water energy basic energy csvsc h
-CSZC-059	基本草能量 grass energy basic energy cszc f
-CSZC-060	基本火能量 fire energy basic energy cszc f
-CSZC-061	基本水能量 water energy basic energy cszc f
-CSZC-062	基本雷能量 lightning energy basic energy cszc f
-CSZC-063	基本超能量 psychic energy basic energy cszc f
-CSZC-064	基本斗能量 fighting energy basic energy cszc f
+CS2DaC-DAR	基本恶能量 darkness energy basic energy cs2dac e
+CS4aC-184	基本恶能量 darkness energy basic energy cs4ac e
+CS4DaC-432	基本恶能量 darkness energy basic energy cs4dac f
+CS4DaC-DAR	基本恶能量 darkness energy basic energy cs4dac f
+CS5.1C-007	基本恶能量 darkness energy basic energy cs5 1c f
 CSZC-065	基本恶能量 darkness energy basic energy cszc f
-CSZC-066	基本钢能量 metal energy basic energy cszc f
-SMP-047	基本雷能量 lightning energy basic energy smp a
-SSP-038	基本雷能量 lightning energy basic energy ssp d
-SSP-076	基本雷能量 lightning energy basic energy ssp d
+CBB2C-1103	基本恶能量 darkness energy basic energy cbb2c g
+CBB2C-1106	基本恶能量 darkness energy basic energy cbb2c g
+CSVL1C-132	基本恶能量 darkness energy basic energy csvl1c g
+CSVL2C-138	基本恶能量 darkness energy basic energy csvl2c g
 SVP-DAR	基本恶能量 darkness energy basic energy svp g
 SVP-DAR-1	基本恶能量 darkness energy basic energy svp g
 SVP-DAR-2	基本恶能量 darkness energy basic energy svp g
 SVP-DAR-3	基本恶能量 darkness energy basic energy svp g
+CSVH4pC-DAR	基本恶能量 darkness energy basic energy csvh4pc h
+CSVSC-DAR	基本恶能量 darkness energy basic energy csvsc h
+CSAC-DAR	基本恶能量 darkness energy basic energy csac
+CSM1DC-DAR	基本恶能量 darkness energy basic energy csm1dc
+CSVE1C-DAR	基本恶能量 darkness energy basic energy csve1c
+CSVH1C-DAR	基本恶能量 darkness energy basic energy csvh1c
+CSVH1pC-DAR	基本恶能量 darkness energy basic energy csvh1pc
+CSVL1C-DAR	基本恶能量 darkness energy basic energy csvl1c
+CSM2.1C-042	基本斗能量 fighting energy basic energy csm2 1c c
+CSMAC-FIG	基本斗能量 fighting energy basic energy csmac c
+CSMPiC-021	基本斗能量 fighting energy basic energy csmpic c
+CSMPiC-040	基本斗能量 fighting energy basic energy csmpic c
+CS2DaC-FIG	基本斗能量 fighting energy basic energy cs2dac e
+CS4DaC-431	基本斗能量 fighting energy basic energy cs4dac f
+CS4DaC-FIG	基本斗能量 fighting energy basic energy cs4dac f
+CS5.1C-006	基本斗能量 fighting energy basic energy cs5 1c f
+CS6bC-172	基本斗能量 fighting energy basic energy cs6bc f
+CSZC-064	基本斗能量 fighting energy basic energy cszc f
+CBB3C-2001	基本斗能量 fighting energy basic energy cbb3c g
+CBB3C-2004	基本斗能量 fighting energy basic energy cbb3c g
+CSVL1C-131	基本斗能量 fighting energy basic energy csvl1c g
+CSVL2C-137	基本斗能量 fighting energy basic energy csvl2c g
 SVP-FIG	基本斗能量 fighting energy basic energy svp g
 SVP-FIG-1	基本斗能量 fighting energy basic energy svp g
 SVP-FIG-2	基本斗能量 fighting energy basic energy svp g
 SVP-FIG-3	基本斗能量 fighting energy basic energy svp g
-SVP-FIR	基本火能量 fire energy basic energy svp g
-SVP-FIR-1	基本火能量 fire energy basic energy svp g
-SVP-FIR-2	基本火能量 fire energy basic energy svp g
-SVP-FIR-3	基本火能量 fire energy basic energy svp g
-SVP-GRA	基本草能量 grass energy basic energy svp g
-SVP-GRA-1	基本草能量 grass energy basic energy svp g
-SVP-GRA-2	基本草能量 grass energy basic energy svp g
-SVP-GRA-3	基本草能量 grass energy basic energy svp g
-SVP-LIG	基本雷能量 lightning energy basic energy svp g
-SVP-LIG-1	基本雷能量 lightning energy basic energy svp g
-SVP-LIG-2	基本雷能量 lightning energy basic energy svp g
-SVP-LIG-3	基本雷能量 lightning energy basic energy svp g
-SVP-MET	基本钢能量 metal energy basic energy svp g
-SVP-MET-1	基本钢能量 metal energy basic energy svp g
-SVP-MET-2	基本钢能量 metal energy basic energy svp g
-SVP-MET-3	基本钢能量 metal energy basic energy svp g
-SVP-PSY	基本超能量 psychic energy basic energy svp g
-SVP-PSY-1	基本超能量 psychic energy basic energy svp g
-SVP-PSY-2	基本超能量 psychic energy basic energy svp g
-SVP-PSY-3	基本超能量 psychic energy basic energy svp g
+CSVH4C-FIG	基本斗能量 fighting energy basic energy csvh4c h
+CSVH4pC-FIG	基本斗能量 fighting energy basic energy csvh4pc h
+CSVSC-FIG	基本斗能量 fighting energy basic energy csvsc h
+CSAC-FIG	基本斗能量 fighting energy basic energy csac
+CSM1DC-FIG	基本斗能量 fighting energy basic energy csm1dc
+CSVE1C-FIG	基本斗能量 fighting energy basic energy csve1c
+CSVH1C-FIG	基本斗能量 fighting energy basic energy csvh1c
+CSVH1pC-FIG	基本斗能量 fighting energy basic energy csvh1pc
+CSVL1C-FIG	基本斗能量 fighting energy basic energy csvl1c
+CSM2.1C-039	基本水能量 water energy basic energy csm2 1c c
+CSMAC-WAT	基本水能量 water energy basic energy csmac c
+CSMPiC-018	基本水能量 water energy basic energy csmpic c
+CSMPiC-037	基本水能量 water energy basic energy csmpic c
+CS2DaC-WAT	基本水能量 water energy basic energy cs2dac e
+CS4DaC-428	基本水能量 water energy basic energy cs4dac f
+CS4DaC-WAT	基本水能量 water energy basic energy cs4dac f
+CS6bC-171	基本水能量 water energy basic energy cs6bc f
+CSZC-061	基本水能量 water energy basic energy cszc f
+CBB1C-1803	基本水能量 water energy basic energy cbb1c g
+CBB1C-1806	基本水能量 water energy basic energy cbb1c g
+CSVE2pC-024	基本水能量 water energy basic energy csve2pc g
+CSVH3C-WAT	基本水能量 water energy basic energy csvh3c g
+CSVH5C-WAT	基本水能量 water energy basic energy csvh5c g
+CSVL1C-128	基本水能量 water energy basic energy csvl1c g
+CSVL2C-134	基本水能量 water energy basic energy csvl2c g
 SVP-WAT	基本水能量 water energy basic energy svp g
 SVP-WAT-1	基本水能量 water energy basic energy svp g
 SVP-WAT-2	基本水能量 water energy basic energy svp g
 SVP-WAT-3	基本水能量 water energy basic energy svp g
+CSVH4pC-WAT	基本水能量 water energy basic energy csvh4pc h
+CSVSC-WAT	基本水能量 water energy basic energy csvsc h
+CS4.1C-005	基本水能量 water energy basic energy cs4 1c
+CSAC-WAT	基本水能量 water energy basic energy csac
+CSM1DC-WAT	基本水能量 water energy basic energy csm1dc
+CSVE1C-WAT	基本水能量 water energy basic energy csve1c
+CSVH1C-WAT	基本水能量 water energy basic energy csvh1c
+CSVH1pC-WAT	基本水能量 water energy basic energy csvh1pc
+CSVL1C-WAT	基本水能量 water energy basic energy csvl1c
+CSM2.1C-038	基本火能量 fire energy basic energy csm2 1c c
+CSMAC-FIR	基本火能量 fire energy basic energy csmac c
+CSMPiC-017	基本火能量 fire energy basic energy csmpic c
+CSMPiC-036	基本火能量 fire energy basic energy csmpic c
+CS2DaC-FIR	基本火能量 fire energy basic energy cs2dac e
+CS4aC-183	基本火能量 fire energy basic energy cs4ac e
+CS4DaC-427	基本火能量 fire energy basic energy cs4dac f
+CS4DaC-FIR	基本火能量 fire energy basic energy cs4dac f
+CS5.1C-005	基本火能量 fire energy basic energy cs5 1c f
+CSZC-060	基本火能量 fire energy basic energy cszc f
+CBB1C-1802	基本火能量 fire energy basic energy cbb1c g
+CBB1C-1805	基本火能量 fire energy basic energy cbb1c g
+CSVE2pC-012	基本火能量 fire energy basic energy csve2pc g
+CSVH3C-FIR	基本火能量 fire energy basic energy csvh3c g
+CSVH5C-FIR	基本火能量 fire energy basic energy csvh5c g
+CSVL1C-127	基本火能量 fire energy basic energy csvl1c g
+CSVL2C-133	基本火能量 fire energy basic energy csvl2c g
+SVP-FIR	基本火能量 fire energy basic energy svp g
+SVP-FIR-1	基本火能量 fire energy basic energy svp g
+SVP-FIR-2	基本火能量 fire energy basic energy svp g
+SVP-FIR-3	基本火能量 fire energy basic energy svp g
+CSVH4C-FIR	基本火能量 fire energy basic energy csvh4c h
+CSVH4pC-FIR	基本火能量 fire energy basic energy csvh4pc h
+CSVSC-FIR	基本火能量 fire energy basic energy csvsc h
+CSAC-FIR	基本火能量 fire energy basic energy csac
+CSM1DC-FIR	基本火能量 fire energy basic energy csm1dc
+CSVE1C-FIR	基本火能量 fire energy basic energy csve1c
+CSVH1C-FIR	基本火能量 fire energy basic energy csvh1c
+CSVH1pC-FIR	基本火能量 fire energy basic energy csvh1pc
+CSVL1C-FIR	基本火能量 fire energy basic energy csvl1c
+CSM2.1C-037	基本草能量 grass energy basic energy csm2 1c c
+CSMAC-GRA	基本草能量 grass energy basic energy csmac c
+CSMPiC-016	基本草能量 grass energy basic energy csmpic c
+CSMPiC-035	基本草能量 grass energy basic energy csmpic c
+CS2DaC-GRA	基本草能量 grass energy basic energy cs2dac e
+CS4DaC-426	基本草能量 grass energy basic energy cs4dac f
+CS4DaC-GRA	基本草能量 grass energy basic energy cs4dac f
+CS6.1C-005	基本草能量 grass energy basic energy cs6 1c f
+CS6aC-168	基本草能量 grass energy basic energy cs6ac f
+CSZC-059	基本草能量 grass energy basic energy cszc f
+CBB1C-1801	基本草能量 grass energy basic energy cbb1c g
+CBB1C-1804	基本草能量 grass energy basic energy cbb1c g
+CSVH1C-GRA	基本草能量 grass energy basic energy csvh1c g
+CSVH5C-GRA	基本草能量 grass energy basic energy csvh5c g
+CSVH5C-NaN1	基本草能量 grass energy basic energy csvh5c g
+CSVL1C-126	基本草能量 grass energy basic energy csvl1c g
+CSVL2C-132	基本草能量 grass energy basic energy csvl2c g
+SVP-GRA	基本草能量 grass energy basic energy svp g
+SVP-GRA-1	基本草能量 grass energy basic energy svp g
+SVP-GRA-2	基本草能量 grass energy basic energy svp g
+SVP-GRA-3	基本草能量 grass energy basic energy svp g
+CSVH4C-GRA	基本草能量 grass energy basic energy csvh4c h
+CSVH4pC-GRA	基本草能量 grass energy basic energy csvh4pc h
+CSVSC-GRA	基本草能量 grass energy basic energy csvsc h
+CSAC-GRA	基本草能量 grass energy basic energy csac
+CSM1DC-GRA	基本草能量 grass energy basic energy csm1dc
+CSVE1C-GRA	基本草能量 grass energy basic energy csve1c
+CSVH1pC-GRA	基本草能量 grass energy basic energy csvh1pc
+CSVL1C-GRA	基本草能量 grass energy basic energy csvl1c
+CSM2.1C-041	基本超能量 psychic energy basic energy csm2 1c c
+CSMAC-PSY	基本超能量 psychic energy basic energy csmac c
+CSMPiC-020	基本超能量 psychic energy basic energy csmpic c
+CSMPiC-039	基本超能量 psychic energy basic energy csmpic c
+CS4bC-177	基本超能量 psychic energy basic energy cs4bc e
+CS4DaC-430	基本超能量 psychic energy basic energy cs4dac f
+CS4DaC-PSY	基本超能量 psychic energy basic energy cs4dac f
+CSZC-063	基本超能量 psychic energy basic energy cszc f
+CBB2C-1102	基本超能量 psychic energy basic energy cbb2c g
+CBB2C-1105	基本超能量 psychic energy basic energy cbb2c g
+CSVE1pC-024	基本超能量 psychic energy basic energy csve1pc g
+CSVH1C-PSY	基本超能量 psychic energy basic energy csvh1c g
+CSVH3C-PSY	基本超能量 psychic energy basic energy csvh3c g
+CSVH5C-PSY	基本超能量 psychic energy basic energy csvh5c g
+CSVL1C-130	基本超能量 psychic energy basic energy csvl1c g
+CSVL2C-136	基本超能量 psychic energy basic energy csvl2c g
+SVP-PSY	基本超能量 psychic energy basic energy svp g
+SVP-PSY-1	基本超能量 psychic energy basic energy svp g
+SVP-PSY-2	基本超能量 psychic energy basic energy svp g
+SVP-PSY-3	基本超能量 psychic energy basic energy svp g
+CSVH4C-PSY	基本超能量 psychic energy basic energy csvh4c h
+CSVH4pC-PSY	基本超能量 psychic energy basic energy csvh4pc h
+CSVSC-PSY	基本超能量 psychic energy basic energy csvsc h
+CS4.1C-006	基本超能量 psychic energy basic energy cs4 1c
+CSAC-PSY	基本超能量 psychic energy basic energy csac
+CSM1DC-PSY	基本超能量 psychic energy basic energy csm1dc
+CSVE1C-PSY	基本超能量 psychic energy basic energy csve1c
+CSVH1pC-PSY	基本超能量 psychic energy basic energy csvh1pc
+CSVL1C-PSY	基本超能量 psychic energy basic energy csvl1c
+CSM2.1C-044	基本钢能量 metal energy basic energy csm2 1c c
+CSMAC-MET	基本钢能量 metal energy basic energy csmac c
+CSMPiC-023	基本钢能量 metal energy basic energy csmpic c
+CSMPiC-042	基本钢能量 metal energy basic energy csmpic c
+CS4DaC-433	基本钢能量 metal energy basic energy cs4dac f
+CS4DaC-MET	基本钢能量 metal energy basic energy cs4dac f
+CS6.1C-007	基本钢能量 metal energy basic energy cs6 1c f
+CS6aC-169	基本钢能量 metal energy basic energy cs6ac f
+CSZC-066	基本钢能量 metal energy basic energy cszc f
+CBB3C-2002	基本钢能量 metal energy basic energy cbb3c g
+CBB3C-2005	基本钢能量 metal energy basic energy cbb3c g
+CSVH1C-MET	基本钢能量 metal energy basic energy csvh1c g
+CSVH3C-MET	基本钢能量 metal energy basic energy csvh3c g
+CSVL1C-133	基本钢能量 metal energy basic energy csvl1c g
+CSVL2C-139	基本钢能量 metal energy basic energy csvl2c g
+SVP-MET	基本钢能量 metal energy basic energy svp g
+SVP-MET-1	基本钢能量 metal energy basic energy svp g
+SVP-MET-2	基本钢能量 metal energy basic energy svp g
+SVP-MET-3	基本钢能量 metal energy basic energy svp g
+CSVH4C-MET	基本钢能量 metal energy basic energy csvh4c h
+CSVH4pC-MET	基本钢能量 metal energy basic energy csvh4pc h
+CSVSC-MET	基本钢能量 metal energy basic energy csvsc h
+CSAC-MET	基本钢能量 metal energy basic energy csac
+CSM1DC-MET	基本钢能量 metal energy basic energy csm1dc
+CSVE1C-MET	基本钢能量 metal energy basic energy csve1c
+CSVH1pC-MET	基本钢能量 metal energy basic energy csvh1pc
+CSVL1C-MET	基本钢能量 metal energy basic energy csvl1c
+SMP-047	基本雷能量 lightning energy basic energy smp a
+CSM2.1C-040	基本雷能量 lightning energy basic energy csm2 1c c
+CSMAC-LIG	基本雷能量 lightning energy basic energy csmac c
+CSMPiC-019	基本雷能量 lightning energy basic energy csmpic c
+CSMPiC-038	基本雷能量 lightning energy basic energy csmpic c
+SSP-038	基本雷能量 lightning energy basic energy ssp d
+SSP-076	基本雷能量 lightning energy basic energy ssp d
+CS2DaC-LIG	基本雷能量 lightning energy basic energy cs2dac e
+CS4bC-176	基本雷能量 lightning energy basic energy cs4bc e
+CS4DaC-429	基本雷能量 lightning energy basic energy cs4dac f
+CS4DaC-LIG	基本雷能量 lightning energy basic energy cs4dac f
+CS6.1C-006	基本雷能量 lightning energy basic energy cs6 1c f
+CSZC-062	基本雷能量 lightning energy basic energy cszc f
+CBB2C-1101	基本雷能量 lightning energy basic energy cbb2c g
+CBB2C-1104	基本雷能量 lightning energy basic energy cbb2c g
+CSVE1pC-012	基本雷能量 lightning energy basic energy csve1pc g
+CSVH1C-LIG	基本雷能量 lightning energy basic energy csvh1c g
+CSVH5C-LIG	基本雷能量 lightning energy basic energy csvh5c g
+CSVL1C-129	基本雷能量 lightning energy basic energy csvl1c g
+CSVL2C-135	基本雷能量 lightning energy basic energy csvl2c g
+SVP-LIG	基本雷能量 lightning energy basic energy svp g
+SVP-LIG-1	基本雷能量 lightning energy basic energy svp g
+SVP-LIG-2	基本雷能量 lightning energy basic energy svp g
+SVP-LIG-3	基本雷能量 lightning energy basic energy svp g
+CSVH4C-LIG	基本雷能量 lightning energy basic energy csvh4c h
+CSVH4pC-LIG	基本雷能量 lightning energy basic energy csvh4pc h
+CSVSC-LIG	基本雷能量 lightning energy basic energy csvsc h
+CSAC-LIG	基本雷能量 lightning energy basic energy csac
+CSM1DC-LIG	基本雷能量 lightning energy basic energy csm1dc
+CSVE1C-LIG	基本雷能量 lightning energy basic energy csve1c
+CSVH1pC-LIG	基本雷能量 lightning energy basic energy csvh1pc
+CSVL1C-LIG	基本雷能量 lightning energy basic energy csvl1c
