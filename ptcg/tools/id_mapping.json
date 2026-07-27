@@ -40287,10 +40287,6 @@
     "new_key": "CSM2DC-335",
     "method": "name_mark"
   },
-  "4507": {
-    "new_key": "CSMPaC-049",
-    "method": "override"
-  },
   "3481": {
     "new_key": "CSM2cC-147",
     "method": "name_mark"
@@ -40398,10 +40394,6 @@
   "587": {
     "new_key": "CS2aC-112",
     "method": "exact_name"
-  },
-  "1142": {
-    "new_key": "CS1DC-126",
-    "method": "override"
   },
   "2609": {
     "new_key": "CSBC-017",
@@ -40594,6 +40586,10 @@
   "12065": {
     "new_key": "CSVE2C-200",
     "method": "name_mark_rarity"
+  },
+  "11689": {
+    "new_key": "CSVM1bC-032",
+    "method": "override_rarity"
   },
   "8803": {
     "new_key": "CSV3C-128",
