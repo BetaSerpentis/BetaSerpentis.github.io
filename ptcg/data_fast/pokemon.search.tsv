@@ -7274,6 +7274,8 @@ SSP-022	狡小狐 nickit pokemon d basic ssp d 骗取 c 从自己的牌库上方
 CS4bC-080	狡小狐 nickit pokemon d basic cs4bc e 摆尾拍击 cc 30
 CS6bC-102	狡小狐 nickit pokemon d basic cs6bc f 后踢 c 10
 CSV5C-090	狡小狐 nickit pokemon d basic csv5c g 偷袭 c 30 抛掷1次硬币如果为反面 则这个招式失败 
+CS1DC-127	猾大狐 ​thievul pokemon d stage 1 cs1dc d 小偷 d 20 查看对手的手牌 选择其中1张卡牌 放回对手的牌库下方  暗之牙 dcc 90
+CS1DC-217	猾大狐 ​thievul pokemon d stage 1 cs1dc d 小偷 d 20 查看对手的手牌 选择其中1张卡牌 放回对手的牌库下方  暗之牙 dcc 90
 CS2bC-091	猾大狐 thievul pokemon d stage 1 cs2bc d 诡计 d 选择自己牌库中任意卡牌最多2张 加入手牌 并重洗牌库  锐利之牙 dd 70
 CS4bC-081	猾大狐 thievul pokemon d stage 1 cs4bc e 尾巴敲打 cc 60 黄油手 在自己的回合 当将这张卡牌从手牌使出并进行进化时 可使用1次 双方玩家 各将自己所有的手牌反面朝上重洗 放回牌库下方 然后 各从牌库上方抽取4张卡牌 
 CS6bC-103	猾大狐 thievul pokemon d stage 1 cs6bc f 锐利之牙 ddc 110 造势 如果对手的剩余奖赏卡张数在2张以下 包含2张 的话则能生效 只要这只宝可梦在场上 自己备战区的所有 宝可梦 v   当对手从手牌使出支援者时 不受其效果影响 
@@ -9231,8 +9233,6 @@ CS4DaC-231	伽勒尔 迭失板 galarian runerigus pokemon f stage 1 cs4dac e 能
 CSM2bC-022	保姆虫 leavanny pokemon g stage 2 csm2bc c 飞叶快刀 gc 70 襁褓编织者 只要这只宝可梦在场上 则自己的所有 草 宝可梦 受到对手宝可梦的招式的伤害 -40  这个效果 无论拥有这个特性的宝可梦有多少只 都不会叠加 
 CS4bC-006	保姆虫 leavanny pokemon g stage 2 cs4bc e 治愈之环 cc 将自己所有备战宝可梦的hp 全部回复 然后 将这只宝可梦 以及放于其身上的所有卡牌 放回自己的牌库并重洗牌库  飞叶快刀 gcc 120
 SMP-014	哈力栗 pokemon g basic smp b 寄生种子 gc 20 回复这只宝可梦 10 点hp 
-CS1DC-127	猾大狐 ​thievul pokemon d stage 1 cs1dc d 小偷 d 20 查看对手的手牌 选择其中1张卡牌 放回对手的牌库下方  暗之牙 dcc 90
-CS1DC-217	猾大狐 ​thievul pokemon d stage 1 cs1dc d 小偷 d 20 查看对手的手牌 选择其中1张卡牌 放回对手的牌库下方  暗之牙 dcc 90
 CSM2.1C-051	耿鬼&谜拟丘gx gengar & mimikyu-gx pokemon gx  "tag team"  p basic csm2 1c c 灵骚 pp 50× 查看对手的手牌 造成其中训练家张数×50点伤害  鬼屋gx p+ 在下一个对手的回合 对手无法从手牌使出卡牌 如果追加附有1个 超 能量的话 则双方玩家各从牌库上方抽取卡牌 直到手牌变为7张为止  对战中 己方的gx招式只能使用1次  
 CSM2bC-033	耿鬼&谜拟丘gx gengar & mimikyu-gx pokemon gx  "tag team"  p basic csm2bc c 灵骚 pp 50× 查看对手的手牌 造成其中训练家张数×50点伤害  鬼屋gx p+ 在下一个对手的回合 对手无法从手牌使出卡牌 如果追加附有1个 超 能量的话 则双方玩家各从牌库上方抽取卡牌 直到手牌变为7张为止  对战中 己方的gx招式只能使用1次  
 CSM2bC-162	耿鬼&谜拟丘gx gengar & mimikyu-gx pokemon gx  "tag team"  p basic csm2bc c 灵骚 pp 50× 查看对手的手牌 造成其中训练家张数×50点伤害  鬼屋gx p+ 在下一个对手的回合 对手无法从手牌使出卡牌 如果追加附有1个 超 能量的话 则双方玩家各从牌库上方抽取卡牌 直到手牌变为7张为止  对战中 己方的gx招式只能使用1次  

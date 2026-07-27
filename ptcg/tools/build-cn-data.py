@@ -188,6 +188,41 @@ _HARDCODED_EN_DEX = {
     "CSV10C-086": 202,   # 火箭队的果然翁 = Wobbuffet
 }
 
+# 繁中→简中卡名对照表（同名不同译的卡）
+_TRAD_TO_SIMP_NAME = {
+    "火爆猴": "火暴猴",
+    "多边兽": "多边兽",
+    "多边兽Ⅱ": "多边兽2型",
+    "多边兽Ｚ": "多边兽乙型",
+    "萤光鱼": "荧光鱼",
+    "死神棺": "迭失棺",
+    "死神棺ex": "迭失棺ex",
+    "保母曼波": "保母曼波",
+    "流氓熊猫": "霸道熊猫",
+    "洗翠 火爆兽": "洗翠 火暴兽",
+    "洗翠 火爆兽V": "洗翠 火暴兽V",
+    "洗翠 火爆兽VSTAR": "洗翠 火暴兽VSTAR",
+    "偷儿狐": "狡小狐",
+    "狐大盗": "猾大狐",
+    "涂标客ex": "涂标客ex",
+    "浩大鲸ex": "浩大鲸ex",
+    "吃吼霸ex": "吃吼霸ex",
+    "蜜集大蛇": "蜜集大蛇",
+    "电击魔兽ex": "电击魔兽ex",
+    "雷吉洛克ex": "雷吉洛克ex",
+    "远古巨蜓ex": "远古巨蜓ex",
+    "奥利瓦ex": "奥利瓦ex",
+    "阿罗拉 小拳石": "阿罗拉 小拳石",
+    "阿罗拉 隆隆石": "阿罗拉 隆隆石",
+    "阿罗拉 隆隆岩": "阿罗拉 隆隆岩",
+    "阿罗拉 嘎啦嘎啦GX": "阿罗拉 嘎啦嘎啦GX",
+    "耿鬼&謎擬ＱGX": "耿鬼&谜拟丘GX",
+    "阿罗拉 六尾": "阿罗拉 六尾",
+    "阿罗拉 九尾GX": "阿罗拉 九尾GX",
+    "喷火龙&长尾火狐GX": "喷火龙&长尾火狐GX",
+    "水箭龟&波加曼GX": "水箭龟&波加曼GX",
+}
+
 # 稀有度排名（从低到高）
 RARITY_RANK = {
     "无标记": 0, "C": 1, "U": 2, "R": 3, "RR": 4, "RRR": 5,
@@ -313,6 +348,21 @@ def build_old_to_new_map_v2(cards, dex_lookup, name_only_dex):
                     if mm:
                         match = (mm[0]["card_key"], "parenthesis_mark")
 
+        # Trad→Simp name mapping (火爆猴→火暴猴 etc.)
+        if not match and old["name"] in _TRAD_TO_SIMP_NAME:
+            sim_name = _TRAD_TO_SIMP_NAME[old["name"]]
+            cm = cn_by_name.get(sim_name, [])
+            if len(cm) == 1:
+                match = (cm[0]["card_key"], "trad2simp")
+            elif len(cm) > 1:
+                mm = [m for m in cm if m.get("regulation_mark") == old["ver"]]
+                if mm:
+                    match = (mm[0]["card_key"], "trad2simp_mark")
+                else:
+                    lm = [m for m in cm if m.get("standard_legal") == "1"]
+                    if lm:
+                        match = (lm[0]["card_key"], "trad2simp_legal")
+
         # Energy special case
         if not match and old["type"] in ("基本能量", "特殊能量"):
             stripped = old["name"].replace("【", "").replace("】", "")
@@ -321,8 +371,8 @@ def build_old_to_new_map_v2(cards, dex_lookup, name_only_dex):
                 match = (cm[0]["card_key"], "energy_strip")
 
         # Effect text matching (restricted to same card type)
-        # Short effects: exact only (avoid subset false match like 老大的指令→古茲马)
-        # Long effects: fuzzy OK but require length ratio >0.7 and score >0.75
+        # Short effects (<20 chars): exact only to avoid 老大的指令→古茲马 subset match
+        # Long effects: bigram similarity with length ratio check
         if not match and old.get("effect") and len(old["effect"]) > 4:
             old_eff = norm_eff(old["effect"])
             old_cn_type = OLD_TO_CN_TYPE.get(old["type"], old["type"])
@@ -341,23 +391,18 @@ def build_old_to_new_map_v2(cards, dex_lookup, name_only_dex):
                     best = (c["card_key"], "exact_effect")
                     break
                 len_ratio = min(old_n, c_n) / max(old_n, c_n)
-                # Require at least 70% length similarity for fuzzy matching
+                # Require at least 70% length similarity
                 if len_ratio < 0.7:
                     continue
-                # For short texts (<20 chars), only accept very high match (>0.90)
-                # to prevent subset matching
+                # Short texts: only exact match (no fuzzy for <20 chars)
+                if old_n < 20 or c_n < 20:
+                    continue
                 matches = sum(1 for j in range(old_n-1) if old_eff[j:j+2] in c_eff)
                 score = matches / max(old_n-1, 1)
-                min_score = 0.90 if old_n < 20 else (0.85 if old_n < 40 else 0.75)
+                min_score = 0.80 if old_n < 40 else 0.65
                 if score > best_s and score >= min_score:
                     best_s = score
-                    best_len_ratio = len_ratio
                     best = (c["card_key"], "fuzzy_effect")
-            # Reject low-confidence fuzzy matches
-            if best and best[1] == "fuzzy_effect":
-                min_ok = 0.90 if old_n < 20 else (0.85 if old_n < 40 else 0.75)
-                if best_s < min_ok:
-                    best = None
             match = best
 
         if match:
