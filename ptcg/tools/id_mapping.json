@@ -32655,26 +32655,6 @@
     "new_key": "CSXC-015",
     "method": "name_mark_rarity"
   },
-  "11510": {
-    "new_key": "CSV8C-191",
-    "method": "fuzzy_effect"
-  },
-  "11780": {
-    "new_key": "CSV8C-191",
-    "method": "fuzzy_effect"
-  },
-  "12585": {
-    "new_key": "CSV8C-191",
-    "method": "fuzzy_effect"
-  },
-  "12973": {
-    "new_key": "CSV8C-191",
-    "method": "fuzzy_effect"
-  },
-  "13163": {
-    "new_key": "CSV8C-191",
-    "method": "fuzzy_effect"
-  },
   "7107": {
     "new_key": "CS5bC-122",
     "method": "name_mark"
@@ -32698,22 +32678,6 @@
   "2525": {
     "new_key": "CS2.5C-054",
     "method": "name_mark"
-  },
-  "3491": {
-    "new_key": "CSVE2C-184",
-    "method": "fuzzy_effect_rarity"
-  },
-  "4820": {
-    "new_key": "CSVE2C-184",
-    "method": "fuzzy_effect_rarity"
-  },
-  "5913": {
-    "new_key": "CSVE2C-184",
-    "method": "fuzzy_effect_rarity"
-  },
-  "6076": {
-    "new_key": "CS4.5C-059",
-    "method": "fuzzy_effect"
   },
   "8657": {
     "new_key": "CSV3C-124",
@@ -32931,10 +32895,6 @@
     "new_key": "CSVE2C-177",
     "method": "name_mark_rarity"
   },
-  "3472": {
-    "new_key": "CSMPeC-018",
-    "method": "fuzzy_effect_rarity"
-  },
   "5177": {
     "new_key": "CSM1DC-301",
     "method": "name_mark"
@@ -32942,18 +32902,6 @@
   "5923": {
     "new_key": "CSM1DC-302",
     "method": "name_mark"
-  },
-  "1427": {
-    "new_key": "CS1.5C-050",
-    "method": "fuzzy_effect"
-  },
-  "1586": {
-    "new_key": "CS1.5C-050",
-    "method": "fuzzy_effect"
-  },
-  "1707": {
-    "new_key": "CS1.5C-050",
-    "method": "fuzzy_effect"
   },
   "1584": {
     "new_key": "CS3DC-159",
@@ -33193,147 +33141,147 @@
   },
   "8368": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark_rarity"
   },
   "8494": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark_rarity"
   },
   "8519": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark_rarity"
   },
   "8560": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark_rarity"
   },
   "9357": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark_rarity"
   },
   "2273": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark"
   },
   "8445": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark_rarity"
   },
   "8469": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark_rarity"
   },
   "8853": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark_rarity"
   },
   "9358": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark_rarity"
   },
   "1583": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark"
   },
   "1705": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark"
   },
   "1863": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark"
   },
   "2032": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark"
   },
   "2262": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark"
   },
   "2451": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark"
   },
   "2524": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark"
   },
   "3093": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark"
   },
   "3116": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark"
   },
   "6145": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark"
   },
   "8141": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark"
   },
   "6246": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark_rarity"
   },
   "6275": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark_rarity"
   },
   "6769": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark_rarity"
   },
   "6877": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark_rarity"
   },
   "6899": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark_rarity"
   },
   "7452": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark_rarity"
   },
   "7472": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark_rarity"
   },
   "7591": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark_rarity"
   },
   "7722": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark_rarity"
   },
   "7745": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark_rarity"
   },
   "7767": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark_rarity"
   },
   "8114": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark_rarity"
   },
   "8207": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark_rarity"
   },
   "8290": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark_rarity"
   },
   "6324": {
     "new_key": "CS1DC-196",
-    "method": "fuzzy_effect"
+    "method": "parenthesis_mark"
   },
   "2265": {
     "new_key": "CS2DaC-053",
@@ -33539,10 +33487,6 @@
     "new_key": "CS3DC-147",
     "method": "name_mark_rarity"
   },
-  "4498": {
-    "new_key": "CSM2.5C-052",
-    "method": "fuzzy_effect"
-  },
   "5736": {
     "new_key": "CSM1DC-288",
     "method": "name_mark"
@@ -33631,10 +33575,6 @@
     "new_key": "CSM1DC-291",
     "method": "name_mark"
   },
-  "5737": {
-    "new_key": "CSM1DC-290",
-    "method": "fuzzy_effect"
-  },
   "6853": {
     "new_key": "CSVE1C-154",
     "method": "name_mark_rarity"
@@ -33666,10 +33606,6 @@
   "12842": {
     "new_key": "CSVH5aC-019",
     "method": "name_mark_rarity"
-  },
-  "5182": {
-    "new_key": "CSM1.5C-049",
-    "method": "fuzzy_effect"
   },
   "8467": {
     "new_key": "CSVE1C-153",
@@ -33839,22 +33775,6 @@
     "new_key": "CSMPhC-017",
     "method": "name_mark_rarity"
   },
-  "3984": {
-    "new_key": "CSM1DC-279",
-    "method": "fuzzy_effect"
-  },
-  "4314": {
-    "new_key": "CSM1DC-279",
-    "method": "fuzzy_effect"
-  },
-  "4517": {
-    "new_key": "CSM1DC-279",
-    "method": "fuzzy_effect"
-  },
-  "5733": {
-    "new_key": "CSM1DC-279",
-    "method": "fuzzy_effect"
-  },
   "11178": {
     "new_key": "CSV8C-194",
     "method": "name_mark"
@@ -33930,18 +33850,6 @@
   "8145": {
     "new_key": "CS1DC-201",
     "method": "name_mark"
-  },
-  "6245": {
-    "new_key": "CSVE2C-184",
-    "method": "fuzzy_effect_rarity"
-  },
-  "8111": {
-    "new_key": "CSVE2C-184",
-    "method": "fuzzy_effect_rarity"
-  },
-  "8283": {
-    "new_key": "CSVE2C-184",
-    "method": "fuzzy_effect_rarity"
   },
   "95": {
     "new_key": "CSVE1C-139",
@@ -34139,42 +34047,6 @@
     "new_key": "CSM2.1C-025",
     "method": "name_mark_rarity"
   },
-  "12751": {
-    "new_key": "CSV8C-198",
-    "method": "fuzzy_effect"
-  },
-  "12752": {
-    "new_key": "CSV8C-198",
-    "method": "fuzzy_effect"
-  },
-  "12753": {
-    "new_key": "CSV8C-198",
-    "method": "fuzzy_effect"
-  },
-  "12754": {
-    "new_key": "CSV8C-198",
-    "method": "fuzzy_effect"
-  },
-  "12755": {
-    "new_key": "CSV8C-198",
-    "method": "fuzzy_effect"
-  },
-  "12756": {
-    "new_key": "CSV8C-198",
-    "method": "fuzzy_effect"
-  },
-  "12757": {
-    "new_key": "CSV8C-198",
-    "method": "fuzzy_effect"
-  },
-  "12758": {
-    "new_key": "CSV8C-198",
-    "method": "fuzzy_effect"
-  },
-  "12759": {
-    "new_key": "CSV8C-198",
-    "method": "fuzzy_effect"
-  },
   "8553": {
     "new_key": "SVP-203",
     "method": "name_mark_rarity"
@@ -34288,100 +34160,100 @@
     "method": "name_mark_rarity"
   },
   "1587": {
-    "new_key": "CSM1DC-281",
-    "method": "fuzzy_effect"
+    "new_key": "CS1DC-200",
+    "method": "parenthesis_mark"
   },
   "1708": {
-    "new_key": "CSM1DC-281",
-    "method": "fuzzy_effect"
+    "new_key": "CS1DC-200",
+    "method": "parenthesis_mark"
   },
   "1865": {
-    "new_key": "CSM1DC-281",
-    "method": "fuzzy_effect"
+    "new_key": "CS1DC-200",
+    "method": "parenthesis_mark"
   },
   "2263": {
-    "new_key": "CSM1DC-281",
-    "method": "fuzzy_effect"
+    "new_key": "CS1DC-200",
+    "method": "parenthesis_mark"
   },
   "2526": {
-    "new_key": "CSM1DC-281",
-    "method": "fuzzy_effect"
+    "new_key": "CS1DC-200",
+    "method": "parenthesis_mark"
   },
   "2930": {
-    "new_key": "CSM1DC-281",
-    "method": "fuzzy_effect"
+    "new_key": "CS1DC-200",
+    "method": "parenthesis_mark"
   },
   "3096": {
-    "new_key": "CSM1DC-281",
-    "method": "fuzzy_effect"
+    "new_key": "CS1DC-200",
+    "method": "parenthesis_mark"
   },
   "6147": {
-    "new_key": "CSM1DC-281",
-    "method": "fuzzy_effect"
+    "new_key": "CS1DC-200",
+    "method": "parenthesis_mark"
   },
   "8162": {
-    "new_key": "CSM1DC-281",
-    "method": "fuzzy_effect"
+    "new_key": "CS1DC-200",
+    "method": "parenthesis_mark"
   },
   "6248": {
-    "new_key": "CSM1DC-281",
-    "method": "fuzzy_effect"
+    "new_key": "CS1DC-200",
+    "method": "parenthesis_mark_rarity"
   },
   "6276": {
-    "new_key": "CSM1DC-281",
-    "method": "fuzzy_effect"
+    "new_key": "CS1DC-200",
+    "method": "parenthesis_mark_rarity"
   },
   "6772": {
-    "new_key": "CSM1DC-281",
-    "method": "fuzzy_effect"
+    "new_key": "CS1DC-200",
+    "method": "parenthesis_mark_rarity"
   },
   "6878": {
-    "new_key": "CSM1DC-281",
-    "method": "fuzzy_effect"
+    "new_key": "CS1DC-200",
+    "method": "parenthesis_mark_rarity"
   },
   "6900": {
-    "new_key": "CSM1DC-281",
-    "method": "fuzzy_effect"
+    "new_key": "CS1DC-200",
+    "method": "parenthesis_mark_rarity"
   },
   "7454": {
-    "new_key": "CSM1DC-281",
-    "method": "fuzzy_effect"
+    "new_key": "CS1DC-200",
+    "method": "parenthesis_mark_rarity"
   },
   "7474": {
-    "new_key": "CSM1DC-281",
-    "method": "fuzzy_effect"
+    "new_key": "CS1DC-200",
+    "method": "parenthesis_mark_rarity"
   },
   "7592": {
-    "new_key": "CSM1DC-281",
-    "method": "fuzzy_effect"
+    "new_key": "CS1DC-200",
+    "method": "parenthesis_mark_rarity"
   },
   "7723": {
-    "new_key": "CSM1DC-281",
-    "method": "fuzzy_effect"
+    "new_key": "CS1DC-200",
+    "method": "parenthesis_mark_rarity"
   },
   "8116": {
-    "new_key": "CSM1DC-281",
-    "method": "fuzzy_effect"
+    "new_key": "CS1DC-200",
+    "method": "parenthesis_mark_rarity"
   },
   "8209": {
-    "new_key": "CSM1DC-281",
-    "method": "fuzzy_effect"
+    "new_key": "CS1DC-200",
+    "method": "parenthesis_mark_rarity"
   },
   "8292": {
-    "new_key": "CSM1DC-281",
-    "method": "fuzzy_effect"
+    "new_key": "CS1DC-200",
+    "method": "parenthesis_mark_rarity"
   },
   "8585": {
-    "new_key": "CSM1DC-281",
-    "method": "fuzzy_effect"
+    "new_key": "CS1DC-200",
+    "method": "parenthesis_mark_rarity"
   },
   "6086": {
-    "new_key": "CSM1DC-281",
-    "method": "fuzzy_effect"
+    "new_key": "CS1DC-200",
+    "method": "parenthesis_mark"
   },
   "9360": {
-    "new_key": "CSM1DC-281",
-    "method": "fuzzy_effect"
+    "new_key": "CS1DC-200",
+    "method": "parenthesis_mark_rarity"
   },
   "10109": {
     "new_key": "CSVE2C-195",
@@ -34494,18 +34366,6 @@
   "5746": {
     "new_key": "CSM1.5C-048",
     "method": "name_mark"
-  },
-  "11989": {
-    "new_key": "CSVH5aC-023",
-    "method": "fuzzy_effect_rarity"
-  },
-  "12347": {
-    "new_key": "CSVH5aC-023",
-    "method": "fuzzy_effect_rarity"
-  },
-  "12352": {
-    "new_key": "CSVH5aC-023",
-    "method": "fuzzy_effect_rarity"
   },
   "586": {
     "new_key": "CSIC-007",
@@ -34787,10 +34647,6 @@
     "new_key": "CBB2C-1004",
     "method": "name_mark"
   },
-  "6754": {
-    "new_key": "CS4DaC-388",
-    "method": "fuzzy_effect"
-  },
   "2927": {
     "new_key": "CS1DC-192",
     "method": "name_mark"
@@ -34908,12 +34764,12 @@
     "method": "name_mark"
   },
   "9355": {
-    "new_key": "CS1DC-201",
-    "method": "fuzzy_effect"
+    "new_key": "CBB1C-1704",
+    "method": "parenthesis_mark"
   },
   "9356": {
-    "new_key": "CS1DC-201",
-    "method": "fuzzy_effect"
+    "new_key": "CBB1C-1704",
+    "method": "parenthesis_mark"
   },
   "10289": {
     "new_key": "CSV5C-123",
@@ -35234,18 +35090,6 @@
   "9950": {
     "new_key": "CSVH3aC-018",
     "method": "name_mark_rarity"
-  },
-  "12583": {
-    "new_key": "CSV9.5C-182",
-    "method": "fuzzy_effect"
-  },
-  "12801": {
-    "new_key": "CSV9.5C-182",
-    "method": "fuzzy_effect"
-  },
-  "12971": {
-    "new_key": "CSV9.5C-182",
-    "method": "fuzzy_effect"
   },
   "8811": {
     "new_key": "CSV2C-124",
@@ -35655,10 +35499,6 @@
     "new_key": "CSM2cC-140",
     "method": "exact_name"
   },
-  "5731": {
-    "new_key": "CSM1DC-276",
-    "method": "fuzzy_effect"
-  },
   "1005": {
     "new_key": "CS4DaC-397",
     "method": "name_mark_rarity"
@@ -35703,10 +35543,6 @@
     "new_key": "CSVM2bC-025",
     "method": "name_mark_rarity"
   },
-  "3473": {
-    "new_key": "CSMPhC-020",
-    "method": "fuzzy_effect_rarity"
-  },
   "3474": {
     "new_key": "CSM2DC-307",
     "method": "exact_name"
@@ -35746,10 +35582,6 @@
   "3287": {
     "new_key": "CSM2DC-295",
     "method": "exact_name"
-  },
-  "3802": {
-    "new_key": "CSM2aC-142",
-    "method": "fuzzy_effect"
   },
   "6091": {
     "new_key": "CS4.5C-063",
@@ -35955,18 +35787,6 @@
     "new_key": "CSM2cC-144",
     "method": "exact_name"
   },
-  "9030": {
-    "new_key": "CSVH4C-058",
-    "method": "fuzzy_effect_rarity"
-  },
-  "9065": {
-    "new_key": "CSVH4C-058",
-    "method": "fuzzy_effect_rarity"
-  },
-  "12781": {
-    "new_key": "CSVH4C-058",
-    "method": "fuzzy_effect_rarity"
-  },
   "1006": {
     "new_key": "CS3DC-155",
     "method": "name_mark"
@@ -36099,25 +35919,9 @@
     "new_key": "CSVH5C-051",
     "method": "name_mark_rarity"
   },
-  "13083": {
-    "new_key": "CSV10C-190",
-    "method": "fuzzy_effect"
-  },
   "7102": {
     "new_key": "CS5DC-115",
     "method": "name_mark"
-  },
-  "6892": {
-    "new_key": "CS5DC-126",
-    "method": "fuzzy_effect"
-  },
-  "8090": {
-    "new_key": "CS5DC-126",
-    "method": "fuzzy_effect"
-  },
-  "9666": {
-    "new_key": "CS5DC-126",
-    "method": "fuzzy_effect"
   },
   "3465": {
     "new_key": "CSM2DC-269",
@@ -36130,10 +35934,6 @@
   "11982": {
     "new_key": "CSV9C-188",
     "method": "exact_name"
-  },
-  "11979": {
-    "new_key": "CSVH5aC-008",
-    "method": "fuzzy_effect_rarity"
   },
   "1577": {
     "new_key": "CS1DC-178",
@@ -36282,26 +36082,6 @@
   "12745": {
     "new_key": "CS1DC-180",
     "method": "name_mark_rarity"
-  },
-  "3975": {
-    "new_key": "CSM1DC-241",
-    "method": "fuzzy_effect"
-  },
-  "4301": {
-    "new_key": "CSM1DC-241",
-    "method": "fuzzy_effect"
-  },
-  "4807": {
-    "new_key": "CSM1DC-241",
-    "method": "fuzzy_effect"
-  },
-  "4968": {
-    "new_key": "CSM1DC-241",
-    "method": "fuzzy_effect"
-  },
-  "5898": {
-    "new_key": "CSM1DC-241",
-    "method": "fuzzy_effect"
   },
   "1135": {
     "new_key": "CBB3C-1903",
@@ -36607,22 +36387,6 @@
     "new_key": "CSV9.5C-160",
     "method": "name_mark"
   },
-  "11378": {
-    "new_key": "CSVH4C-041",
-    "method": "fuzzy_effect_rarity"
-  },
-  "11659": {
-    "new_key": "CSVH4C-041",
-    "method": "fuzzy_effect_rarity"
-  },
-  "12571": {
-    "new_key": "CSVH4C-041",
-    "method": "fuzzy_effect_rarity"
-  },
-  "12961": {
-    "new_key": "CSVH4C-041",
-    "method": "fuzzy_effect_rarity"
-  },
   "7560": {
     "new_key": "CSVH1aC-009",
     "method": "name_mark_rarity"
@@ -36891,40 +36655,12 @@
     "new_key": "CBB3C-1902",
     "method": "name_mark_rarity"
   },
-  "791": {
-    "new_key": "CSCC-007",
-    "method": "fuzzy_effect_rarity"
-  },
-  "2003": {
-    "new_key": "CSCC-007",
-    "method": "fuzzy_effect_rarity"
-  },
-  "6059": {
-    "new_key": "CSCC-007",
-    "method": "fuzzy_effect_rarity"
-  },
-  "8087": {
-    "new_key": "CSCC-007",
-    "method": "fuzzy_effect_rarity"
-  },
-  "9020": {
-    "new_key": "CSV9C-184",
-    "method": "fuzzy_effect"
-  },
   "11882": {
-    "new_key": "CSV9C-184",
+    "new_key": "SVP-013",
     "method": "fuzzy_effect"
   },
   "11881": {
-    "new_key": "CSV9C-184",
-    "method": "fuzzy_effect"
-  },
-  "9021": {
-    "new_key": "CSV9C-185",
-    "method": "fuzzy_effect"
-  },
-  "9022": {
-    "new_key": "CSV9C-185",
+    "new_key": "SVP-013",
     "method": "fuzzy_effect"
   },
   "4974": {
@@ -36942,46 +36678,6 @@
   "5713": {
     "new_key": "CSM1DC-251",
     "method": "name_mark"
-  },
-  "10018": {
-    "new_key": "CSVH4C-034",
-    "method": "fuzzy_effect_rarity"
-  },
-  "10950": {
-    "new_key": "CSVH4C-034",
-    "method": "fuzzy_effect_rarity"
-  },
-  "11018": {
-    "new_key": "CSVH4C-034",
-    "method": "fuzzy_effect_rarity"
-  },
-  "11678": {
-    "new_key": "CSVH4C-034",
-    "method": "fuzzy_effect_rarity"
-  },
-  "11700": {
-    "new_key": "CSVH4C-034",
-    "method": "fuzzy_effect_rarity"
-  },
-  "11755": {
-    "new_key": "CSVH4C-034",
-    "method": "fuzzy_effect_rarity"
-  },
-  "11790": {
-    "new_key": "CSVH4C-034",
-    "method": "fuzzy_effect_rarity"
-  },
-  "12038": {
-    "new_key": "CSVH4C-034",
-    "method": "fuzzy_effect_rarity"
-  },
-  "12564": {
-    "new_key": "CSVH4C-034",
-    "method": "fuzzy_effect_rarity"
-  },
-  "12957": {
-    "new_key": "CSVH4C-034",
-    "method": "fuzzy_effect_rarity"
   },
   "4964": {
     "new_key": "CSM1DC-234",
@@ -37006,10 +36702,6 @@
   "6265": {
     "new_key": "CS1.5C-047",
     "method": "name_mark"
-  },
-  "7369": {
-    "new_key": "CSVE1C-114",
-    "method": "fuzzy_effect_rarity"
   },
   "793": {
     "new_key": "CBB2C-1002",
@@ -37119,10 +36811,6 @@
     "new_key": "CSVM2aC-021",
     "method": "name_mark_rarity"
   },
-  "10858": {
-    "new_key": "CSV7C-174",
-    "method": "fuzzy_effect"
-  },
   "5896": {
     "new_key": "CSM1DC-235",
     "method": "name_mark"
@@ -37134,18 +36822,6 @@
   "6060": {
     "new_key": "CS3aC-106",
     "method": "name_mark"
-  },
-  "91": {
-    "new_key": "CS5.1C-023",
-    "method": "fuzzy_effect_rarity"
-  },
-  "9670": {
-    "new_key": "CS5.1C-023",
-    "method": "fuzzy_effect_rarity"
-  },
-  "4650": {
-    "new_key": "CSM2DC-266",
-    "method": "fuzzy_effect_rarity"
   },
   "4647": {
     "new_key": "CSM1DC-236",
@@ -37178,10 +36854,6 @@
   "12954": {
     "new_key": "CSM1DC-236",
     "method": "name_mark_rarity"
-  },
-  "11981": {
-    "new_key": "CSVH5aC-011",
-    "method": "fuzzy_effect_rarity"
   },
   "5161": {
     "new_key": "CSM1bC-127",
@@ -37503,10 +37175,6 @@
     "new_key": "CSM2.1C-013",
     "method": "name_mark"
   },
-  "12046": {
-    "new_key": "CSV9C-186",
-    "method": "fuzzy_effect"
-  },
   "4979": {
     "new_key": "CSM1DC-295",
     "method": "name_mark"
@@ -37514,54 +37182,6 @@
   "13082": {
     "new_key": "CSVH5aC-007",
     "method": "name_mark_rarity"
-  },
-  "10860": {
-    "new_key": "CSVM1aC-013",
-    "method": "fuzzy_effect_rarity"
-  },
-  "11632": {
-    "new_key": "CSVM1aC-013",
-    "method": "fuzzy_effect_rarity"
-  },
-  "11655": {
-    "new_key": "CSVM1aC-013",
-    "method": "fuzzy_effect_rarity"
-  },
-  "11679": {
-    "new_key": "CSVM1aC-013",
-    "method": "fuzzy_effect_rarity"
-  },
-  "11701": {
-    "new_key": "CSVM1aC-013",
-    "method": "fuzzy_effect_rarity"
-  },
-  "11741": {
-    "new_key": "CSVM1aC-013",
-    "method": "fuzzy_effect_rarity"
-  },
-  "12041": {
-    "new_key": "CSVM1aC-013",
-    "method": "fuzzy_effect_rarity"
-  },
-  "12568": {
-    "new_key": "CSVM1aC-013",
-    "method": "fuzzy_effect_rarity"
-  },
-  "12960": {
-    "new_key": "CSVM1aC-013",
-    "method": "fuzzy_effect_rarity"
-  },
-  "13109": {
-    "new_key": "CSVM1aC-013",
-    "method": "fuzzy_effect_rarity"
-  },
-  "13134": {
-    "new_key": "CSVM1aC-013",
-    "method": "fuzzy_effect_rarity"
-  },
-  "13158": {
-    "new_key": "CSVM1aC-013",
-    "method": "fuzzy_effect_rarity"
   },
   "13085": {
     "new_key": "CSV10C-195",
@@ -37599,10 +37219,6 @@
     "new_key": "CSBC-006",
     "method": "name_mark_rarity"
   },
-  "5718": {
-    "new_key": "CSM1DC-259",
-    "method": "fuzzy_effect"
-  },
   "2602": {
     "new_key": "CS3DC-130",
     "method": "name_mark"
@@ -37630,22 +37246,6 @@
   "4808": {
     "new_key": "CSM1DC-243",
     "method": "name_mark"
-  },
-  "1418": {
-    "new_key": "CS2aC-102",
-    "method": "fuzzy_effect"
-  },
-  "6869": {
-    "new_key": "CS5DC-121",
-    "method": "fuzzy_effect"
-  },
-  "8088": {
-    "new_key": "CS5DC-121",
-    "method": "fuzzy_effect"
-  },
-  "8573": {
-    "new_key": "CS5DC-121",
-    "method": "fuzzy_effect"
   },
   "6966": {
     "new_key": "CSVE1C-116",
@@ -37847,14 +37447,6 @@
     "new_key": "CSV5C-115",
     "method": "exact_name"
   },
-  "1132": {
-    "new_key": "CS5DC-112",
-    "method": "fuzzy_effect_rarity"
-  },
-  "2428": {
-    "new_key": "CS5DC-112",
-    "method": "fuzzy_effect_rarity"
-  },
   "580": {
     "new_key": "CS3DC-138",
     "method": "name_mark_rarity"
@@ -38007,10 +37599,6 @@
     "new_key": "CS3DC-131",
     "method": "name_mark"
   },
-  "11392": {
-    "new_key": "CSVE1C-114",
-    "method": "fuzzy_effect_rarity"
-  },
   "3489": {
     "new_key": "CSM1DC-265",
     "method": "name_mark"
@@ -38083,14 +37671,6 @@
     "new_key": "CSV8C-176",
     "method": "exact_name"
   },
-  "9611": {
-    "new_key": "CSVE2C-155",
-    "method": "fuzzy_effect_rarity"
-  },
-  "10276": {
-    "new_key": "CSVE2C-155",
-    "method": "fuzzy_effect_rarity"
-  },
   "1274": {
     "new_key": "CS2.1C-004",
     "method": "name_mark"
@@ -38154,22 +37734,6 @@
   "12733": {
     "new_key": "CS1DC-164",
     "method": "name_mark_rarity"
-  },
-  "792": {
-    "new_key": "CS4DaC-368",
-    "method": "fuzzy_effect_rarity"
-  },
-  "6734": {
-    "new_key": "CS4DaC-368",
-    "method": "fuzzy_effect_rarity"
-  },
-  "13132": {
-    "new_key": "CS4DaC-368",
-    "method": "fuzzy_effect_rarity"
-  },
-  "13156": {
-    "new_key": "CS4DaC-368",
-    "method": "fuzzy_effect_rarity"
   },
   "4804": {
     "new_key": "CS5DC-117",
@@ -38399,10 +37963,6 @@
     "new_key": "CS1DC-177",
     "method": "name_mark"
   },
-  "12173": {
-    "new_key": "CSV9C-187",
-    "method": "fuzzy_effect"
-  },
   "1272": {
     "new_key": "CS1.5C-042",
     "method": "name_mark"
@@ -38423,18 +37983,6 @@
     "new_key": "CSOC-011",
     "method": "name_mark_rarity"
   },
-  "8799": {
-    "new_key": "CSV4C-116",
-    "method": "fuzzy_effect"
-  },
-  "9336": {
-    "new_key": "CSV4C-116",
-    "method": "fuzzy_effect"
-  },
-  "12737": {
-    "new_key": "CSV4C-116",
-    "method": "fuzzy_effect"
-  },
   "3488": {
     "new_key": "CSM2.1C-017",
     "method": "name_mark_rarity"
@@ -38446,18 +37994,6 @@
   "9676": {
     "new_key": "CSVM1aC-022",
     "method": "name_mark_rarity"
-  },
-  "654": {
-    "new_key": "CS4DaC-380",
-    "method": "fuzzy_effect_rarity"
-  },
-  "6068": {
-    "new_key": "CS4DaC-380",
-    "method": "fuzzy_effect_rarity"
-  },
-  "6746": {
-    "new_key": "CS4DaC-380",
-    "method": "fuzzy_effect_rarity"
   },
   "7103": {
     "new_key": "CSVE2C-150",
@@ -38526,14 +38062,6 @@
   "12738": {
     "new_key": "CS1DC-167",
     "method": "name_mark_rarity"
-  },
-  "4514": {
-    "new_key": "CSM2.1C-018",
-    "method": "fuzzy_effect_rarity"
-  },
-  "5717": {
-    "new_key": "CSM2.1C-018",
-    "method": "fuzzy_effect_rarity"
   },
   "1576": {
     "new_key": "CS1DC-176",
@@ -38667,70 +38195,6 @@
     "new_key": "CS3DC-134",
     "method": "fuzzy_effect"
   },
-  "10111": {
-    "new_key": "CBB1C-1701",
-    "method": "fuzzy_effect"
-  },
-  "11111": {
-    "new_key": "CBB1C-1701",
-    "method": "fuzzy_effect"
-  },
-  "13096": {
-    "new_key": "CBB1C-1701",
-    "method": "fuzzy_effect"
-  },
-  "13099": {
-    "new_key": "CBB1C-1701",
-    "method": "fuzzy_effect"
-  },
-  "13102": {
-    "new_key": "CBB1C-1701",
-    "method": "fuzzy_effect"
-  },
-  "10113": {
-    "new_key": "CBB1C-1701",
-    "method": "fuzzy_effect"
-  },
-  "11113": {
-    "new_key": "CBB1C-1701",
-    "method": "fuzzy_effect"
-  },
-  "13098": {
-    "new_key": "CBB1C-1701",
-    "method": "fuzzy_effect"
-  },
-  "13101": {
-    "new_key": "CBB1C-1701",
-    "method": "fuzzy_effect"
-  },
-  "13104": {
-    "new_key": "CBB1C-1701",
-    "method": "fuzzy_effect"
-  },
-  "10112": {
-    "new_key": "CBB1C-1701",
-    "method": "fuzzy_effect"
-  },
-  "11112": {
-    "new_key": "CBB1C-1701",
-    "method": "fuzzy_effect"
-  },
-  "13097": {
-    "new_key": "CBB1C-1701",
-    "method": "fuzzy_effect"
-  },
-  "13100": {
-    "new_key": "CBB1C-1701",
-    "method": "fuzzy_effect"
-  },
-  "13103": {
-    "new_key": "CBB1C-1701",
-    "method": "fuzzy_effect"
-  },
-  "10929": {
-    "new_key": "CSV7C-179",
-    "method": "fuzzy_effect"
-  },
   "1273": {
     "new_key": "CS1DC-173",
     "method": "name_mark"
@@ -38830,26 +38294,6 @@
   "5899": {
     "new_key": "CSM1DC-245",
     "method": "exact_name"
-  },
-  "4488": {
-    "new_key": "CSM2.5C-045",
-    "method": "fuzzy_effect"
-  },
-  "1420": {
-    "new_key": "CS3DC-137",
-    "method": "fuzzy_effect_rarity"
-  },
-  "1687": {
-    "new_key": "CS3DC-137",
-    "method": "fuzzy_effect_rarity"
-  },
-  "2511": {
-    "new_key": "CS3DC-137",
-    "method": "fuzzy_effect_rarity"
-  },
-  "6064": {
-    "new_key": "CS3DC-137",
-    "method": "fuzzy_effect_rarity"
   },
   "4961": {
     "new_key": "CSM1DC-226",
@@ -38983,14 +38427,6 @@
     "new_key": "CS1.5C-045",
     "method": "exact_name"
   },
-  "6851": {
-    "new_key": "CSZC-033",
-    "method": "fuzzy_effect_rarity"
-  },
-  "9663": {
-    "new_key": "CSZC-033",
-    "method": "fuzzy_effect_rarity"
-  },
   "860": {
     "new_key": "CS5DC-124",
     "method": "name_mark_rarity"
@@ -39031,10 +38467,6 @@
     "new_key": "CSM1DC-274",
     "method": "name_mark"
   },
-  "5719": {
-    "new_key": "CSM1.5C-041",
-    "method": "fuzzy_effect"
-  },
   "3302": {
     "new_key": "CSM2.1C-011",
     "method": "name_mark_rarity"
@@ -39050,10 +38482,6 @@
   "5715": {
     "new_key": "CSM1DC-255",
     "method": "exact_name"
-  },
-  "7257": {
-    "new_key": "CSVH4C-041",
-    "method": "fuzzy_effect_rarity"
   },
   "5159": {
     "new_key": "CSM1DC-262",
@@ -39071,17 +38499,9 @@
     "new_key": "CSM2DC-248",
     "method": "name_mark"
   },
-  "8729": {
-    "new_key": "CSVH3aC-011",
-    "method": "fuzzy_effect_rarity"
-  },
   "12419": {
     "new_key": "SVP-153",
     "method": "exact_name"
-  },
-  "12567": {
-    "new_key": "CSV9.5C-166",
-    "method": "fuzzy_effect"
   },
   "3278": {
     "new_key": "CSM2DC-271",
@@ -39090,10 +38510,6 @@
   "3962": {
     "new_key": "CSM2DC-271",
     "method": "name_mark"
-  },
-  "9019": {
-    "new_key": "CSVE2C-147",
-    "method": "fuzzy_effect_rarity"
   },
   "1688": {
     "new_key": "CS1.5C-046",
@@ -39479,14 +38895,6 @@
     "new_key": "CSV10C-202",
     "method": "exact_name"
   },
-  "1138": {
-    "new_key": "CS4bC-122",
-    "method": "fuzzy_effect"
-  },
-  "1002": {
-    "new_key": "CS3bC-111",
-    "method": "fuzzy_effect"
-  },
   "6072": {
     "new_key": "CS4bC-121",
     "method": "exact_name"
@@ -39659,18 +39067,6 @@
     "new_key": "CSV8C-190",
     "method": "exact_name"
   },
-  "11508": {
-    "new_key": "CSV8C-187",
-    "method": "fuzzy_effect"
-  },
-  "12575": {
-    "new_key": "CSV8C-187",
-    "method": "fuzzy_effect"
-  },
-  "12964": {
-    "new_key": "CSV8C-187",
-    "method": "fuzzy_effect"
-  },
   "4515": {
     "new_key": "CSM2.1C-021",
     "method": "name_mark_rarity"
@@ -39771,10 +39167,6 @@
     "new_key": "CS4.5C-054",
     "method": "exact_name"
   },
-  "9612": {
-    "new_key": "CSV5C-118",
-    "method": "fuzzy_effect"
-  },
   "8363": {
     "new_key": "CSV1C-114",
     "method": "exact_name"
@@ -39819,10 +39211,6 @@
     "new_key": "CSVE1C-134",
     "method": "name_mark_rarity"
   },
-  "931": {
-    "new_key": "CS3aC-111",
-    "method": "fuzzy_effect"
-  },
   "3280": {
     "new_key": "CSM2bC-135",
     "method": "exact_name"
@@ -39838,22 +39226,6 @@
   "1423": {
     "new_key": "CS2bC-106",
     "method": "name_mark"
-  },
-  "9025": {
-    "new_key": "CSVE2C-166",
-    "method": "fuzzy_effect_rarity"
-  },
-  "10280": {
-    "new_key": "CSVE2C-166",
-    "method": "fuzzy_effect_rarity"
-  },
-  "11745": {
-    "new_key": "CSVE2C-166",
-    "method": "fuzzy_effect_rarity"
-  },
-  "12747": {
-    "new_key": "CSVE2C-166",
-    "method": "fuzzy_effect_rarity"
   },
   "8800": {
     "new_key": "CSVE2C-170",
@@ -39907,49 +39279,9 @@
     "new_key": "CSVH4aC-017",
     "method": "name_mark_rarity"
   },
-  "10284": {
-    "new_key": "CSVH3aC-017",
-    "method": "fuzzy_effect_rarity"
-  },
   "9901": {
     "new_key": "CSVH4aC-016",
     "method": "name_mark_rarity"
-  },
-  "12582": {
-    "new_key": "CSVH3aC-017",
-    "method": "fuzzy_effect_rarity"
-  },
-  "12970": {
-    "new_key": "CSVH3aC-017",
-    "method": "fuzzy_effect_rarity"
-  },
-  "10021": {
-    "new_key": "CSVH3aC-017",
-    "method": "fuzzy_effect_rarity"
-  },
-  "12052": {
-    "new_key": "CSVH3aC-017",
-    "method": "fuzzy_effect_rarity"
-  },
-  "10087": {
-    "new_key": "CSVH3aC-017",
-    "method": "fuzzy_effect_rarity"
-  },
-  "11639": {
-    "new_key": "CSVH3aC-017",
-    "method": "fuzzy_effect_rarity"
-  },
-  "12051": {
-    "new_key": "CSVH3aC-017",
-    "method": "fuzzy_effect_rarity"
-  },
-  "12581": {
-    "new_key": "CSVH3aC-017",
-    "method": "fuzzy_effect_rarity"
-  },
-  "12969": {
-    "new_key": "CSVH3aC-017",
-    "method": "fuzzy_effect_rarity"
   },
   "12177": {
     "new_key": "CSV9C-195",
@@ -39966,10 +39298,6 @@
   "3795": {
     "new_key": "CSM2.5C-049",
     "method": "name_mark"
-  },
-  "10085": {
-    "new_key": "CSVE2C-168",
-    "method": "fuzzy_effect_rarity"
   },
   "4671": {
     "new_key": "CSM2DC-337",
@@ -40026,10 +39354,6 @@
   "5187": {
     "new_key": "CSM1.5C-054",
     "method": "name_mark"
-  },
-  "5751": {
-    "new_key": "CSM1aC-149",
-    "method": "fuzzy_effect"
   },
   "5189": {
     "new_key": "CSM1bC-148",
@@ -40203,22 +39527,6 @@
     "new_key": "CS2aC-112",
     "method": "exact_name"
   },
-  "1142": {
-    "new_key": "CSVE1C-166",
-    "method": "fuzzy_effect_rarity"
-  },
-  "2459": {
-    "new_key": "CSVE1C-166",
-    "method": "fuzzy_effect_rarity"
-  },
-  "8119": {
-    "new_key": "CSVE1C-166",
-    "method": "fuzzy_effect_rarity"
-  },
-  "8210": {
-    "new_key": "CSVE1C-166",
-    "method": "fuzzy_effect_rarity"
-  },
   "2609": {
     "new_key": "CSBC-017",
     "method": "name_mark_rarity"
@@ -40226,10 +39534,6 @@
   "6094": {
     "new_key": "CSBC-017",
     "method": "name_mark_rarity"
-  },
-  "99": {
-    "new_key": "CSVE2C-199",
-    "method": "fuzzy_effect_rarity"
   },
   "1075": {
     "new_key": "CSVE2C-198",
@@ -40319,30 +39623,6 @@
     "new_key": "SSP-187",
     "method": "exact_name"
   },
-  "6250": {
-    "new_key": "CS5DC-152",
-    "method": "fuzzy_effect"
-  },
-  "8125": {
-    "new_key": "CS5DC-152",
-    "method": "fuzzy_effect"
-  },
-  "8211": {
-    "new_key": "CS5DC-152",
-    "method": "fuzzy_effect"
-  },
-  "8588": {
-    "new_key": "CS5DC-152",
-    "method": "fuzzy_effect"
-  },
-  "9689": {
-    "new_key": "CS5DC-152",
-    "method": "fuzzy_effect"
-  },
-  "9823": {
-    "new_key": "CS5DC-152",
-    "method": "fuzzy_effect"
-  },
   "7110": {
     "new_key": "CSVE1C-167",
     "method": "name_mark_rarity"
@@ -40375,18 +39655,6 @@
     "new_key": "CSVM2bC-032",
     "method": "name_mark_rarity"
   },
-  "9618": {
-    "new_key": "CSVM1aC-031",
-    "method": "fuzzy_effect_rarity"
-  },
-  "10297": {
-    "new_key": "CSVM1aC-031",
-    "method": "fuzzy_effect_rarity"
-  },
-  "12063": {
-    "new_key": "CSVM1aC-031",
-    "method": "fuzzy_effect_rarity"
-  },
   "8370": {
     "new_key": "CSV4C-127",
     "method": "name_mark"
@@ -40410,14 +39678,6 @@
   "9794": {
     "new_key": "SVP-NaN1",
     "method": "name_legal"
-  },
-  "8660": {
-    "new_key": "CSV4C-128",
-    "method": "fuzzy_effect"
-  },
-  "10301": {
-    "new_key": "CSV4C-128",
-    "method": "fuzzy_effect"
   },
   "8659": {
     "new_key": "CSVE2C-200",
@@ -40455,10 +39715,6 @@
     "new_key": "CSV6C-127",
     "method": "exact_name"
   },
-  "12181": {
-    "new_key": "CSV9C-206",
-    "method": "fuzzy_effect"
-  },
   "11383": {
     "new_key": "CSV8C-201",
     "method": "name_mark"
@@ -40470,10 +39726,6 @@
   "12989": {
     "new_key": "CSV8C-201",
     "method": "name_mark"
-  },
-  "11182": {
-    "new_key": "CSV8C-202",
-    "method": "fuzzy_effect"
   },
   "11893": {
     "new_key": "CSVM2aC-031",
@@ -40507,14 +39759,6 @@
     "new_key": "SVP-200",
     "method": "name_mark_rarity"
   },
-  "12182": {
-    "new_key": "CSV7C-201",
-    "method": "fuzzy_effect"
-  },
-  "12387": {
-    "new_key": "CSV7C-201",
-    "method": "fuzzy_effect"
-  },
   "11514": {
     "new_key": "CSV8C-204",
     "method": "name_mark"
@@ -40522,10 +39766,6 @@
   "12605": {
     "new_key": "CSV8C-204",
     "method": "name_mark"
-  },
-  "11892": {
-    "new_key": "CSV9C-205",
-    "method": "fuzzy_effect"
   },
   "11384": {
     "new_key": "CSVM2aC-030",
@@ -41143,10 +40383,6 @@
     "new_key": "CSMPpC-010",
     "method": "name_mark_rarity"
   },
-  "4675": {
-    "new_key": "CSM1bC-151",
-    "method": "fuzzy_effect"
-  },
   "3988": {
     "new_key": "CSM1DC-324",
     "method": "name_mark"
@@ -41171,18 +40407,6 @@
     "new_key": "CSM1cC-150",
     "method": "exact_name"
   },
-  "5754": {
-    "new_key": "CSM1.5C-058",
-    "method": "fuzzy_effect"
-  },
-  "5755": {
-    "new_key": "CSM1.5C-060",
-    "method": "fuzzy_effect"
-  },
-  "5193": {
-    "new_key": "CSM1.5C-059",
-    "method": "fuzzy_effect"
-  },
   "5192": {
     "new_key": "CSM1cC-151",
     "method": "exact_name"
@@ -41190,14 +40414,6 @@
   "5191": {
     "new_key": "CSM1aC-150",
     "method": "exact_name"
-  },
-  "4511": {
-    "new_key": "CSM2bC-150",
-    "method": "fuzzy_effect"
-  },
-  "3811": {
-    "new_key": "CSM2aC-150",
-    "method": "fuzzy_effect"
   },
   "4510": {
     "new_key": "CSM2.5C-061",
@@ -41222,90 +40438,6 @@
   "6110": {
     "new_key": "CS3DC-168",
     "method": "name_mark_rarity"
-  },
-  "1284": {
-    "new_key": "CS2.5C-058",
-    "method": "fuzzy_effect"
-  },
-  "1714": {
-    "new_key": "CS2.5C-058",
-    "method": "fuzzy_effect"
-  },
-  "1872": {
-    "new_key": "CS2.5C-058",
-    "method": "fuzzy_effect"
-  },
-  "2043": {
-    "new_key": "CS2.5C-058",
-    "method": "fuzzy_effect"
-  },
-  "2461": {
-    "new_key": "CS2.5C-058",
-    "method": "fuzzy_effect"
-  },
-  "6099": {
-    "new_key": "CS2.5C-058",
-    "method": "fuzzy_effect"
-  },
-  "1717": {
-    "new_key": "CS1.5C-053",
-    "method": "fuzzy_effect"
-  },
-  "1875": {
-    "new_key": "CS1.5C-053",
-    "method": "fuzzy_effect"
-  },
-  "2046": {
-    "new_key": "CS1.5C-053",
-    "method": "fuzzy_effect"
-  },
-  "2464": {
-    "new_key": "CS1.5C-053",
-    "method": "fuzzy_effect"
-  },
-  "2534": {
-    "new_key": "CS1.5C-053",
-    "method": "fuzzy_effect"
-  },
-  "3121": {
-    "new_key": "CS1.5C-053",
-    "method": "fuzzy_effect"
-  },
-  "6102": {
-    "new_key": "CS1.5C-053",
-    "method": "fuzzy_effect"
-  },
-  "1430": {
-    "new_key": "CS1.5C-052",
-    "method": "fuzzy_effect"
-  },
-  "1715": {
-    "new_key": "CS1.5C-052",
-    "method": "fuzzy_effect"
-  },
-  "1873": {
-    "new_key": "CS1.5C-052",
-    "method": "fuzzy_effect"
-  },
-  "2044": {
-    "new_key": "CS1.5C-052",
-    "method": "fuzzy_effect"
-  },
-  "2462": {
-    "new_key": "CS1.5C-052",
-    "method": "fuzzy_effect"
-  },
-  "2533": {
-    "new_key": "CS1.5C-052",
-    "method": "fuzzy_effect"
-  },
-  "6100": {
-    "new_key": "CS1.5C-052",
-    "method": "fuzzy_effect"
-  },
-  "6280": {
-    "new_key": "CS1.5C-052",
-    "method": "fuzzy_effect"
   },
   "1143": {
     "new_key": "CS1DC-207",
@@ -41367,86 +40499,6 @@
     "new_key": "CS1.5C-054",
     "method": "fuzzy_effect"
   },
-  "1285": {
-    "new_key": "CS2bC-115",
-    "method": "fuzzy_effect"
-  },
-  "1720": {
-    "new_key": "CS2bC-115",
-    "method": "fuzzy_effect"
-  },
-  "1878": {
-    "new_key": "CS2bC-115",
-    "method": "fuzzy_effect"
-  },
-  "2049": {
-    "new_key": "CS2bC-115",
-    "method": "fuzzy_effect"
-  },
-  "2467": {
-    "new_key": "CS2bC-115",
-    "method": "fuzzy_effect"
-  },
-  "2536": {
-    "new_key": "CS2bC-115",
-    "method": "fuzzy_effect"
-  },
-  "6105": {
-    "new_key": "CS2bC-115",
-    "method": "fuzzy_effect"
-  },
-  "1432": {
-    "new_key": "CS3DC-169",
-    "method": "fuzzy_effect_rarity"
-  },
-  "1722": {
-    "new_key": "CS3DC-169",
-    "method": "fuzzy_effect_rarity"
-  },
-  "1880": {
-    "new_key": "CS3DC-169",
-    "method": "fuzzy_effect_rarity"
-  },
-  "2051": {
-    "new_key": "CS3DC-169",
-    "method": "fuzzy_effect_rarity"
-  },
-  "2540": {
-    "new_key": "CS3DC-169",
-    "method": "fuzzy_effect_rarity"
-  },
-  "6107": {
-    "new_key": "CS3DC-169",
-    "method": "fuzzy_effect_rarity"
-  },
-  "6281": {
-    "new_key": "CS3DC-169",
-    "method": "fuzzy_effect_rarity"
-  },
-  "589": {
-    "new_key": "CS2bC-114",
-    "method": "fuzzy_effect"
-  },
-  "1716": {
-    "new_key": "CS2bC-114",
-    "method": "fuzzy_effect"
-  },
-  "1874": {
-    "new_key": "CS2bC-114",
-    "method": "fuzzy_effect"
-  },
-  "2045": {
-    "new_key": "CS2bC-114",
-    "method": "fuzzy_effect"
-  },
-  "2463": {
-    "new_key": "CS2bC-114",
-    "method": "fuzzy_effect"
-  },
-  "6101": {
-    "new_key": "CS2bC-114",
-    "method": "fuzzy_effect"
-  },
   "1076": {
     "new_key": "CSCC-018",
     "method": "name_mark_rarity"
@@ -41489,30 +40541,6 @@
   },
   "6106": {
     "new_key": "CS2.5C-059",
-    "method": "fuzzy_effect"
-  },
-  "1431": {
-    "new_key": "CS2aC-114",
-    "method": "fuzzy_effect"
-  },
-  "1719": {
-    "new_key": "CS2aC-114",
-    "method": "fuzzy_effect"
-  },
-  "1877": {
-    "new_key": "CS2aC-114",
-    "method": "fuzzy_effect"
-  },
-  "2048": {
-    "new_key": "CS2aC-114",
-    "method": "fuzzy_effect"
-  },
-  "2466": {
-    "new_key": "CS2aC-114",
-    "method": "fuzzy_effect"
-  },
-  "6104": {
-    "new_key": "CS2aC-114",
     "method": "fuzzy_effect"
   },
   "869": {
@@ -41575,14 +40603,6 @@
     "new_key": "CS6.5C-072",
     "method": "name_mark"
   },
-  "7695": {
-    "new_key": "CS6bC-131",
-    "method": "fuzzy_effect"
-  },
-  "7378": {
-    "new_key": "CSVE1C-172",
-    "method": "fuzzy_effect_rarity"
-  },
   "6251": {
     "new_key": "CS5DC-153",
     "method": "name_mark"
@@ -41622,22 +40642,6 @@
   "11761": {
     "new_key": "CS5DC-153",
     "method": "name_mark"
-  },
-  "8733": {
-    "new_key": "CSVE2C-207",
-    "method": "fuzzy_effect_rarity"
-  },
-  "9361": {
-    "new_key": "CSVE2C-207",
-    "method": "fuzzy_effect_rarity"
-  },
-  "10303": {
-    "new_key": "CSVE2C-207",
-    "method": "fuzzy_effect_rarity"
-  },
-  "12067": {
-    "new_key": "CSVE2C-207",
-    "method": "fuzzy_effect_rarity"
   },
   "8661": {
     "new_key": "CSVE2C-203",
@@ -41706,14 +40710,6 @@
   "11990": {
     "new_key": "CSV9C-208",
     "method": "exact_name"
-  },
-  "11385": {
-    "new_key": "CSV8C-207",
-    "method": "fuzzy_effect"
-  },
-  "12608": {
-    "new_key": "CSV8C-207",
-    "method": "fuzzy_effect"
   },
   "11183": {
     "new_key": "CSV8C-206",
