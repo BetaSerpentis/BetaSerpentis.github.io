@@ -2647,6 +2647,50 @@
     "new_key": "CSV9C-097",
     "method": "name_mark"
   },
+  "3388": {
+    "new_key": "151C-057",
+    "method": "trad2simp_legal"
+  },
+  "1795": {
+    "new_key": "CS2DaC-026",
+    "method": "trad2simp_mark"
+  },
+  "2569": {
+    "new_key": "CS2DaC-026",
+    "method": "trad2simp_mark"
+  },
+  "2239": {
+    "new_key": "CS2DaC-026",
+    "method": "trad2simp_mark"
+  },
+  "6577": {
+    "new_key": "CS2DaC-026",
+    "method": "trad2simp_mark"
+  },
+  "8420": {
+    "new_key": "151C-057",
+    "method": "trad2simp_mark"
+  },
+  "10215": {
+    "new_key": "151C-057",
+    "method": "trad2simp_mark"
+  },
+  "10720": {
+    "new_key": "151C-057",
+    "method": "trad2simp_mark"
+  },
+  "8923": {
+    "new_key": "151C-057",
+    "method": "trad2simp_mark"
+  },
+  "8701": {
+    "new_key": "151C-057",
+    "method": "trad2simp_mark"
+  },
+  "12137": {
+    "new_key": "CSV9C-098",
+    "method": "trad2simp_mark"
+  },
   "4852": {
     "new_key": "CSM1DC-031",
     "method": "name_mark"
@@ -3954,6 +3998,14 @@
   "8960": {
     "new_key": "151C-094",
     "method": "name_mark_attr"
+  },
+  "3342": {
+    "new_key": "CSM2.1C-051",
+    "method": "trad2simp_mark"
+  },
+  "3874": {
+    "new_key": "CSM2.1C-051",
+    "method": "trad2simp_mark"
   },
   "10844": {
     "new_key": "SVP-214",
@@ -6927,6 +6979,26 @@
     "new_key": "CS5aC-008",
     "method": "name_mark"
   },
+  "6928": {
+    "new_key": "CS5aC-035",
+    "method": "trad2simp"
+  },
+  "6817": {
+    "new_key": "SSP-191",
+    "method": "trad2simp_mark_rarity"
+  },
+  "7772": {
+    "new_key": "SSP-191",
+    "method": "trad2simp_mark_rarity"
+  },
+  "8866": {
+    "new_key": "SSP-191",
+    "method": "trad2simp_mark_rarity"
+  },
+  "6818": {
+    "new_key": "CS5aC-037",
+    "method": "trad2simp_mark"
+  },
   "4865": {
     "new_key": "CSV7C-052",
     "method": "name_legal"
@@ -9302,6 +9374,34 @@
   "12141": {
     "new_key": "CSV8C-105",
     "method": "name_mark"
+  },
+  "4634": {
+    "new_key": "CSM1aC-111",
+    "method": "trad2simp_mark"
+  },
+  "3261": {
+    "new_key": "CSM2.5C-042",
+    "method": "trad2simp_mark"
+  },
+  "922": {
+    "new_key": "CS4DaC-339",
+    "method": "trad2simp_mark_rarity"
+  },
+  "6706": {
+    "new_key": "CS4DaC-339",
+    "method": "trad2simp_mark_rarity"
+  },
+  "7362": {
+    "new_key": "CS6.5C-058",
+    "method": "trad2simp_mark"
+  },
+  "10073": {
+    "new_key": "CSVH5C-027",
+    "method": "trad2simp_mark_rarity"
+  },
+  "10108": {
+    "new_key": "CSVH5C-027",
+    "method": "trad2simp_mark_rarity"
   },
   "1131": {
     "new_key": "CS4DaC-343",
@@ -15383,6 +15483,18 @@
     "new_key": "CSV9C-004",
     "method": "name_mark"
   },
+  "3671": {
+    "new_key": "CSVE1C-035",
+    "method": "trad2simp_legal_rarity"
+  },
+  "7305": {
+    "new_key": "CSVE1C-035",
+    "method": "trad2simp_mark_rarity"
+  },
+  "11811": {
+    "new_key": "CSVH5eC-016",
+    "method": "trad2simp_mark"
+  },
   "3672": {
     "new_key": "CS6bC-017",
     "method": "name_legal"
@@ -16070,6 +16182,26 @@
   "13185": {
     "new_key": "CSV10C-104",
     "method": "name_mark_attr"
+  },
+  "3262": {
+    "new_key": "CSM2.5C-043",
+    "method": "trad2simp_mark"
+  },
+  "923": {
+    "new_key": "CS4DaC-340",
+    "method": "trad2simp_mark_rarity"
+  },
+  "6707": {
+    "new_key": "CS4DaC-340",
+    "method": "trad2simp_mark_rarity"
+  },
+  "7363": {
+    "new_key": "CS6.5C-059",
+    "method": "trad2simp_mark"
+  },
+  "10074": {
+    "new_key": "CSVH5C-028",
+    "method": "trad2simp_mark_rarity"
   },
   "4384": {
     "new_key": "CSM2DC-118",
@@ -18479,6 +18611,22 @@
     "new_key": "CSV9C-086",
     "method": "name_mark"
   },
+  "5056": {
+    "new_key": "CSM1aC-045",
+    "method": "trad2simp_mark"
+  },
+  "12128": {
+    "new_key": "CSV9C-087",
+    "method": "trad2simp_mark"
+  },
+  "9989": {
+    "new_key": "CSV6C-057",
+    "method": "trad2simp_mark"
+  },
+  "11559": {
+    "new_key": "CSV6C-057",
+    "method": "trad2simp_mark"
+  },
   "3678": {
     "new_key": "CSM2bC-030",
     "method": "name_mark"
@@ -19118,6 +19266,10 @@
   "758": {
     "new_key": "CS3bC-042",
     "method": "exact_name"
+  },
+  "8497": {
+    "new_key": "CSV1C-031",
+    "method": "override"
   },
   "13022": {
     "new_key": "CSV10C-076",
@@ -21378,6 +21530,38 @@
   "13044": {
     "new_key": "CSVH5eC-034",
     "method": "name_mark"
+  },
+  "3743": {
+    "new_key": "CSM2DC-156",
+    "method": "trad2simp_mark"
+  },
+  "4243": {
+    "new_key": "CSM2DC-156",
+    "method": "trad2simp_mark"
+  },
+  "851": {
+    "new_key": "CS4DaC-284",
+    "method": "trad2simp_mark"
+  },
+  "1982": {
+    "new_key": "CS4DaC-284",
+    "method": "trad2simp_mark"
+  },
+  "6651": {
+    "new_key": "CS4DaC-284",
+    "method": "trad2simp_mark"
+  },
+  "7656": {
+    "new_key": "CS6bC-096",
+    "method": "trad2simp_mark"
+  },
+  "11854": {
+    "new_key": "CSV9C-120",
+    "method": "trad2simp_mark"
+  },
+  "13056": {
+    "new_key": "CSVH5eC-035",
+    "method": "trad2simp_mark"
   },
   "928": {
     "new_key": "CS3DC-124",
@@ -24575,6 +24759,70 @@
     "new_key": "SVP-262",
     "method": "name_mark"
   },
+  "5684": {
+    "new_key": "CSM1cC-092",
+    "method": "trad2simp_mark"
+  },
+  "4412": {
+    "new_key": "CSM2.5C-022",
+    "method": "trad2simp_mark"
+  },
+  "4413": {
+    "new_key": "CSM2.5C-022",
+    "method": "trad2simp_mark"
+  },
+  "1222": {
+    "new_key": "CS2.5C-020",
+    "method": "trad2simp_mark"
+  },
+  "7328": {
+    "new_key": "CSVE1C-059",
+    "method": "override_rarity"
+  },
+  "8696": {
+    "new_key": "CS4.5C-091",
+    "method": "override"
+  },
+  "10202": {
+    "new_key": "CBB3C-1301",
+    "method": "trad2simp_mark"
+  },
+  "10708": {
+    "new_key": "CBB3C-1301",
+    "method": "trad2simp_mark"
+  },
+  "10784": {
+    "new_key": "CBB3C-1301",
+    "method": "trad2simp_mark"
+  },
+  "11388": {
+    "new_key": "CBB3C-1301",
+    "method": "trad2simp_mark"
+  },
+  "12405": {
+    "new_key": "CBB3C-1301",
+    "method": "trad2simp_mark"
+  },
+  "1789": {
+    "new_key": "CS4DaC-197",
+    "method": "override_rarity"
+  },
+  "2567": {
+    "new_key": "CS4DaC-197",
+    "method": "trad2simp_mark_rarity"
+  },
+  "6004": {
+    "new_key": "CS4DaC-197",
+    "method": "trad2simp_mark_rarity"
+  },
+  "6565": {
+    "new_key": "CS4DaC-197",
+    "method": "trad2simp_mark_rarity"
+  },
+  "6005": {
+    "new_key": "CS4.5C-025",
+    "method": "override"
+  },
   "759": {
     "new_key": "CS4DaC-114",
     "method": "name_mark"
@@ -26287,6 +26535,98 @@
     "new_key": "CS4.1C-013",
     "method": "name_mark_attr_rarity"
   },
+  "1255": {
+    "new_key": "CS1DC-126",
+    "method": "trad2simp_mark"
+  },
+  "1531": {
+    "new_key": "CS1DC-126",
+    "method": "trad2simp_mark"
+  },
+  "2469": {
+    "new_key": "CS1DC-126",
+    "method": "trad2simp_mark"
+  },
+  "2895": {
+    "new_key": "CS1DC-126",
+    "method": "trad2simp_mark"
+  },
+  "3046": {
+    "new_key": "CS1DC-126",
+    "method": "trad2simp_mark"
+  },
+  "1256": {
+    "new_key": "CS1DC-126",
+    "method": "trad2simp_mark"
+  },
+  "1532": {
+    "new_key": "CS1DC-126",
+    "method": "trad2simp_mark"
+  },
+  "6128": {
+    "new_key": "CS1DC-126",
+    "method": "trad2simp_mark"
+  },
+  "1041": {
+    "new_key": "CS4bC-080",
+    "method": "trad2simp_mark"
+  },
+  "6947": {
+    "new_key": "CS6bC-102",
+    "method": "trad2simp_mark"
+  },
+  "8047": {
+    "new_key": "CS6bC-102",
+    "method": "trad2simp_mark"
+  },
+  "9885": {
+    "new_key": "CSV5C-090",
+    "method": "trad2simp_mark"
+  },
+  "2470": {
+    "new_key": "CS1DC-127",
+    "method": "trad2simp_mark"
+  },
+  "2896": {
+    "new_key": "CS1DC-127",
+    "method": "trad2simp_mark"
+  },
+  "3047": {
+    "new_key": "CS1DC-127",
+    "method": "trad2simp_mark"
+  },
+  "1257": {
+    "new_key": "CS1DC-127",
+    "method": "trad2simp_mark"
+  },
+  "1533": {
+    "new_key": "CS1DC-127",
+    "method": "trad2simp_mark"
+  },
+  "6129": {
+    "new_key": "CS1DC-127",
+    "method": "trad2simp_mark"
+  },
+  "1042": {
+    "new_key": "CS4bC-081",
+    "method": "trad2simp_mark"
+  },
+  "6948": {
+    "new_key": "CS6bC-103",
+    "method": "trad2simp_mark"
+  },
+  "8048": {
+    "new_key": "CS6bC-103",
+    "method": "trad2simp_mark"
+  },
+  "8234": {
+    "new_key": "CS6bC-103",
+    "method": "trad2simp_mark"
+  },
+  "9886": {
+    "new_key": "CSV5C-091",
+    "method": "trad2simp_mark"
+  },
   "314": {
     "new_key": "CS1DC-022",
     "method": "name_mark_attr"
@@ -27035,6 +27375,26 @@
     "new_key": "CS2DaC-018",
     "method": "name_mark"
   },
+  "1107": {
+    "new_key": "CS1.5C-018",
+    "method": "override"
+  },
+  "36": {
+    "new_key": "CS1aC-040",
+    "method": "override"
+  },
+  "8401": {
+    "new_key": "CS1aC-040",
+    "method": "override"
+  },
+  "9548": {
+    "new_key": "CS1aC-099",
+    "method": "override"
+  },
+  "10050": {
+    "new_key": "CS1bC-038",
+    "method": "override"
+  },
   "2649": {
     "new_key": "CS1.5C-019",
     "method": "name_mark_attr"
@@ -27746,6 +28106,22 @@
   "6331": {
     "new_key": "SSP-116",
     "method": "exact_name"
+  },
+  "391": {
+    "new_key": "CS1aC-096",
+    "method": "trad2simp_mark"
+  },
+  "2708": {
+    "new_key": "CS1aC-096",
+    "method": "trad2simp_mark"
+  },
+  "632": {
+    "new_key": "CS4DaC-307",
+    "method": "override"
+  },
+  "6599": {
+    "new_key": "CS4DaC-307",
+    "method": "override"
   },
   "541": {
     "new_key": "CS1DC-094",
@@ -29171,6 +29547,10 @@
     "new_key": "CSVNC-021",
     "method": "name_mark_attr_rarity"
   },
+  "11169": {
+    "new_key": "CSVM2bC-009",
+    "method": "override_rarity"
+  },
   "12555": {
     "new_key": "CSVM2bC-009",
     "method": "name_mark_attr_rarity"
@@ -29206,6 +29586,14 @@
   "7016": {
     "new_key": "CS6bC-104",
     "method": "name_mark_attr"
+  },
+  "6836": {
+    "new_key": "CS5aC-074",
+    "method": "override"
+  },
+  "6885": {
+    "new_key": "CS5aC-074",
+    "method": "override"
   },
   "7497": {
     "new_key": "SSP-182",
@@ -29534,6 +29922,10 @@
   "12234": {
     "new_key": "CSVSC-047",
     "method": "name_mark_attr"
+  },
+  "9744": {
+    "new_key": "CSVH5pC-003",
+    "method": "override_rarity"
   },
   "8532": {
     "new_key": "CSV4C-111",
@@ -31007,6 +31399,10 @@
     "new_key": "CSV8C-149",
     "method": "name_mark_attr"
   },
+  "9741": {
+    "new_key": "CSV4C-087",
+    "method": "name_mark_attr"
+  },
   "8353": {
     "new_key": "CSV1C-097",
     "method": "name_mark_attr"
@@ -31514,6 +31910,26 @@
   "13189": {
     "new_key": "CSV10C-179",
     "method": "name_mark_attr"
+  },
+  "9593": {
+    "new_key": "CSVH1pC-006",
+    "method": "override_rarity"
+  },
+  "8350": {
+    "new_key": "CSVH1pC-006",
+    "method": "override_rarity"
+  },
+  "10238": {
+    "new_key": "CSVH1pC-006",
+    "method": "trad2simp_mark_rarity"
+  },
+  "10737": {
+    "new_key": "CSVH1pC-006",
+    "method": "trad2simp_mark_rarity"
+  },
+  "12224": {
+    "new_key": "CSVSC-037",
+    "method": "trad2simp_mark"
   },
   "10839": {
     "new_key": "CSVH4C-013",
@@ -32411,6 +32827,18 @@
     "new_key": "CSVM2aC-006",
     "method": "name_mark_attr_rarity"
   },
+  "11299": {
+    "new_key": "CSVH4C-004",
+    "method": "override_rarity"
+  },
+  "11349": {
+    "new_key": "CSV8C-121",
+    "method": "override"
+  },
+  "11322": {
+    "new_key": "CSV8C-067",
+    "method": "override"
+  },
   "11864": {
     "new_key": "CSV9.5C-127",
     "method": "name_mark_attr"
@@ -32655,6 +33083,10 @@
     "new_key": "CSXC-015",
     "method": "name_mark_rarity"
   },
+  "11510": {
+    "new_key": "CSV8C-109",
+    "method": "override"
+  },
   "7107": {
     "new_key": "CS5bC-122",
     "method": "name_mark"
@@ -32678,6 +33110,22 @@
   "2525": {
     "new_key": "CS2.5C-054",
     "method": "name_mark"
+  },
+  "3491": {
+    "new_key": "CSM2.1C-024",
+    "method": "trad2simp_mark_rarity"
+  },
+  "4820": {
+    "new_key": "CSM2.1C-024",
+    "method": "trad2simp_mark_rarity"
+  },
+  "5913": {
+    "new_key": "CSM2.1C-024",
+    "method": "trad2simp_mark_rarity"
+  },
+  "6076": {
+    "new_key": "CS4.5C-059",
+    "method": "override"
   },
   "8657": {
     "new_key": "CSV3C-124",
@@ -32895,6 +33343,10 @@
     "new_key": "CSVE2C-177",
     "method": "name_mark_rarity"
   },
+  "3472": {
+    "new_key": "CSMPeC-018",
+    "method": "fuzzy_effect_rarity"
+  },
   "5177": {
     "new_key": "CSM1DC-301",
     "method": "name_mark"
@@ -32902,6 +33354,18 @@
   "5923": {
     "new_key": "CSM1DC-302",
     "method": "name_mark"
+  },
+  "1427": {
+    "new_key": "CS1.5C-050",
+    "method": "fuzzy_effect"
+  },
+  "1586": {
+    "new_key": "CS1.5C-050",
+    "method": "fuzzy_effect"
+  },
+  "1707": {
+    "new_key": "CS1.5C-050",
+    "method": "fuzzy_effect"
   },
   "1584": {
     "new_key": "CS3DC-159",
@@ -33607,6 +34071,10 @@
     "new_key": "CSVH5aC-019",
     "method": "name_mark_rarity"
   },
+  "5182": {
+    "new_key": "CSM1.5C-049",
+    "method": "fuzzy_effect"
+  },
   "8467": {
     "new_key": "CSVE1C-153",
     "method": "name_mark"
@@ -33775,6 +34243,22 @@
     "new_key": "CSMPhC-017",
     "method": "name_mark_rarity"
   },
+  "3984": {
+    "new_key": "CSM1DC-279",
+    "method": "fuzzy_effect"
+  },
+  "4314": {
+    "new_key": "CSM1DC-279",
+    "method": "fuzzy_effect"
+  },
+  "4517": {
+    "new_key": "CSM1DC-279",
+    "method": "fuzzy_effect"
+  },
+  "5733": {
+    "new_key": "CSM1DC-279",
+    "method": "fuzzy_effect"
+  },
   "11178": {
     "new_key": "CSV8C-194",
     "method": "name_mark"
@@ -33850,6 +34334,18 @@
   "8145": {
     "new_key": "CS1DC-201",
     "method": "name_mark"
+  },
+  "6245": {
+    "new_key": "CSVE2C-184",
+    "method": "fuzzy_effect_rarity"
+  },
+  "8111": {
+    "new_key": "CSVE2C-184",
+    "method": "fuzzy_effect_rarity"
+  },
+  "8283": {
+    "new_key": "CSVE2C-184",
+    "method": "fuzzy_effect_rarity"
   },
   "95": {
     "new_key": "CSVE1C-139",
@@ -34367,6 +34863,18 @@
     "new_key": "CSM1.5C-048",
     "method": "name_mark"
   },
+  "11989": {
+    "new_key": "CSVH5aC-023",
+    "method": "fuzzy_effect_rarity"
+  },
+  "12347": {
+    "new_key": "CSVH5aC-023",
+    "method": "fuzzy_effect_rarity"
+  },
+  "12352": {
+    "new_key": "CSVH5aC-023",
+    "method": "fuzzy_effect_rarity"
+  },
   "586": {
     "new_key": "CSIC-007",
     "method": "name_mark_rarity"
@@ -34647,6 +35155,10 @@
     "new_key": "CBB2C-1004",
     "method": "name_mark"
   },
+  "6754": {
+    "new_key": "CSVL2C-052",
+    "method": "override_rarity"
+  },
   "2927": {
     "new_key": "CS1DC-192",
     "method": "name_mark"
@@ -34674,6 +35186,10 @@
   "3475": {
     "new_key": "CSM2DC-310",
     "method": "name_mark"
+  },
+  "9029": {
+    "new_key": "CSV4C-110",
+    "method": "override"
   },
   "1140": {
     "new_key": "CS4DaC-401",
@@ -35499,6 +36015,10 @@
     "new_key": "CSM2cC-140",
     "method": "exact_name"
   },
+  "5731": {
+    "new_key": "CSM1DC-276",
+    "method": "fuzzy_effect"
+  },
   "1005": {
     "new_key": "CS4DaC-397",
     "method": "name_mark_rarity"
@@ -35542,6 +36062,10 @@
   "13192": {
     "new_key": "CSVM2bC-025",
     "method": "name_mark_rarity"
+  },
+  "3473": {
+    "new_key": "CSM2DC-301",
+    "method": "override"
   },
   "3474": {
     "new_key": "CSM2DC-307",
@@ -35787,6 +36311,18 @@
     "new_key": "CSM2cC-144",
     "method": "exact_name"
   },
+  "9030": {
+    "new_key": "CSVH4C-058",
+    "method": "fuzzy_effect_rarity"
+  },
+  "9065": {
+    "new_key": "CSVH4C-058",
+    "method": "fuzzy_effect_rarity"
+  },
+  "12781": {
+    "new_key": "CSVH4C-058",
+    "method": "fuzzy_effect_rarity"
+  },
   "1006": {
     "new_key": "CS3DC-155",
     "method": "name_mark"
@@ -35923,6 +36459,18 @@
     "new_key": "CS5DC-115",
     "method": "name_mark"
   },
+  "6892": {
+    "new_key": "CS4DaC-368",
+    "method": "override_rarity"
+  },
+  "8090": {
+    "new_key": "CS5DC-126",
+    "method": "trad2simp_mark"
+  },
+  "9666": {
+    "new_key": "CS5DC-126",
+    "method": "trad2simp_mark"
+  },
   "3465": {
     "new_key": "CSM2DC-269",
     "method": "name_mark"
@@ -35935,49 +36483,53 @@
     "new_key": "CSV9C-188",
     "method": "exact_name"
   },
+  "11979": {
+    "new_key": "CSVH5aC-008",
+    "method": "fuzzy_effect_rarity"
+  },
   "1577": {
     "new_key": "CS1DC-178",
-    "method": "fuzzy_effect"
+    "method": "trad2simp_mark_rarity"
   },
   "1691": {
     "new_key": "CS1DC-178",
-    "method": "fuzzy_effect"
+    "method": "trad2simp_mark_rarity"
   },
   "1851": {
     "new_key": "CS1DC-178",
-    "method": "fuzzy_effect"
+    "method": "trad2simp_mark_rarity"
   },
   "2014": {
     "new_key": "CS1DC-178",
-    "method": "fuzzy_effect"
+    "method": "trad2simp_mark_rarity"
   },
   "2438": {
     "new_key": "CS1DC-178",
-    "method": "fuzzy_effect"
+    "method": "trad2simp_mark_rarity"
   },
   "3276": {
     "new_key": "CS1DC-178",
-    "method": "fuzzy_effect"
+    "method": "trad2simp_mark_rarity"
   },
   "3815": {
     "new_key": "CS1DC-178",
-    "method": "fuzzy_effect"
+    "method": "trad2simp_mark_rarity"
   },
   "3959": {
     "new_key": "CS1DC-178",
-    "method": "fuzzy_effect"
+    "method": "trad2simp_mark_rarity"
   },
   "4306": {
     "new_key": "CS1DC-178",
-    "method": "fuzzy_effect"
+    "method": "trad2simp_mark_rarity"
   },
   "6142": {
     "new_key": "CS1DC-178",
-    "method": "fuzzy_effect"
+    "method": "trad2simp_mark_rarity"
   },
   "6894": {
     "new_key": "CS1DC-178",
-    "method": "fuzzy_effect"
+    "method": "trad2simp_mark_rarity"
   },
   "5906": {
     "new_key": "CSM1DC-256",
@@ -36387,6 +36939,22 @@
     "new_key": "CSV9.5C-160",
     "method": "name_mark"
   },
+  "11378": {
+    "new_key": "CSVH4C-041",
+    "method": "fuzzy_effect_rarity"
+  },
+  "11659": {
+    "new_key": "CSVH4C-041",
+    "method": "fuzzy_effect_rarity"
+  },
+  "12571": {
+    "new_key": "CSVH4C-041",
+    "method": "fuzzy_effect_rarity"
+  },
+  "12961": {
+    "new_key": "CSVH4C-041",
+    "method": "fuzzy_effect_rarity"
+  },
   "7560": {
     "new_key": "CSVH1aC-009",
     "method": "name_mark_rarity"
@@ -36655,6 +37223,10 @@
     "new_key": "CBB3C-1902",
     "method": "name_mark_rarity"
   },
+  "791": {
+    "new_key": "CSCC-007",
+    "method": "override_rarity"
+  },
   "11882": {
     "new_key": "SVP-013",
     "method": "fuzzy_effect"
@@ -36679,6 +37251,46 @@
     "new_key": "CSM1DC-251",
     "method": "name_mark"
   },
+  "10018": {
+    "new_key": "CSVH4C-034",
+    "method": "fuzzy_effect_rarity"
+  },
+  "10950": {
+    "new_key": "CSVH4C-034",
+    "method": "fuzzy_effect_rarity"
+  },
+  "11018": {
+    "new_key": "CSVH4C-034",
+    "method": "fuzzy_effect_rarity"
+  },
+  "11678": {
+    "new_key": "CSVH4C-034",
+    "method": "fuzzy_effect_rarity"
+  },
+  "11700": {
+    "new_key": "CSVH4C-034",
+    "method": "fuzzy_effect_rarity"
+  },
+  "11755": {
+    "new_key": "CSVH4C-034",
+    "method": "fuzzy_effect_rarity"
+  },
+  "11790": {
+    "new_key": "CSVH4C-034",
+    "method": "fuzzy_effect_rarity"
+  },
+  "12038": {
+    "new_key": "CSVH4C-034",
+    "method": "fuzzy_effect_rarity"
+  },
+  "12564": {
+    "new_key": "CSVH4C-034",
+    "method": "fuzzy_effect_rarity"
+  },
+  "12957": {
+    "new_key": "CSVH4C-034",
+    "method": "fuzzy_effect_rarity"
+  },
   "4964": {
     "new_key": "CSM1DC-234",
     "method": "name_mark"
@@ -36702,6 +37314,10 @@
   "6265": {
     "new_key": "CS1.5C-047",
     "method": "name_mark"
+  },
+  "7369": {
+    "new_key": "CSVE1C-114",
+    "method": "fuzzy_effect_rarity"
   },
   "793": {
     "new_key": "CBB2C-1002",
@@ -36811,6 +37427,10 @@
     "new_key": "CSVM2aC-021",
     "method": "name_mark_rarity"
   },
+  "10858": {
+    "new_key": "CSV7C-174",
+    "method": "fuzzy_effect"
+  },
   "5896": {
     "new_key": "CSM1DC-235",
     "method": "name_mark"
@@ -36822,6 +37442,14 @@
   "6060": {
     "new_key": "CS3aC-106",
     "method": "name_mark"
+  },
+  "91": {
+    "new_key": "CS5.1C-023",
+    "method": "fuzzy_effect_rarity"
+  },
+  "9670": {
+    "new_key": "CS5.1C-023",
+    "method": "fuzzy_effect_rarity"
   },
   "4647": {
     "new_key": "CSM1DC-236",
@@ -36854,6 +37482,10 @@
   "12954": {
     "new_key": "CSM1DC-236",
     "method": "name_mark_rarity"
+  },
+  "11981": {
+    "new_key": "CSVH5aC-011",
+    "method": "fuzzy_effect_rarity"
   },
   "5161": {
     "new_key": "CSM1bC-127",
@@ -37183,6 +37815,10 @@
     "new_key": "CSVH5aC-007",
     "method": "name_mark_rarity"
   },
+  "10860": {
+    "new_key": "CSVM1aC-013",
+    "method": "override_rarity"
+  },
   "13085": {
     "new_key": "CSV10C-195",
     "method": "exact_name"
@@ -37246,6 +37882,22 @@
   "4808": {
     "new_key": "CSM1DC-243",
     "method": "name_mark"
+  },
+  "1418": {
+    "new_key": "CS3DC-119",
+    "method": "override_rarity"
+  },
+  "6869": {
+    "new_key": "CS5DC-121",
+    "method": "fuzzy_effect"
+  },
+  "8088": {
+    "new_key": "CS5DC-121",
+    "method": "fuzzy_effect"
+  },
+  "8573": {
+    "new_key": "CS5DC-121",
+    "method": "fuzzy_effect"
   },
   "6966": {
     "new_key": "CSVE1C-116",
@@ -37447,6 +38099,10 @@
     "new_key": "CSV5C-115",
     "method": "exact_name"
   },
+  "1132": {
+    "new_key": "CSV5C-115",
+    "method": "override"
+  },
   "580": {
     "new_key": "CS3DC-138",
     "method": "name_mark_rarity"
@@ -37639,6 +38295,10 @@
     "new_key": "CSM2.1C-014",
     "method": "name_mark_rarity"
   },
+  "6239": {
+    "new_key": "CSVM1aC-022",
+    "method": "override_rarity"
+  },
   "861": {
     "new_key": "CS4aC-119",
     "method": "exact_name"
@@ -37671,6 +38331,14 @@
     "new_key": "CSV8C-176",
     "method": "exact_name"
   },
+  "9611": {
+    "new_key": "CSVE2C-155",
+    "method": "fuzzy_effect_rarity"
+  },
+  "10276": {
+    "new_key": "CSVE2C-155",
+    "method": "fuzzy_effect_rarity"
+  },
   "1274": {
     "new_key": "CS2.1C-004",
     "method": "name_mark"
@@ -37678,6 +38346,10 @@
   "5720": {
     "new_key": "CSM2DC-268",
     "method": "name_mark_rarity"
+  },
+  "2506": {
+    "new_key": "CS4DaC-254",
+    "method": "override_rarity"
   },
   "5150": {
     "new_key": "CSM1DC-229",
@@ -37734,6 +38406,22 @@
   "12733": {
     "new_key": "CS1DC-164",
     "method": "name_mark_rarity"
+  },
+  "792": {
+    "new_key": "CS1DC-164",
+    "method": "trad2simp_legal"
+  },
+  "6734": {
+    "new_key": "CS1DC-164",
+    "method": "trad2simp_legal"
+  },
+  "13132": {
+    "new_key": "CS1DC-164",
+    "method": "trad2simp_legal"
+  },
+  "13156": {
+    "new_key": "CS1DC-164",
+    "method": "trad2simp_legal"
   },
   "4804": {
     "new_key": "CS5DC-117",
@@ -37983,6 +38671,10 @@
     "new_key": "CSOC-011",
     "method": "name_mark_rarity"
   },
+  "8799": {
+    "new_key": "CSV4C-116",
+    "method": "override"
+  },
   "3488": {
     "new_key": "CSM2.1C-017",
     "method": "name_mark_rarity"
@@ -37994,6 +38686,10 @@
   "9676": {
     "new_key": "CSVM1aC-022",
     "method": "name_mark_rarity"
+  },
+  "654": {
+    "new_key": "CS4DaC-380",
+    "method": "override_rarity"
   },
   "7103": {
     "new_key": "CSVE2C-150",
@@ -38062,6 +38758,14 @@
   "12738": {
     "new_key": "CS1DC-167",
     "method": "name_mark_rarity"
+  },
+  "4514": {
+    "new_key": "CSM2.1C-018",
+    "method": "fuzzy_effect_rarity"
+  },
+  "5717": {
+    "new_key": "CSM2.1C-018",
+    "method": "fuzzy_effect_rarity"
   },
   "1576": {
     "new_key": "CS1DC-176",
@@ -38195,6 +38899,70 @@
     "new_key": "CS3DC-134",
     "method": "fuzzy_effect"
   },
+  "10111": {
+    "new_key": "CBB1C-1701",
+    "method": "fuzzy_effect"
+  },
+  "11111": {
+    "new_key": "CBB1C-1701",
+    "method": "fuzzy_effect"
+  },
+  "13096": {
+    "new_key": "CBB1C-1701",
+    "method": "fuzzy_effect"
+  },
+  "13099": {
+    "new_key": "CBB1C-1701",
+    "method": "fuzzy_effect"
+  },
+  "13102": {
+    "new_key": "CBB1C-1701",
+    "method": "fuzzy_effect"
+  },
+  "10113": {
+    "new_key": "CBB1C-1701",
+    "method": "fuzzy_effect"
+  },
+  "11113": {
+    "new_key": "CBB1C-1701",
+    "method": "fuzzy_effect"
+  },
+  "13098": {
+    "new_key": "CBB1C-1701",
+    "method": "fuzzy_effect"
+  },
+  "13101": {
+    "new_key": "CBB1C-1701",
+    "method": "fuzzy_effect"
+  },
+  "13104": {
+    "new_key": "CBB1C-1701",
+    "method": "fuzzy_effect"
+  },
+  "10112": {
+    "new_key": "CBB1C-1701",
+    "method": "fuzzy_effect"
+  },
+  "11112": {
+    "new_key": "CBB1C-1701",
+    "method": "fuzzy_effect"
+  },
+  "13097": {
+    "new_key": "CBB1C-1701",
+    "method": "fuzzy_effect"
+  },
+  "13100": {
+    "new_key": "CBB1C-1701",
+    "method": "fuzzy_effect"
+  },
+  "13103": {
+    "new_key": "CBB1C-1701",
+    "method": "fuzzy_effect"
+  },
+  "10929": {
+    "new_key": "CSV8C-112",
+    "method": "override"
+  },
   "1273": {
     "new_key": "CS1DC-173",
     "method": "name_mark"
@@ -38294,6 +39062,26 @@
   "5899": {
     "new_key": "CSM1DC-245",
     "method": "exact_name"
+  },
+  "4488": {
+    "new_key": "CSM2.5C-045",
+    "method": "fuzzy_effect"
+  },
+  "1420": {
+    "new_key": "CS3DC-137",
+    "method": "fuzzy_effect_rarity"
+  },
+  "1687": {
+    "new_key": "CS3DC-137",
+    "method": "fuzzy_effect_rarity"
+  },
+  "2511": {
+    "new_key": "CS3DC-137",
+    "method": "fuzzy_effect_rarity"
+  },
+  "6064": {
+    "new_key": "CS3DC-137",
+    "method": "fuzzy_effect_rarity"
   },
   "4961": {
     "new_key": "CSM1DC-226",
@@ -38427,6 +39215,10 @@
     "new_key": "CS1.5C-045",
     "method": "exact_name"
   },
+  "6851": {
+    "new_key": "SVP-030",
+    "method": "override_rarity"
+  },
   "860": {
     "new_key": "CS5DC-124",
     "method": "name_mark_rarity"
@@ -38499,6 +39291,10 @@
     "new_key": "CSM2DC-248",
     "method": "name_mark"
   },
+  "8729": {
+    "new_key": "CSVH3aC-011",
+    "method": "fuzzy_effect_rarity"
+  },
   "12419": {
     "new_key": "SVP-153",
     "method": "exact_name"
@@ -38510,6 +39306,10 @@
   "3962": {
     "new_key": "CSM2DC-271",
     "method": "name_mark"
+  },
+  "9019": {
+    "new_key": "CSV9C-174",
+    "method": "override"
   },
   "1688": {
     "new_key": "CS1.5C-046",
@@ -38538,6 +39338,10 @@
   "6065": {
     "new_key": "CS1.5C-046",
     "method": "exact_name"
+  },
+  "3798": {
+    "new_key": "CSM2DC-289",
+    "method": "override"
   },
   "9023": {
     "new_key": "CSV3C-118",
@@ -38667,6 +39471,10 @@
     "new_key": "CSVE1C-132",
     "method": "name_mark_rarity"
   },
+  "4817": {
+    "new_key": "CSM1DC-289",
+    "method": "override"
+  },
   "11883": {
     "new_key": "CSV8C-184",
     "method": "exact_name"
@@ -38682,6 +39490,10 @@
   "9613": {
     "new_key": "CSVE2C-171",
     "method": "name_mark_rarity"
+  },
+  "655": {
+    "new_key": "CS3aC-115",
+    "method": "override_rarity"
   },
   "5166": {
     "new_key": "CSM2DC-287",
@@ -38851,6 +39663,10 @@
     "new_key": "CSM1aC-135",
     "method": "exact_name"
   },
+  "7562": {
+    "new_key": "CSV4C-116",
+    "method": "override"
+  },
   "10861": {
     "new_key": "CSVH4aC-013",
     "method": "name_mark_rarity"
@@ -38894,6 +39710,10 @@
   "13087": {
     "new_key": "CSV10C-202",
     "method": "exact_name"
+  },
+  "1002": {
+    "new_key": "CS4aC-122",
+    "method": "override"
   },
   "6072": {
     "new_key": "CS4bC-121",
@@ -39067,6 +39887,18 @@
     "new_key": "CSV8C-190",
     "method": "exact_name"
   },
+  "11508": {
+    "new_key": "CSV8C-187",
+    "method": "fuzzy_effect"
+  },
+  "12575": {
+    "new_key": "CSV8C-187",
+    "method": "fuzzy_effect"
+  },
+  "12964": {
+    "new_key": "CSV8C-187",
+    "method": "fuzzy_effect"
+  },
   "4515": {
     "new_key": "CSM2.1C-021",
     "method": "name_mark_rarity"
@@ -39164,8 +39996,12 @@
     "method": "name_mark_rarity"
   },
   "863": {
-    "new_key": "CS4.5C-054",
-    "method": "exact_name"
+    "new_key": "CS4DaC-345",
+    "method": "override"
+  },
+  "9612": {
+    "new_key": "CSV5C-118",
+    "method": "override"
   },
   "8363": {
     "new_key": "CSV1C-114",
@@ -39211,6 +40047,10 @@
     "new_key": "CSVE1C-134",
     "method": "name_mark_rarity"
   },
+  "1070": {
+    "new_key": "CSVE1C-126",
+    "method": "override_rarity"
+  },
   "3280": {
     "new_key": "CSM2bC-135",
     "method": "exact_name"
@@ -39226,6 +40066,10 @@
   "1423": {
     "new_key": "CS2bC-106",
     "method": "name_mark"
+  },
+  "9025": {
+    "new_key": "CSVH3C-033",
+    "method": "override_rarity"
   },
   "8800": {
     "new_key": "CSVE2C-170",
@@ -39256,8 +40100,8 @@
     "method": "name_mark_rarity"
   },
   "94": {
-    "new_key": "CS4bC-120",
-    "method": "exact_name"
+    "new_key": "CS4DaC-346",
+    "method": "override"
   },
   "2442": {
     "new_key": "CS4bC-120",
@@ -39279,9 +40123,21 @@
     "new_key": "CSVH4aC-017",
     "method": "name_mark_rarity"
   },
+  "10284": {
+    "new_key": "CSV7C-106",
+    "method": "override"
+  },
   "9901": {
     "new_key": "CSVH4aC-016",
     "method": "name_mark_rarity"
+  },
+  "12582": {
+    "new_key": "CSV9C-172",
+    "method": "override"
+  },
+  "10087": {
+    "new_key": "CSV8C-123",
+    "method": "override"
   },
   "12177": {
     "new_key": "CSV9C-195",
@@ -39298,6 +40154,18 @@
   "3795": {
     "new_key": "CSM2.5C-049",
     "method": "name_mark"
+  },
+  "10085": {
+    "new_key": "CSVE2C-168",
+    "method": "fuzzy_effect_rarity"
+  },
+  "3114": {
+    "new_key": "CS4DaC-343",
+    "method": "override"
+  },
+  "5165": {
+    "new_key": "CS2DaC-038",
+    "method": "override_rarity"
   },
   "4671": {
     "new_key": "CSM2DC-337",
@@ -39419,6 +40287,10 @@
     "new_key": "CSM2DC-335",
     "method": "name_mark"
   },
+  "4507": {
+    "new_key": "CSMPaC-049",
+    "method": "override"
+  },
   "3481": {
     "new_key": "CSM2cC-147",
     "method": "name_mark"
@@ -39527,6 +40399,10 @@
     "new_key": "CS2aC-112",
     "method": "exact_name"
   },
+  "1142": {
+    "new_key": "CS1DC-126",
+    "method": "override"
+  },
   "2609": {
     "new_key": "CSBC-017",
     "method": "name_mark_rarity"
@@ -39534,6 +40410,10 @@
   "6094": {
     "new_key": "CSBC-017",
     "method": "name_mark_rarity"
+  },
+  "99": {
+    "new_key": "CSVE2C-199",
+    "method": "fuzzy_effect_rarity"
   },
   "1075": {
     "new_key": "CSVE2C-198",
@@ -39623,6 +40503,10 @@
     "new_key": "SSP-187",
     "method": "exact_name"
   },
+  "6250": {
+    "new_key": "CS5DC-152",
+    "method": "override_rarity"
+  },
   "7110": {
     "new_key": "CSVE1C-167",
     "method": "name_mark_rarity"
@@ -39655,6 +40539,18 @@
     "new_key": "CSVM2bC-032",
     "method": "name_mark_rarity"
   },
+  "9618": {
+    "new_key": "CSVM1aC-031",
+    "method": "override"
+  },
+  "10297": {
+    "new_key": "CSVM1aC-031",
+    "method": "override"
+  },
+  "12063": {
+    "new_key": "CSVM1aC-031",
+    "method": "override"
+  },
   "8370": {
     "new_key": "CSV4C-127",
     "method": "name_mark"
@@ -39678,6 +40574,10 @@
   "9794": {
     "new_key": "SVP-NaN1",
     "method": "name_legal"
+  },
+  "8660": {
+    "new_key": "CSV4C-128",
+    "method": "override"
   },
   "8659": {
     "new_key": "CSVE2C-200",
@@ -39766,6 +40666,10 @@
   "12605": {
     "new_key": "CSV8C-204",
     "method": "name_mark"
+  },
+  "11892": {
+    "new_key": "CSV9C-205",
+    "method": "fuzzy_effect"
   },
   "11384": {
     "new_key": "CSVM2aC-030",
@@ -40383,6 +41287,10 @@
     "new_key": "CSMPpC-010",
     "method": "name_mark_rarity"
   },
+  "4675": {
+    "new_key": "CSM1bC-151",
+    "method": "fuzzy_effect"
+  },
   "3988": {
     "new_key": "CSM1DC-324",
     "method": "name_mark"
@@ -40407,6 +41315,18 @@
     "new_key": "CSM1cC-150",
     "method": "exact_name"
   },
+  "5754": {
+    "new_key": "CSM1.5C-058",
+    "method": "fuzzy_effect"
+  },
+  "5755": {
+    "new_key": "CSM1.5C-060",
+    "method": "fuzzy_effect"
+  },
+  "5193": {
+    "new_key": "CSM1.5C-059",
+    "method": "fuzzy_effect"
+  },
   "5192": {
     "new_key": "CSM1cC-151",
     "method": "exact_name"
@@ -40414,6 +41334,10 @@
   "5191": {
     "new_key": "CSM1aC-150",
     "method": "exact_name"
+  },
+  "4511": {
+    "new_key": "CSM2bC-150",
+    "method": "fuzzy_effect"
   },
   "4510": {
     "new_key": "CSM2.5C-061",
@@ -40438,6 +41362,90 @@
   "6110": {
     "new_key": "CS3DC-168",
     "method": "name_mark_rarity"
+  },
+  "1284": {
+    "new_key": "CS2.5C-058",
+    "method": "fuzzy_effect"
+  },
+  "1714": {
+    "new_key": "CS2.5C-058",
+    "method": "fuzzy_effect"
+  },
+  "1872": {
+    "new_key": "CS2.5C-058",
+    "method": "fuzzy_effect"
+  },
+  "2043": {
+    "new_key": "CS2.5C-058",
+    "method": "fuzzy_effect"
+  },
+  "2461": {
+    "new_key": "CS2.5C-058",
+    "method": "fuzzy_effect"
+  },
+  "6099": {
+    "new_key": "CS2.5C-058",
+    "method": "fuzzy_effect"
+  },
+  "1717": {
+    "new_key": "CS1.5C-053",
+    "method": "fuzzy_effect"
+  },
+  "1875": {
+    "new_key": "CS1.5C-053",
+    "method": "fuzzy_effect"
+  },
+  "2046": {
+    "new_key": "CS1.5C-053",
+    "method": "fuzzy_effect"
+  },
+  "2464": {
+    "new_key": "CS1.5C-053",
+    "method": "fuzzy_effect"
+  },
+  "2534": {
+    "new_key": "CS1.5C-053",
+    "method": "fuzzy_effect"
+  },
+  "3121": {
+    "new_key": "CS1.5C-053",
+    "method": "fuzzy_effect"
+  },
+  "6102": {
+    "new_key": "CS1.5C-053",
+    "method": "fuzzy_effect"
+  },
+  "1430": {
+    "new_key": "CS1.5C-052",
+    "method": "fuzzy_effect"
+  },
+  "1715": {
+    "new_key": "CS1.5C-052",
+    "method": "fuzzy_effect"
+  },
+  "1873": {
+    "new_key": "CS1.5C-052",
+    "method": "fuzzy_effect"
+  },
+  "2044": {
+    "new_key": "CS1.5C-052",
+    "method": "fuzzy_effect"
+  },
+  "2462": {
+    "new_key": "CS1.5C-052",
+    "method": "fuzzy_effect"
+  },
+  "2533": {
+    "new_key": "CS1.5C-052",
+    "method": "fuzzy_effect"
+  },
+  "6100": {
+    "new_key": "CS1.5C-052",
+    "method": "fuzzy_effect"
+  },
+  "6280": {
+    "new_key": "CS1.5C-052",
+    "method": "fuzzy_effect"
   },
   "1143": {
     "new_key": "CS1DC-207",
@@ -40499,6 +41507,86 @@
     "new_key": "CS1.5C-054",
     "method": "fuzzy_effect"
   },
+  "1285": {
+    "new_key": "CS2bC-115",
+    "method": "fuzzy_effect"
+  },
+  "1720": {
+    "new_key": "CS2bC-115",
+    "method": "fuzzy_effect"
+  },
+  "1878": {
+    "new_key": "CS2bC-115",
+    "method": "fuzzy_effect"
+  },
+  "2049": {
+    "new_key": "CS2bC-115",
+    "method": "fuzzy_effect"
+  },
+  "2467": {
+    "new_key": "CS2bC-115",
+    "method": "fuzzy_effect"
+  },
+  "2536": {
+    "new_key": "CS2bC-115",
+    "method": "fuzzy_effect"
+  },
+  "6105": {
+    "new_key": "CS2bC-115",
+    "method": "fuzzy_effect"
+  },
+  "1432": {
+    "new_key": "CS3DC-169",
+    "method": "fuzzy_effect_rarity"
+  },
+  "1722": {
+    "new_key": "CS3DC-169",
+    "method": "fuzzy_effect_rarity"
+  },
+  "1880": {
+    "new_key": "CS3DC-169",
+    "method": "fuzzy_effect_rarity"
+  },
+  "2051": {
+    "new_key": "CS3DC-169",
+    "method": "fuzzy_effect_rarity"
+  },
+  "2540": {
+    "new_key": "CS3DC-169",
+    "method": "fuzzy_effect_rarity"
+  },
+  "6107": {
+    "new_key": "CS3DC-169",
+    "method": "fuzzy_effect_rarity"
+  },
+  "6281": {
+    "new_key": "CS3DC-169",
+    "method": "fuzzy_effect_rarity"
+  },
+  "589": {
+    "new_key": "CS2bC-114",
+    "method": "fuzzy_effect"
+  },
+  "1716": {
+    "new_key": "CS2bC-114",
+    "method": "fuzzy_effect"
+  },
+  "1874": {
+    "new_key": "CS2bC-114",
+    "method": "fuzzy_effect"
+  },
+  "2045": {
+    "new_key": "CS2bC-114",
+    "method": "fuzzy_effect"
+  },
+  "2463": {
+    "new_key": "CS2bC-114",
+    "method": "fuzzy_effect"
+  },
+  "6101": {
+    "new_key": "CS2bC-114",
+    "method": "fuzzy_effect"
+  },
   "1076": {
     "new_key": "CSCC-018",
     "method": "name_mark_rarity"
@@ -40541,6 +41629,30 @@
   },
   "6106": {
     "new_key": "CS2.5C-059",
+    "method": "fuzzy_effect"
+  },
+  "1431": {
+    "new_key": "CS2aC-114",
+    "method": "fuzzy_effect"
+  },
+  "1719": {
+    "new_key": "CS2aC-114",
+    "method": "fuzzy_effect"
+  },
+  "1877": {
+    "new_key": "CS2aC-114",
+    "method": "fuzzy_effect"
+  },
+  "2048": {
+    "new_key": "CS2aC-114",
+    "method": "fuzzy_effect"
+  },
+  "2466": {
+    "new_key": "CS2aC-114",
+    "method": "fuzzy_effect"
+  },
+  "6104": {
+    "new_key": "CS2aC-114",
     "method": "fuzzy_effect"
   },
   "869": {
@@ -40602,6 +41714,10 @@
   "7568": {
     "new_key": "CS6.5C-072",
     "method": "name_mark"
+  },
+  "7378": {
+    "new_key": "CSVE1C-172",
+    "method": "fuzzy_effect_rarity"
   },
   "6251": {
     "new_key": "CS5DC-153",
@@ -40710,6 +41826,14 @@
   "11990": {
     "new_key": "CSV9C-208",
     "method": "exact_name"
+  },
+  "11385": {
+    "new_key": "CSV8C-207",
+    "method": "fuzzy_effect"
+  },
+  "12608": {
+    "new_key": "CSV8C-207",
+    "method": "fuzzy_effect"
   },
   "11183": {
     "new_key": "CSV8C-206",
