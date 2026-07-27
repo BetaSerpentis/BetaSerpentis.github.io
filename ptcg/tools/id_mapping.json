@@ -40395,6 +40395,10 @@
     "new_key": "CS2aC-112",
     "method": "exact_name"
   },
+  "1142": {
+    "new_key": "CSVE1C-166",
+    "method": "override_rarity"
+  },
   "2609": {
     "new_key": "CSBC-017",
     "method": "name_mark_rarity"
@@ -40611,6 +40615,10 @@
     "new_key": "CSV6C-127",
     "method": "exact_name"
   },
+  "12181": {
+    "new_key": "CSV9C-206",
+    "method": "override"
+  },
   "11383": {
     "new_key": "CSV8C-201",
     "method": "name_mark"
@@ -40654,6 +40662,10 @@
   "11515": {
     "new_key": "SVP-200",
     "method": "name_mark_rarity"
+  },
+  "12182": {
+    "new_key": "CSV7C-201",
+    "method": "override"
   },
   "11514": {
     "new_key": "CSV8C-204",
@@ -41335,6 +41347,10 @@
     "new_key": "CSM2bC-150",
     "method": "fuzzy_effect"
   },
+  "3811": {
+    "new_key": "CSM2aC-150",
+    "method": "override"
+  },
   "4510": {
     "new_key": "CSM2.5C-061",
     "method": "name_mark"
@@ -41711,6 +41727,10 @@
     "new_key": "CS6.5C-072",
     "method": "name_mark"
   },
+  "7695": {
+    "new_key": "CS6bC-131",
+    "method": "override"
+  },
   "7378": {
     "new_key": "CSVE1C-172",
     "method": "fuzzy_effect_rarity"
@@ -41754,6 +41774,10 @@
   "11761": {
     "new_key": "CS5DC-153",
     "method": "name_mark"
+  },
+  "8733": {
+    "new_key": "CSVE2C-207",
+    "method": "override_rarity"
   },
   "8661": {
     "new_key": "CSVE2C-203",
