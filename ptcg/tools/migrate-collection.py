@@ -77,10 +77,17 @@ def main():
         if new_deck_dict:
             new_deck_cards = [{"id": k, "quantity": v} for k, v in new_deck_dict.items()]
             new_count = sum(c["quantity"] for c in new_deck_cards)
+            # Migrate coverCardId
+            new_cover = None
+            old_cover = deck.get("coverCardId")
+            if old_cover and str(old_cover) in mapping:
+                new_cover = mapping[str(old_cover)]["new_key"]
+
             new_decks.append({
                 "name": deck["name"],
                 "totalCount": new_count,
-                "cards": new_deck_cards
+                "cards": new_deck_cards,
+                "coverCardId": new_cover
             })
             if deck_dropped:
                 print(f"  Deck '{deck['name']}': dropped {deck_dropped} cards, now {new_count}/60")
