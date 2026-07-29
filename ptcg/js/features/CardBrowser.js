@@ -143,19 +143,24 @@ export class CardBrowser {
     }
 
     renderLoadedCards(cardType, resetSearchState = false, isIndexOnly = false) {
-        // 关键：确保 filteredCards 包含所有该类型的卡牌
-        this.cardManager.filteredCards = this.cardManager.cards.filter(card =>
-            card.type === cardType
-        );
         if (resetSearchState) {
             this.cardManager.isShowingAllCards = true;
             this.cardManager.hasActiveSearch = false;
         }
 
-        // 如果是宝可梦类型，应用当前世代筛选（如果有的话）
+        // 世代筛选
         if (cardType === '宝可梦' && this.cardManager.getCurrentGeneration() !== 'all') {
             this.cardManager.applyGenerationFilter();
         }
+
+        // 卡包筛选：re-sync state to ensure currentSetCode survives card reload
+        if (window.setFilterManager) {
+            window.setFilterManager.syncState();
+        }
+
+        this.cardManager.filteredCards = this.cardManager.cards.filter(card =>
+            card.type === cardType
+        );
 
         const displayCards = this.cardManager.getDisplayCards();
         const displayCount = displayCards.length;

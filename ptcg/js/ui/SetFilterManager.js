@@ -48,15 +48,17 @@ export class SetFilterManager {
         this._closeOverlay();
     }
 
-    // Apply set filter to cardManager
-    applySetFilter() {
-        // Sync SetFilterManager state → CardManager
+    // Sync set filter state to CardManager (without rendering)
+    syncState() {
         this.cardManager.currentSetCode = this.currentSet;
         this.cardManager.isSetFiltered = this.currentSet !== 'all';
-        // Ensure getDisplayCards flows through the right path
         this.cardManager.isShowingAllCards = true;
         this.cardManager.hasActiveSearch = false;
+    }
 
+    // Apply set filter to cardManager
+    applySetFilter() {
+        this.syncState();
         this.cardGrid.render();
         this._updateSetIndicator();
     }
