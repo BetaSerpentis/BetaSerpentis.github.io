@@ -50,20 +50,14 @@ export class SetFilterManager {
 
     // Apply set filter to cardManager
     applySetFilter() {
-        const cards = this.cardManager.cards;
-        let filtered;
-        if (this.currentSet === 'all') {
-            filtered = [...cards];
-        } else {
-            const prefix = this.currentSet + '-';
-            filtered = cards.filter(c => c.id && c.id.startsWith(prefix));
-        }
-        this.cardManager.filteredCards = filtered;
-        this.cardManager.hasActiveSearch = false;
+        // Sync SetFilterManager state → CardManager
+        this.cardManager.currentSetCode = this.currentSet;
         this.cardManager.isSetFiltered = this.currentSet !== 'all';
-        this.cardGrid.render();
+        // Ensure getDisplayCards flows through the right path
+        this.cardManager.isShowingAllCards = true;
+        this.cardManager.hasActiveSearch = false;
 
-        // Update title hint
+        this.cardGrid.render();
         this._updateSetIndicator();
     }
 
@@ -164,6 +158,7 @@ export class SetFilterManager {
     // Reset to "全部"
     reset() {
         this.currentSet = 'all';
+        this.cardManager.resetSetFilter();
         const old = document.getElementById('set-indicator');
         if (old) old.remove();
     }
