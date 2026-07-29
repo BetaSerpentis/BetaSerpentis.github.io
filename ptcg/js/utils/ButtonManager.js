@@ -84,9 +84,6 @@ export class ButtonManager {
     showBrowseMode() {
         this.menu.innerHTML = '';
 
-        // 返回浏览模式时重置卡包筛选
-        if (this.setFilterManager) this.setFilterManager.reset();
-
         if (this.aiChatPanel) {
             this.menu.appendChild(this.createButton('AI分析', 'ai-button', () => {
                 this.aiChatPanel.toggle();
