@@ -7,6 +7,7 @@ import { CardGrid } from './ui/CardGrid.js';
 import { ModalView } from './ui/ModalView.js';
 import { TabManager } from './ui/TabManager.js';
 import { StatsManager } from './ui/StatsManager.js';
+import { SetFilterManager } from './ui/SetFilterManager.js';
 
 import { CardBrowser } from './features/CardBrowser.js';
 
@@ -109,12 +110,16 @@ class PTCGApp {
             this.cardGrid.init();
             this.statsManager.init();
 
-            // 初始化 ButtonManager
+            // 初始化卡包筛选管理器
+            this.setFilterManager = new SetFilterManager(this.cardManager, this.cardGrid);
+
+            // 初始化 ButtonManager（传入 SetFilterManager）
             this.buttonManager = new ButtonManager(
                 this.deckEditor,
                 this.statsManager,
                 this.cardManager,
-                this.aiChatPanel
+                this.aiChatPanel,
+                this.setFilterManager
             );
 
             // 确保 ButtonManager 可以访问 DeckManager

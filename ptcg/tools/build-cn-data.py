@@ -888,6 +888,33 @@ def main():
     with (PTCG / "data" / "meta.json").open("w", encoding="utf-8") as f:
         json.dump(meta, f, ensure_ascii=False, indent=2)
 
+    # Generate sets.tsv for frontend
+    print("Generating sets.tsv...")
+    # Collect all set_codes actually used, plus their metadata
+    set_info = {}
+    for c in cards:
+        sc = c.get("set_code", "")
+        if sc and sc not in set_info:
+            set_info[sc] = sets.get(sc, {})
+    # Sort by release_date descending
+    def set_sort_key(item):
+        code, info = item
+        rd = info.get("release_date", "") if info else ""
+        # Push promo sets with 0001 date to end
+        if rd.startswith("0001"):
+            return "9999"
+        return rd[:10]  # YYYY-MM-DD
+    sorted_sets = sorted(set_info.items(), key=set_sort_key, reverse=True)
+    set_rows = [["set_code", "name", "series", "release_date"]]
+    for sc, info in sorted_sets:
+        set_rows.append([
+            sc,
+            info.get("name", sc),
+            info.get("series", ""),
+            (info.get("release_date", "") or "")[:10],
+        ])
+    write_tsv(OUT_TSV / "sets.tsv", "set1", set_rows)
+
     print("\n=== Build Complete ===")
 
 if __name__ == "__main__":
