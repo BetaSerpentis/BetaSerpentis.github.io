@@ -297,9 +297,8 @@ export class CardManager {
             this.cards = await this.loadCardIndexData(cardType);
             this.currentTab = cardType;
 
-            // 重置筛选状态
+            // 重置筛选状态（世代重置，卡包保持）
             this.resetGenerationFilter();
-            this.resetSetFilter();
             this.filteredCards = [...this.cards];
             this.hasActiveSearch = false;
 
