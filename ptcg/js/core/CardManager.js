@@ -24,6 +24,10 @@ export class CardManager {
         // 新增：世代筛选相关
         this.generationManager = null;
         this.currentGeneration = 'all';
+
+        // 卡包筛选
+        this.currentSetCode = 'all';
+        this.isSetFiltered = false;
         this.generationRanges = {
             '1': { start: 1, end: 151, name: '第一世代' },
             '2': { start: 152, end: 251, name: '第二世代' },
@@ -108,6 +112,24 @@ export class CardManager {
         this.isShowingAllCards = true;
     }
 
+    // ── 卡包筛选 ──
+    resetSetFilter() {
+        this.currentSetCode = 'all';
+        this.isSetFiltered = false;
+    }
+
+    setSetCode(code) {
+        this.currentSetCode = code || 'all';
+        this.isSetFiltered = code && code !== 'all';
+    }
+
+    // Apply set code filter to a card list
+    filterBySetCode(cards, setCode) {
+        if (!setCode || setCode === 'all') return cards;
+        const prefix = setCode + '-';
+        return cards.filter(c => c.id && c.id.startsWith(prefix));
+    }
+
     // 新增：获取宝可梦的世代
     getPokemonGeneration(card) {
         if (card.type !== '宝可梦') return null;
@@ -134,6 +156,9 @@ export class CardManager {
                 filtered = this.filterByGeneration(filtered, this.currentGeneration);
             }
 
+            // 应用卡包筛选
+            filtered = this.filterBySetCode(filtered, this.currentSetCode);
+
             this.filteredCards = filtered;
             this.isShowingAllCards = true;
             this.hasActiveSearch = false;
@@ -153,6 +178,9 @@ export class CardManager {
             filtered = this.filterByGeneration(filtered, this.currentGeneration);
         }
 
+        // 应用卡包筛选
+        filtered = this.filterBySetCode(filtered, this.currentSetCode);
+
         this.filteredCards = filtered;
         this.isShowingAllCards = false;
         this.hasActiveSearch = true;
@@ -162,15 +190,20 @@ export class CardManager {
     // 修改：获取当前显示的卡牌，考虑搜索和世代筛选
     getDisplayCards() {
         if (!this.isShowingAllCards || this.hasActiveSearch) {
-            return this.filteredCards;
+            return this.filterBySetCode(this.filteredCards, this.currentSetCode);
         }
 
-        // 如果应用了世代筛选，则返回世代筛选后的结果；允许结果为空
+        let cards = this.cards;
+
+        // 应用世代筛选
         if (this.currentTab === '宝可梦' && this.currentGeneration !== 'all') {
-            return this.filterByGeneration(this.cards, this.currentGeneration);
+            cards = this.filterByGeneration(cards, this.currentGeneration);
         }
 
-        return this.cards;
+        // 应用卡包筛选
+        cards = this.filterBySetCode(cards, this.currentSetCode);
+
+        return cards;
     }
 
     unescapeTsvValue(value) {
@@ -266,6 +299,7 @@ export class CardManager {
 
             // 重置筛选状态
             this.resetGenerationFilter();
+            this.resetSetFilter();
             this.filteredCards = [...this.cards];
             this.hasActiveSearch = false;
 
