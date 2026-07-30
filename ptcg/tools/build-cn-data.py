@@ -754,29 +754,38 @@ def main():
     print("\n[5/6] Generating TSV layers...")
     OUT_TSV.mkdir(parents=True, exist_ok=True)
 
-    # ─ 通用排序键 ─
+    # ─ 排序键 (按卡牌类型区分优先级) ─
     def build_sort_key(card):
+        cn_type = TYPE_MAP.get(card.get("card_type",""))
         name = card.get("card_name","")
-        is_poke = TYPE_MAP.get(card.get("card_type","")) == "宝可梦"
-        # dex (0=unknown → sort after known dex numbers)
-        dex_raw = int(get_dex_for_cn(card, cn_key_to_dex, mapping, dex_lookup, name_only_dex) or 0)
-        dex = dex_raw if dex_raw > 0 else 99999
-        # base name: strip prefixes & suffixes
-        base = SUFFIX_RE.sub("", PREFIX_RE.sub("", name))
-        form_key = 0
-        m = SUFFIX_RE.search(name)
-        if m:
-            form_key = FORM_ORDER.get(m.group(1), 99)
-            base = name[:m.start()]
-        base = PREFIX_RE.sub("", base)
-        # variant prefix boosts form order
-        for i, fp in enumerate(FORM_PREFIXES):
-            if name.startswith(fp):
-                form_key = 6 + i
-                break
-        # mark rank
         mark = MARK_RANK.get(card.get("regulation_mark",""), 99)
-        return (dex, base, form_key, mark, card.get("set_code",""), card.get("card_index",""))
+        set_code = card.get("set_code","")
+        card_index = card.get("card_index","")
+
+        if cn_type == "宝可梦":
+            # 编号 > 基础名 > 形态 > 标 > 系列 > 编号
+            dex_raw = int(get_dex_for_cn(card, cn_key_to_dex, mapping, dex_lookup, name_only_dex) or 0)
+            dex = dex_raw if dex_raw > 0 else 99999
+            base = SUFFIX_RE.sub("", PREFIX_RE.sub("", name))
+            form_key = 0
+            m = SUFFIX_RE.search(name)
+            if m:
+                form_key = FORM_ORDER.get(m.group(1), 99)
+                base = name[:m.start()]
+            base = PREFIX_RE.sub("", base)
+            for i, fp in enumerate(FORM_PREFIXES):
+                if name.startswith(fp):
+                    form_key = 6 + i
+                    break
+            return (0, dex, base, form_key, mark, set_code, card_index)
+
+        elif cn_type in ("支援者", "物品", "宝可梦道具", "基本能量"):
+            # 名字 > 标 > 系列 > 编号
+            return (1, 0, name, mark, set_code, card_index, "")
+
+        else:
+            # 竞技场, 特殊能量: 标 > 名字 > 系列 > 编号
+            return (2, mark, name, set_code, card_index, "", "")
 
     for cn_type, clist in sorted(typed_cards.items()):
         slug = TYPE_SLUG[cn_type]

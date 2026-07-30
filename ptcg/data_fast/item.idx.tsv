@@ -1,7 +1,6 @@
 #idx1
 CSV10C-190	N的PP提升剂			0	e3908e818bdcdbc8	1
 CS1DC-175	万灵药			0	efef64179098aa55	0
-CSV10C-194	派帕的三明治			0	bff815683aaa1957	1
 CSV8C-173	不公印章			0	d324e01179ab048e	1
 CSVM2bC-010	不公印章			0	d324e01179ab048e	1
 CS5DC-116	交替推车			0	8342fe3eeec6f897	1
@@ -170,7 +169,6 @@ CSV10C-189	好伤药			0	a5dc954d89a78f95	1
 CSVH5aC-007	好伤药			0	a5dc954d89a78f95	1
 CSV8C-179	妨碍书信			0	941f9d4ce0aff2ae	1
 CSVH5aC-011	妨碍书信			0	941f9d4ce0aff2ae	1
-CSV10C-196	火箭队的妨碍机器人			0	9707225aba6fd9a9	1
 CSV6C-117	妮莫的背包			0	ab67cfaf19e40695	1
 CSVH3C-043	妮莫的背包			0	ab67cfaf19e40695	1
 CSV9C-183	完美搅拌器			0	e6d017f040bcadf0	1
@@ -312,7 +310,6 @@ CSVE2C-147	强夺机械臂			0	203a0c4b978c8638	1
 CSVH2aC-010	强夺机械臂			0	203a0c4b978c8638	1
 CSM1DC-263	彩虹笔刷			0	97ca0cf19e055b90	0
 CSV9C-182	悠闲尾草			0	da845de966829b92	1
-CSV10C-198	火箭队的惊吓炸弹			0	b5c3b1d60d20441a	1
 CSM2bC-130	惊吓箱			0	ae2e6756814964e0	0
 CS5DC-113	慢出涡轮			0	bc95705c00d2db25	1
 CS5bC-114	慢出涡轮			0	bc95705c00d2db25	1
@@ -344,7 +341,6 @@ CSVH4C-041	捕虫套装			0	adf4d1157e58b142	1
 CS4DaC-374	掉包杯			0	978076a7cff84ee3	0
 CS4aC-118	掉包杯			0	978076a7cff84ee3	0
 CSVE2C-148	掉包杯			0	978076a7cff84ee3	0
-CSV10C-199	火箭队的接收器			0	8eddb3dcb79eb6e9	1
 CSV9C-179	推理套装			0	b2ed6eb5dd7e6221	1
 CSVH5C-039	推理套装			0	b2ed6eb5dd7e6221	1
 CS4.5C-050	摇摇奶昔			0	954fb546b2e35fd2	0
@@ -452,6 +448,7 @@ CS3aC-181	活力之壶			0	4ae333bff2774ab5	0
 CS4DaC-369	活力之壶			0	4ae333bff2774ab5	0
 CSBC-007	活力之壶			0	4ae333bff2774ab5	0
 CSVE1C-109	活力之壶			0	4ae333bff2774ab5	0
+CSV10C-194	派帕的三明治			0	bff815683aaa1957	1
 CS2.5C-047	涡轮补丁			0	143a9e6e2c7c666c	0
 CS2.5C-078	涡轮补丁			0	143a9e6e2c7c666c	0
 CS3DC-137	涡轮补丁			0	143a9e6e2c7c666c	0
@@ -467,6 +464,10 @@ CSVE1C-102	潮漩扇			0	070a3e4ab783be06	0
 CSM2.5C-048	火之结晶			0	2341ed8c6c0d48c5	0
 CSM2.5C-096	火之结晶			0	2341ed8c6c0d48c5	0
 CSMPbC-016	火之结晶			0	2341ed8c6c0d48c5	0
+CSV10C-196	火箭队的妨碍机器人			0	9707225aba6fd9a9	1
+CSV10C-198	火箭队的惊吓炸弹			0	b5c3b1d60d20441a	1
+CSV10C-199	火箭队的接收器			0	8eddb3dcb79eb6e9	1
+CSV10C-197	火箭队的超级球			0	867c87a80d5c2209	1
 CSM1bC-120	特制捕捉器			0	6fa45f2c6d92579a	0
 CS4.5C-051	玩具捕捉器			0	aee61ae8312e255f	0
 CS4.5C-083	玩具捕捉器			0	aee61ae8312e255f	0
@@ -864,7 +865,6 @@ SVP-NaN2	超级球			0	1838e8afe529b519	1
 SVP-NaN3	超级球			0	1838e8afe529b519	1
 SVP-NaN4	超级球			0	1838e8afe529b519	1
 SVP-NaN5	超级球			0	1838e8afe529b519	1
-CSV10C-197	火箭队的超级球			0	867c87a80d5c2209	1
 CSV3C-115	超级能量回收			0	ff7e567088021781	1
 CSV3C-164	超级能量回收			0	ff7e567088021781	1
 CSV9.5C-161	超级能量回收			0	ff7e567088021781	1
