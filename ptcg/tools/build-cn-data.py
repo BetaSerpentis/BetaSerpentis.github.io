@@ -16,6 +16,18 @@ import re
 import shutil
 import sys
 from collections import defaultdict
+
+# Pinyin sorting (install: pip install pypinyin)
+try:
+    from pypinyin import lazy_pinyin, Style
+    _PINYIN_CACHE = {}
+    def _to_pinyin(text):
+        if text not in _PINYIN_CACHE:
+            _PINYIN_CACHE[text] = ''.join(lazy_pinyin(text, style=Style.NORMAL))
+        return _PINYIN_CACHE[text]
+except ImportError:
+    def _to_pinyin(text):
+        return text.lower()
 from pathlib import Path
 
 # ── 路径 ──
@@ -780,16 +792,14 @@ def main():
             return (0, dex, base, form_key, mark, set_code, card_index)
 
         elif cn_type in ("支援者", "物品", "宝可梦道具", "基本能量"):
-            # 名字(英文优先) > 标 > 系列 > 编号
-            en = (card.get("name_en") or "").strip().lower()
-            sort_name = en if en else name.lower()
-            return (1, sort_name, mark, set_code, card_index, "")
+            # 拼音 > 标 > 系列 > 编号
+            pinyin = _to_pinyin(name)
+            return (1, pinyin, mark, set_code, card_index, "")
 
         else:
-            # 竞技场, 特殊能量: 标 > 名字(英文优先) > 系列 > 编号
-            en = (card.get("name_en") or "").strip().lower()
-            sort_name = en if en else name.lower()
-            return (2, mark, sort_name, set_code, card_index, "", "")
+            # 竞技场, 特殊能量: 标 > 拼音 > 系列 > 编号
+            pinyin = _to_pinyin(name)
+            return (2, mark, pinyin, set_code, card_index, "", "")
 
     for cn_type, clist in sorted(typed_cards.items()):
         slug = TYPE_SLUG[cn_type]
