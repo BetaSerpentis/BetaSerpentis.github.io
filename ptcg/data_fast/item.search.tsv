@@ -1,7 +1,6 @@
 #srch1
 CSV10C-190	n的pp提升剂 item csv10c i
 CS1DC-175	万灵药 full heal item cs1dc d
-CSV10C-194	派帕的三明治 item csv10c i
 CSV8C-173	不公印章 unfair stamp item ace spec csv8c h
 CSVM2bC-010	不公印章 unfair stamp item ace spec csvm2bc h
 CS5DC-116	交替推车 switch cart item cs5dc f
@@ -170,7 +169,6 @@ CSV10C-189	好伤药 item csv10c i
 CSVH5aC-007	好伤药 super potion item csvh5ac i
 CSV8C-179	妨碍书信 meddling memo item csv8c h
 CSVH5aC-011	妨碍书信 meddling memo item csvh5ac h
-CSV10C-196	火箭队的妨碍机器人 item csv10c i
 CSV6C-117	妮莫的背包 nemona s backpack item csv6c g
 CSVH3C-043	妮莫的背包 nemona s backpack item csvh3c g
 CSV9C-183	完美搅拌器 brilliant blender item ace spec csv9c h
@@ -312,7 +310,6 @@ CSVE2C-147	强夺机械臂 grabber item csve2c g
 CSVH2aC-010	强夺机械臂 grabber item csvh2ac g
 CSM1DC-263	彩虹笔刷 rainbow brush item csm1dc b
 CSV9C-182	悠闲尾草 chill teaser toy item csv9c h
-CSV10C-198	火箭队的惊吓炸弹 item csv10c i
 CSM2bC-130	惊吓箱 surprise box item csm2bc c
 CS5DC-113	慢出涡轮 wait and see turbo item cs5dc f
 CS5bC-114	慢出涡轮 wait and see turbo item cs5bc f
@@ -344,7 +341,6 @@ CSVH4C-041	捕虫套装 bug catching set item csvh4c h
 CS4DaC-374	掉包杯 switching cups item cs4dac e
 CS4aC-118	掉包杯 switching cups item cs4ac e
 CSVE2C-148	掉包杯 switching cups item csve2c e
-CSV10C-199	火箭队的接收器 item csv10c i
 CSV9C-179	推理套装 deduction kit item csv9c h
 CSVH5C-039	推理套装 deduction kit item csvh5c h
 CS4.5C-050	摇摇奶昔 boost shake item cs4 5c e
@@ -452,6 +448,7 @@ CS3aC-181	活力之壶 urn of vitality item  "single strike"  cs3ac e
 CS4DaC-369	活力之壶 urn of vitality item  "single strike"  cs4dac e
 CSBC-007	活力之壶 urn of vitality item  "single strike"  csbc e
 CSVE1C-109	活力之壶 urn of vitality item  "single strike"  csve1c e
+CSV10C-194	派帕的三明治 item csv10c i
 CS2.5C-047	涡轮补丁 turbo patch item cs2 5c d
 CS2.5C-078	涡轮补丁 turbo patch item cs2 5c d
 CS3DC-137	涡轮补丁 turbo patch item cs3dc d
@@ -467,6 +464,10 @@ CSVE1C-102	潮漩扇 fan of waves item  "rapid strike"  csve1c e
 CSM2.5C-048	火之结晶 fire crystal item csm2 5c c
 CSM2.5C-096	火之结晶 fire crystal item csm2 5c c
 CSMPbC-016	火之结晶 fire crystal item csmpbc c
+CSV10C-196	火箭队的妨碍机器人 item csv10c i
+CSV10C-198	火箭队的惊吓炸弹 item csv10c i
+CSV10C-199	火箭队的接收器 item csv10c i
+CSV10C-197	火箭队的超级球 item csv10c i
 CSM1bC-120	特制捕捉器 custom catcher item csm1bc b
 CS4.5C-051	玩具捕捉器 toy catcher item cs4 5c e
 CS4.5C-083	玩具捕捉器 toy catcher item cs4 5c e
@@ -864,7 +865,6 @@ SVP-NaN2	超级球 great ball item svp g
 SVP-NaN3	超级球 great ball item svp g
 SVP-NaN4	超级球 great ball item svp g
 SVP-NaN5	超级球 great ball item svp g
-CSV10C-197	火箭队的超级球 item csv10c i
 CSV3C-115	超级能量回收 superior energy retrieval item csv3c g
 CSV3C-164	超级能量回收 superior energy retrieval item csv3c g
 CSV9.5C-161	超级能量回收 superior energy retrieval item csv9 5c g
