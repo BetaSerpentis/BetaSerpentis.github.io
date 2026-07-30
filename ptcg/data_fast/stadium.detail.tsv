@@ -3,105 +3,109 @@ CSM1DC-317	双方的【草】或【雷】属性的【基础】宝可梦，所受
 CSM1bC-146	双方的【草】或【雷】属性的【基础】宝可梦，所受到的对手宝可梦招式的伤害「-30」。				5ban Graphics	横空出世 苍	U		A	Aether Paradise Conservation Area
 CSM1bC-203	双方的【草】或【雷】属性的【基础】宝可梦，所受到的对手宝可梦招式的伤害「-30」。				5ban Graphics	横空出世 苍	UR		A	Aether Paradise Conservation Area
 CSMPjC-010	双方的【草】或【雷】属性的【基础】宝可梦，所受到的对手宝可梦招式的伤害「-30」。				5ban Graphics	对战派对组合改造包 草	无标记		A	Aether Paradise Conservation Area
-CSM1DC-323	双方所有【基础】宝可梦【撤退】所需能量，各增加1个。				5ban Graphics	起始卡组 横空出世GX	无标记		A	Mount Lanakila
-CSM1DC-321	双方场上所有的【火】和【钢】宝可梦的弱点，全部消除。				5ban Graphics	起始卡组 横空出世GX	无标记		A	Altar of the Sunne
-CSM1aC-147	双方场上所有的【火】和【钢】宝可梦的弱点，全部消除。				5ban Graphics	横空出世 赫	U		A	Altar of the Sunne
 CSM1DC-318	身上附有【超】或【恶】能量的双方所有宝可梦，【撤退】所需能量各减少2个。				5ban Graphics	起始卡组 横空出世GX	无标记		A	Altar of the Moone
 CSM1aC-146	身上附有【超】或【恶】能量的双方所有宝可梦，【撤退】所需能量各减少2个。				5ban Graphics	横空出世 赫	U		A	Altar of the Moone
+CSM1DC-321	双方场上所有的【火】和【钢】宝可梦的弱点，全部消除。				5ban Graphics	起始卡组 横空出世GX	无标记		A	Altar of the Sunne
+CSM1aC-147	双方场上所有的【火】和【钢】宝可梦的弱点，全部消除。				5ban Graphics	横空出世 赫	U		A	Altar of the Sunne
 CSM1DC-319	双方玩家，每次在自己的回合有1次机会，可将自己牌库中的1张【水】或者【斗】属性的【基础】宝可梦，放于备战区。在这种情况下，重洗牌库。				5ban Graphics	起始卡组 横空出世GX	无标记		A	Brooklet Hill
 CSM1cC-146	双方玩家，每次在自己的回合有1次机会，可将自己牌库中的1张【水】或者【斗】属性的【基础】宝可梦，放于备战区。在这种情况下，重洗牌库。				5ban Graphics	横空出世 泽	U		A	Brooklet Hill
 CSM1cC-211	双方玩家，每次在自己的回合有1次机会，可将自己牌库中的1张【水】或者【斗】属性的【基础】宝可梦，放于备战区。在这种情况下，重洗牌库。				5ban Graphics	横空出世 泽	UR		A	Brooklet Hill
 CSM2DC-338	双方玩家，每次在自己的回合有1次机会，可将自己牌库中的1张【水】或者【斗】属性的【基础】宝可梦，放于备战区。在这种情况下，重洗牌库。				5ban Graphics	起始卡组 交相辉映GX	无标记		A	Brooklet Hill
 CSMPoC-010	双方玩家，每次在自己的回合有1次机会，可将自己牌库中的1张【水】或者【斗】属性的【基础】宝可梦，放于备战区。在这种情况下，重洗牌库。				5ban Graphics	对战派对组合改造包 斗	无标记		A	Brooklet Hill
-CSM1DC-316	双方处于特殊状态的宝可梦，其所处于的特殊状态不会因为进化、退化而恢复。				Ryo Ueda	起始卡组 横空出世GX	无标记		A	Sea of Nothingness
 CSM1.5C-055	双方的【恶】或【龙】宝可梦使用的招式，给对手战斗宝可梦造成的伤害「+10」。				5ban Graphics	对战精英	U		A	Devoured Field
 CSM2DC-337	双方的【恶】或【龙】宝可梦使用的招式，给对手战斗宝可梦造成的伤害「+10」。				5ban Graphics	起始卡组 交相辉映GX	无标记		A	Devoured Field
 CSMPgC-023	双方的【恶】或【龙】宝可梦使用的招式，给对手战斗宝可梦造成的伤害「+10」。				5ban Graphics	对战派对组合 恶	无标记		A	Devoured Field
+CSM1DC-323	双方所有【基础】宝可梦【撤退】所需能量，各增加1个。				5ban Graphics	起始卡组 横空出世GX	无标记		A	Mount Lanakila
 CSM1DC-322	每次双方玩家，各从手牌将宝可梦使出并进行进化时，将3个伤害指示物放于该宝可梦身上。				5ban Graphics	起始卡组 横空出世GX	无标记		A	Po Town
 CSM1cC-148	每次双方玩家，各从手牌将宝可梦使出并进行进化时，将3个伤害指示物放于该宝可梦身上。				5ban Graphics	横空出世 泽	U		A	Po Town
+CSM1DC-316	双方处于特殊状态的宝可梦，其所处于的特殊状态不会因为进化、退化而恢复。				Ryo Ueda	起始卡组 横空出世GX	无标记		A	Sea of Nothingness
+CSM1bC-148	双方的身上附有【恶】能量的【恶】宝可梦，当受到对手宝可梦的招式的伤害而【昏厥】时，被对手拿取的奖赏卡将减少1张。\n\n只要这张竞技场在场上，双方玩家从手牌使出物品或支援者时，不受其效果影响。				5ban Graphics	横空出世 苍	PR	Prism Star	B	Black Market Prism Star
+CSM1aC-148	双方玩家，每次在自己的回合有1次机会，可将自己手牌中的1张【火】能量，放于弃牌区。如果成功将能量放于弃牌区的话，则从自己的牌库上方抽取3张卡牌。\n\n只要这张竞技场在场上，双方玩家从手牌使出物品或支援者时，不受其效果影响。				5ban Graphics	横空出世 赫	PR	Prism Star	B	Heat Factory Prism Star
+CSM1bC-149	双方玩家，在自己的回合有1次机会，可回复自己1只【草】宝可梦「60」点HP，并恢复所有特殊状态。\n\n只要这张竞技场在场上，双方玩家从手牌使出物品或支援者时，不受其效果影响。				5ban Graphics	横空出世 苍	PR	Prism Star	B	Life Forest Prism Star
+CSM1aC-149	双方场上的「宝可梦道具」效果，全部消除。				Ryo Ueda	横空出世 赫	U		B	Lysandre Labs
 CSM1.5C-056	双方玩家，在自己的回合有1次机会，将自己弃牌区中的2张【钢】能量，在给对手看过之后，加入手牌。				Ryo Ueda	对战精英	U		B	Mt. Coronet
+CSM1.5C-054	每当宝可梦检查时，给双方的所有「宝可梦GX・EX」身上，各放置1个伤害指示物。				5ban Graphics	对战精英	U		B	Shrine of Punishment
+CSM1.5C-085	每当宝可梦检查时，给双方的所有「宝可梦GX・EX」身上，各放置1个伤害指示物。				5ban Graphics	对战精英	UR		B	Shrine of Punishment
 CSM1DC-320	双方的所有备战宝可梦，不会受到对手的招式的伤害和效果影响。				Ryo Ueda	起始卡组 横空出世GX	无标记		B	Sky Pillar
 CSM1cC-147	双方的所有备战宝可梦，不会受到对手的招式的伤害和效果影响。				Ryo Ueda	横空出世 泽	U		B	Sky Pillar
 CSM2DC-339	双方的所有备战宝可梦，不会受到对手的招式的伤害和效果影响。				Ryo Ueda	起始卡组 交相辉映GX	无标记		B	Sky Pillar
-CSM1.5C-057	双方场上宝可梦（除【妖】宝可梦外）使用招式所需能量，各增加1个【无】能量。\n\n只要这张竞技场在场上，双方玩家从手牌使出物品或支援者时，不受其效果影响。				5ban Graphics	对战精英	PR	Prism Star	B	Wondrous Labyrinth Prism Star
-CSM1aC-149	双方场上的「宝可梦道具」效果，全部消除。				Ryo Ueda	横空出世 赫	U		B	Lysandre Labs
-CSM1.5C-054	每当宝可梦检查时，给双方的所有「宝可梦GX・EX」身上，各放置1个伤害指示物。				5ban Graphics	对战精英	U		B	Shrine of Punishment
-CSM1.5C-085	每当宝可梦检查时，给双方的所有「宝可梦GX・EX」身上，各放置1个伤害指示物。				5ban Graphics	对战精英	UR		B	Shrine of Punishment
-CSM1aC-148	双方玩家，每次在自己的回合有1次机会，可将自己手牌中的1张【火】能量，放于弃牌区。如果成功将能量放于弃牌区的话，则从自己的牌库上方抽取3张卡牌。\n\n只要这张竞技场在场上，双方玩家从手牌使出物品或支援者时，不受其效果影响。				5ban Graphics	横空出世 赫	PR	Prism Star	B	Heat Factory Prism Star
-CSM1bC-149	双方玩家，在自己的回合有1次机会，可回复自己1只【草】宝可梦「60」点HP，并恢复所有特殊状态。\n\n只要这张竞技场在场上，双方玩家从手牌使出物品或支援者时，不受其效果影响。				5ban Graphics	横空出世 苍	PR	Prism Star	B	Life Forest Prism Star
+CSM1bC-147	双方场上【雷】宝可梦使用招式所需能量，各减少1个【雷】能量。\n\n只要这张竞技场在场上，双方玩家从手牌使出物品或支援者时，不受其效果影响。				5ban Graphics	横空出世 苍	PR	Prism Star	B	Thunder Mountain Prism Star
 CSM1bC-145	双方玩家，在自己的回合有1次机会，可将自己牌库中的1张「究极异兽」，在给对手看过之后，加入手牌。在这种情况下，重洗牌库。				5ban Graphics	横空出世 苍	U		B	Ultra Space
 CSM1DC-315	双方处于【灼伤】状态的宝可梦，在宝可梦检查时即使抛掷硬币出现正面，其【灼伤】状态也不会恢复。				5ban Graphics	起始卡组 横空出世GX	无标记		B	Wela Volcano Park
-CSM1bC-147	双方场上【雷】宝可梦使用招式所需能量，各减少1个【雷】能量。\n\n只要这张竞技场在场上，双方玩家从手牌使出物品或支援者时，不受其效果影响。				5ban Graphics	横空出世 苍	PR	Prism Star	B	Thunder Mountain Prism Star
-CSM1bC-148	双方的身上附有【恶】能量的【恶】宝可梦，当受到对手宝可梦的招式的伤害而【昏厥】时，被对手拿取的奖赏卡将减少1张。\n\n只要这张竞技场在场上，双方玩家从手牌使出物品或支援者时，不受其效果影响。				5ban Graphics	横空出世 苍	PR	Prism Star	B	Black Market Prism Star
-CSM2.5C-058	当双方的玩家，将自己处于【中毒】状态的战斗宝可梦因训练家的效果而与备战宝可梦互换时，新出场的宝可梦，会继承其【中毒】状态。（如果因该【中毒】而放置的伤害指示物数量有所增加的话，则也同样继承其数量。）				Ryo Ueda	炫奇争胜	U		C	Dust Island
-CSM2bC-149	双方玩家，在自己的回合可以有1次机会，可将自己牌库中最多2张从「谜之化石」进化而来的宝可梦，放于备战区。在这种情况下，重洗牌库。如果使用了这个效果的话，自己的回合结束。				aky CG Works	交相辉映 魁	U		C	Pokémon Research Lab
+CSM1.5C-057	双方场上宝可梦（除【妖】宝可梦外）使用招式所需能量，各增加1个【无】能量。\n\n只要这张竞技场在场上，双方玩家从手牌使出物品或支援者时，不受其效果影响。				5ban Graphics	对战精英	PR	Prism Star	B	Wondrous Labyrinth Prism Star
+CSM2.5C-059	双方场上剩余HP在「40」点以下的宝可梦（包含40点），无法使用招式。				Ryo Ueda	炫奇争胜	U		C	Blizzard Town
 CSM2DC-340	双方的「大岩蛇GX」，受到对手宝可梦的招式的伤害「-40」。				5ban Graphics	起始卡组 交相辉映GX	无标记		C	Brock's Pewter City Gym
-CSM2DC-336	双方的「宝石海星GX」所使用的招式，给对手的战斗宝可梦造成的伤害「+40」。				5ban Graphics	起始卡组 交相辉映GX	无标记		C	Misty's Cerulean City Gym
-CSM2cC-147	双方玩家，每次在自己的回合有1次机会，可将自己的1张手牌，放于弃牌区。在这种情况下，将自己牌库中最多2张【火】能量，在给对手看过之后，加入手牌。并重洗牌库。				5ban Graphics	交相辉映 唤	U		C	Giant Hearth
-CSM2cC-191	双方玩家，每次在自己的回合有1次机会，可将自己的1张手牌，放于弃牌区。在这种情况下，将自己牌库中最多2张【火】能量，在给对手看过之后，加入手牌。并重洗牌库。				5ban Graphics	交相辉映 唤	UR		C	Giant Hearth
-CSM2DC-341	双方玩家，每次在自己的回合有1次机会，可将自己的1张手牌，放于弃牌区。在这种情况下，将自己牌库中的1张基本能量，在给对手看过之后，加入手牌。并重洗牌库。				5ban Graphics	起始卡组 交相辉映GX	无标记		C	Viridian Forest
-CSM2aC-149	双方玩家，每次在自己的回合有1次机会，可将自己的1张手牌，放于弃牌区。在这种情况下，将自己牌库中的1张基本能量，在给对手看过之后，加入手牌。并重洗牌库。				5ban Graphics	交相辉映 沐	U		C	Viridian Forest
-CSM2aC-193	双方玩家，每次在自己的回合有1次机会，可将自己的1张手牌，放于弃牌区。在这种情况下，将自己牌库中的1张基本能量，在给对手看过之后，加入手牌。并重洗牌库。				5ban Graphics	交相辉映 沐	UR		C	Viridian Forest
-CSMAC-017	双方玩家，每次在自己的回合有1次机会，可将自己的1张手牌，放于弃牌区。在这种情况下，将自己牌库中的1张基本能量，在给对手看过之后，加入手牌。并重洗牌库。				5ban Graphics	卡组构筑进阶礼盒 阿尔宙斯&帝牙卢卡&帕路奇亚GX	无标记		C	Viridian Forest
-CSM2cC-149	双方玩家因【睡眠】而抛掷的硬币次数变为2次，只有均为正面才会恢复。				Ryo Ueda	交相辉映 唤	U		C	Slumbering Forest
-CSM2.5C-060	将双方场上「宝可梦GX・EX」的特性，全部消除。				aky CG Works	炫奇争胜	U		C	Power Plant
-CSM2.5C-098	将双方场上「宝可梦GX・EX」的特性，全部消除。				aky CG Works	炫奇争胜	UR		C	Power Plant
+CSM2.5C-057	当双方玩家，从手牌使出别的名字的竞技场时，将这张竞技场放于弃牌区之后，那张竞技场也会被放于弃牌区。（新出场的竞技场的效果不产生作用。）				Ryo Ueda	炫奇争胜	U		C	Chaotic Swell
 CSM2cC-148	双方所有【恶】属性的【基础】宝可梦的【撤退】所需能量，全部消除。				Ryo Ueda	交相辉映 唤	U		C	Dark City
 CSMPpC-009	双方所有【恶】属性的【基础】宝可梦的【撤退】所需能量，全部消除。				Ryo Ueda	对战派对组合改造包 恶	无标记		C	Dark City
-CSM2.5C-059	双方场上剩余HP在「40」点以下的宝可梦（包含40点），无法使用招式。				Ryo Ueda	炫奇争胜	U		C	Blizzard Town
+CSM2.5C-058	当双方的玩家，将自己处于【中毒】状态的战斗宝可梦因训练家的效果而与备战宝可梦互换时，新出场的宝可梦，会继承其【中毒】状态。（如果因该【中毒】而放置的伤害指示物数量有所增加的话，则也同样继承其数量。）				Ryo Ueda	炫奇争胜	U		C	Dust Island
+CSM2cC-147	双方玩家，每次在自己的回合有1次机会，可将自己的1张手牌，放于弃牌区。在这种情况下，将自己牌库中最多2张【火】能量，在给对手看过之后，加入手牌。并重洗牌库。				5ban Graphics	交相辉映 唤	U		C	Giant Hearth
+CSM2cC-191	双方玩家，每次在自己的回合有1次机会，可将自己的1张手牌，放于弃牌区。在这种情况下，将自己牌库中最多2张【火】能量，在给对手看过之后，加入手牌。并重洗牌库。				5ban Graphics	交相辉映 唤	UR		C	Giant Hearth
+CSM2bC-148	双方玩家，每次在自己的回合有1次机会，可查看对手的手牌。				5ban Graphics	交相辉映 魁	U		C	Lavender Town
 CSM2DC-335	双方的身上附有基本【斗】能量的宝可梦（除「究极异兽」外）使用的招式，给对手战斗宝可梦造成的伤害「+10」，如果自己的剩余奖赏卡张数，比对手多的话，则变为「+40」。				5ban Graphics	起始卡组 交相辉映GX	无标记		C	Martial Arts Dojo
 CSM2bC-147	双方的身上附有基本【斗】能量的宝可梦（除「究极异兽」外）使用的招式，给对手战斗宝可梦造成的伤害「+10」，如果自己的剩余奖赏卡张数，比对手多的话，则变为「+40」。				5ban Graphics	交相辉映 魁	U		C	Martial Arts Dojo
 CSM2bC-192	双方的身上附有基本【斗】能量的宝可梦（除「究极异兽」外）使用的招式，给对手战斗宝可梦造成的伤害「+10」，如果自己的剩余奖赏卡张数，比对手多的话，则变为「+40」。				5ban Graphics	交相辉映 魁	UR		C	Martial Arts Dojo
 CSMPfC-023	双方的身上附有基本【斗】能量的宝可梦（除「究极异兽」外）使用的招式，给对手战斗宝可梦造成的伤害「+10」，如果自己的剩余奖赏卡张数，比对手多的话，则变为「+40」。				5ban Graphics	对战派对组合 斗	无标记		C	Martial Arts Dojo
-CSM2.5C-057	当双方玩家，从手牌使出别的名字的竞技场时，将这张竞技场放于弃牌区之后，那张竞技场也会被放于弃牌区。（新出场的竞技场的效果不产生作用。）				Ryo Ueda	炫奇争胜	U		C	Chaotic Swell
-CSM2bC-148	双方玩家，每次在自己的回合有1次机会，可查看对手的手牌。				5ban Graphics	交相辉映 魁	U		C	Lavender Town
+CSM2DC-336	双方的「宝石海星GX」所使用的招式，给对手的战斗宝可梦造成的伤害「+40」。				5ban Graphics	起始卡组 交相辉映GX	无标记		C	Misty's Cerulean City Gym
+CSM2bC-149	双方玩家，在自己的回合可以有1次机会，可将自己牌库中最多2张从「谜之化石」进化而来的宝可梦，放于备战区。在这种情况下，重洗牌库。如果使用了这个效果的话，自己的回合结束。				aky CG Works	交相辉映 魁	U		C	Pokémon Research Lab
+CSM2.5C-060	将双方场上「宝可梦GX・EX」的特性，全部消除。				aky CG Works	炫奇争胜	U		C	Power Plant
+CSM2.5C-098	将双方场上「宝可梦GX・EX」的特性，全部消除。				aky CG Works	炫奇争胜	UR		C	Power Plant
+CSM2cC-149	双方玩家因【睡眠】而抛掷的硬币次数变为2次，只有均为正面才会恢复。				Ryo Ueda	交相辉映 唤	U		C	Slumbering Forest
+CSM2DC-341	双方玩家，每次在自己的回合有1次机会，可将自己的1张手牌，放于弃牌区。在这种情况下，将自己牌库中的1张基本能量，在给对手看过之后，加入手牌。并重洗牌库。				5ban Graphics	起始卡组 交相辉映GX	无标记		C	Viridian Forest
+CSM2aC-149	双方玩家，每次在自己的回合有1次机会，可将自己的1张手牌，放于弃牌区。在这种情况下，将自己牌库中的1张基本能量，在给对手看过之后，加入手牌。并重洗牌库。				5ban Graphics	交相辉映 沐	U		C	Viridian Forest
+CSM2aC-193	双方玩家，每次在自己的回合有1次机会，可将自己的1张手牌，放于弃牌区。在这种情况下，将自己牌库中的1张基本能量，在给对手看过之后，加入手牌。并重洗牌库。				5ban Graphics	交相辉映 沐	UR		C	Viridian Forest
+CSMAC-017	双方玩家，每次在自己的回合有1次机会，可将自己的1张手牌，放于弃牌区。在这种情况下，将自己牌库中的1张基本能量，在给对手看过之后，加入手牌。并重洗牌库。				5ban Graphics	卡组构筑进阶礼盒 阿尔宙斯&帝牙卢卡&帕路奇亚GX	无标记		C	Viridian Forest
+CS2aC-112	双方的【基础】宝可梦，受到对手宝可梦的招式的伤害「-20」。				5ban Graphics	浓墨重彩 黎	U		D	Circhester Bath
 CS1.5C-051	双方战斗宝可梦的【撤退】所需能量，各增加2个。				5ban Graphics	极巨攻防	U		D	Galar Mine
 CS2.1C-008	双方战斗宝可梦的【撤退】所需能量，各增加2个。				5ban Graphics	专题包 喵喵小妙招	无标记		D	Galar Mine
-CS2aC-113	每当双方玩家，在自己的回合，从手牌使出「宝可梦VMAX」使「宝可梦V」进化时，回复该宝可梦「100」点HP。				5ban Graphics	浓墨重彩 黎	U		D	Wyndon Stadium
-CS2bC-113	每当双方玩家，在自己的回合，自己的战斗宝可梦回到备战区时，给回到备战区的宝可梦身上放置2个伤害指示物。				5ban Graphics	浓墨重彩 靛	U		D	Spikemuth
-CS2aC-112	双方的【基础】宝可梦，受到对手宝可梦的招式的伤害「-20」。				5ban Graphics	浓墨重彩 黎	U		D	Circhester Bath
+CS1DC-206	双方玩家，在自己的回合有1次机会，因自己宝可梦的招式而抛掷硬币时，可无视这次抛掷硬币的所有结果，重新抛掷硬币。				aky CG Works	起始卡组 极巨争锋V	无标记		D	Glimwood Tangle
+CS1aC-134	双方玩家，在自己的回合有1次机会，因自己宝可梦的招式而抛掷硬币时，可无视这次抛掷硬币的所有结果，重新抛掷硬币。				aky CG Works	极巨争锋 雷	U		D	Glimwood Tangle
 CS2.5C-057	双方玩家，每次在自己的回合有1次机会，可从牌库上方抽取卡牌，直到自己的手牌变为3张为止。				5ban Graphics	璀璨反击	U		D	Rose Tower
-CS4.1C-004	双方玩家，在自己的回合有1次机会，可从自己的牌库上方抽取2张卡牌。在这种情况下，自己的回合结束。				Kagemaru Himeno	辉耀能量系列礼盒	无标记		D	
-CS1DC-204	双方玩家，在自己的回合有1次机会，可选择自己牌库中的1张【草】属性进化宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				aky CG Works	起始卡组 极巨争锋V	无标记		D	Turffield Stadium
-CS1bC-135	双方玩家，在自己的回合有1次机会，可选择自己牌库中的1张【草】属性进化宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				aky CG Works	极巨争锋 焰	U		D	Turffield Stadium
-CS1bC-198	双方玩家，在自己的回合有1次机会，可选择自己牌库中的1张【草】属性进化宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				aky CG Works	极巨争锋 焰	UR		D	Turffield Stadium
+CS2bC-113	每当双方玩家，在自己的回合，自己的战斗宝可梦回到备战区时，给回到备战区的宝可梦身上放置2个伤害指示物。				5ban Graphics	浓墨重彩 靛	U		D	Spikemuth
 CS1DC-205	双方玩家，在自己的回合有1次机会，可选择自己弃牌区中的1张基本能量，在给对手看过之后，加入手牌。				5ban Graphics	起始卡组 极巨争锋V	无标记		D	Training Court
 CS1aC-133	双方玩家，在自己的回合有1次机会，可选择自己弃牌区中的1张基本能量，在给对手看过之后，加入手牌。				5ban Graphics	极巨争锋 雷	U		D	Training Court
 CS1aC-217	双方玩家，在自己的回合有1次机会，可选择自己弃牌区中的1张基本能量，在给对手看过之后，加入手牌。				5ban Graphics	极巨争锋 雷	UR		D	Training Court
 CSAC-023	双方玩家，在自己的回合有1次机会，可选择自己弃牌区中的1张基本能量，在给对手看过之后，加入手牌。				5ban Graphics	卡组构筑礼盒 极巨争锋	无标记		D	Training Court
-CS1DC-206	双方玩家，在自己的回合有1次机会，因自己宝可梦的招式而抛掷硬币时，可无视这次抛掷硬币的所有结果，重新抛掷硬币。				aky CG Works	起始卡组 极巨争锋V	无标记		D	Glimwood Tangle
-CS1aC-134	双方玩家，在自己的回合有1次机会，因自己宝可梦的招式而抛掷硬币时，可无视这次抛掷硬币的所有结果，重新抛掷硬币。				aky CG Works	极巨争锋 雷	U		D	Glimwood Tangle
-CS3bC-120	双方的所有宝可梦无法回复HP。				Oswaldo KATO	洪荒演武 激	U		E	Dyna Tree Hill
-CS5.1C-004	双方玩家，在自己的回合有1次机会，可将自己所有宝可梦的HP，各回复「10」点。在这种情况下，自己的回合结束。				Kagemaru Himeno	辉耀能量系列礼盒 第二弹	无标记		E	
-CS6.1C-004	双方玩家，在自己的回合有1次机会，可将自己所有宝可梦的HP，各回复「10」点。在这种情况下，自己的回合结束。				Kagemaru Himeno	辉耀能量系列礼盒 第三弹	无标记		E	
-CS3aC-123	双方玩家，每次在自己的回合有1次机会，如果将自己手牌中的1张「一击」卡放于弃牌区的话，则可从自己的牌库上方抽取2张卡牌。				5ban Graphics	洪荒演武 茂	U		E	Tower of Darkness
-CSBC-017	双方玩家，每次在自己的回合有1次机会，如果将自己手牌中的1张「一击」卡放于弃牌区的话，则可从自己的牌库上方抽取2张卡牌。在自己的回合，只可以将1张竞技场卡放置于战斗区旁。如果有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区。				5ban Graphics	卡组构筑礼盒 洪荒演武 茂	无标记		E	Tower of Darkness
-CSVE1C-165	双方玩家，每次在自己的回合有1次机会，如果将自己手牌中的1张「一击」卡放于弃牌区的话，则可从自己的牌库上方抽取2张卡牌。在自己的回合，只可以将1张竞技场卡放置于战斗区旁。如果有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区。				5ban Graphics	对战派对 共梦	无标记		E	Tower of Darkness
-CS4aC-131	双方玩家，在自己的回合有1次机会，可选择放于自己场上宝可梦身上的1张「宝可梦道具」，放回手牌。				Oswaldo KATO	九彩汇聚 朋	U		E	Shopping Center
-CS3bC-121	双方所有「连击」宝可梦【撤退】所需能量，各减少2个。				5ban Graphics	洪荒演武 激	U		E	Tower of Waters
-CSCC-017	双方所有「连击」宝可梦【撤退】所需能量，各减少2个。在自己的回合只可以将1张竞技场卡放到于战斗区旁。如果有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区。				5ban Graphics	卡组构筑礼盒 洪荒演武 激	无标记		E	Tower of Waters
-CSVE1C-170	双方所有「连击」宝可梦【撤退】所需能量，各减少2个。在自己的回合，只可以将1张竞技场卡放置于战斗区旁。如果有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区。				5ban Graphics	对战派对 共梦	无标记		E	Tower of Waters
-CS4bC-131	如果双方的战斗宝可梦在【撤退】时，放于弃牌区的能量是基本能量的话，则不将该能量放于弃牌区，而是放回自己的手牌。				Oswaldo KATO	九彩汇聚 源	U		E	Skaters' Park
-CSVE2C-199	如果双方的战斗宝可梦在【撤退】时，放于弃牌区的能量是基本能量的话，则不将该能量放于弃牌区，而是放回自己的手牌。				Oswaldo KATO	对战派对 耀梦	无标记		E	Skaters' Park
+CS1DC-204	双方玩家，在自己的回合有1次机会，可选择自己牌库中的1张【草】属性进化宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				aky CG Works	起始卡组 极巨争锋V	无标记		D	Turffield Stadium
+CS1bC-135	双方玩家，在自己的回合有1次机会，可选择自己牌库中的1张【草】属性进化宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				aky CG Works	极巨争锋 焰	U		D	Turffield Stadium
+CS1bC-198	双方玩家，在自己的回合有1次机会，可选择自己牌库中的1张【草】属性进化宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				aky CG Works	极巨争锋 焰	UR		D	Turffield Stadium
+CS2aC-113	每当双方玩家，在自己的回合，从手牌使出「宝可梦VMAX」使「宝可梦V」进化时，回复该宝可梦「100」点HP。				5ban Graphics	浓墨重彩 黎	U		D	Wyndon Stadium
+CS4.1C-004	双方玩家，在自己的回合有1次机会，可从自己的牌库上方抽取2张卡牌。在这种情况下，自己的回合结束。				Kagemaru Himeno	辉耀能量系列礼盒	无标记		D	
 CS4aC-130	双方玩家，在自己的回合有1次机会，可将自己所有的【钢】宝可梦和【龙】宝可梦的HP，各回复「30」点。				Toyste Beach	九彩汇聚 朋	U		E	Crystal Cave
 CS4aC-182	双方玩家，在自己的回合有1次机会，可将自己所有的【钢】宝可梦和【龙】宝可梦的HP，各回复「30」点。				Toyste Beach	九彩汇聚 朋	UR		E	Crystal Cave
 CSVE2C-198	双方玩家，在自己的回合有1次机会，可将自己所有的【钢】宝可梦和【龙】宝可梦的HP，各回复「30」点。				Toyste Beach	对战派对 耀梦	无标记		E	Crystal Cave
+CS3bC-120	双方的所有宝可梦无法回复HP。				Oswaldo KATO	洪荒演武 激	U		E	Dyna Tree Hill
 CS3aC-124	每当双方玩家，各从自己的手牌给宝可梦（除【超】宝可梦外）附着能量时，给该宝可梦身上放置2个伤害指示物。				Oswaldo KATO	洪荒演武 茂	U		E	Old Cemetery
 CS3.5C-063	将双方场上「拥有规则的宝可梦」的特性，全部消除。				Oswaldo KATO	怒炎灼天	U		E	Path to the Peak
 CS3.5C-090	将双方场上「拥有规则的宝可梦」的特性，全部消除。				Oswaldo KATO	怒炎灼天	UR		E	Path to the Peak
 CSZC-054	将双方场上「拥有规则的宝可梦」的特性，全部消除。				Oswaldo KATO	收藏周边礼盒 百变宝盒	无标记		E	Path to the Peak
+CS4aC-131	双方玩家，在自己的回合有1次机会，可选择放于自己场上宝可梦身上的1张「宝可梦道具」，放回手牌。				Oswaldo KATO	九彩汇聚 朋	U		E	Shopping Center
+CS4bC-131	如果双方的战斗宝可梦在【撤退】时，放于弃牌区的能量是基本能量的话，则不将该能量放于弃牌区，而是放回自己的手牌。				Oswaldo KATO	九彩汇聚 源	U		E	Skaters' Park
+CSVE2C-199	如果双方的战斗宝可梦在【撤退】时，放于弃牌区的能量是基本能量的话，则不将该能量放于弃牌区，而是放回自己的手牌。				Oswaldo KATO	对战派对 耀梦	无标记		E	Skaters' Park
 CS4bC-130	双方玩家，每次在自己的回合有1次机会，可选择自己牌库中的1张【雷】或【龙】属性的【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	九彩汇聚 源	U		E	Stormy Mountains
 CS4bC-175	双方玩家，每次在自己的回合有1次机会，可选择自己牌库中的1张【雷】或【龙】属性的【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	九彩汇聚 源	UR		E	Stormy Mountains
 CSVE1C-166	双方玩家，每次在自己的回合有1次机会，可选择自己牌库中的1张【雷】或【龙】属性的【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	对战派对 共梦	无标记		E	Stormy Mountains
 CSVE2C-196	双方玩家，每次在自己的回合有1次机会，可选择自己牌库中的1张【雷】或【龙】属性的【基础】宝可梦，放于备战区。并重洗牌库。				Toyste Beach	对战派对 耀梦	无标记		E	Stormy Mountains
-CS6aC-130	双方玩家，每次在自己的回合有1次机会，可查看自己牌库上方的1张卡牌后放回原处。若希望，可将该卡牌放于弃牌区。在自己的回合只可以将1张竞技场卡放置于战斗区旁。如果有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区。				AYUMI ODASHIMA	碧海暗影 啸	U		F	Primordial Altar
-CS5.5C-066	每当双方玩家，各从手牌将【基础】宝可梦放于备战区时，给该宝可梦身上放置2个伤害指示物。				Oswaldo KATO	暗影夺辉	U		F	Gapejaw Bog
-CS5.5C-089	每当双方玩家，各从手牌将【基础】宝可梦放于备战区时，给该宝可梦身上放置2个伤害指示物。				Oswaldo KATO	暗影夺辉	UR		F	Gapejaw Bog
+CS3aC-123	双方玩家，每次在自己的回合有1次机会，如果将自己手牌中的1张「一击」卡放于弃牌区的话，则可从自己的牌库上方抽取2张卡牌。				5ban Graphics	洪荒演武 茂	U		E	Tower of Darkness
+CSBC-017	双方玩家，每次在自己的回合有1次机会，如果将自己手牌中的1张「一击」卡放于弃牌区的话，则可从自己的牌库上方抽取2张卡牌。在自己的回合，只可以将1张竞技场卡放置于战斗区旁。如果有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区。				5ban Graphics	卡组构筑礼盒 洪荒演武 茂	无标记		E	Tower of Darkness
+CSVE1C-165	双方玩家，每次在自己的回合有1次机会，如果将自己手牌中的1张「一击」卡放于弃牌区的话，则可从自己的牌库上方抽取2张卡牌。在自己的回合，只可以将1张竞技场卡放置于战斗区旁。如果有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区。				5ban Graphics	对战派对 共梦	无标记		E	Tower of Darkness
+CS3bC-121	双方所有「连击」宝可梦【撤退】所需能量，各减少2个。				5ban Graphics	洪荒演武 激	U		E	Tower of Waters
+CSCC-017	双方所有「连击」宝可梦【撤退】所需能量，各减少2个。在自己的回合只可以将1张竞技场卡放到于战斗区旁。如果有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区。				5ban Graphics	卡组构筑礼盒 洪荒演武 激	无标记		E	Tower of Waters
+CSVE1C-170	双方所有「连击」宝可梦【撤退】所需能量，各减少2个。在自己的回合，只可以将1张竞技场卡放置于战斗区旁。如果有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区。				5ban Graphics	对战派对 共梦	无标记		E	Tower of Waters
+CS5.1C-004	双方玩家，在自己的回合有1次机会，可将自己所有宝可梦的HP，各回复「10」点。在这种情况下，自己的回合结束。				Kagemaru Himeno	辉耀能量系列礼盒 第二弹	无标记		E	
+CS6.1C-004	双方玩家，在自己的回合有1次机会，可将自己所有宝可梦的HP，各回复「10」点。在这种情况下，自己的回合结束。				Kagemaru Himeno	辉耀能量系列礼盒 第三弹	无标记		E	
 CS6.5C-071	双方玩家可以放于备战区的宝可梦数量，变为4只。［关于变更备战宝可梦的数量的效果，优先执行数量更少的效果。］\n\n（当这张卡牌被放于场上时，备战区有5只以上宝可梦（包含5只）的玩家，将宝可梦放于弃牌区直到备战区宝可梦变为4只为止。放于弃牌区的动作由这张卡牌的持有者开始执行。）				Oswaldo KATO	胜象星引	U		F	Collapsed Stadium
 CS6.5C-095	双方玩家可以放于备战区的宝可梦数量，变为4只。［关于变更备战宝可梦的数量的效果，优先执行数量更少的效果。］\n\n（当这张卡牌被放于场上时，备战区有5只以上宝可梦（包含5只）的玩家，将宝可梦放于弃牌区直到备战区宝可梦变为4只为止。放于弃牌区的动作由这张卡牌的持有者开始执行。）				Oswaldo KATO	胜象星引	UR		F	Collapsed Stadium
 CSVM1aC-030	双方玩家可以放于备战区的宝可梦数量，变为4只。［关于变更备战宝可梦的数量的效果，优先执行数量更少的效果。］\n\n（当这张卡牌被放于场上时，备战区有5只以上宝可梦（包含5只）的玩家，将宝可梦放于弃牌区直到备战区宝可梦变为4只为止。放于弃牌区的动作由这张卡牌的持有者开始执行。）				Oswaldo KATO	大师战略卡组构筑套装 喷火龙ex	无标记		F	Collapsed Stadium
 CSVM1bC-031	双方玩家可以放于备战区的宝可梦数量，变为4只。［关于变更备战宝可梦的数量的效果，优先执行数量更少的效果。］\n\n（当这张卡牌被放于场上时，备战区有5只以上宝可梦（包含5只）的玩家，将宝可梦放于弃牌区直到备战区宝可梦变为4只为止。放于弃牌区的动作由这张卡牌的持有者开始执行。）				Oswaldo KATO	大师战略卡组构筑套装 沙奈朵ex	无标记		F	Collapsed Stadium
-SSP-187	双方所有宝可梦，不会陷入【混乱】状态，已经处于的【混乱】状态，也全部恢复。\n\n在自己的回合，只可以将1张竞技场卡放置于战斗区旁。如果有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区。				AYUMI ODASHIMA		无标记		F	
+CS5.5C-066	每当双方玩家，各从手牌将【基础】宝可梦放于备战区时，给该宝可梦身上放置2个伤害指示物。				Oswaldo KATO	暗影夺辉	U		F	Gapejaw Bog
+CS5.5C-089	每当双方玩家，各从手牌将【基础】宝可梦放于备战区时，给该宝可梦身上放置2个伤害指示物。				Oswaldo KATO	暗影夺辉	UR		F	Gapejaw Bog
+CS5DC-151	双方玩家，每次在自己的回合有1次机会，可将自己的手牌全部放回牌库并重洗牌库。在这种情况下，可从自己的牌库上方抽取5张卡牌。如果使用了这个效果的话，自己的回合结束。				Oswaldo KATO	起始卡组 勇魅群星V	无标记		F	Jubilife Village
+CS5aC-125	双方玩家，每次在自己的回合有1次机会，可将自己的手牌全部放回牌库并重洗牌库。在这种情况下，可从自己的牌库上方抽取5张卡牌。如果使用了这个效果的话，自己的回合结束。				Oswaldo KATO	勇魅群星 魅	U		F	Jubilife Village
+CS5aC-174	双方玩家，每次在自己的回合有1次机会，可将自己的手牌全部放回牌库并重洗牌库。在这种情况下，可从自己的牌库上方抽取5张卡牌。如果使用了这个效果的话，自己的回合结束。				Oswaldo KATO	勇魅群星 魅	UR		F	Jubilife Village
+CS5bC-127	双方身上附有【水】或【斗】能量的宝可梦，受到对手宝可梦的招式的伤害「-20」。				Oswaldo KATO	勇魅群星 勇	U		F	Lake Acuity
+CSVE1C-167	双方身上附有【水】或【斗】能量的宝可梦，受到对手宝可梦的招式的伤害「-20」。				Oswaldo KATO	对战派对 共梦	无标记		F	Lake Acuity
+CSVE2C-197	双方身上附有【水】或【斗】能量的宝可梦，受到对手宝可梦的招式的伤害「-20」。				Oswaldo KATO	对战派对 耀梦	无标记		F	Lake Acuity
 CS6bC-130	每当双方的宝可梦【昏厥】时，不将该宝可梦放于弃牌区，而是放于放逐区。（除宝可梦以外的卡牌，全部放于弃牌区。）在自己的回合只可以将1张竞技场卡放置于战斗区旁。如果有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区。				AYUMI ODASHIMA	碧海暗影 逐	U		F	Lost City
 CSXC-020	每当双方的宝可梦【昏厥】时，不将该宝可梦放于弃牌区，而是放于放逐区。（除宝可梦以外的卡牌，全部放于弃牌区。）在自己的回合，只可以将1张竞技场卡放置于战斗区旁。如果有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区。				AYUMI ODASHIMA	卡组构筑进阶礼盒 骑拉帝纳VSTAR	无标记		F	Lost City
 CSZC-056	每当双方的宝可梦【昏厥】时，不将该宝可梦放于弃牌区，而是放于放逐区。（除宝可梦以外的卡牌，全部放于弃牌区。）在自己的回合，只可以将1张竞技场卡放置于战斗区旁。如果有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区。				AYUMI ODASHIMA	收藏周边礼盒 百变宝盒	无标记		F	Lost City
@@ -110,27 +114,11 @@ CS5aC-126	双方玩家，每次在自己的回合有1次机会，可选择自己
 CS5aC-175	双方玩家，每次在自己的回合有1次机会，可选择自己弃牌区中的1张【火】能量，附着于自己备战区的【火】宝可梦身上。在这种情况下，给该宝可梦身上放置2个伤害指示物。				ORBITALLINK Inc.	勇魅群星 魅	UR		F	Magma Basin
 CSVE1C-169	双方玩家，每次在自己的回合有1次机会，可选择自己弃牌区中的1张【火】能量，附着于自己备战区的【火】宝可梦身上。在这种情况下，给该宝可梦身上放置2个伤害指示物。				ORBITALLINK Inc.	对战派对 共梦	无标记		F	Magma Basin
 CSVE2C-201	双方玩家，每次在自己的回合有1次机会，可选择自己弃牌区中的1张【火】能量，附着于自己备战区的【火】宝可梦身上。在这种情况下，给该宝可梦身上放置2个伤害指示物。				ORBITALLINK Inc.	对战派对 耀梦	无标记		F	Magma Basin
-CS5bC-127	双方身上附有【水】或【斗】能量的宝可梦，受到对手宝可梦的招式的伤害「-20」。				Oswaldo KATO	勇魅群星 勇	U		F	Lake Acuity
-CSVE1C-167	双方身上附有【水】或【斗】能量的宝可梦，受到对手宝可梦的招式的伤害「-20」。				Oswaldo KATO	对战派对 共梦	无标记		F	Lake Acuity
-CSVE2C-197	双方身上附有【水】或【斗】能量的宝可梦，受到对手宝可梦的招式的伤害「-20」。				Oswaldo KATO	对战派对 耀梦	无标记		F	Lake Acuity
-CS5DC-151	双方玩家，每次在自己的回合有1次机会，可将自己的手牌全部放回牌库并重洗牌库。在这种情况下，可从自己的牌库上方抽取5张卡牌。如果使用了这个效果的话，自己的回合结束。				Oswaldo KATO	起始卡组 勇魅群星V	无标记		F	Jubilife Village
-CS5aC-125	双方玩家，每次在自己的回合有1次机会，可将自己的手牌全部放回牌库并重洗牌库。在这种情况下，可从自己的牌库上方抽取5张卡牌。如果使用了这个效果的话，自己的回合结束。				Oswaldo KATO	勇魅群星 魅	U		F	Jubilife Village
-CS5aC-174	双方玩家，每次在自己的回合有1次机会，可将自己的手牌全部放回牌库并重洗牌库。在这种情况下，可从自己的牌库上方抽取5张卡牌。如果使用了这个效果的话，自己的回合结束。				Oswaldo KATO	勇魅群星 魅	UR		F	Jubilife Village
+CS6aC-130	双方玩家，每次在自己的回合有1次机会，可查看自己牌库上方的1张卡牌后放回原处。若希望，可将该卡牌放于弃牌区。在自己的回合只可以将1张竞技场卡放置于战斗区旁。如果有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区。				AYUMI ODASHIMA	碧海暗影 啸	U		F	Primordial Altar
 CS5bC-128	双方场上宝可梦身上附有的特殊能量的效果全部消除，被视作1个【无】能量。				Oswaldo KATO	勇魅群星 勇	U		F	Temple of Sinnoh
 CS5bC-178	双方场上宝可梦身上附有的特殊能量的效果全部消除，被视作1个【无】能量。				Oswaldo KATO	勇魅群星 勇	UR		F	Temple of Sinnoh
 CSZC-055	双方场上宝可梦身上附有的特殊能量的效果全部消除，被视作1个【无】能量。				Oswaldo KATO	收藏周边礼盒 百变宝盒	无标记		F	Temple of Sinnoh
-CSV5C-128	双方玩家，每次在自己的回合有1次机会，可选择自己牌库中的1张「宝可梦道具」，在给对手看过之后，加入手牌。并重洗牌库。				Oswaldo KATO	黑晶炽诚	U		G	Town Store
-CSVM1aC-031	双方玩家，每次在自己的回合有1次机会，可选择自己牌库中的1张「宝可梦道具」，在给对手看过之后，加入手牌。并重洗牌库。				Oswaldo KATO	大师战略卡组构筑套装 喷火龙ex	无标记		G	Town Store
-CSVM1cC-027	双方玩家，每次在自己的回合有1次机会，可选择自己牌库中的1张「宝可梦道具」，在给对手看过之后，加入手牌。并重洗牌库。				Oswaldo KATO	大师战略卡组构筑套装 密勒顿ex	无标记		G	Town Store
-CSV6C-128	双方场上【基础】宝可梦使用招式所需能量，各增加1个【无】能量。				Oswaldo KATO	真实玄虚	U		G	Pokémon League Headquarters
-CSVM2bC-032	双方场上【基础】宝可梦使用招式所需能量，各增加1个【无】能量。				Oswaldo KATO	大师战略卡组构筑套装 多龙巴鲁托ex	无标记		G	Pokémon League Headquarters
-CSV2C-126	双方玩家，每次在自己的回合有1次机会，如果将自己手牌中的1张「基本【超】能量」放于弃牌区的话，则可将自己所有宝可梦的HP，各回复「30」。				AYUMI ODASHIMA	奇迹启程	U		G	Moonlit Hill
-CSV9.5C-204	双方玩家，每次在自己的回合有1次机会，如果将自己手牌中的1张「基本【超】能量」放于弃牌区的话，则可将自己所有宝可梦的HP，各回复「30」。				AYUMI ODASHIMA	太晶盛聚	U		G	Moonlit Hill
-CSVM1bC-032	双方玩家，每次在自己的回合有1次机会，如果将自己手牌中的1张「基本【超】能量」放于弃牌区的话，则可将自己所有宝可梦的HP，各回复「30」。				AYUMI ODASHIMA	大师战略卡组构筑套装 沙奈朵ex	无标记		G	Moonlit Hill
-CSV1C-126	双方玩家，每次在自己的回合有1次机会，可抛掷1次硬币。如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Oswaldo KATO	亘古开来	U		G	Mesagoza
-CSVE1C-168	双方玩家，每次在自己的回合有1次机会，可抛掷1次硬币。如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Oswaldo KATO	对战派对 共梦	无标记		G	Mesagoza
-CSV4C-127	双方所有【基础】宝可梦【撤退】所需能量，各减少1个。				Oswaldo KATO	嘉奖回合	U		G	Beach Court
-CSV4C-165	双方所有【基础】宝可梦【撤退】所需能量，各减少1个。				Oswaldo KATO	嘉奖回合	UR		G	Beach Court
+SSP-187	双方所有宝可梦，不会陷入【混乱】状态，已经处于的【混乱】状态，也全部恢复。\n\n在自己的回合，只可以将1张竞技场卡放置于战斗区旁。如果有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区。				AYUMI ODASHIMA		无标记		F	
 CSV2C-127	双方玩家，每次在自己的回合有1次机会，可选择自己牌库中的1张【基础】宝可梦（除「拥有规则的宝可梦」外），放于备战区。并重洗牌库。				Oswaldo KATO	奇迹启程	U		G	Artazon
 CSV2C-163	双方玩家，每次在自己的回合有1次机会，可选择自己牌库中的1张【基础】宝可梦（除「拥有规则的宝可梦」外），放于备战区。并重洗牌库。				Oswaldo KATO	奇迹启程	UR		G	Artazon
 CSVE2C-200	双方玩家，每次在自己的回合有1次机会，可选择自己牌库中的1张【基础】宝可梦（除「拥有规则的宝可梦」外），放于备战区。并重洗牌库。				Oswaldo KATO	对战派对 耀梦	无标记		G	Artazon
@@ -138,25 +126,36 @@ CSVM1aC-032	双方玩家，每次在自己的回合有1次机会，可选择自�
 CSVM1bC-033	双方玩家，每次在自己的回合有1次机会，可选择自己牌库中的1张【基础】宝可梦（除「拥有规则的宝可梦」外），放于备战区。并重洗牌库。				Oswaldo KATO	大师战略卡组构筑套装 沙奈朵ex	无标记		G	Artazon
 CSVM2bC-031	双方玩家，每次在自己的回合有1次机会，可选择自己牌库中的1张【基础】宝可梦（除「拥有规则的宝可梦」外），放于备战区。并重洗牌库。				Oswaldo KATO	大师战略卡组构筑套装 多龙巴鲁托ex	无标记		G	Artazon
 CSVM2cC-031	双方玩家，每次在自己的回合有1次机会，可选择自己牌库中的1张【基础】宝可梦（除「拥有规则的宝可梦」外），放于备战区。并重洗牌库。				Oswaldo KATO	大师战略卡组构筑套装 赛富豪ex	无标记		G	Artazon
-CSV3C-128	双方所有【基础】宝可梦（除【斗】宝可梦外）【撤退】所需能量，各增加1个。				AYUMI ODASHIMA	无畏太晶	U		G	Calamitous Wasteland
+CSV4C-127	双方所有【基础】宝可梦【撤退】所需能量，各减少1个。				Oswaldo KATO	嘉奖回合	U		G	Beach Court
+CSV4C-165	双方所有【基础】宝可梦【撤退】所需能量，各减少1个。				Oswaldo KATO	嘉奖回合	UR		G	Beach Court
 CSV3C-129	每当双方玩家，各从自己的手牌给【基础】宝可梦（除【水】宝可梦外）附着能量时，给该宝可梦身上放置2个伤害指示物。				AYUMI ODASHIMA	无畏太晶	U		G	Calamitous Snowy Mountain
 CSVM2cC-032	每当双方玩家，各从自己的手牌给【基础】宝可梦（除【水】宝可梦外）附着能量时，给该宝可梦身上放置2个伤害指示物。				AYUMI ODASHIMA	大师战略卡组构筑套装 赛富豪ex	无标记		G	Calamitous Snowy Mountain
-CSV4C-128	双方的【1阶进化】宝可梦所使用的招式，给对手战斗宝可梦造成的伤害「+10」。				AYUMI ODASHIMA	嘉奖回合	U		G	Practice Studio
+CSV3C-128	双方所有【基础】宝可梦（除【斗】宝可梦外）【撤退】所需能量，各增加1个。				AYUMI ODASHIMA	无畏太晶	U		G	Calamitous Wasteland
 CSV6C-127	双方玩家，每次在自己的回合有1次机会，如果将自己手牌中的1张基本能量放于弃牌区的话，则可从自己牌库上方抽取1张卡牌。				Oswaldo KATO	真实玄虚	U		G	Cycling Road
-CSV8C-204	双方所有的宝可梦（除「拥有规则的宝可梦」外），不受到对手「宝可梦【ex】・V」的招式的伤害。\n\n这张卡牌，只要在弃牌区，就无法加入手牌，也无法放回牌库。				imoniii	璀璨诡幻	ACE	ACE SPEC	H	Neutralization Zone
-CSV9.5C-205	双方所有的宝可梦（除「拥有规则的宝可梦」外），不受到对手「宝可梦【ex】・V」的招式的伤害。\n\n这张卡牌，只要在弃牌区，就无法加入手牌，也无法放回牌库。				imoniii	太晶盛聚	ACE	ACE SPEC	H	Neutralization Zone
-SVP-NaN1	双方所有「可达鸭」的【撤退】所需能量，各减少1个。				Naoki Saito		无标记		H	Paradise Resort
-CSV9C-205	双方玩家，每次在自己的回合有1次机会，可选择自己牌库中的1张，从自己场上1只【基础】宝可梦进化而来的【1阶进化】宝可梦，放于那只宝可梦身上进行进化。如果进化了的话，则可以继续选择1张【2阶进化】宝可梦，使其进化。并重洗牌库。（在自己最初的回合，以及在这个回合刚出场的【基础】宝可梦无法因此效果进化。）				AYUMI ODASHIMA	星彩晶璃	ACE	ACE SPEC	H	Grand Tree
-CSV7C-202	双方的【钢】宝可梦，受到对手宝可梦的招式的伤害「-30」。				AYUMI ODASHIMA	利刃猛醒	U		H	Full Metal Lab
-CSV8C-202	每次在自己的回合有1次机会，在这个回合，从手牌使出了支援者的玩家，可将自己所有宝可梦的HP，各回复「10」。				MARINA Chikazawa	璀璨诡幻	U		H	Community Center
-CSVNC-040	每次在自己的回合有1次机会，在这个回合，从手牌使出了支援者的玩家，可将自己所有宝可梦的HP，各回复「10」。				MARINA Chikazawa	北上乡专题包	U		H	Community Center
-CSV7C-200	双方所有处于【中毒】状态的宝可梦（除【恶】宝可梦外），因【中毒】而放置的伤害指示物数量各增加2个。				AYUMI ODASHIMA	利刃猛醒	U		H	Perilous Jungle
+CSV1C-126	双方玩家，每次在自己的回合有1次机会，可抛掷1次硬币。如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Oswaldo KATO	亘古开来	U		G	Mesagoza
+CSVE1C-168	双方玩家，每次在自己的回合有1次机会，可抛掷1次硬币。如果为正面，则选择自己牌库中的1张宝可梦，在给对手看过之后，加入手牌。并重洗牌库。				Oswaldo KATO	对战派对 共梦	无标记		G	Mesagoza
+CSV2C-126	双方玩家，每次在自己的回合有1次机会，如果将自己手牌中的1张「基本【超】能量」放于弃牌区的话，则可将自己所有宝可梦的HP，各回复「30」。				AYUMI ODASHIMA	奇迹启程	U		G	Moonlit Hill
+CSV9.5C-204	双方玩家，每次在自己的回合有1次机会，如果将自己手牌中的1张「基本【超】能量」放于弃牌区的话，则可将自己所有宝可梦的HP，各回复「30」。				AYUMI ODASHIMA	太晶盛聚	U		G	Moonlit Hill
+CSVM1bC-032	双方玩家，每次在自己的回合有1次机会，如果将自己手牌中的1张「基本【超】能量」放于弃牌区的话，则可将自己所有宝可梦的HP，各回复「30」。				AYUMI ODASHIMA	大师战略卡组构筑套装 沙奈朵ex	无标记		G	Moonlit Hill
+CSV6C-128	双方场上【基础】宝可梦使用招式所需能量，各增加1个【无】能量。				Oswaldo KATO	真实玄虚	U		G	Pokémon League Headquarters
+CSVM2bC-032	双方场上【基础】宝可梦使用招式所需能量，各增加1个【无】能量。				Oswaldo KATO	大师战略卡组构筑套装 多龙巴鲁托ex	无标记		G	Pokémon League Headquarters
+CSV4C-128	双方的【1阶进化】宝可梦所使用的招式，给对手战斗宝可梦造成的伤害「+10」。				AYUMI ODASHIMA	嘉奖回合	U		G	Practice Studio
+CSV5C-128	双方玩家，每次在自己的回合有1次机会，可选择自己牌库中的1张「宝可梦道具」，在给对手看过之后，加入手牌。并重洗牌库。				Oswaldo KATO	黑晶炽诚	U		G	Town Store
+CSVM1aC-031	双方玩家，每次在自己的回合有1次机会，可选择自己牌库中的1张「宝可梦道具」，在给对手看过之后，加入手牌。并重洗牌库。				Oswaldo KATO	大师战略卡组构筑套装 喷火龙ex	无标记		G	Town Store
+CSVM1cC-027	双方玩家，每次在自己的回合有1次机会，可选择自己牌库中的1张「宝可梦道具」，在给对手看过之后，加入手牌。并重洗牌库。				Oswaldo KATO	大师战略卡组构筑套装 密勒顿ex	无标记		G	Town Store
 CSV8C-205	双方玩家，每次在自己的回合有1次机会，可选择自己的1张手牌，放回牌库上方。				AYUMI ODASHIMA	璀璨诡幻	U		H	Academy at Night
 SVP-200	双方玩家，每次在自己的回合有1次机会，可选择自己的1张手牌，放回牌库上方。				AYUMI ODASHIMA		无标记		H	Academy at Night
-CSV9C-206	双方场上的所有【基础】宝可梦的最大HP，各「+30」。				imoniii	星彩晶璃	U		H	Lively Stadium
+CSV9.5C-203	自己场上有「太晶」宝可梦的玩家，可以放于备战区的宝可梦数量变为8只。\n\n（当这张卡牌被放于弃牌区，或者自己场上没有「太晶」宝可梦时，将备战宝可梦放于弃牌区，直到备战宝可梦的数量变为5只为止。双方都要将备战宝可梦放于弃牌区的话，则由这张卡牌的持有者开始执行。）				MARINA Chikazawa	太晶盛聚	U		H	Area Zero Underdepths
+CSV9C-207	自己场上有「太晶」宝可梦的玩家，可以放于备战区的宝可梦数量变为8只。\n\n（当这张卡牌被放于弃牌区，或者自己场上没有「太晶」宝可梦时，将备战宝可梦放于弃牌区，直到备战宝可梦的数量变为5只为止。双方都要将备战宝可梦放于弃牌区的话，则由这张卡牌的持有者开始执行。）				MARINA Chikazawa	星彩晶璃	U		H	Area Zero Underdepths
+CSV9C-266	自己场上有「太晶」宝可梦的玩家，可以放于备战区的宝可梦数量变为8只。\n\n（当这张卡牌被放于弃牌区，或者自己场上没有「太晶」宝可梦时，将备战宝可梦放于弃牌区，直到备战宝可梦的数量变为5只为止。双方都要将备战宝可梦放于弃牌区的话，则由这张卡牌的持有者开始执行。）				MARINA Chikazawa	星彩晶璃	UR		H	Area Zero Underdepths
+CSVM2aC-031	自己场上有「太晶」宝可梦的玩家，可以放于备战区的宝可梦数量变为8只。\n\n（当这张卡牌被放于弃牌区，或者自己场上没有「太晶」宝可梦时，将备战宝可梦放于弃牌区，直到备战宝可梦的数量变为5只为止。双方都要将备战宝可梦放于弃牌区的话，则由这张卡牌的持有者开始执行。）				MARINA Chikazawa	大师战略卡组构筑套装 猛雷鼓ex	无标记		H	Area Zero Underdepths
+CSV8C-202	每次在自己的回合有1次机会，在这个回合，从手牌使出了支援者的玩家，可将自己所有宝可梦的HP，各回复「10」。				MARINA Chikazawa	璀璨诡幻	U		H	Community Center
+CSVNC-040	每次在自己的回合有1次机会，在这个回合，从手牌使出了支援者的玩家，可将自己所有宝可梦的HP，各回复「10」。				MARINA Chikazawa	北上乡专题包	U		H	Community Center
 CSV8C-201	双方所有身上附着了能量的宝可梦，不会陷入特殊状态，已经处于的特殊状态，也全部恢复。				MARINA Chikazawa	璀璨诡幻	U		H	Festival Grounds
 CSV9.5C-201	双方所有身上附着了能量的宝可梦，不会陷入特殊状态，已经处于的特殊状态，也全部恢复。				MARINA Chikazawa	太晶盛聚	U		H	Festival Grounds
 CSVNC-039	双方所有身上附着了能量的宝可梦，不会陷入特殊状态，已经处于的特殊状态，也全部恢复。				MARINA Chikazawa	北上乡专题包	U		H	Festival Grounds
+CSV7C-202	双方的【钢】宝可梦，受到对手宝可梦的招式的伤害「-30」。				AYUMI ODASHIMA	利刃猛醒	U		H	Full Metal Lab
+CSV9C-205	双方玩家，每次在自己的回合有1次机会，可选择自己牌库中的1张，从自己场上1只【基础】宝可梦进化而来的【1阶进化】宝可梦，放于那只宝可梦身上进行进化。如果进化了的话，则可以继续选择1张【2阶进化】宝可梦，使其进化。并重洗牌库。（在自己最初的回合，以及在这个回合刚出场的【基础】宝可梦无法因此效果进化。）				AYUMI ODASHIMA	星彩晶璃	ACE	ACE SPEC	H	Grand Tree
 CSV7C-201	双方场上的所有【2阶进化】宝可梦的最大HP，各「-30」。				AYUMI ODASHIMA	利刃猛醒	U		H	Gravity Mountain
 CSV8C-261	双方场上的所有【2阶进化】宝可梦的最大HP，各「-30」。				AYUMI ODASHIMA	璀璨诡幻	UR		H	Gravity Mountain
 CSV8C-203	双方所有宝可梦身上放有的「宝可梦道具」的效果，全部消除。				AYUMI ODASHIMA	璀璨诡幻	U		H	Jamming Tower
@@ -165,10 +164,11 @@ CSV9.5C-202	双方所有宝可梦身上放有的「宝可梦道具」的效果�
 CSVM2aC-030	双方所有宝可梦身上放有的「宝可梦道具」的效果，全部消除。				AYUMI ODASHIMA	大师战略卡组构筑套装 猛雷鼓ex	无标记		H	Jamming Tower
 CSVM2cC-030	双方所有宝可梦身上放有的「宝可梦道具」的效果，全部消除。				AYUMI ODASHIMA	大师战略卡组构筑套装 赛富豪ex	无标记		H	Jamming Tower
 SVP-287	双方所有宝可梦身上放有的「宝可梦道具」的效果，全部消除。				AYUMI ODASHIMA		U		H	Jamming Tower
-CSV9.5C-203	自己场上有「太晶」宝可梦的玩家，可以放于备战区的宝可梦数量变为8只。\n\n（当这张卡牌被放于弃牌区，或者自己场上没有「太晶」宝可梦时，将备战宝可梦放于弃牌区，直到备战宝可梦的数量变为5只为止。双方都要将备战宝可梦放于弃牌区的话，则由这张卡牌的持有者开始执行。）				MARINA Chikazawa	太晶盛聚	U		H	Area Zero Underdepths
-CSV9C-207	自己场上有「太晶」宝可梦的玩家，可以放于备战区的宝可梦数量变为8只。\n\n（当这张卡牌被放于弃牌区，或者自己场上没有「太晶」宝可梦时，将备战宝可梦放于弃牌区，直到备战宝可梦的数量变为5只为止。双方都要将备战宝可梦放于弃牌区的话，则由这张卡牌的持有者开始执行。）				MARINA Chikazawa	星彩晶璃	U		H	Area Zero Underdepths
-CSV9C-266	自己场上有「太晶」宝可梦的玩家，可以放于备战区的宝可梦数量变为8只。\n\n（当这张卡牌被放于弃牌区，或者自己场上没有「太晶」宝可梦时，将备战宝可梦放于弃牌区，直到备战宝可梦的数量变为5只为止。双方都要将备战宝可梦放于弃牌区的话，则由这张卡牌的持有者开始执行。）				MARINA Chikazawa	星彩晶璃	UR		H	Area Zero Underdepths
-CSVM2aC-031	自己场上有「太晶」宝可梦的玩家，可以放于备战区的宝可梦数量变为8只。\n\n（当这张卡牌被放于弃牌区，或者自己场上没有「太晶」宝可梦时，将备战宝可梦放于弃牌区，直到备战宝可梦的数量变为5只为止。双方都要将备战宝可梦放于弃牌区的话，则由这张卡牌的持有者开始执行。）				MARINA Chikazawa	大师战略卡组构筑套装 猛雷鼓ex	无标记		H	Area Zero Underdepths
+CSV9C-206	双方场上的所有【基础】宝可梦的最大HP，各「+30」。				imoniii	星彩晶璃	U		H	Lively Stadium
+CSV8C-204	双方所有的宝可梦（除「拥有规则的宝可梦」外），不受到对手「宝可梦【ex】・V」的招式的伤害。\n\n这张卡牌，只要在弃牌区，就无法加入手牌，也无法放回牌库。				imoniii	璀璨诡幻	ACE	ACE SPEC	H	Neutralization Zone
+CSV9.5C-205	双方所有的宝可梦（除「拥有规则的宝可梦」外），不受到对手「宝可梦【ex】・V」的招式的伤害。\n\n这张卡牌，只要在弃牌区，就无法加入手牌，也无法放回牌库。				imoniii	太晶盛聚	ACE	ACE SPEC	H	Neutralization Zone
+SVP-NaN1	双方所有「可达鸭」的【撤退】所需能量，各减少1个。				Naoki Saito		无标记		H	Paradise Resort
+CSV7C-200	双方所有处于【中毒】状态的宝可梦（除【恶】宝可梦外），因【中毒】而放置的伤害指示物数量各增加2个。				AYUMI ODASHIMA	利刃猛醒	U		H	Perilous Jungle
 CSV10C-215	将双方场上所有「N的宝可梦」【撤退】所需能量全部消除。				AYUMI ODASHIMA	共逐荣光	U		I	
 SVP-NaN30	双方所有「可达鸭」的【撤退】所需能量，各减少1个。						无标记		I	Paradise Resort
 CSV10C-218	双方「赫普的宝可梦」所使用的招式给对手战斗宝可梦造成的伤害「+30」。				AYUMI ODASHIMA	共逐荣光	U		I	

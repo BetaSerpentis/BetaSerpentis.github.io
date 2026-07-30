@@ -780,12 +780,16 @@ def main():
             return (0, dex, base, form_key, mark, set_code, card_index)
 
         elif cn_type in ("支援者", "物品", "宝可梦道具", "基本能量"):
-            # 名字 > 标 > 系列 > 编号
-            return (1, 0, name, mark, set_code, card_index, "")
+            # 名字(英文优先) > 标 > 系列 > 编号
+            en = (card.get("name_en") or "").strip().lower()
+            sort_name = en if en else name.lower()
+            return (1, sort_name, mark, set_code, card_index, "")
 
         else:
-            # 竞技场, 特殊能量: 标 > 名字 > 系列 > 编号
-            return (2, mark, name, set_code, card_index, "", "")
+            # 竞技场, 特殊能量: 标 > 名字(英文优先) > 系列 > 编号
+            en = (card.get("name_en") or "").strip().lower()
+            sort_name = en if en else name.lower()
+            return (2, mark, sort_name, set_code, card_index, "", "")
 
     for cn_type, clist in sorted(typed_cards.items()):
         slug = TYPE_SLUG[cn_type]
