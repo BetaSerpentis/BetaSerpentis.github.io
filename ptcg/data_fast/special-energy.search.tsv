@@ -1,4 +1,7 @@
 #srch1
+CSM1aC-151	彩虹能量 rainbow energy special energy csm1ac a
+CSM1aC-211	彩虹能量 rainbow energy special energy csm1ac a
+CSMAC-019	彩虹能量 rainbow energy special energy csmac a
 CSM1bC-150	反击能量 counter energy special energy csm1bc a
 CSM1bC-204	反击能量 counter energy special energy csm1bc a
 CSMPpC-010	反击能量 counter energy special energy csmppc a
@@ -10,73 +13,76 @@ CSMAC-018	双重无色能量 double colorless energy special energy csmac a
 CSMPfC-024	双重无色能量 double colorless energy special energy csmpfc a
 CSMPgC-024	双重无色能量 double colorless energy special energy csmpgc a
 CSMPhC-024	双重无色能量 double colorless energy special energy csmphc a
-CSM1aC-151	彩虹能量 rainbow energy special energy csm1ac a
-CSM1aC-211	彩虹能量 rainbow energy special energy csm1ac a
-CSMAC-019	彩虹能量 rainbow energy special energy csmac a
 CSM1bC-151	瞬移能量 warp energy special energy csm1bc a
-CSM1aC-150	异兽能量◇ beast energy prism star special energy prism star csm1ac b
-CSM1cC-151	记忆能量 memory energy special energy csm1cc b
 CSM1cC-150	超提升能量◇ super boost energy prism star special energy prism star csm1cc b
-CSM1.5C-060	组合能量 斗  恶  妖  unit energy fdy special energy csm1 5c b
-CSM1.5C-088	组合能量 斗  恶  妖  unit energy fdy special energy csm1 5c b
+CSM1cC-151	记忆能量 memory energy special energy csm1cc b
+CSM1aC-150	异兽能量◇ beast energy prism star special energy prism star csm1ac b
 CSM1.5C-058	组合能量 草  火  水  unit energy grw special energy csm1 5c b
 CSM1.5C-086	组合能量 草  火  水  unit energy grw special energy csm1 5c b
+CSM1.5C-060	组合能量 斗  恶  妖  unit energy fdy special energy csm1 5c b
+CSM1.5C-088	组合能量 斗  恶  妖  unit energy fdy special energy csm1 5c b
 CSM1.5C-059	组合能量 雷  超  钢  unit energy lpm special energy csm1 5c b
 CSM1.5C-087	组合能量 雷  超  钢  unit energy lpm special energy csm1 5c b
 CSM2bC-150	抽取能量 draw energy special energy csm2bc c
 CSM2bC-193	抽取能量 draw energy special energy csm2bc c
-CSM2aC-150	循环能量 recycle energy special energy csm2ac c
-CSM2aC-194	循环能量 recycle energy special energy csm2ac c
-CSM2cC-150	三重加速能量 triple acceleration energy special energy csm2cc c
-CSM2cC-192	三重加速能量 triple acceleration energy special energy csm2cc c
 CSM2.5C-061	弱点防守能量 weakness guard energy special energy csm2 5c c
 CSM2.5C-099	弱点防守能量 weakness guard energy special energy csm2 5c c
-CS2.5C-058	芳香 草 能量 aromatic grass energy special energy cs2 5c d
-CS1DC-207	极光能量 aurora energy special energy cs1dc d
-CS1aC-135	极光能量 aurora energy special energy cs1ac d
-CS3DC-167	极光能量 aurora energy special energy cs3dc d
-CSAC-024	极光能量 aurora energy special energy csac d
+CSM2cC-150	三重加速能量 triple acceleration energy special energy csm2cc c
+CSM2cC-192	三重加速能量 triple acceleration energy special energy csm2cc c
+CSM2aC-150	循环能量 recycle energy special energy csm2ac c
+CSM2aC-194	循环能量 recycle energy special energy csm2ac c
 CS1.5C-055	捕获能量 capture energy special energy cs1 5c d
 CS1.5C-096	捕获能量 capture energy special energy cs1 5c d
 CS3DC-168	捕获能量 capture energy special energy cs3dc d
 CSBC-019	捕获能量 capture energy special energy csbc d
-CS2.5C-059	涂层 钢 能量 coating metal energy special energy cs2 5c d
+CS2.5C-058	芳香 草 能量 aromatic grass energy special energy cs2 5c d
+CS1.5C-053	高速 雷 能量 speed lightning energy special energy cs1 5c d
 CS1.5C-052	高温 火 能量 heat fire energy special energy cs1 5c d
-CS2bC-115	潜行 恶 能量 hiding darkness energy special energy cs2bc d
+CS1DC-207	极光能量 aurora energy special energy cs1dc d
+CS1aC-135	极光能量 aurora energy special energy cs1ac d
+CS3DC-167	极光能量 aurora energy special energy cs3dc d
+CSAC-024	极光能量 aurora energy special energy csac d
 CS1.5C-054	惊悚 超 能量 horror psychic energy special energy cs1 5c d
 CS2aC-115	强力 无 能量 powerful colorless energy special energy cs2ac d
 CS3DC-169	强力 无 能量 powerful colorless energy special energy cs3dc d
-CS1.5C-053	高速 雷 能量 speed lightning energy special energy cs1 5c d
-CS2aC-114	岩石 斗 能量 stone fighting energy special energy cs2ac d
+CS2bC-115	潜行 恶 能量 hiding darkness energy special energy cs2bc d
+CS2bC-114	清洗 水 能量 wash water energy special energy cs2bc d
 CS1bC-136	双子能量 twin energy special energy cs1bc d
 CS1bC-199	双子能量 twin energy special energy cs1bc d
 CSCC-018	双子能量 twin energy special energy cscc d
-CS2bC-114	清洗 水 能量 wash water energy special energy cs2bc d
+CS2.5C-059	涂层 钢 能量 coating metal energy special energy cs2 5c d
+CS2aC-114	岩石 斗 能量 stone fighting energy special energy cs2ac d
+CS4aC-132	宝藏能量 treasure energy special energy cs4ac e
+CSVH3C-063	宝藏能量 treasure energy special energy csvh3c e
+CS3.5C-064	冲击能量 impact energy special energy  "single strike"  cs3 5c e
 CS4bC-132	汇流能量 fusion strike energy special energy  "fusion strike"  cs4bc e
 CSOC-019	汇流能量 fusion strike energy special energy  "fusion strike"  csoc e
 CSVE1C-175	汇流能量 fusion strike energy special energy  "fusion strike"  csve1c e
 CSVE1pC-023	汇流能量 fusion strike energy special energy  "fusion strike"  csve1pc e
-CS3.5C-064	冲击能量 impact energy special energy  "single strike"  cs3 5c e
-CS3.5C-066	幸运能量 lucky energy special energy cs3 5c e
-CS4DaC-413	幸运能量 lucky energy special energy cs4dac e
-CSVE2C-206	幸运能量 lucky energy special energy csve2c e
-CSVH3C-064	幸运能量 lucky energy special energy csvh3c e
 CS3DC-170	连击能量 rapid strike energy special energy  "rapid strike"  cs3dc e
 CS3bC-122	连击能量 rapid strike energy special energy  "rapid strike"  cs3bc e
 CS3bC-179	连击能量 rapid strike energy special energy  "rapid strike"  cs3bc e
 CS4DaC-414	连击能量 rapid strike energy special energy  "rapid strike"  cs4dac e
 CSCC-019	连击能量 rapid strike energy special energy  "rapid strike"  cscc e
 CSVE1C-177	连击能量 rapid strike energy special energy  "rapid strike"  csve1c e
+CS3.5C-065	螺旋能量 spiral energy special energy  "rapid strike"  cs3 5c e
+CSVE1C-173	螺旋能量 spiral energy special energy  "rapid strike"  csve1c e
+CS3.5C-066	幸运能量 lucky energy special energy cs3 5c e
+CS4DaC-413	幸运能量 lucky energy special energy cs4dac e
+CSVE2C-206	幸运能量 lucky energy special energy csve2c e
+CSVH3C-064	幸运能量 lucky energy special energy csvh3c e
 CS3DC-166	一击能量 single strike energy special energy  "single strike"  cs3dc e
 CS3aC-125	一击能量 single strike energy special energy  "single strike"  cs3ac e
 CS3aC-184	一击能量 single strike energy special energy  "single strike"  cs3ac e
 CS4DaC-412	一击能量 single strike energy special energy  "single strike"  cs4dac e
 CSBC-018	一击能量 single strike energy special energy  "single strike"  csbc e
 CSVE1C-171	一击能量 single strike energy special energy  "single strike"  csve1c e
-CS3.5C-065	螺旋能量 spiral energy special energy  "rapid strike"  cs3 5c e
-CSVE1C-173	螺旋能量 spiral energy special energy  "rapid strike"  csve1c e
-CS4aC-132	宝藏能量 treasure energy special energy cs4ac e
-CSVH3C-063	宝藏能量 treasure energy special energy csvh3c e
+CS6.5C-072	v防守能量 v guard energy special energy cs6 5c f
+CS6.5C-096	v防守能量 v guard energy special energy cs6 5c f
+CS6aC-131	馈赠能量 gift energy special energy cs6ac f
+CSVE1C-172	馈赠能量 gift energy special energy csve1c f
+CSVE2C-202	馈赠能量 gift energy special energy csve2c f
+CSZC-057	馈赠能量 gift energy special energy cszc f
 CS5DC-153	双重涡轮能量 double turbo energy special energy cs5dc f
 CS5aC-127	双重涡轮能量 double turbo energy special energy cs5ac f
 CS5aC-176	双重涡轮能量 double turbo energy special energy cs5ac f
@@ -87,13 +93,10 @@ CSVE2C-205	双重涡轮能量 double turbo energy special energy csve2c f
 CSVH3C-062	双重涡轮能量 double turbo energy special energy csvh3c f
 CSVM1cC-028	双重涡轮能量 double turbo energy special energy csvm1cc f
 CSZC-058	双重涡轮能量 double turbo energy special energy cszc f
-CS6aC-131	馈赠能量 gift energy special energy cs6ac f
-CSVE1C-172	馈赠能量 gift energy special energy csve1c f
-CSVE2C-202	馈赠能量 gift energy special energy csve2c f
-CSZC-057	馈赠能量 gift energy special energy cszc f
 CS6bC-131	滋养能量 regenerative energy special energy cs6bc f
-CS6.5C-072	v防守能量 v guard energy special energy cs6 5c f
-CS6.5C-096	v防守能量 v guard energy special energy cs6 5c f
+CSV2C-128	逆转能量 reversal energy special energy csv2c g
+CSV3C-165	逆转能量 reversal energy special energy csv3c g
+CSVE2C-207	逆转能量 reversal energy special energy csve2c g
 CSV4C-129	喷射能量 jet energy special energy csv4c g
 CSV8C-263	喷射能量 jet energy special energy csv8c g
 CSV9.5C-206	喷射能量 jet energy special energy csv9 5c g
@@ -107,20 +110,17 @@ CSVE1C-176	夜光能量 luminous energy special energy csve1c g
 CSVH1C-059	夜光能量 luminous energy special energy csvh1c g
 CSVM2bC-034	夜光能量 luminous energy special energy csvm2bc g
 CSV5C-129	医疗能量 medical energy special energy csv5c g
-CSV2C-128	逆转能量 reversal energy special energy csv2c g
-CSV3C-165	逆转能量 reversal energy special energy csv3c g
-CSVE2C-207	逆转能量 reversal energy special energy csve2c g
 CSV3C-130	治疗能量 therapeutic energy special energy csv3c g
 CSVE2C-204	治疗能量 therapeutic energy special energy csve2c g
-CSV8C-206	回力镖能量 boomerang energy special energy csv8c h
-CSV9C-208	富裕能量 enriching energy special energy ace spec csv9c h
-CSV8C-207	遗赠能量 legacy energy special energy ace spec csv8c h
-CSV9.5C-208	遗赠能量 legacy energy special energy ace spec csv9 5c h
 CSV7C-204	薄雾能量 mist energy special energy csv7c h
 CSV9.5C-207	薄雾能量 mist energy special energy csv9 5c h
 CSVM1aC-033	薄雾能量 mist energy special energy csvm1ac h
+CSV9C-208	富裕能量 enriching energy special energy ace spec csv9c h
+CSV8C-206	回力镖能量 boomerang energy special energy csv8c h
 CSV7C-203	新冲天能量 neo upper energy special energy ace spec csv7c h
 CSVM2bC-033	新冲天能量 neo upper energy special energy ace spec csvm2bc h
+CSV8C-207	遗赠能量 legacy energy special energy ace spec csv8c h
+CSV9.5C-208	遗赠能量 legacy energy special energy ace spec csv9 5c h
+CSV10C-222	火箭队能量 special energy csv10c i
 CSV10C-221	尖钉能量 special energy csv10c i
 CSV10C-287	尖钉能量 special energy csv10c i
-CSV10C-222	火箭队能量 special energy csv10c i
