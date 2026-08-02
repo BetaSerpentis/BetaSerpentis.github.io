@@ -1,23 +1,50 @@
-// 周家财务 — LocalStorage 数据持久层
+// 周家财务 — IndexedDB 数据持久层（Android PWA 友好）
 
-import { STORAGE_KEY } from './constants.js';
 import { generateId } from './utils.js';
+
+const DB_NAME = 'zhou-finance';
+const DB_VERSION = 1;
+const STORE_NAME = 'entries';
+
+/**
+ * 打开数据库
+ * @returns {Promise<IDBDatabase>}
+ */
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+      }
+    };
+    request.onsuccess = (event) => resolve(event.target.result);
+    request.onerror = (event) => reject(event.target.error);
+  });
+}
 
 /**
  * 读取全部条目，按日期降序 + 创建时间降序排列
- * @returns {Array}
+ * @returns {Promise<Array>}
  */
-export function getAll() {
+export async function getAll() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const entries = JSON.parse(raw);
-    // 按日期降序、创建时间降序
-    entries.sort((a, b) => {
-      if (a.date !== b.date) return b.date.localeCompare(a.date);
-      return (b.createdAt || '').localeCompare(a.createdAt || '');
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const store = tx.objectStore(STORE_NAME);
+      const request = store.getAll();
+      request.onsuccess = () => {
+        const entries = request.result || [];
+        entries.sort((a, b) => {
+          if (a.date !== b.date) return b.date.localeCompare(a.date);
+          return (b.createdAt || '').localeCompare(a.createdAt || '');
+        });
+        resolve(entries);
+      };
+      request.onerror = () => reject(request.error);
     });
-    return entries;
   } catch (e) {
     console.error('读取数据失败', e);
     return [];
@@ -25,78 +52,76 @@ export function getAll() {
 }
 
 /**
- * 保存全部条目
- * @param {Array} entries
- */
-function saveAll(entries) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-  } catch (e) {
-    console.error('保存数据失败', e);
-    alert('存储空间不足，请导出数据后清理旧记录');
-  }
-}
-
-/**
  * 新增一条记录
  * @param {Object} entry - { date, type, amount, category, person }
- * @returns {Object} 完整的 entry 对象
+ * @returns {Promise<Object>} 完整的 entry 对象
  */
-export function add(entry) {
+export async function add(entry) {
   const full = {
     ...entry,
     id: generateId(),
     createdAt: new Date().toISOString()
   };
-  const all = getAll();
-  all.unshift(full);
-  saveAll(all);
-  return full;
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      store.add(full);
+      tx.oncomplete = () => resolve(full);
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch (e) {
+    console.error('保存数据失败', e);
+    // 降级到 localStorage
+    return fallbackAdd(full);
+  }
 }
 
 /**
  * 删除一条记录
  * @param {string} id
  */
-export function remove(id) {
-  const all = getAll();
-  const filtered = all.filter(e => e.id !== id);
-  saveAll(filtered);
-}
-
-/**
- * 更新一条记录
- * @param {string} id
- * @param {Object} entry
- */
-export function update(id, entry) {
-  const all = getAll();
-  const idx = all.findIndex(e => e.id === id);
-  if (idx === -1) return;
-  all[idx] = { ...all[idx], ...entry };
-  saveAll(all);
-}
-
-/**
- * 根据 ID 查找记录
- * @param {string} id
- * @returns {Object|undefined}
- */
-export function getById(id) {
-  return getAll().find(e => e.id === id);
+export async function remove(id) {
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      store.delete(id);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch (e) {
+    console.error('删除数据失败', e);
+  }
 }
 
 /**
  * 导出数据为 JSON 字符串
- * @returns {string}
+ * @returns {Promise<string>}
  */
-export function exportData() {
-  return JSON.stringify(getAll(), null, 2);
+export async function exportData() {
+  const entries = await getAll();
+  return JSON.stringify(entries, null, 2);
 }
 
-/**
- * 清空数据（危险操作）
- */
-export function clearAll() {
-  localStorage.removeItem(STORAGE_KEY);
+// ===== localStorage 降级（IndexedDB 不可用时） =====
+
+function getLSData() {
+  try {
+    const raw = localStorage.getItem('zhou-finance-entries');
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+function saveLSData(entries) {
+  try { localStorage.setItem('zhou-finance-entries', JSON.stringify(entries)); } catch {}
+}
+
+function fallbackAdd(entry) {
+  const all = getLSData();
+  all.unshift(entry);
+  saveLSData(all);
+  return entry;
 }

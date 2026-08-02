@@ -1,32 +1,28 @@
 // 周家财务 — 汇总条组件
 
-import { formatCurrency, formatMonth, getCurrentMonth } from '../utils.js';
-import { getMonthEntries, getSubtotals } from '../model.js';
-import { getAll } from '../storage.js';
+import { formatCurrency } from '../utils.js';
+import { getSubtotals } from '../model.js';
 
 /**
  * 渲染顶部汇总条
  * @param {Object} filters - 当前筛选条件
- * @param {Array} filteredEntries - 筛选后的条目（null 表示未筛选）
+ * @param {Array} filteredEntries - 筛选后的条目（null = 全空 / 空数组 = 已筛选但无结果）
  */
-export function render(filters, filteredEntries) {
+export async function render(filters, filteredEntries) {
   const el = document.getElementById('summary-bar');
-  const allEntries = getAll();
 
   let entries, label;
 
   const hasActiveFilter = filters && (
-    filters.date || filters.category || filters.person ||
-    (filters.month && filters.month !== getCurrentMonth())
+    filters.date || filters.month || filters.category || filters.person
   );
 
-  if (filteredEntries && hasActiveFilter) {
+  if (filteredEntries) {
     entries = filteredEntries;
-    label = '筛选结果';
+    label = hasActiveFilter ? '筛选' : '全部';
   } else {
-    const month = (filters && filters.month) ? filters.month : getCurrentMonth();
-    entries = getMonthEntries(allEntries, month);
-    label = formatMonth(month).replace(/^\d+年/, ''); // "7月"
+    entries = [];
+    label = '全部';
   }
 
   const { income, expense } = getSubtotals(entries);

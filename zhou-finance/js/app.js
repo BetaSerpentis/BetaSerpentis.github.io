@@ -4,13 +4,14 @@ import { getAll } from './storage.js';
 import { filterEntries } from './model.js';
 import { getCurrentMonth } from './utils.js';
 import * as summaryBar from './ui/summaryBar.js';
-import * as filterBar from './ui/filterBar.js';
+import * as filterModal from './ui/filterBar.js';
 import * as recordList from './ui/recordList.js';
 import * as entryModal from './ui/entryForm.js';
 
+// 默认筛选：显示全部（不限定月份）
 let currentFilters = {
   date: null,
-  month: getCurrentMonth(),
+  month: null,
   category: null,
   person: null
 };
@@ -18,10 +19,10 @@ let currentFilters = {
 /**
  * 刷新整个账单视图
  */
-function refreshRecords() {
-  const allEntries = getAll();
+async function refreshRecords() {
+  const allEntries = await getAll();
   const filtered = filterEntries(allEntries, currentFilters);
-  summaryBar.render(currentFilters, filtered);
+  await summaryBar.render(currentFilters, filtered);
   recordList.render(filtered);
 }
 
@@ -36,9 +37,9 @@ function onFilterChange(filters) {
 /**
  * 处理数据变更
  */
-function onDataChanged() {
-  filterBar.render();
-  refreshRecords();
+async function onDataChanged() {
+  filterModal.render();
+  await refreshRecords();
 }
 
 /**
@@ -57,15 +58,11 @@ function registerSW() {
 /**
  * 初始化应用
  */
-function init() {
-  // 初始化筛选条
-  filterBar.init(onFilterChange);
+async function init() {
+  // 初始化筛选弹窗
+  filterModal.init(onFilterChange);
 
-  // 汇总条点击展开/折叠筛选
-  document.getElementById('summary-bar').addEventListener('click', () => {
-    const filterBarEl = document.getElementById('filter-bar');
-    filterBarEl.classList.toggle('expanded');
-  });
+  // 汇总条点击无反应（筛选已移到弹窗），不再展开/折叠
 
   // "记一笔"按钮
   document.getElementById('fab-add').addEventListener('click', () => {
@@ -79,8 +76,7 @@ function init() {
   registerSW();
 
   // 初始渲染
-  filterBar.render();
-  refreshRecords();
+  await refreshRecords();
 }
 
 // 启动应用

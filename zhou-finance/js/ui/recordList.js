@@ -2,12 +2,14 @@
 
 import { formatCurrency, formatDate } from '../utils.js';
 import { getDailyGroups } from '../model.js';
-import { remove, getAll, exportData } from '../storage.js';
+import { remove } from '../storage.js';
 import { confirm, toast } from './confirmDialog.js';
+import * as filterModal from './filterBar.js';
+import { exportData } from '../storage.js';
 
 /**
  * 渲染账单列表
- * @param {Array} entries - 筛选后的条目列表
+ * @param {Array} entries - 筛选后的条目
  */
 export function render(entries) {
   const el = document.getElementById('record-list');
@@ -36,51 +38,52 @@ export function render(entries) {
     html += '</div>';
   }
 
-  // 数据导出区
+  // 底部操作区
   html += `
     <div class="data-actions">
-      <button class="data-btn" id="btn-export">📤 导出数据</button>
+      <button class="data-btn" id="btn-filter">🔍 筛选</button>
+      <button class="data-btn" id="btn-export">📤 导出</button>
     </div>
   `;
 
   el.innerHTML = html;
 
-  // 绑定删除事件
+  // 删除按钮
   el.querySelectorAll('.record-delete').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
       const id = btn.dataset.id;
       const ok = await confirm('确定要删除这条记录吗？', { danger: true, confirmText: '删除' });
       if (ok) {
-        remove(id);
-        // 触发刷新（通过自定义事件）
+        await remove(id);
         window.dispatchEvent(new CustomEvent('data-changed'));
       }
     });
   });
 
-  // 绑定导出按钮
-  const exportBtn = el.querySelector('#btn-export');
-  if (exportBtn) {
-    exportBtn.addEventListener('click', async () => {
-      const json = exportData();
-      try {
-        await navigator.clipboard.writeText(json);
-        toast('✅ 数据已复制到剪贴板');
-      } catch {
-        // 降级方案：创建临时文本框
-        const textarea = document.createElement('textarea');
-        textarea.value = json;
-        textarea.style.position = 'fixed';
-        textarea.style.left = '-9999px';
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        toast('✅ 数据已复制到剪贴板');
-      }
-    });
-  }
+  // 筛选按钮
+  el.querySelector('#btn-filter')?.addEventListener('click', () => {
+    filterModal.open();
+  });
+
+  // 导出按钮
+  el.querySelector('#btn-export')?.addEventListener('click', async () => {
+    const json = await exportData();
+    try {
+      await navigator.clipboard.writeText(json);
+      toast('✅ 数据已复制到剪贴板');
+    } catch {
+      const textarea = document.createElement('textarea');
+      textarea.value = json;
+      textarea.style.position = 'fixed';
+      textarea.style.left = '-9999px';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      toast('✅ 数据已复制到剪贴板');
+    }
+  });
 }
 
 function renderEmpty(el) {
@@ -88,47 +91,48 @@ function renderEmpty(el) {
     <div class="empty-state">
       <div class="empty-icon">📒</div>
       <div class="empty-text">还没有记账记录</div>
-      <div class="empty-hint">点击下方「记账」开始添加</div>
+      <div class="empty-hint">点击上方「记一笔」开始添加</div>
     </div>
     <div class="data-actions">
-      <button class="data-btn" id="btn-export">📤 导出数据</button>
+      <button class="data-btn" id="btn-filter">🔍 筛选</button>
+      <button class="data-btn" id="btn-export">📤 导出</button>
     </div>
   `;
 
-  const exportBtn = el.querySelector('#btn-export');
-  if (exportBtn) {
-    exportBtn.addEventListener('click', async () => {
-      const json = exportData();
-      if (json === '[]') {
-        toast('暂无数据可导出');
-        return;
-      }
-      try {
-        await navigator.clipboard.writeText(json);
-        toast('✅ 数据已复制到剪贴板');
-      } catch {
-        const textarea = document.createElement('textarea');
-        textarea.value = json;
-        textarea.style.position = 'fixed';
-        textarea.style.left = '-9999px';
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        toast('✅ 数据已复制到剪贴板');
-      }
-    });
-  }
+  el.querySelector('#btn-filter')?.addEventListener('click', () => {
+    filterModal.open();
+  });
+
+  el.querySelector('#btn-export')?.addEventListener('click', async () => {
+    const json = await exportData();
+    if (json === '[]') {
+      toast('暂无数据可导出');
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(json);
+      toast('✅ 数据已复制到剪贴板');
+    } catch {
+      const textarea = document.createElement('textarea');
+      textarea.value = json;
+      textarea.style.position = 'fixed';
+      textarea.style.left = '-9999px';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      toast('✅ 数据已复制到剪贴板');
+    }
+  });
 }
 
 function renderRecordCard(entry) {
-  const typeClass = entry.type;
   const typeSymbol = entry.type === 'income' ? '+' : '−';
-  const amountClass = entry.type === 'income' ? 'income' : 'expense';
+  const amountClass = entry.type;
 
   return `
     <div class="record-card">
-      <div class="record-type-badge ${typeClass}">${typeSymbol}</div>
+      <div class="record-type-badge ${entry.type}">${typeSymbol}</div>
       <div class="record-info">
         <div class="record-category">${entry.category}</div>
         <div class="record-person">${entry.person}</div>
