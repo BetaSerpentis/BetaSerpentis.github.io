@@ -7,6 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="周家财务">
+  <meta name="mobile-web-app-capable" content="yes">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <link rel="stylesheet" href="css/style.css">
@@ -14,21 +15,21 @@
 </head>
 <body>
   <div id="app">
+    <!-- 顶部安全区域占位 -->
+    <div id="safe-top"></div>
+
     <!-- 汇总条 -->
     <div id="summary-bar">
       <div class="summary-item">
-        <div class="summary-label">本月 收入</div>
+        <div class="summary-label">全部 收入</div>
         <div class="summary-amount">¥0</div>
       </div>
       <div class="summary-divider"></div>
       <div class="summary-item">
-        <div class="summary-label">本月 支出</div>
+        <div class="summary-label">全部 支出</div>
         <div class="summary-amount">¥0</div>
       </div>
     </div>
-
-    <!-- 筛选条 -->
-    <div id="filter-bar" class="collapsed"></div>
 
     <!-- 记一笔按钮 -->
     <div id="fab-add">
@@ -41,12 +42,20 @@
     <!-- 分步记帐弹窗 -->
     <div id="entry-modal" class="modal-overlay hidden">
       <div class="step-modal">
-        <!-- 步骤指示器 -->
         <div class="step-indicator" id="step-indicator"></div>
-        <!-- 步骤内容 -->
         <div class="step-body" id="step-body"></div>
-        <!-- 导航按钮 -->
         <div class="step-nav" id="step-nav"></div>
+      </div>
+    </div>
+
+    <!-- 筛选弹窗 -->
+    <div id="filter-modal" class="modal-overlay hidden">
+      <div class="filter-modal-card">
+        <div class="filter-modal-header">
+          <span class="filter-modal-title">🔍 筛选条件</span>
+          <button class="filter-close-btn" id="filter-close">✕</button>
+        </div>
+        <div class="filter-modal-body" id="filter-body"></div>
       </div>
     </div>
 
