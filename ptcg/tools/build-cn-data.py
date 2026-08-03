@@ -22,12 +22,13 @@ try:
     from pypinyin import lazy_pinyin, Style
     _PINYIN_CACHE = {}
     def _to_pinyin(text):
+        """返回拼音元组——逐字比较而非全拼拼接"""
         if text not in _PINYIN_CACHE:
-            _PINYIN_CACHE[text] = ''.join(lazy_pinyin(text, style=Style.NORMAL))
+            _PINYIN_CACHE[text] = tuple(lazy_pinyin(text, style=Style.NORMAL))
         return _PINYIN_CACHE[text]
 except ImportError:
     def _to_pinyin(text):
-        return text.lower()
+        return tuple(text.lower())
 from pathlib import Path
 
 # ── 路径 ──

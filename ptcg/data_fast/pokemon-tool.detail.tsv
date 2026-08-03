@@ -25,13 +25,13 @@ CSMPcC-018	身上放有这张卡牌的宝可梦【撤退】时，其【撤退】
 CS3aC-113	身上放有这张卡牌的宝可梦所使用的招式，给对手战斗场上的【草】宝可梦造成的伤害「+30」。				Toyste Beach	洪荒演武 茂	U		E	Weeding Gloves
 CSVE1C-130	身上放有这张卡牌的宝可梦所使用的招式，给对手战斗场上的【草】宝可梦造成的伤害「+30」。				Toyste Beach	对战派对 共梦	无标记		E	Weeding Gloves
 CSV9C-193	身上放有这张卡牌的宝可梦，受到对手【恶】宝可梦的招式的伤害时，那个伤害「-60」，将这张卡牌放于弃牌区。				Studio Bora Inc.	星彩晶璃	U		H	Colbur Berry
-CSV8C-186	身上放有这张卡牌的「太晶」宝可梦使用招式时，使用那个招式所需能量，减少1个。（减少的可以是任意属性的能量。）				Toyste Beach	璀璨诡幻	ACE	ACE SPEC	H	Sparkling Crystal
-CSV9.5C-172	身上放有这张卡牌的「太晶」宝可梦使用招式时，使用那个招式所需能量，减少1个。（减少的可以是任意属性的能量。）				Toyste Beach	太晶盛聚	ACE	ACE SPEC	H	Sparkling Crystal
 CS3bC-108	身上放有这张卡牌的宝可梦，在战斗场上受到对手宝可梦的招式的伤害时，选择附着于使用了招式的宝可梦身上的1个能量，放回对手的手牌。				sadaji	洪荒演武 激	U		E	Rugged Helmet
 CS3bC-178	身上放有这张卡牌的宝可梦，在战斗场上受到对手宝可梦的招式的伤害时，选择附着于使用了招式的宝可梦身上的1个能量，放回对手的手牌。				sadaji	洪荒演武 激	UR		E	Rugged Helmet
 CS4DaC-382	身上放有这张卡牌的宝可梦，在战斗场上受到对手宝可梦的招式的伤害时，选择附着于使用了招式的宝可梦身上的1个能量，放回对手的手牌。				sadaji	起始卡组100	无标记		E	Rugged Helmet
 CSVE2C-163	身上放有这张卡牌的宝可梦，在战斗场上受到对手宝可梦的招式的伤害时，选择附着于使用了招式的宝可梦身上的1个能量，放回对手的手牌。				sadaji	对战派对 耀梦	无标记		E	Rugged Helmet
 CSVH1aC-013	身上放有这张卡牌的宝可梦，在战斗场上受到对手宝可梦的招式的伤害时，选择附着于使用了招式的宝可梦身上的1个能量，放回对手的手牌。				sadaji	嗨皮组合 皮卡丘&皮皮&草苗龟&索财灵 改造包	无标记		E	Rugged Helmet
+CSV8C-186	身上放有这张卡牌的「太晶」宝可梦使用招式时，使用那个招式所需能量，减少1个。（减少的可以是任意属性的能量。）				Toyste Beach	璀璨诡幻	ACE	ACE SPEC	H	Sparkling Crystal
+CSV9.5C-172	身上放有这张卡牌的「太晶」宝可梦使用招式时，使用那个招式所需能量，减少1个。（减少的可以是任意属性的能量。）				Toyste Beach	太晶盛聚	ACE	ACE SPEC	H	Sparkling Crystal
 CS6bC-124	身上放有这张卡牌的「宝可梦V」，可以使用这个【VSTAR】力量。\n\n【无】【无】【无】星耀重力\n在对手的所有「宝可梦V」身上放置伤害指示物，直到其剩余HP均变为「100」点为止。[对战中，己方的【VSTAR】力量只能使用1次。]				AYUMI ODASHIMA	碧海暗影 逐	R		F	Earthen Seal Stone
 CS1DC-185	身上放有这张卡牌的宝可梦的最大HP增加「30」点。				inose yukie	起始卡组 极巨争锋V	无标记		D	Big Charm
 CS1aC-125	身上放有这张卡牌的宝可梦的最大HP增加「30」点。				inose yukie	极巨争锋 雷	U		D	Big Charm
@@ -39,24 +39,24 @@ CS1aC-216	身上放有这张卡牌的宝可梦的最大HP增加「30」点。			
 CSAC-016	身上放有这张卡牌的宝可梦的最大HP增加「30」点。				inose yukie	卡组构筑礼盒 极巨争锋	无标记		D	Big Charm
 CSVH1C-049	当身上放有这张卡牌的宝可梦使用招式时，因招式的伤害或效果自己抛掷硬币而出现反面的话，则在自己的回合结束时，从自己的牌库上方抽取3张卡牌。				Ayaka Yoshida	嗨皮组合 皮卡丘&皮皮&草苗龟&索财灵	无标记		E	Blunder Policy
 SSP-124	当身上放有这张卡牌的宝可梦使用招式时，因招式的伤害或效果自己抛掷硬币而出现反面的话，则在自己的回合结束时，从自己的牌库上方抽取3张卡牌。				Ayaka Yoshida		无标记		E	Blunder Policy
-CS3.5C-059	只要身上放有这张卡牌的宝可梦在战斗场上，放于对手战斗宝可梦身上的「宝可梦道具」（除「道具妨碍器」外）的效果，全部消除。				inose yukie	怒炎灼天	U		E	Tool Jammer
-CSVH2aC-015	只要身上放有这张卡牌的宝可梦在战斗场上，放于对手战斗宝可梦身上的「宝可梦道具」（除「道具妨碍器」外）的效果，全部消除。				inose yukie	嗨皮组合 路卡利欧&甲贺忍蛙&藏玛然特&獒教父 改造包	无标记		E	Tool Jammer
-CSZC-043	只要身上放有这张卡牌的宝可梦在战斗场上，放于对手战斗宝可梦身上的「宝可梦道具」（除「道具妨碍器」外）的效果，全部消除。				inose yukie	收藏周边礼盒 百变宝盒	无标记		E	Tool Jammer
 CSV3C-119	身上放有这张卡牌的【2阶进化】宝可梦【撤退】所需能量，全部消除。				Toyste Beach	无畏太晶	U		G	Big Air Balloon
 CS1bC-127	只要身上放有这张卡牌的宝可梦在战斗场上，自己的所有宝可梦，不会受到对手宝可梦使用的招式的效果影响。（已经受到的效果，不会消失。）				Toyste Beach	极巨争锋 焰	U		D	Big Parasol
 CS1bC-196	只要身上放有这张卡牌的宝可梦在战斗场上，自己的所有宝可梦，不会受到对手宝可梦使用的招式的效果影响。（已经受到的效果，不会消失。）				Toyste Beach	极巨争锋 焰	UR		D	Big Parasol
 CS2.1C-005	只要身上放有这张卡牌的宝可梦在战斗场上，自己的所有宝可梦，不会受到对手宝可梦使用的招式的效果影响。（已经受到的效果，不会消失。）				Toyste Beach	专题包 喵喵小妙招	无标记		D	Big Parasol
+CS3.5C-059	只要身上放有这张卡牌的宝可梦在战斗场上，放于对手战斗宝可梦身上的「宝可梦道具」（除「道具妨碍器」外）的效果，全部消除。				inose yukie	怒炎灼天	U		E	Tool Jammer
+CSVH2aC-015	只要身上放有这张卡牌的宝可梦在战斗场上，放于对手战斗宝可梦身上的「宝可梦道具」（除「道具妨碍器」外）的效果，全部消除。				inose yukie	嗨皮组合 路卡利欧&甲贺忍蛙&藏玛然特&獒教父 改造包	无标记		E	Tool Jammer
+CSZC-043	只要身上放有这张卡牌的宝可梦在战斗场上，放于对手战斗宝可梦身上的「宝可梦道具」（除「道具妨碍器」外）的效果，全部消除。				inose yukie	收藏周边礼盒 百变宝盒	无标记		E	Tool Jammer
 CSM1DC-272	身上放有这张卡牌的宝可梦，在战斗场上受到对手的招式的伤害时，会使使用了招式的宝可梦陷入【中毒】状态。				Toyste Beach	起始卡组 横空出世GX	无标记		A	Poison Barb
 CSM2DC-284	身上放有这张卡牌的宝可梦，在战斗场上受到对手的招式的伤害时，会使使用了招式的宝可梦陷入【中毒】状态。				Toyste Beach	起始卡组 交相辉映GX	无标记		A	Poison Barb
 CSM2.5C-051	身上放有这张卡牌的宝可梦，在战斗场上受到对手的宝可梦招式的伤害时，会使使用招式的宝可梦陷入【混乱】状态。				Toyste Beach	炫奇争胜	C		C	Ear-Ringing Bell
-CS3bC-110	身上放有这张卡牌的宝可梦所使用的招式，给对手战斗场上的【火】宝可梦造成的伤害「+30」。				Toyste Beach	洪荒演武 激	U		E	Fire-Resistant Gloves
-CSVE1C-132	身上放有这张卡牌的宝可梦所使用的招式，给对手战斗场上的【火】宝可梦造成的伤害「+30」。				Toyste Beach	对战派对 共梦	无标记		E	Fire-Resistant Gloves
 CSM1DC-267	如果自己的剩余奖赏卡张数，比对手多的话，则放有这张卡牌的宝可梦使用招式所需能量，减少1个【无】能量。				Toyste Beach	起始卡组 横空出世GX	无标记		B	Counter Gain
 CSM1bC-128	如果自己的剩余奖赏卡张数，比对手多的话，则放有这张卡牌的宝可梦使用招式所需能量，减少1个【无】能量。				Toyste Beach	横空出世 苍	U		B	Counter Gain
 CSM2DC-276	如果自己的剩余奖赏卡张数，比对手多的话，则放有这张卡牌的宝可梦使用招式所需能量，减少1个【无】能量。				Toyste Beach	起始卡组 交相辉映GX	无标记		B	Counter Gain
 CSM2DC-357	如果自己的剩余奖赏卡张数，比对手多的话，则放有这张卡牌的宝可梦使用招式所需能量，减少1个【无】能量。				Toyste Beach	起始卡组 交相辉映GX	无标记		B	Counter Gain
 CSV9C-190	如果自己的剩余奖赏卡张数，比对手的剩余奖赏卡张数多的话，则身上放有这张卡牌的宝可梦使用招式所需能量，减少1个【无】能量。				Toyste Beach	星彩晶璃	U		H	Counter Gain
 CSV9C-264	如果自己的剩余奖赏卡张数，比对手的剩余奖赏卡张数多的话，则身上放有这张卡牌的宝可梦使用招式所需能量，减少1个【无】能量。				Toyste Beach	星彩晶璃	UR		H	Counter Gain
+CS3bC-110	身上放有这张卡牌的宝可梦所使用的招式，给对手战斗场上的【火】宝可梦造成的伤害「+30」。				Toyste Beach	洪荒演武 激	U		E	Fire-Resistant Gloves
+CSVE1C-132	身上放有这张卡牌的宝可梦所使用的招式，给对手战斗场上的【火】宝可梦造成的伤害「+30」。				Toyste Beach	对战派对 共梦	无标记		E	Fire-Resistant Gloves
 CSM2cC-135	身上放有这张卡的，拥有招式「空气之刃」的宝可梦，可以使用这张卡牌上的GX招式。[需要满足使用招式所需能量。]\n\n【无】【无】【无】【无】 俯冲轰裂撞GX 180\n在下一个对手的回合，这只宝可梦不会受到招式的伤害和效果影响。[对战中，己方的GX招式只能使用1次。]				aky CG Works	交相辉映 唤	U		C	Flyinium Z: Air Slash
 CSV3C-120	身上放有这张卡牌的宝可梦，受到对手宝可梦的招式的伤害而【昏厥】时，给使用了招式的宝可梦身上放置4个伤害指示物。				Ayaka Yoshida	无畏太晶	U		G	Vengeful Punch
 CSVE2C-171	身上放有这张卡牌的宝可梦，受到对手宝可梦的招式的伤害而【昏厥】时，给使用了招式的宝可梦身上放置4个伤害指示物。				Ayaka Yoshida	对战派对 耀梦	无标记		G	Vengeful Punch
@@ -69,12 +69,12 @@ CS2.5C-049	身上放有这张卡牌的「藏玛然特V」的最大HP增加「70�
 CS2.5C-048	身上放有这张卡牌的「苍响V」所使用的招式，给对手战斗宝可梦造成的伤害「+30」。				5ban Graphics	璀璨反击	U		D	Rusted Sword
 CS3.5C-058	身上放有这张卡牌的，名字中带有「伽勒尔」的宝可梦，受到对手宝可梦的招式的伤害「-30」。				inose yukie	怒炎灼天	U		E	Galarian Chestplate
 CS4DaC-384	身上放有这张卡牌的，名字中带有「伽勒尔」的宝可梦，受到对手宝可梦的招式的伤害「-30」。				inose yukie	起始卡组100	无标记		E	Galarian Chestplate
+CSM1aC-134	如果身上放有这张卡牌的宝可梦剩余HP在「30」点以下（包含30点）且身上放置有伤害指示物的话，则身上放有这张卡牌的宝可梦所使用的招式，给对手的战斗宝可梦造成的伤害「+60」。				Yoshinobu Saito	横空出世 赫	U		B	Hustle Belt
+CSM2DC-287	如果身上放有这张卡牌的宝可梦剩余HP在「30」点以下（包含30点）且身上放置有伤害指示物的话，则身上放有这张卡牌的宝可梦所使用的招式，给对手的战斗宝可梦造成的伤害「+60」。				Yoshinobu Saito	起始卡组 交相辉映GX	无标记		B	Hustle Belt
 CSM1aC-131	身上放有这张卡牌的【钢】宝可梦，受到对手宝可梦的招式的伤害「-30」，同时弱点也全部消除。				Toyste Beach	横空出世 赫	U		B	Metal Frying Pan
 CSM1aC-210	身上放有这张卡牌的【钢】宝可梦，受到对手宝可梦的招式的伤害「-30」，同时弱点也全部消除。				Toyste Beach	横空出世 赫	UR		B	Metal Frying Pan
 CSM2.1C-022	身上放有这张卡牌的【钢】宝可梦，受到对手宝可梦的招式的伤害「-30」，同时弱点也全部消除。				Ryo Ueda	辉金能量系列礼盒	无标记		B	Metal Frying Pan
 CSMPqC-008	身上放有这张卡牌的【钢】宝可梦，受到对手宝可梦的招式的伤害「-30」，同时弱点也全部消除。				Toyste Beach	对战派对组合改造包 钢	无标记		B	Metal Frying Pan
-CSM1aC-134	如果身上放有这张卡牌的宝可梦剩余HP在「30」点以下（包含30点）且身上放置有伤害指示物的话，则身上放有这张卡牌的宝可梦所使用的招式，给对手的战斗宝可梦造成的伤害「+60」。				Yoshinobu Saito	横空出世 赫	U		B	Hustle Belt
-CSM2DC-287	如果身上放有这张卡牌的宝可梦剩余HP在「30」点以下（包含30点）且身上放置有伤害指示物的话，则身上放有这张卡牌的宝可梦所使用的招式，给对手的战斗宝可梦造成的伤害「+60」。				Yoshinobu Saito	起始卡组 交相辉映GX	无标记		B	Hustle Belt
 CS2aC-106	身上放有这张卡牌的宝可梦，受到对手宝可梦的招式的伤害而【昏厥】时，因该宝可梦【昏厥】而导致对手拿取的奖赏卡，不会被加入手牌，而是被放于弃牌区。				5ban Graphics	浓墨重彩 黎	U		D	Billowing Smoke
 CS5DC-136	身上放有这张卡牌的宝可梦（除拥有规则的宝可梦外），受到对手宝可梦的招式的伤害「-30」。				Toyste Beach	起始卡组 勇魅群星V	无标记		F	Pot Helmet
 CS5aC-117	身上放有这张卡牌的宝可梦（除拥有规则的宝可梦外），受到对手宝可梦的招式的伤害「-30」。				Toyste Beach	勇魅群星 魅	U		F	Pot Helmet
@@ -85,11 +85,11 @@ CSV4C-164	身上放有这张卡牌的宝可梦（除「拥有规则的宝可梦�
 CSV9.5C-175	身上放有这张卡牌的宝可梦（除「拥有规则的宝可梦」外）的最大HP「+100」，当该宝可梦，受到对手宝可梦的招式的伤害而【昏厥】时，对手拿取的奖赏卡将增加1张。				Toyste Beach	太晶盛聚	U		G	Luxurious Cape
 CSVM1bC-023	身上放有这张卡牌的宝可梦（除「拥有规则的宝可梦」外）的最大HP「+100」，当该宝可梦，受到对手宝可梦的招式的伤害而【昏厥】时，对手拿取的奖赏卡将增加1张。				Toyste Beach	大师战略卡组构筑套装 沙奈朵ex	无标记		G	Luxurious Cape
 CSV8C-189	身上放有这张卡牌的宝可梦，在战斗场上受到对手宝可梦的招式的伤害时，给使用了招式的宝可梦身上放置12个伤害指示物。然后，将这张卡牌放于弃牌区。				inose yukie	璀璨诡幻	ACE	ACE SPEC	H	Deluxe Bomb
+CSV10C-201	身上放有这张卡牌的「赫普的宝可梦」使用招式所需能量减少1个【无】能量，所使用的招式给对手战斗宝可梦造成的伤害「+30」。				Toyste Beach	共逐荣光	U		I	
 CSM2DC-278	如果自己的剩余奖赏卡张数，比对手多的话，则放有这张卡牌的宝可梦使用招式所需能量，减少1个【斗】能量。				Yoshinobu Saito	起始卡组 交相辉映GX	无标记		C	Karate Belt
 CSM2bC-133	如果自己的剩余奖赏卡张数，比对手多的话，则放有这张卡牌的宝可梦使用招式所需能量，减少1个【斗】能量。				Yoshinobu Saito	交相辉映 魁	U		C	Karate Belt
 CSM2bC-191	如果自己的剩余奖赏卡张数，比对手多的话，则放有这张卡牌的宝可梦使用招式所需能量，减少1个【斗】能量。				Yoshinobu Saito	交相辉映 魁	UR		C	Karate Belt
 CSMPfC-014	如果自己的剩余奖赏卡张数，比对手多的话，则放有这张卡牌的宝可梦使用招式所需能量，减少1个【斗】能量。				Yoshinobu Saito	对战派对组合 斗	无标记		C	Karate Belt
-CSV10C-201	身上放有这张卡牌的「赫普的宝可梦」使用招式所需能量减少1个【无】能量，所使用的招式给对手战斗宝可梦造成的伤害「+30」。				Toyste Beach	共逐荣光	U		I	
 CSM2cC-134	身上放有这张卡牌的「宝可梦GX」，最大HP会提高「20」点，并且只要处于备战区，就不会受到对手招式的伤害。				Ryo Ueda	交相辉映 唤	U		C	
 CS4.5C-057	身上放有这张卡牌的，名字中带有「仙子伊布V」的宝可梦，受到对手宝可梦的招式的伤害而【昏厥】时，对手拿取的奖赏卡将减少1张。				Studio Bora Inc.	终末炎舞	U		E	Ribbon Badge
 CSVE1C-135	身上放有这张卡牌的，名字中带有「仙子伊布V」的宝可梦，受到对手宝可梦的招式的伤害而【昏厥】时，对手拿取的奖赏卡将减少1张。				Studio Bora Inc.	对战派对 共梦	无标记		E	Ribbon Badge
@@ -108,6 +108,19 @@ CSVH4C-042	身上放有这张卡牌的宝可梦所使用的招式，给对手的
 CSVM1aC-019	身上放有这张卡牌的宝可梦所使用的招式，给对手的战斗宝可梦造成的伤害「+10」。				Studio Bora Inc.	大师战略卡组构筑套装 喷火龙ex	无标记		G	Vitality Band
 CSVSC-057	身上放有这张卡牌的宝可梦所使用的招式，给对手的战斗宝可梦造成的伤害「+10」。				Studio Bora Inc.	对战学院	无标记		G	Vitality Band
 CSM1cC-132	身上放有这张卡牌的 「银伴战兽GX」，会变为【火】宝可梦。				5ban Graphics	横空出世 泽	U		A	Fire Memory
+CS5.5C-061	身上放有这张卡牌的宝可梦，即使处于【睡眠】或【麻痹】状态，也可使用招式。				Toyste Beach	暗影夺辉	U		F	Windup Arm
+CSM2aC-137	身上放有这张卡牌的【撤退】所需能量为4个的宝可梦的最大HP提高「50」点。				Yoshinobu Saito	交相辉映 沐	U		C	Buff Padding
+CSMPjC-008	身上放有这张卡牌的【撤退】所需能量为4个的宝可梦的最大HP提高「50」点。				Yoshinobu Saito	对战派对组合改造包 草	无标记		C	Buff Padding
+CSM1bC-132	身上放有这张卡牌的【1阶进化】宝可梦的最大HP增加「40」点。				Eske Yoshinob	横空出世 苍	U		A	Bodybuilding Dumbbells
+CSM2DC-288	身上放有这张卡牌的【1阶进化】宝可梦的最大HP增加「40」点。				Eske Yoshinob	起始卡组 交相辉映GX	无标记		A	Bodybuilding Dumbbells
+CSV7C-189	身上放有这张卡牌的宝可梦所使用的招式，给对手战斗场上的「宝可梦【ex】」造成的伤害「+50」。				inose yukie	利刃猛醒	ACE	ACE SPEC	H	Maximum Belt
+CSV9.5C-179	身上放有这张卡牌的宝可梦所使用的招式，给对手战斗场上的「宝可梦【ex】」造成的伤害「+50」。				inose yukie	太晶盛聚	ACE	ACE SPEC	H	Maximum Belt
+CS2aC-105	身上放有这张卡牌的【基础】宝可梦（除「宝可梦GX」外）的最大HP增加「50」点。				inose yukie	浓墨重彩 黎	U		D	Cape of Toughness
+CS2aC-143	身上放有这张卡牌的【基础】宝可梦（除「宝可梦GX」外）的最大HP增加「50」点。				inose yukie	浓墨重彩 黎	UR		D	Cape of Toughness
+CSV2C-114	身上放有这张卡牌的【1阶进化】宝可梦，受到对手宝可梦的招式的伤害「-30」。				Toyste Beach	奇迹启程	U		G	Rigid Band
+CSVE2C-166	身上放有这张卡牌的【1阶进化】宝可梦，受到对手宝可梦的招式的伤害「-30」。				Toyste Beach	对战派对 耀梦	无标记		G	Rigid Band
+CSVH2C-049	身上放有这张卡牌的【1阶进化】宝可梦，受到对手宝可梦的招式的伤害「-30」。				Toyste Beach	嗨皮组合 路卡利欧&甲贺忍蛙&藏玛然特&獒教父	无标记		G	Rigid Band
+CSVM2cC-022	身上放有这张卡牌的【1阶进化】宝可梦，受到对手宝可梦的招式的伤害「-30」。				Toyste Beach	大师战略卡组构筑套装 赛富豪ex	无标记		G	Rigid Band
 CSM1DC-269	身上放有这张卡牌的宝可梦所使用的招式，给对手战斗场上的「宝可梦GX・EX」造成的伤害「+30」。				Eske Yoshinob	起始卡组 横空出世GX	无标记		A	Choice Band
 CSM1cC-129	身上放有这张卡牌的宝可梦所使用的招式，给对手战斗场上的「宝可梦GX・EX」造成的伤害「+30」。				Eske Yoshinob	横空出世 泽	U		A	Choice Band
 CSM1cC-210	身上放有这张卡牌的宝可梦所使用的招式，给对手战斗场上的「宝可梦GX・EX」造成的伤害「+30」。				Eske Yoshinob	横空出世 泽	UR		A	Choice Band
@@ -131,19 +144,6 @@ CSZC-042	身上放有这张卡牌的宝可梦所使用的招式，给对手战�
 CSV1C-116	身上放有这张卡牌的宝可梦所使用的招式，给对手战斗场上的「宝可梦V」造成的伤害「+30」。				Studio Bora Inc.	亘古开来	U		G	Choice Belt
 CSVE1C-131	身上放有这张卡牌的宝可梦所使用的招式，给对手战斗场上的「宝可梦V」造成的伤害「+30」。				Studio Bora Inc.	对战派对 共梦	无标记		G	Choice Belt
 CSVM1aC-020	身上放有这张卡牌的宝可梦所使用的招式，给对手战斗场上的「宝可梦V」造成的伤害「+30」。				Studio Bora Inc.	大师战略卡组构筑套装 喷火龙ex	无标记		G	Choice Belt
-CS2aC-105	身上放有这张卡牌的【基础】宝可梦（除「宝可梦GX」外）的最大HP增加「50」点。				inose yukie	浓墨重彩 黎	U		D	Cape of Toughness
-CS2aC-143	身上放有这张卡牌的【基础】宝可梦（除「宝可梦GX」外）的最大HP增加「50」点。				inose yukie	浓墨重彩 黎	UR		D	Cape of Toughness
-CSV2C-114	身上放有这张卡牌的【1阶进化】宝可梦，受到对手宝可梦的招式的伤害「-30」。				Toyste Beach	奇迹启程	U		G	Rigid Band
-CSVE2C-166	身上放有这张卡牌的【1阶进化】宝可梦，受到对手宝可梦的招式的伤害「-30」。				Toyste Beach	对战派对 耀梦	无标记		G	Rigid Band
-CSVH2C-049	身上放有这张卡牌的【1阶进化】宝可梦，受到对手宝可梦的招式的伤害「-30」。				Toyste Beach	嗨皮组合 路卡利欧&甲贺忍蛙&藏玛然特&獒教父	无标记		G	Rigid Band
-CSVM2cC-022	身上放有这张卡牌的【1阶进化】宝可梦，受到对手宝可梦的招式的伤害「-30」。				Toyste Beach	大师战略卡组构筑套装 赛富豪ex	无标记		G	Rigid Band
-CS5.5C-061	身上放有这张卡牌的宝可梦，即使处于【睡眠】或【麻痹】状态，也可使用招式。				Toyste Beach	暗影夺辉	U		F	Windup Arm
-CSM2aC-137	身上放有这张卡牌的【撤退】所需能量为4个的宝可梦的最大HP提高「50」点。				Yoshinobu Saito	交相辉映 沐	U		C	Buff Padding
-CSMPjC-008	身上放有这张卡牌的【撤退】所需能量为4个的宝可梦的最大HP提高「50」点。				Yoshinobu Saito	对战派对组合改造包 草	无标记		C	Buff Padding
-CSM1bC-132	身上放有这张卡牌的【1阶进化】宝可梦的最大HP增加「40」点。				Eske Yoshinob	横空出世 苍	U		A	Bodybuilding Dumbbells
-CSM2DC-288	身上放有这张卡牌的【1阶进化】宝可梦的最大HP增加「40」点。				Eske Yoshinob	起始卡组 交相辉映GX	无标记		A	Bodybuilding Dumbbells
-CSM1cC-130	身上放有这张卡牌的 「银伴战兽GX」，会变为【超】宝可梦。				5ban Graphics	横空出世 泽	U		A	Psychic Memory
-CSM2DC-281	身上放有这张卡牌的 「银伴战兽GX」，会变为【超】宝可梦。				5ban Graphics	起始卡组 交相辉映GX	无标记		A	Psychic Memory
 CSV7C-185	身上放有这张卡牌的宝可梦，【撤退】所需能量减少1个。如果那只宝可梦的剩余HP在「30」及以下的话，则【撤退】所需能量，全部消除。				Toyste Beach	利刃猛醒	U		H	Rescue Board
 CSV7C-259	身上放有这张卡牌的宝可梦，【撤退】所需能量减少1个。如果那只宝可梦的剩余HP在「30」及以下的话，则【撤退】所需能量，全部消除。				Toyste Beach	利刃猛醒	UR		H	Rescue Board
 CSV9.5C-173	身上放有这张卡牌的宝可梦，【撤退】所需能量减少1个。如果那只宝可梦的剩余HP在「30」及以下的话，则【撤退】所需能量，全部消除。				Toyste Beach	太晶盛聚	U		H	Rescue Board
@@ -155,23 +155,23 @@ SVP-197	身上放有这张卡牌的宝可梦，【撤退】所需能量减少1�
 CSM2aC-138	放于宝可梦身上的这张卡牌，将在对手的回合结束时被放于弃牌区。\n\n身上放有这张卡牌的【钢】宝可梦，受到对手宝可梦的招式的伤害「-70」。				Studio Bora Inc.	交相辉映 沐	U		C	Metal Core Barrier
 CSM2aC-191	放于宝可梦身上的这张卡牌，将在对手的回合结束时被放于弃牌区。\n\n身上放有这张卡牌的【钢】宝可梦，受到对手宝可梦的招式的伤害「-70」。				Studio Bora Inc.	交相辉映 沐	UR		C	Metal Core Barrier
 CSM1aC-135	身上放有这张卡牌的【钢】宝可梦，受到对手宝可梦的招式的伤害「-30」，也不会因为对手的招式、特性的效果而被放置伤害指示物。				Yoshinobu Saito	横空出世 赫	U		B	Metal Goggles
-CSV7C-189	身上放有这张卡牌的宝可梦所使用的招式，给对手战斗场上的「宝可梦【ex】」造成的伤害「+50」。				inose yukie	利刃猛醒	ACE	ACE SPEC	H	Maximum Belt
-CSV9.5C-179	身上放有这张卡牌的宝可梦所使用的招式，给对手战斗场上的「宝可梦【ex】」造成的伤害「+50」。				inose yukie	太晶盛聚	ACE	ACE SPEC	H	Maximum Belt
+CSM1cC-130	身上放有这张卡牌的 「银伴战兽GX」，会变为【超】宝可梦。				5ban Graphics	横空出世 泽	U		A	Psychic Memory
+CSM2DC-281	身上放有这张卡牌的 「银伴战兽GX」，会变为【超】宝可梦。				5ban Graphics	起始卡组 交相辉映GX	无标记		A	Psychic Memory
 CSM2cC-133	放于宝可梦身上的这张卡牌，将在对手的回合结束时被放于弃牌区。\n\n身上放有这张卡牌的宝可梦，在战斗场上受到对手宝可梦的「180」点以上（包含180）的招式的伤害时，给使用了招式的宝可梦身上放置10个伤害指示物。				Studio Bora Inc.	交相辉映 唤	U		C	Giant Bomb
 CSM2cC-190	放于宝可梦身上的这张卡牌，将在对手的回合结束时被放于弃牌区。\n\n身上放有这张卡牌的宝可梦，在战斗场上受到对手宝可梦的「180」点以上（包含180）的招式的伤害时，给使用了招式的宝可梦身上放置10个伤害指示物。				Studio Bora Inc.	交相辉映 唤	UR		C	Giant Bomb
 CS6.5C-065	身上放有这张卡牌的宝可梦，不会受到对手剩余HP在「40」点以下（包含40点）的宝可梦的招式的伤害。				Studio Bora Inc.	胜象星引	U		F	Panic Mask
+CSV10C-202	身上放有这张卡牌的「莉莉艾的宝可梦」受到对手宝可梦的招式的伤害而【昏厥】时，对手拿取的奖赏卡将减少1张。				AYUMI ODASHIMA	共逐荣光	U		I	
+CSV8C-188	在自己的回合结束时，如果身上放有这张卡牌的宝可梦在战斗场上的话，则可选择自己弃牌区中的1张基本能量，附着于那只宝可梦身上。				Studio Bora Inc.	璀璨诡幻	U		H	Powerglass
+CSV9C-265	在自己的回合结束时，如果身上放有这张卡牌的宝可梦在战斗场上的话，则可选择自己弃牌区中的1张基本能量，附着于那只宝可梦身上。				Studio Bora Inc.	星彩晶璃	UR		H	Powerglass
+CSVH5aC-014	在自己的回合结束时，如果身上放有这张卡牌的宝可梦在战斗场上的话，则可选择自己弃牌区中的1张基本能量，附着于那只宝可梦身上。				Studio Bora Inc.	嗨皮组合 快龙&超梦&喷火驼&来悲粗茶 改造包	无标记		H	Powerglass
 CS4bC-122	身上放有这张卡牌的「连击」宝可梦，可以使用这张卡牌上的招式。[需要满足使用招式所需能量。]\n\n【火】【雷】 流星 \n将附着于这只宝可梦身上的2个能量放于弃牌区，给对手的1只宝可梦，造成90点伤害。[备战宝可梦不计算弱点、抗性。]				5ban Graphics	九彩汇聚 源	U		E	Rapid Strike Scroll of the Flying Dragon
 CS3bC-111	身上放有这张卡牌的「连击」宝可梦，可以使用这张卡牌上的招式。[需要满足使用招式所需能量。]\n\n【雷】【无】饭纲坠落 10+\n追加造成对手战斗宝可梦身上附有的能量数量×50点伤害。				5ban Graphics	洪荒演武 激	U		E	Rapid Strike Scroll of the Skies
 CS3bC-112	身上放有这张卡牌的「连击」宝可梦，可以使用这张卡牌上的招式。[需要满足使用招式所需能量。]\n\n【雷】【无】【无】 漩涡无双 \n给对手的所有宝可梦，各造成30点伤害。[备战宝可梦不计算弱点、抗性。]				5ban Graphics	洪荒演武 激	U		E	Rapid Strike Scroll of Swirls
 CSVE1C-137	身上放有这张卡牌的「连击」宝可梦，可以使用这张卡牌上的招式。[需要满足使用招式所需能量。]\n\n【雷】【无】【无】 漩涡无双 \n给对手的所有宝可梦，各造成30点伤害。[备战宝可梦不计算弱点、抗性。]				5ban Graphics	对战派对 共梦	无标记		E	Rapid Strike Scroll of Swirls
 CS4bC-121	身上放有这张卡牌的宝可梦所使用的招式，给对手战斗场上的【龙】宝可梦造成的伤害「+30」。				Toyste Beach	九彩汇聚 源	U		E	Hunting Gloves
-CSV10C-202	身上放有这张卡牌的「莉莉艾的宝可梦」受到对手宝可梦的招式的伤害而【昏厥】时，对手拿取的奖赏卡将减少1张。				AYUMI ODASHIMA	共逐荣光	U		I	
 CS4.5C-058	身上放有这张卡牌的宝可梦，在战斗场上受到对手宝可梦的招式的伤害时，对手选择对手自己的1张手牌，放于弃牌区。				AYUMI ODASHIMA	终末炎舞	U		E	Spirit Mask
 CS4DaC-386	身上放有这张卡牌的宝可梦，在战斗场上受到对手宝可梦的招式的伤害时，对手选择对手自己的1张手牌，放于弃牌区。				AYUMI ODASHIMA	起始卡组100	无标记		E	Spirit Mask
 CSVE1C-136	身上放有这张卡牌的宝可梦，在战斗场上受到对手宝可梦的招式的伤害时，对手选择对手自己的1张手牌，放于弃牌区。				AYUMI ODASHIMA	对战派对 共梦	无标记		E	Spirit Mask
-CSV8C-188	在自己的回合结束时，如果身上放有这张卡牌的宝可梦在战斗场上的话，则可选择自己弃牌区中的1张基本能量，附着于那只宝可梦身上。				Studio Bora Inc.	璀璨诡幻	U		H	Powerglass
-CSV9C-265	在自己的回合结束时，如果身上放有这张卡牌的宝可梦在战斗场上的话，则可选择自己弃牌区中的1张基本能量，附着于那只宝可梦身上。				Studio Bora Inc.	星彩晶璃	UR		H	Powerglass
-CSVH5aC-014	在自己的回合结束时，如果身上放有这张卡牌的宝可梦在战斗场上的话，则可选择自己弃牌区中的1张基本能量，附着于那只宝可梦身上。				Studio Bora Inc.	嗨皮组合 快龙&超梦&喷火驼&来悲粗茶 改造包	无标记		H	Powerglass
 CSM2aC-135	身上放有这张卡牌的，拥有招式「龙爪」的宝可梦，可以使用这张卡牌上的GX招式。[需要满足使用招式所需能量。]\n\n【无】【无】【无】 巨龙燃烧GX 80×\n将附着于这只宝可梦身上的基本能量，全部放于弃牌区，造成其张数×80点伤害。[对战中，己方的GX招式只能使用1次。]				aky CG Works	交相辉映 沐	U		C	Dragonium Z: Dragon Claw
 CSM1bC-133	身上放有这张卡牌的【龙】宝可梦，在战斗场上受到对手宝可梦的招式的伤害时，给使用了招式的宝可梦身上放置3个伤害指示物。				Toyste Beach	横空出世 苍	C		B	Dragon Talon
 CSV9.5C-176	身上放有这张卡牌的宝可梦，受到对手【龙】宝可梦的招式的伤害时，那个伤害「-60」，将这张卡牌放于弃牌区。				Studio Bora Inc.	太晶盛聚	U		H	Haban Berry
@@ -180,9 +180,6 @@ CS1bC-130	在双方的回合结束时，身上放有这张卡牌的宝可梦处�
 CS2aC-104	如果身上放有这张卡牌的宝可梦的弱点的属性，和对手的战斗宝可梦的属性相同的话，则身上放有这张卡牌的宝可梦所使用的招式，给对手的战斗宝可梦造成的伤害「+30」。				Ryo Ueda	浓墨重彩 黎	U		D	Struggle Gloves
 CSV9C-194	身上放有这张卡牌的宝可梦，受到对手【钢】宝可梦的招式的伤害时，那个伤害「-60」，将这张卡牌放于弃牌区。				Studio Bora Inc.	星彩晶璃	U		H	Babiri Berry
 CS3aC-114	身上放有这张卡牌的宝可梦所使用的招式，给对手战斗场上的【钢】宝可梦造成的伤害「+30」。				Toyste Beach	洪荒演武 茂	U		E	Crushing Gloves
-CSV7C-184	身上放有这张卡牌的宝可梦，受到对手【水】宝可梦的招式的伤害时，那个伤害「-60」，将这张卡牌放于弃牌区。				Studio Bora Inc.	利刃猛醒	U		H	Passho Berry
-CSV8C-185	身上放有这张卡牌的宝可梦，受到对手【火】宝可梦的招式的伤害时，那个伤害「-60」，将这张卡牌放于弃牌区。				Studio Bora Inc.	璀璨诡幻	U		H	Occa Berry
-CSM1cC-128	身上放有这张卡牌的 「银伴战兽GX」，会变为【水】宝可梦。				5ban Graphics	横空出世 泽	U		B	Water Memory
 CS1DC-189	身上放有这张卡牌的宝可梦，【撤退】所需能量减少2个。				Yoshinobu Saito	起始卡组 极巨争锋V	无标记		D	Air Balloon
 CS1bC-128	身上放有这张卡牌的宝可梦，【撤退】所需能量减少2个。				Yoshinobu Saito	极巨争锋 焰	U		D	Air Balloon
 CS1bC-197	身上放有这张卡牌的宝可梦，【撤退】所需能量减少2个。				Yoshinobu Saito	极巨争锋 焰	UR		D	Air Balloon
@@ -192,10 +189,9 @@ CSM1bC-131	身上放有这张卡牌的宝可梦，在战斗场上受到对手的
 CSM1bC-202	身上放有这张卡牌的宝可梦，在战斗场上受到对手的招式的伤害而【昏厥】时，将附着于这只宝可梦身上的最多3张基本能量，转附于自己的1只备战宝可梦身上。				Toyste Beach	横空出世 苍	UR		A	Wishful Baton
 CSM2DC-285	身上放有这张卡牌的宝可梦，在战斗场上受到对手的招式的伤害而【昏厥】时，将附着于这只宝可梦身上的最多3张基本能量，转附于自己的1只备战宝可梦身上。				Toyste Beach	起始卡组 交相辉映GX	无标记		A	Wishful Baton
 CSMPpC-007	身上放有这张卡牌的宝可梦，在战斗场上受到对手的招式的伤害而【昏厥】时，将附着于这只宝可梦身上的最多3张基本能量，转附于自己的1只备战宝可梦身上。				Toyste Beach	对战派对组合改造包 恶	无标记		A	Wishful Baton
-CS4DaC-385	身上放有这张卡牌的宝可梦（除拥有特性的宝可梦外），受到对手宝可梦的招式的伤害「-20」。				AYUMI ODASHIMA	起始卡组100	无标记		E	Full Face Guard
-CS4aC-124	身上放有这张卡牌的宝可梦（除拥有特性的宝可梦外），受到对手宝可梦的招式的伤害「-20」。				AYUMI ODASHIMA	九彩汇聚 朋	U		E	Full Face Guard
-CS4aC-181	身上放有这张卡牌的宝可梦（除拥有特性的宝可梦外），受到对手宝可梦的招式的伤害「-20」。				AYUMI ODASHIMA	九彩汇聚 朋	UR		E	Full Face Guard
-CS5DC-137	身上放有这张卡牌的宝可梦（除拥有特性的宝可梦外），受到对手宝可梦的招式的伤害「-20」。				AYUMI ODASHIMA	起始卡组 勇魅群星V	无标记		E	Full Face Guard
+CSV7C-184	身上放有这张卡牌的宝可梦，受到对手【水】宝可梦的招式的伤害时，那个伤害「-60」，将这张卡牌放于弃牌区。				Studio Bora Inc.	利刃猛醒	U		H	Passho Berry
+CSV8C-185	身上放有这张卡牌的宝可梦，受到对手【火】宝可梦的招式的伤害时，那个伤害「-60」，将这张卡牌放于弃牌区。				Studio Bora Inc.	璀璨诡幻	U		H	Occa Berry
+CSM1cC-128	身上放有这张卡牌的 「银伴战兽GX」，会变为【水】宝可梦。				5ban Graphics	横空出世 泽	U		B	Water Memory
 CSV6C-118	身上放有这张卡牌的「古代」宝可梦，最大HP「+60」，那只宝可梦，不会陷入特殊状态，已经处于的特殊状态，也全部恢复。				5ban Graphics	真实玄虚	U		G	Ancient Booster Energy Capsule
 CSV9.5C-177	身上放有这张卡牌的「古代」宝可梦，最大HP「+60」，那只宝可梦，不会陷入特殊状态，已经处于的特殊状态，也全部恢复。				5ban Graphics	太晶盛聚	U		G	Ancient Booster Energy Capsule
 CSVH4C-043	身上放有这张卡牌的「古代」宝可梦，最大HP「+60」，那只宝可梦，不会陷入特殊状态，已经处于的特殊状态，也全部恢复。				5ban Graphics	嗨皮卡组 狙射树枭&美录梅塔&故勒顿&密勒顿	无标记		G	Ancient Booster Energy Capsule
@@ -205,6 +201,10 @@ CSV9.5C-178	身上放有这张卡牌的「未来」宝可梦，【撤退】所�
 CSVH4C-044	身上放有这张卡牌的「未来」宝可梦，【撤退】所需能量全部消除，所使用的招式，给对手的战斗宝可梦造成的伤害「+20」。				5ban Graphics	嗨皮卡组 狙射树枭&美录梅塔&故勒顿&密勒顿	无标记		G	Future Booster Energy Capsule
 CSVM1cC-018	身上放有这张卡牌的「未来」宝可梦，【撤退】所需能量全部消除，所使用的招式，给对手的战斗宝可梦造成的伤害「+20」。				5ban Graphics	大师战略卡组构筑套装 密勒顿ex	无标记		G	Future Booster Energy Capsule
 SVP-257	身上放有这张卡牌的「未来」宝可梦，【撤退】所需能量全部消除，所使用的招式，给对手的战斗宝可梦造成的伤害「+20」。				5ban Graphics		无标记		G	Future Booster Energy Capsule
+CS4DaC-385	身上放有这张卡牌的宝可梦（除拥有特性的宝可梦外），受到对手宝可梦的招式的伤害「-20」。				AYUMI ODASHIMA	起始卡组100	无标记		E	Full Face Guard
+CS4aC-124	身上放有这张卡牌的宝可梦（除拥有特性的宝可梦外），受到对手宝可梦的招式的伤害「-20」。				AYUMI ODASHIMA	九彩汇聚 朋	U		E	Full Face Guard
+CS4aC-181	身上放有这张卡牌的宝可梦（除拥有特性的宝可梦外），受到对手宝可梦的招式的伤害「-20」。				AYUMI ODASHIMA	九彩汇聚 朋	UR		E	Full Face Guard
+CS5DC-137	身上放有这张卡牌的宝可梦（除拥有特性的宝可梦外），受到对手宝可梦的招式的伤害「-20」。				AYUMI ODASHIMA	起始卡组 勇魅群星V	无标记		E	Full Face Guard
 CS1DC-190	身上放有这张卡牌的【火】宝可梦，在战斗场上受到对手的宝可梦招式的伤害时，会使使用了招式的宝可梦陷入【灼伤】状态。				Toyste Beach	起始卡组 极巨争锋V	无标记		D	Burning Scarf
 CS1bC-129	身上放有这张卡牌的【火】宝可梦，在战斗场上受到对手的宝可梦招式的伤害时，会使使用了招式的宝可梦陷入【灼伤】状态。				Toyste Beach	极巨争锋 焰	U		D	Burning Scarf
 CSM1bC-129	身上放有这张卡牌的宝可梦的弱点，全部消除。				Ayaka Yoshida	横空出世 苍	U		A	Weakness Policy
@@ -234,6 +234,7 @@ CS2bC-108	身上放有这张卡牌的宝可梦所使用的招式，给对手备�
 CS2bC-143	身上放有这张卡牌的宝可梦所使用的招式，给对手备战区的「宝可梦V・GX」造成的伤害「+30」。				Toyste Beach	浓墨重彩 靛	UR		D	Telescopic Sight
 CS1DC-186	在双方的回合结束时，如果身上放有这张卡牌的宝可梦身上放置有3个以上（包含3个）伤害指示物的话，则回复该宝可梦「30」点HP。然后，将这张卡牌放于弃牌区。				Yoshinobu Saito	起始卡组 极巨争锋V	无标记		D	Sitrus Berry
 CS1aC-126	在双方的回合结束时，如果身上放有这张卡牌的宝可梦身上放置有3个以上（包含3个）伤害指示物的话，则回复该宝可梦「30」点HP。然后，将这张卡牌放于弃牌区。				Yoshinobu Saito	极巨争锋 雷	U		D	Sitrus Berry
+CSV9C-191	身上放有这张卡牌的宝可梦，受到对手宝可梦的招式的伤害而【昏厥】时，选择自己牌库中任意卡牌最多3张，加入手牌。并重洗牌库。				Toyste Beach	星彩晶璃	ACE	ACE SPEC	H	Amulet of Hope
 CS4aC-123	身上放有这张卡牌的宝可梦所使用的招式，给对手战斗场上的【雷】宝可梦造成的伤害「+30」。				Toyste Beach	九彩汇聚 朋	U		E	Rubber Gloves
 CS4bC-119	身上放有这张卡牌的宝可梦所使用的招式，给对手战斗场上的【超】宝可梦造成的伤害「+30」。				Toyste Beach	九彩汇聚 源	U		E	Cleansing Gloves
 CSVE1C-128	身上放有这张卡牌的宝可梦所使用的招式，给对手战斗场上的【超】宝可梦造成的伤害「+30」。				Toyste Beach	对战派对 共梦	无标记		E	Cleansing Gloves
@@ -243,7 +244,6 @@ CS1DC-188	身上放有这张卡牌的宝可梦，受到对手宝可梦的招式�
 CS1aC-127	身上放有这张卡牌的宝可梦，受到对手宝可梦的招式的伤害而【昏厥】时，从牌库上方抽取卡牌，直到自己的手牌变为7张为止。				Studio Bora Inc.	极巨争锋 雷	U		D	Lucky Egg
 CSV7C-190	身上放有这张卡牌的宝可梦，在战斗场上受到对手宝可梦的招式的伤害时，从自己牌库上方抽取2张卡牌。				Studio Bora Inc.	利刃猛醒	U		H	Lucky Helmet
 CSVH5aC-017	身上放有这张卡牌的宝可梦，在战斗场上受到对手宝可梦的招式的伤害时，从自己牌库上方抽取2张卡牌。				Studio Bora Inc.	嗨皮组合 快龙&超梦&喷火驼&来悲粗茶 改造包	无标记		H	Lucky Helmet
-CSV9C-191	身上放有这张卡牌的宝可梦，受到对手宝可梦的招式的伤害而【昏厥】时，选择自己牌库中任意卡牌最多3张，加入手牌。并重洗牌库。				Toyste Beach	星彩晶璃	ACE	ACE SPEC	H	Amulet of Hope
 CSM1DC-268	每当自己的战斗宝可梦，受到对手的招式伤害而【昏厥】时，可将附着于该宝可梦身上的1张基本能量，转附于身上放有这张卡牌的宝可梦身上。				Toyste Beach	起始卡组 横空出世GX	无标记		A	Exp. Share
 CSM1aC-130	每当自己的战斗宝可梦，受到对手的招式伤害而【昏厥】时，可将附着于该宝可梦身上的1张基本能量，转附于身上放有这张卡牌的宝可梦身上。				Toyste Beach	横空出世 赫	U		A	Exp. Share
 CSM2DC-277	每当自己的战斗宝可梦，受到对手的招式伤害而【昏厥】时，可将附着于该宝可梦身上的1张基本能量，转附于身上放有这张卡牌的宝可梦身上。				Toyste Beach	起始卡组 交相辉映GX	无标记		A	Exp. Share
@@ -283,14 +283,14 @@ CS3aC-110	身上放有这张卡牌的「一击」宝可梦，可以使用这张�
 CSVE1C-127	身上放有这张卡牌的「一击」宝可梦，可以使用这张卡牌上的招式。[需要满足使用招式所需能量。]\n\n【斗】 怒发冲冠 10+\n追加造成放置于这只宝可梦身上的伤害指示物数量×10点伤害。				5ban Graphics	对战派对 共梦	无标记		E	Single Strike Scroll of Scorn
 CS3aC-111	身上放有这张卡牌的「一击」宝可梦，可以使用这张卡牌上的招式。[需要满足使用招式所需能量。]\n\n【火】【无】【无】 枪弹突破 120\n这个招式的伤害，不计算弱点、抗性以及对手战斗宝可梦身上所附加的效果。				5ban Graphics	洪荒演武 茂	U		E	Single Strike Scroll of Piercing
 CS4aC-122	身上放有这张卡牌的「一击」宝可梦，可以使用这张卡牌上的招式。[需要满足使用招式所需能量。]\n\n【斗】【钢】【钢】【无】【无】 刚力斩 300\n将附着于这只宝可梦身上的能量，全部放于弃牌区。				5ban Graphics	九彩汇聚 朋	U		E	Single Strike Scroll of the Fanged Dragon
+CSM2bC-135	当自己的剩余奖赏卡张数为6张时，因身上放有这张卡牌的「究极异兽」的招式的伤害，而导致对手战斗场上的「宝可梦GX・EX」【昏厥】时，则多拿取1张奖赏卡。				Ayaka Yoshida	交相辉映 魁	U		C	Beast Bringer
+CSM2aC-136	身上放有这张卡牌的「究极异兽」使用的招式，给对手战斗宝可梦造成的伤害，会因自己已经获得的每张奖赏卡而「+10」。				inose yukie	交相辉映 沐	U		C	Beastite
+CSM2bC-132	身上放有这张卡牌的宝可梦，不受到对手宝可梦的特性效果影响。				Ryo Ueda	交相辉映 魁	U		C	Stealthy Hood
+CSMPmC-010	身上放有这张卡牌的宝可梦，不受到对手宝可梦的特性效果影响。				Ryo Ueda	对战派对组合改造包 雷	无标记		C	Stealthy Hood
 CS6.5C-064	在双方的回合结束时，如果身上放有这张卡牌的宝可梦的剩余HP在「30」点以下（包含30点）且身上放置有伤害指示物的话，则回复该宝可梦「120」点HP。然后，将这张卡牌放于弃牌区。				AYUMI ODASHIMA	胜象星引	U		F	Emergency Jelly
 CSV7C-187	身上放有这张卡牌的宝可梦的最大HP「+100」。				Toyste Beach	利刃猛醒	ACE	ACE SPEC	H	Hero's Cape
 CS2bC-106	身上放有这张卡牌的「宝可梦VMAX」的最大HP会减少「100」点，当该宝可梦，受到对手宝可梦的招式的伤害而【昏厥】时，对手拿取的奖赏卡将减少1张。（当将这张卡牌从手牌使出放于宝可梦身上时，如果会导致该宝可梦【昏厥】的话，则无法放于该宝可梦身上。）				Toyste Beach	浓墨重彩 靛	U		D	Hero's Medal
 CS2bC-142	身上放有这张卡牌的「宝可梦VMAX」的最大HP会减少「100」点，当该宝可梦，受到对手宝可梦的招式的伤害而【昏厥】时，对手拿取的奖赏卡将减少1张。（当将这张卡牌从手牌使出放于宝可梦身上时，如果会导致该宝可梦【昏厥】的话，则无法放于该宝可梦身上。）				Toyste Beach	浓墨重彩 靛	UR		D	Hero's Medal
-CSM2bC-132	身上放有这张卡牌的宝可梦，不受到对手宝可梦的特性效果影响。				Ryo Ueda	交相辉映 魁	U		C	Stealthy Hood
-CSMPmC-010	身上放有这张卡牌的宝可梦，不受到对手宝可梦的特性效果影响。				Ryo Ueda	对战派对组合改造包 雷	无标记		C	Stealthy Hood
-CSM2bC-135	当自己的剩余奖赏卡张数为6张时，因身上放有这张卡牌的「究极异兽」的招式的伤害，而导致对手战斗场上的「宝可梦GX・EX」【昏厥】时，则多拿取1张奖赏卡。				Ayaka Yoshida	交相辉映 魁	U		C	Beast Bringer
-CSM2aC-136	身上放有这张卡牌的「究极异兽」使用的招式，给对手战斗宝可梦造成的伤害，会因自己已经获得的每张奖赏卡而「+10」。				inose yukie	交相辉映 沐	U		C	Beastite
 CSV1C-118	身上放有这张卡牌的【基础】宝可梦的最大HP「+50」。				Toyste Beach	亘古开来	U		G	Bravery Charm
 CSV8C-260	身上放有这张卡牌的【基础】宝可梦的最大HP「+50」。				Toyste Beach	璀璨诡幻	UR		G	Bravery Charm
 CSVE2C-170	身上放有这张卡牌的【基础】宝可梦的最大HP「+50」。				Toyste Beach	对战派对 耀梦	无标记		G	Bravery Charm
@@ -303,10 +303,10 @@ CSVM1bC-024	身上放有这张卡牌的【基础】宝可梦的最大HP「+50」
 CSVM1cC-021	身上放有这张卡牌的【基础】宝可梦的最大HP「+50」。				Toyste Beach	大师战略卡组构筑套装 密勒顿ex	无标记		G	Bravery Charm
 CSVM2aC-024	身上放有这张卡牌的【基础】宝可梦的最大HP「+50」。				Toyste Beach	大师战略卡组构筑套装 猛雷鼓ex	无标记		G	Bravery Charm
 SVP-295	身上放有这张卡牌的【基础】宝可梦的最大HP「+50」。				Toyste Beach		无标记		G	Bravery Charm
+CS4bC-120	身上放有这张卡牌的「宝可梦【VMAX】」，受到对手宝可梦的招式的伤害而【昏厥】时，选择自己牌库中任意1张卡牌，加入手牌。并重洗牌库。				AYUMI ODASHIMA	九彩汇聚 源	U		E	Farewell Bell
 CS4.5C-053	身上放有这张卡牌的，名字中带有「水伊布V」或「雷伊布V」或「火伊布V」的宝可梦使用招式所需能量，减少1个【无】能量。				Studio Bora Inc.	终末炎舞	U		E	Elemental Badge
 CSVE2C-164	身上放有这张卡牌的，名字中带有「水伊布V」或「雷伊布V」或「火伊布V」的宝可梦使用招式所需能量，减少1个【无】能量。				Studio Bora Inc.	对战派对 耀梦	无标记		E	Elemental Badge
 CS4.5C-056	身上放有这张卡牌的，名字中带有「太阳伊布V」或「月亮伊布V」的宝可梦，当对手从手牌使出支援者时，不受其效果影响。				Studio Bora Inc.	终末炎舞	U		E	Moon & Sun Badge
-CS4bC-120	身上放有这张卡牌的「宝可梦【VMAX】」，受到对手宝可梦的招式的伤害而【昏厥】时，选择自己牌库中任意1张卡牌，加入手牌。并重洗牌库。				AYUMI ODASHIMA	九彩汇聚 源	U		E	Farewell Bell
 CS5.5C-062	身上放有这张卡牌的「宝可梦V」在HP为全满的状态下，受到对手宝可梦的招式的伤害而【昏厥】时，给使用了招式的宝可梦身上放置8个伤害指示物。				Toyste Beach	暗影夺辉	U		F	Box of Disaster
 CS5.5C-088	身上放有这张卡牌的「宝可梦V」在HP为全满的状态下，受到对手宝可梦的招式的伤害而【昏厥】时，给使用了招式的宝可梦身上放置8个伤害指示物。				Toyste Beach	暗影夺辉	UR		F	Box of Disaster
 CSM1cC-131	身上放有这张卡牌的 「银伴战兽GX」，会变为【斗】宝可梦。				5ban Graphics	横空出世 泽	U		A	Fire Memory
