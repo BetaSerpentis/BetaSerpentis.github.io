@@ -639,17 +639,22 @@ export class AIChatService {
     let t = text;
     const first = t.search(/\bDSML\b/i);
     if (first >= 0) {
-      // 向前找段落的开头（上一个 \n\n 或文本开头）
       const cutStart = Math.max(0, t.lastIndexOf('\n\n', first));
-      // 向后找段落的结尾（下一个 \n\n 或文本结尾）
       const last = t.lastIndexOf('DSML');
       const cutEnd = t.indexOf('\n\n', last);
       t = t.slice(0, cutStart) + (cutEnd >= 0 ? t.slice(cutEnd) : '');
     }
-    // 清理残留
+    // 清理残留：只过滤 DSML 特征行（以 | 开头且以 | 结尾且管道数 >= 3），
+    // 保留 Markdown 表格和其他正常文本
     return t
       .replace(/<[^>]*>/g, '')
-      .split('\n').filter(l => !/\|/.test(l))
+      .split('\n')
+      .filter(l => {
+        const pipes = (l.match(/\|/g) || []).length;
+        // DSML 行特征：首尾都是 | 且至少 3 个管道符，不含 Markdown 表格分隔符 ---
+        if (pipes >= 3 && /^\|/.test(l) && /\|$/.test(l) && !/---/.test(l)) return false;
+        return true;
+      })
       .join('\n')
       .replace(/\n{3,}/g, '\n\n')
       .trim();
