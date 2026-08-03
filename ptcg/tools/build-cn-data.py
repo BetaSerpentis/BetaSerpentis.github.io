@@ -17,6 +17,13 @@ import shutil
 import sys
 from collections import defaultdict
 
+# Image processing
+try:
+    from PIL import Image
+    _HAS_PIL = True
+except ImportError:
+    _HAS_PIL = False
+
 # Pinyin sorting (install: pip install pypinyin)
 try:
     from pypinyin import lazy_pinyin, Style
@@ -85,6 +92,19 @@ def write_tsv(path: Path, header: str, rows: list[list[str]]) -> None:
         for r in rows:
             f.write("\t".join(tsv_escape(c) for c in r) + "\n")
     print(f"  {path.name}: {len(rows)} rows, {path.stat().st_size/1024:.0f} KB")
+
+def generate_thumbnail(src_path: Path, dst_path: Path, width: int = 150):
+    """Generate a small WebP thumbnail from the source image"""
+    if not _HAS_PIL:
+        return False
+    try:
+        img = Image.open(src_path)
+        h = int(img.height * width / img.width)
+        img = img.resize((width, h), Image.LANCZOS)
+        img.save(dst_path, "WEBP", quality=75)
+        return True
+    except Exception:
+        return False
 
 def load_cn_cards():
     cards = []
@@ -868,30 +888,45 @@ def main():
     write_tsv(OUT_TSV / "attacks.tsv", "atk1", g_atk)
     write_tsv(OUT_TSV / "abilities.tsv", "abi1", g_abi)
 
-    # 6. Images
-    print("\n[6/6] Copying images...")
+    # 6. Images + thumbnails
+    print("\n[6/6] Copying images + generating thumbnails...")
     OUT_IMG.mkdir(parents=True, exist_ok=True)
-    copied, skipped, missing = 0, 0, 0
+    copied, skipped, missing, thumbed = 0, 0, 0, 0
     for c in cards:
         img_path = c.get("image_path", "")
         if not img_path:
             missing += 1; continue
         src = CN_IMG / img_path.replace("\\", "/")
-        dst = OUT_IMG / c["set_code"] / f"{c['card_index']}.webp"
-        dst.parent.mkdir(parents=True, exist_ok=True)
-        if dst.exists():
-            skipped += 1; continue
-        if src.exists():
-            shutil.copy2(src, dst); copied += 1
-        else:
+        # Find actual source file
+        if not src.exists():
             alt = src.with_suffix(".webp")
             if alt.exists():
-                shutil.copy2(alt, dst); copied += 1
+                src = alt
             else:
                 missing += 1
+                continue
+
+        set_code = c["set_code"]
+        card_index = c["card_index"]
+        dst_dir = OUT_IMG / set_code
+        dst_dir.mkdir(parents=True, exist_ok=True)
+        dst_full = dst_dir / f"{card_index}.webp"
+        dst_thumb = dst_dir / f"{card_index}.thumb.webp"
+
+        # Full image
+        if not dst_full.exists():
+            shutil.copy2(src, dst_full); copied += 1
+        else:
+            skipped += 1
+
+        # Thumbnail (150px wide)
+        if not dst_thumb.exists():
+            if generate_thumbnail(src, dst_thumb, 150):
+                thumbed += 1
+
         if copied % 2000 == 0 and copied > 0:
             print(f"  Copied: {copied}...")
-    print(f"  Done: {copied} copied, {skipped} skipped, {missing} missing")
+    print(f"  Done: {copied} copied, {skipped} skipped, {thumbed} thumbnails, {missing} missing")
 
     # Generate updated meta.json
     print("\nGenerating meta.json...")
