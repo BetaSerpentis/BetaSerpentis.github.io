@@ -188,7 +188,7 @@ export class AICardDataService {
     return {
       results: top.map(r => ({ id: r.id, data: r.data })),
       total: results.length,
-      message: `找到 ${results.length} 张，显示前 ${top.length} 张:\n${formatted}\n\n> 用 get_card_detail(ID) 查看完整效果`
+      message: `找到 ${results.length} 张，显示前 ${top.length} 张:\n${formatted}\n\n> ⚠ **必须用 get_card_detail(ID) 读取完整效果文本后才能分析**。搜索结果仅显示摘要，不包含完整的特性/招式/HP数据。`
     };
   }
 
@@ -250,7 +250,7 @@ export class AICardDataService {
     return {
       results: top.map(r => ({ id: r.id, data: r.data })),
       total: allResults.size,
-      message: `Grep "${patterns}" 找到 ${allResults.size} 张 (仅F-I标)，前 ${top.length}:\n${formatted}`
+      message: `Grep "${patterns}" 找到 ${allResults.size} 张，前 ${top.length}:\n${formatted}\n\n> ⚠ **必须用 get_card_detail(ID) 读取完整效果文本后才能分析**。Grep结果仅显示命中摘要。`
     };
   }
 
