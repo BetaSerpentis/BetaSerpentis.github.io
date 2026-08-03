@@ -61,6 +61,8 @@ export class CardGrid {
             }
             
             this.loadNextBatch();
+            // 首屏可见卡牌预加载 — 不等 observer 触发
+            this.preloadFirstVisibleImages();
             // 第一批量渲染完成后立即隐藏 loading，消除闪烁
             this.hideLoading();
         }
@@ -122,8 +124,8 @@ export class CardGrid {
         img.alt = card.name;
         img.dataset.loading = 'false';
         
-        const svgPlaceholder = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="252" height="352" viewBox="0 0 252 352"><rect width="252" height="352" fill="%231a1a24"/><text x="126" y="176" font-family="Arial" font-size="14" text-anchor="middle" fill="%233a3a45">加载中...</text></svg>`;
-        img.src = svgPlaceholder;
+        const placeholder = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="252" height="352" viewBox="0 0 252 352"><rect width="252" height="352" fill="#1a1a24"/><text x="126" y="176" font-family="sans-serif" font-size="20" text-anchor="middle" fill="#3a3a45">${card.name.slice(0, 6)}</text></svg>`)}`;
+        img.src = placeholder;
         
         // 简化的数量显示逻辑（使用显式模式状态）
         let displayQuantity = 0;
@@ -539,6 +541,20 @@ export class CardGrid {
         const searchInfo = document.getElementById('search-info');
         if (searchInfo) {
             searchInfo.textContent = message;
+        }
+    }
+
+    // 首屏卡图预加载 — 不等 IntersectionObserver 触发
+    preloadFirstVisibleImages() {
+        const imgs = this.cardGrid.querySelectorAll('.card-img');
+        let count = 0;
+        for (const img of imgs) {
+            if (count >= 12) break; // 前 12 张（3 行 × 4 列）
+            const src = img.dataset.src;
+            const key = img.dataset.cardId || src;
+            if (!src || this.imageLoader.loadedImages.has(key)) continue;
+            this.imageLoader.loadImageWithRetry(img, src, key, 2);
+            count++;
         }
     }
 }
