@@ -1,6 +1,6 @@
 import { CONFIG } from '../utils/constants.js';
 
-const MAX_CONCURRENT = 6;
+const MAX_CONCURRENT = 8;
 
 export class ImageLoader {
     constructor() {
@@ -39,7 +39,7 @@ export class ImageLoader {
                     }
                 }
             });
-        }, { rootMargin: '200px 0px', threshold: 0.01 });
+        }, { rootMargin: '600px 0px', threshold: 0.01 });
     }
 
     // 带重试的图片加载（入口：排队等待并发槽位）
