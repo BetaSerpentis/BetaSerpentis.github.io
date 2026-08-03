@@ -1,10 +1,14 @@
 import { debugLog } from '../utils/constants.js';
 
+function toFullImage(thumbPath) {
+    return (thumbPath || '').replace('.thumb.webp', '.webp');
+}
+
 export class ModalView {
     constructor(cardManager, imageLoader) {
         this.cardManager = cardManager;
         this.imageLoader = imageLoader;
-        
+
         this.modal = document.getElementById('image-modal');
         this.modalImgCurrent = document.getElementById('modal-img-current');
         this.modalImgNext = document.getElementById('modal-img-next');
@@ -103,7 +107,7 @@ export class ModalView {
         this.pendingSwipeIndex = newIndex;
 
         this.setModalImageTransitions('none');
-        incomingImg.src = newCard.image;
+                incomingImg.src = toFullImage(newCard.image);
         incomingImg.style.transform = incomingStartTransform;
         this.modalImgCurrent.style.transform = 'translateX(0)';
         this.forceModalImageReflow();
@@ -290,7 +294,7 @@ export class ModalView {
         this.pendingSwipeIndex = -1;
         
         const card = cards[index];
-        this.modalImgCurrent.src = card.image;
+                this.modalImgCurrent.src = toFullImage(card.image);
         this.cardName.textContent = card.name;
         
         this.modal.classList.add('active');
@@ -320,7 +324,7 @@ export class ModalView {
         this.currentIndex = newIndex;
         const card = cards[this.currentIndex];
         
-        this.modalImgCurrent.src = card.image;
+                this.modalImgCurrent.src = toFullImage(card.image);
         this.cardName.textContent = card.name;
         
         this.preloadAdjacentImages();
@@ -337,13 +341,13 @@ export class ModalView {
         // 预加载到隐藏的img元素中
         if (cards[prevIndex]) {
             // 只有在图片不同时才设置src，避免不必要的网络请求
-            if (this.modalImgPrev.src !== cards[prevIndex].image) {
-                this.modalImgPrev.src = cards[prevIndex].image;
+            if (this.modalImgPrev.src !== toFullImage(cards[prevIndex].image)) {
+                            this.modalImgPrev.src = toFullImage(cards[prevIndex].image);
             }
         }
         if (cards[nextIndex]) {
-            if (this.modalImgNext.src !== cards[nextIndex].image) {
-                this.modalImgNext.src = cards[nextIndex].image;
+            if (this.modalImgNext.src !== toFullImage(cards[nextIndex].image)) {
+                            this.modalImgNext.src = toFullImage(cards[nextIndex].image);
             }
         }
         
