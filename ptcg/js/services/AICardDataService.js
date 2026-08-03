@@ -8,6 +8,16 @@ export class AICardDataService {
     this._jsonCache = new Map();
     this._jsonLoading = new Map();
     this._loaded = false;
+    // 动态环境标（由 AIChatService 从 meta.json 注入，默认 GHI）
+    this._currentMarks = new Set(['G', 'H', 'I']);
+  }
+
+  /** 由外部注入当前有效标集合（AIChatService._loadEnvironment 调用）*/
+  setCurrentMarks(marks) {
+    if (Array.isArray(marks) && marks.length > 0) {
+      this._currentMarks = new Set(marks.map(m => m.toUpperCase()));
+      console.log('[AI Data] 环境过滤切换到:', [...this._currentMarks].join('/'), '标');
+    }
   }
 
   // ========== JSON 缓存加载 ==========
@@ -122,7 +132,7 @@ export class AICardDataService {
   }
 
   _isCurrentFormat(version) {
-    return version && /^[FGHI]$/i.test(version);
+    return version && this._currentMarks.has(version.toUpperCase());
   }
 
   /** search_cards — 关键词搜索 */

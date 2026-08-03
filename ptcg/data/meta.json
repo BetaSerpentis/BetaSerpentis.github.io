@@ -1,7 +1,6 @@
 {
-  "format": "简中标准环境 F/G/H/I 标",
+  "format": "简中标准环境 G/H/I 标",
   "currentMarks": [
-    "F",
     "G",
     "H",
     "I"
@@ -11,15 +10,18 @@
     "B",
     "C",
     "D",
-    "E"
+    "E",
+    "F"
   ],
-  "description": "简中 PTCG 当前标准赛制为 F/G/H/I 标。数据来源：tcg.mik.moe",
+  "description": "简中 PTCG 当前标准赛制为 G/H/I 标（SV4-SV9）。F标已退环境。数据来源：tcg.mik.moe",
   "markSeries": {
-    "F": "SV1-SV3",
+    "F": "SV1-SV3（已退环境）",
     "G": "SV4-SV5",
     "H": "SV6-SV7",
     "I": "SV8-SV9"
   },
+  "lastUpdated": "2026-08-03",
+  "note": "currentMarks 是环境判断的唯一数据源。修改此处后 AI 自动切换标的过滤。",
   "basicEnergy": {
     "description": "基本能量卡ID速查表",
     "cards": [

@@ -14,6 +14,8 @@ export class AIChatService {
     this._history = [];
     this._data = new AICardDataService(cardManager);
     this._analysis = new AIAnalysisService(this._data);
+    this._env = null;       // 环境信息缓存（从 meta.json 动态加载）
+    this._knowledgeIndex = null; // 知识库索引
     this._loadHistory();
   }
 
@@ -21,6 +23,86 @@ export class AIChatService {
 
   async ensureDataLoaded() {
     await this._data.ensureLoaded();
+    await this._loadEnvironment();
+    await this._loadKnowledgeIndex();
+  }
+
+  /** 动态加载环境信息（meta.json → currentMarks 是唯一真相源） */
+  async _loadEnvironment() {
+    if (this._env) return;
+    try {
+      const resp = await fetch('data/meta.json');
+      if (resp.ok) {
+        const meta = await resp.json();
+        this._env = {
+          currentMarks: meta.currentMarks || ['G','H','I'],
+          retiredMarks: meta.retiredMarks || ['A','B','C','D','E','F'],
+          markSeries: meta.markSeries || {},
+          description: meta.description || ''
+        };
+        // 同步到数据层，让搜索过滤使用动态标
+        this._data.setCurrentMarks(this._env.currentMarks);
+        console.log('[AI Agent] 环境:', this._env.currentMarks.join('/'), '标');
+      }
+    } catch (e) {
+      console.warn('[AI Agent] 加载环境信息失败，使用默认 G/H/I:', e.message);
+      this._env = { currentMarks: ['G','H','I'], retiredMarks: ['A','B','C','D','E','F'], markSeries: {}, description: '' };
+    }
+  }
+
+  /** 预加载知识库文件并构建搜索索引 */
+  async _loadKnowledgeIndex() {
+    if (this._knowledgeIndex) return;
+    const files = ['techniques.md', 'deck-building.md', 'matchups.md', 'combos.md', 'rulings.md'];
+    const index = [];
+    // 文件名→中文标题映射
+    const titles = {
+      'techniques.md': '对战技巧',
+      'deck-building.md': '构筑理论',
+      'matchups.md': '对局分析',
+      'combos.md': '强力组合',
+      'rulings.md': '规则FAQ'
+    };
+    for (const file of files) {
+      try {
+        const resp = await fetch(`data/knowledge/${file}`);
+        if (resp.ok) {
+          const text = await resp.text();
+          // 按 ## 二级标题分段
+          const sections = text.split(/\n## /);
+          for (let i = 1; i < sections.length; i++) {
+            const section = sections[i];
+            const nlIdx = section.indexOf('\n');
+            const heading = nlIdx >= 0 ? section.slice(0, nlIdx).trim() : section.trim();
+            const body = nlIdx >= 0 ? section.slice(nlIdx + 1).trim() : '';
+            // 三级标题进一步拆分
+            const subSections = body.split(/\n### /);
+            if (subSections.length > 1) {
+              for (let j = 1; j < subSections.length; j++) {
+                const subNl = subSections[j].indexOf('\n');
+                const subHeading = subNl >= 0 ? subSections[j].slice(0, subNl).trim() : subSections[j].trim();
+                const subBody = subNl >= 0 ? subSections[j].slice(subNl + 1).trim() : '';
+                index.push({
+                  title: `${titles[file] || file} › ${heading} › ${subHeading}`,
+                  content: subBody.slice(0, 1500),
+                  file
+                });
+              }
+            } else {
+              index.push({
+                title: `${titles[file] || file} › ${heading}`,
+                content: body.slice(0, 1500),
+                file
+              });
+            }
+          }
+        }
+      } catch (e) {
+        console.warn(`[AI Agent] 知识库文件 ${file} 加载失败:`, e.message);
+      }
+    }
+    this._knowledgeIndex = index;
+    console.log('[AI Agent] 知识库索引:', index.length, '个段落');
   }
 
   // ========== 对话历史 ==========
@@ -149,6 +231,20 @@ export class AIChatService {
       {
         type: 'function',
         function: {
+          name: 'search_knowledge',
+          description: '查询本地 PTCG 知识库（对战技巧、构筑理论、对局分析、强力组合、规则FAQ）。当用户问「怎么打某个卡组」「如何构筑」「规则疑问」「有什么技巧」时使用。',
+          parameters: {
+            type: 'object',
+            properties: {
+              query: { type: 'string', description: '搜索关键词，如"先攻策略" "能量配比" "沙奈朵对局" "伤害指示物区别"' }
+            },
+            required: ['query']
+          }
+        }
+      },
+      {
+        type: 'function',
+        function: {
           name: 'search_meta',
           description: '搜索当前环境元数据：上位卡组、常用泛用卡、赛标信息、环境趋势。用于了解当前PTCG简中环境的大环境信息。',
           parameters: {
@@ -213,6 +309,9 @@ export class AIChatService {
         }
         return result;
       }
+
+      case 'search_knowledge':
+        return this._searchKnowledge(args.query);
 
       case 'search_meta': {
         return this._searchMeta(args.query);
@@ -437,6 +536,42 @@ export class AIChatService {
 
   // ========== Agent 循环 ==========
 
+  /** 搜索本地知识库 */
+  _searchKnowledge(query) {
+    if (!this._knowledgeIndex || this._knowledgeIndex.length === 0) {
+      return '知识库尚未加载，请稍后再试。';
+    }
+    const q = (query || '').toLowerCase();
+    const terms = q.split(/\s+/).filter(t => t.length > 0);
+    if (terms.length === 0) return '请提供搜索关键词。可搜索的主题：对战技巧、构筑理论、对局分析、强力组合、规则FAQ。';
+
+    // 关键词匹配评分
+    const scored = this._knowledgeIndex.map(item => {
+      const searchText = (item.title + ' ' + item.content).toLowerCase();
+      let score = 0;
+      for (const term of terms) {
+        const count = (searchText.match(new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi')) || []).length;
+        // 标题匹配权重更高
+        const titleCount = (item.title.toLowerCase().match(new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi')) || []).length;
+        score += count + titleCount * 3;
+      }
+      return { ...item, score };
+    }).filter(item => item.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5);
+
+    if (scored.length === 0) {
+      return `未找到与「${query}」相关的知识库内容。可尝试的关键词：对战技巧、先攻策略、能量配比、沙奈朵对局、进化规则、组卡组检查清单等。`;
+    }
+
+    const lines = [`## 🔍 知识库搜索结果: ${query}`, `找到 ${scored.length} 个相关段落：`, ''];
+    for (const item of scored) {
+      lines.push(`### ${item.title}\n\n${item.content}\n`);
+    }
+    lines.push('> 以上内容来自本地 PTCG 知识库，可结合卡牌数据库进行深入分析。');
+    return lines.join('\n');
+  }
+
   /** 搜索元数据（上位卡组、环境信息） */
   async _searchMeta(query) {
     try {
@@ -536,7 +671,7 @@ export class AIChatService {
 
       const settings = this.apiKeyManager.getSettings();
       const messages = [
-        { role: 'system', content: buildSystemPrompt() }
+        { role: 'system', content: buildSystemPrompt(this._env || {}) }
       ];
 
       // 注入历史（只保留最近 8 条消息，避免上下文过长）
