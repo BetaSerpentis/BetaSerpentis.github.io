@@ -185,10 +185,15 @@ export class AICardDataService {
       return `- **${name}** [ID:${r.id}] [${type}] ${detail}`;
     }).join('\n');
 
+    // 前3张卡附带完整详情（省去 AI 单独调 get_card_detail）
+    const top3Detail = top.slice(0, 3).filter(r => r.data).map((r, i) =>
+      `\n### 结果${i + 1} 完整数据\n${this._formatCardRich(r.data, r.id)}`
+    ).join('\n');
+
     return {
       results: top.map(r => ({ id: r.id, data: r.data })),
       total: results.length,
-      message: `找到 ${results.length} 张，显示前 ${top.length} 张:\n${formatted}\n\n> ⚠ **必须用 get_card_detail(ID) 读取完整效果文本后才能分析**。搜索结果仅显示摘要，不包含完整的特性/招式/HP数据。`
+      message: `找到 ${results.length} 张，显示前 ${top.length} 张:\n${formatted}${top3Detail}\n\n> 前3张卡已附带完整HP/特性/招式数据，可直接分析。其余用 get_card_detail(ID) 查看。`
     };
   }
 
@@ -247,10 +252,15 @@ export class AICardDataService {
       return `- **${c.name}** [ID:${c.id}] [${type}] ${detail}\n  命中: ${snippets}`;
     }).join('\n');
 
+    // 前3张卡附带完整详情
+    const top3Detail = top.slice(0, 3).filter(c => c.data).map((c, i) =>
+      `\n### 结果${i + 1} 完整数据\n${this._formatCardRich(c.data, c.id)}`
+    ).join('\n');
+
     return {
       results: top.map(r => ({ id: r.id, data: r.data })),
       total: allResults.size,
-      message: `Grep "${patterns}" 找到 ${allResults.size} 张，前 ${top.length}:\n${formatted}\n\n> ⚠ **必须用 get_card_detail(ID) 读取完整效果文本后才能分析**。Grep结果仅显示命中摘要。`
+      message: `Grep "${patterns}" 找到 ${allResults.size} 张，前 ${top.length}:\n${formatted}${top3Detail}\n\n> 前3张已附带完整数据，可直接分析。其余用 get_card_detail(ID) 查看。`
     };
   }
 
