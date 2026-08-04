@@ -776,12 +776,12 @@ export class AIChatService {
           messages.push({ role: 'tool', tool_call_id: tc.id, content: result });
         }
 
-        // 第1轮后提示收尾
+        // 第1轮后引导深入搜索（不再强制收尾）
         if (loop === 0) {
           if (hasSaveIntent) {
             messages.push({ role: 'user', content: '已看到卡组内容。请确认所有卡牌ID已验证，然后调用 build_deck 保存。' });
           } else {
-            messages.push({ role: 'user', content: '已经搜索了足够的数据。请直接输出分析报告，不要再调用工具。' });
+            messages.push({ role: 'user', content: '已获取初始数据。继续用 grep_cards 和 search_cards 深入搜索配合卡、协同卡、进化链。搜索结束后给出完整分析报告。' });
           }
         }
       }
