@@ -241,8 +241,17 @@ export class AIAnalysisService {
   async deepAnalysis(cardName) {
     if (!cardName) return '请提供卡牌名称';
 
-    // 1. 定位目标卡
-    const searchResult = this.data.searchCards(cardName, null, 3);
+    // 1. 定位目标卡（自动处理「某某的卡名」这种口语说法）
+    let searchResult = this.data.searchCards(cardName, null, 3);
+    let nameUsed = cardName;
+    // 如果搜不到，尝试去掉「某某的」前缀
+    if (searchResult.results.length === 0) {
+      const stripped = cardName.replace(/^.{1,4}的/, '').trim();
+      if (stripped !== cardName && stripped.length > 0) {
+        searchResult = this.data.searchCards(stripped, null, 3);
+        nameUsed = stripped;
+      }
+    }
     if (searchResult.results.length === 0) return `未找到"${cardName}"。请检查卡名拼写。`;
 
     const targetId = searchResult.results[0].id;
@@ -328,6 +337,65 @@ export class AIAnalysisService {
       lines.push('\n---');
       lines.push('## ⚠ 风险提示');
       warnings.forEach(w => lines.push(w));
+    }
+
+    // 7. 卡组模板建议（基于机制自动生成框架）
+    lines.push('\n---');
+    lines.push('## 🃏 卡组构筑建议');
+    if (isPokemon) {
+      const props = this._getStrategicProps(targetData);
+      const isEvo = (targetData['进化阶段'] || '').includes('2') || (targetData['进化阶段'] || '').includes('1');
+      const evoFrom = targetData['进化自'] || '';
+      const attr = targetData['属性'] || '';
+      const attrName = this._attrCodeToName(attr);
+
+      lines.push(`\n### 核心思路`);
+      lines.push(`- 主打手：**${targetName}**（${rating.tier}级，${rating.reasons.slice(0,3).join(' · ')}）`);
+      if (evoFrom) lines.push(`- 进化线：${evoFrom} → ${targetName}`);
+      lines.push(`- 能量类型：基本${attrName}能量`);
+      lines.push(`- 策略方向：${isEvo ? '中速进化型' : '基础快攻型'}，利用${targetEffects.slice(0,30)}...`);
+
+      lines.push(`\n### 推荐张数配比`);
+      const pokeCount = isEvo ? '16-20' : '12-16';
+      lines.push(`- 宝可梦：${pokeCount} 张`);
+      lines.push(`- 训练家卡：${isEvo ? '28-32' : '32-36'} 张`);
+      lines.push(`- ${attrName}能量：10-14 张`);
+
+      lines.push(`\n### 必备卡`);
+      if (isEvo) {
+        lines.push(`- 神奇糖果 ×3（加速进化）`);
+        lines.push(`- 好友宝芬/巢穴球 ×4（检索基础宝可梦）`);
+      }
+      lines.push(`- 博士的研究 ×4（核心过牌引擎）`);
+      lines.push(`- 老大的指令 ×2-3（抓对手关键宝可梦）`);
+      lines.push(`- 互换推车/气球 ×2（换位逃脱）`);
+      lines.push(`- 夜游记 ×1（回收宝可梦+能量）`);
+    }
+
+    // 8. 对局/换备建议
+    lines.push('\n---');
+    lines.push('## ⚔ 环境适应性');
+    lines.push('> 💡 用 search_meta("上位卡组") 获取当前环境上位卡组列表，针对性地选择克制卡。');
+    if (isPokemon) {
+      const attr = targetData['属性'] || '';
+      const attrName = this._attrCodeToName(attr);
+      const hp = parseInt(targetData['HP']) || 0;
+      const isEvo = (targetData['进化阶段'] || '').includes('2');
+
+      lines.push(`\n### 优势对局`);
+      lines.push(`- 属性克制：${attrName}系对 ${attrName === '恶' ? '超' : attrName === '火' ? '草' : attrName === '水' ? '火' : '弱点系'} 有优势`);
+      if (hp >= 250) lines.push(`- 高HP(${hp}) 能硬吃多数打手的一击，换奖效率高`);
+      if (!isEvo) lines.push(`- 基础直接上场，不怕进化链被打断`);
+
+      lines.push(`\n### 劣势对局`);
+      if (isEvo) lines.push(`- 2阶进化需要3回合，快攻卡组（如猛雷鼓ex）可在此期间抢奖`);
+      if (hp <= 280) lines.push(`- HP${hp} 可能被高爆发打手（如喷火龙ex后期）一击秒杀`);
+      lines.push(`- 怕 Boss 抓杀关键中间体（进化型卡组的天敌）`);
+
+      lines.push(`\n### 换备建议`);
+      lines.push(`- 对抗快攻：换入回复卡（伤药等）+ 更多铺场检索`);
+      lines.push(`- 对抗控制：换入换位卡（防Boss抓）`);
+      lines.push(`- 对抗特性卡组：换入钥圈儿（锁特性）`);
     }
 
     lines.push('\n> 组卡组时优先 ⭐ 标记的卡。可进一步用 search_cards/grep_cards 搜索特定方向。');
