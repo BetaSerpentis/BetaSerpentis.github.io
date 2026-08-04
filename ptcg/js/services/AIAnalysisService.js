@@ -255,8 +255,22 @@ export class AIAnalysisService {
     if (searchResult.results.length === 0) return `未找到"${cardName}"。请检查卡名拼写。`;
 
     const targetId = searchResult.results[0].id;
-    const targetData = await this.data.getFullCardData(targetId);
-    if (!targetData) return `找到 ID ${targetId} 但无完整数据。`;
+    let targetData = await this.data.getFullCardData(targetId);
+    // TSV-only card fallback: 从搜索结果摘要构造最小数据结构
+    if (!targetData) {
+      const result = searchResult.results[0];
+      if (result.tsvName) {
+        const tsvCards = this.data.cardManager.allCardsCache || [];
+        const tsv = tsvCards.find(c => c.id === targetId);
+        targetData = {
+          '宝可梦名字': result.tsvName || targetId,
+          '卡牌名字': result.tsvName || targetId,
+          '效果': tsv ? (tsv.searchText || '').slice(0, 500) : '',
+          '卡牌类型': tsv ? tsv.type : ''
+        };
+      }
+      if (!targetData) return `找到 ID ${targetId} 但无完整数据。该卡可能仅存在于 TSV 索引中。`;
+    }
 
     const targetName = targetData['宝可梦名字'] || targetData['卡牌名字'] || cardName;
     const isPokemon = !!targetData['宝可梦名字'];

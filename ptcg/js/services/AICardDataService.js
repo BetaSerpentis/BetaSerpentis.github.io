@@ -139,11 +139,11 @@ export class AICardDataService {
   searchCards(query, cardType, limit = 15) {
     if (!query || !query.trim()) return { results: [], total: 0, message: '请提供搜索关键词' };
     limit = Math.min(limit, 50);
-    // 归一化搜索词（【】和普通括号互转）
     const normQuery = query.replace(/[【】]/g, '');
     const terms = normQuery.split(/\s+/).filter(t => t.length > 0);
-    const results = [];
+    const resultsMap = new Map(); // id → { id, score, data, tsvName }
 
+    // 1. 搜索 JSON 缓存
     for (const [id, data] of this._jsonCache) {
       if (cardType) {
         let type = data['卡牌类型'] || '';
@@ -153,35 +153,45 @@ export class AICardDataService {
       }
       const version = this._extractVersion(data);
       if (version && !this._isCurrentFormat(version)) continue;
-      // 归一化搜索文本（同样去掉【】用于匹配）
       const text = this._jsonCardToSearchText(data).replace(/[【】]/g, '');
       let score = 0;
       for (const term of terms) {
         if (text.includes(term)) score++;
+        // 完整名称匹配加权
+        const name = data['宝可梦名字'] || data['卡牌名字'] || '';
+        if (name === term || name.includes(term)) score += 2;
       }
-      if (score > 0) results.push({ id, score, data });
+      if (score > 0) resultsMap.set(id, { id, score, data });
     }
 
-    // Fallback to TSV cache
-    if (results.length === 0) {
-      const cache = this.cardManager.allCardsCache || [];
-      for (const card of cache) {
-        if (cardType && card.type !== cardType) continue;
-        const searchField = (card.searchText || '') + ' ' + (card.name || '');
-        let score = 0;
-        for (const term of terms) {
-          if (searchField.toLowerCase().includes(term.toLowerCase())) score++;
+    // 2. 同时搜索 TSV 缓存（不再仅作为 fallback）
+    const tsvCache = this.cardManager.allCardsCache || [];
+    for (const card of tsvCache) {
+      if (cardType && card.type !== cardType) continue;
+      const searchField = (card.searchText || '') + ' ' + (card.name || '');
+      let score = 0;
+      for (const term of terms) {
+        if (searchField.toLowerCase().includes(term.toLowerCase())) score++;
+        // 完整名称匹配加权
+        if (card.name && (card.name === term || card.name.includes(term))) score += 2;
+      }
+      if (score > 0) {
+        const existing = resultsMap.get(card.id);
+        if (existing) {
+          existing.score = Math.max(existing.score, score);
+        } else {
+          resultsMap.set(card.id, { id: card.id, score, data: null, tsvName: card.name });
         }
-        if (score > 0) results.push({ id: card.id, score, data: null });
       }
     }
 
+    const results = [...resultsMap.values()];
     results.sort((a, b) => b.score - a.score);
     const top = results.slice(0, limit);
     const formatted = top.map(r => {
-      const name = r.data ? (r.data['宝可梦名字'] || r.data['卡牌名字'] || '未知') : `卡牌 ${r.id}`;
+      const name = r.data ? (r.data['宝可梦名字'] || r.data['卡牌名字'] || '未知') : (r.tsvName || `卡牌 ${r.id}`);
       const type = r.data ? (r.data['卡牌类型'] || (r.data['宝可梦名字'] ? '宝可梦' : '')) : '?';
-      const detail = r.data ? this._summarizeCardQuick(r.data) : `(score:${r.score})`;
+      const detail = r.data ? this._summarizeCardQuick(r.data) : (r.tsvName ? `(TSV索引, score:${r.score})` : `(score:${r.score})`);
       return `- **${name}** [ID:${r.id}] [${type}] ${detail}`;
     }).join('\n');
 
@@ -268,8 +278,18 @@ export class AICardDataService {
   async getCardDetail(cardId) {
     if (!cardId) return '错误：请提供卡牌ID';
     const data = this._jsonCache.get(cardId) || await this.getFullCardData(cardId);
-    if (!data) return `未找到卡牌 ID: ${cardId}`;
-    return this._formatCardRich(data, cardId);
+    if (data) return this._formatCardRich(data, cardId);
+    // TSV fallback: 从 TSV 索引中查找卡牌信息
+    const tsvCards = this.cardManager.allCardsCache || [];
+    const tsvCard = tsvCards.find(c => c.id === cardId);
+    if (tsvCard) {
+      const lines = [];
+      lines.push(`**${tsvCard.name || cardId}**  ID:\`${cardId}\` (TSV索引，无完整JSON数据)`);
+      if (tsvCard.type) lines.push(`- 类型: ${tsvCard.type}`);
+      if (tsvCard.searchText) lines.push(`- 效果摘要: ${tsvCard.searchText.slice(0, 300)}`);
+      return lines.join('\n');
+    }
+    return `未找到卡牌 ID: ${cardId}`;
   }
 
   // ========== 格式化 ==========
