@@ -1,5 +1,5 @@
 // PTCG Service Worker
-var CACHE_NAME = 'ptcg-cache-v22';
+var CACHE_NAME = 'ptcg-cache-v23';
 
 var URLS = [
   '/ptcg/','/ptcg/index.html',

@@ -25,6 +25,10 @@ export class AIChatService {
     await this._data.ensureLoaded();
     await this._loadEnvironment();
     await this._loadKnowledgeIndex();
+    // 确保 TSV 索引也加载完毕（否则 searchCards 的 TSV 搜索返回空）
+    if (!this.cardManager.allCardsCache) {
+      await this.cardManager.preloadAllCardBaseInfo();
+    }
   }
 
   /** 动态加载环境信息（meta.json → currentMarks 是唯一真相源） */
