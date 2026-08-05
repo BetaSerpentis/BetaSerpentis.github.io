@@ -144,15 +144,14 @@ class PTCGApp {
             
             debugLog('✅ 应用初始化完成');
             
-            // 首屏渲染完成后，后台预加载卡组排序/封面需要的基础信息。
-            // 不调用 loadCardData，避免滚动分页时污染当前页签的 cards/filteredCards。
+            // 首屏渲染完成后，预加载卡组排序/封面需要的基础信息
             setTimeout(async () => {
                 await this.cardManager.preloadAllCardBaseInfo();
-                // AI 搜索需要跨类型的 searchText — 预加载完成后补上
+                // AI 搜索需要跨类型的 searchText
                 if (this.aiChatService) {
                     await this.aiChatService.ensureDataLoaded();
                 }
-            }, 2000);
+            }, 200);
 
         } catch (error) {
             console.error('应用初始化失败:', error);
