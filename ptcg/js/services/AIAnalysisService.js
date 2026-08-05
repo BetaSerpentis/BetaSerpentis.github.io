@@ -241,23 +241,40 @@ export class AIAnalysisService {
   async deepAnalysis(cardName) {
     if (!cardName) return '请提供卡牌名称';
 
-    // 1. 定位目标卡（同时搜索原始名和去前缀名，选匹配度最高的）
-    let searchResult = this.data.searchCards(cardName, null, 5);
-    // 尝试去掉「某某的」前缀再搜一次
-    const stripped = cardName.replace(/^[\u4e00-\u9fa5]{1,4}的/, '').trim();
-    if (stripped && stripped !== cardName && stripped.length > 1) {
-      const strippedResult = this.data.searchCards(stripped, null, 5);
-      // 合并：去前缀结果优先（名称精确匹配权重大），原始结果补充
-      const seen = new Set(searchResult.results.map(r => r.id));
+    // 1. 定位目标卡：同时搜索原始名和去前缀名，优先用原始查询命中结果
+    const strippedName = cardName.replace(/^[\u4e00-\u9fa5]{1,4}的/, '').trim();
+    const hasPrefix = strippedName && strippedName !== cardName && strippedName.length > 1;
+
+    // 先搜原始名，再搜去前缀名
+    const origResult = this.data.searchCards(cardName, null, 10);
+    const strippedResult = hasPrefix ? this.data.searchCards(strippedName, null, 10) : null;
+
+    // 合并去重，但原始查询结果排在前面（权重更高）
+    const merged = [];
+    const seen = new Set();
+    for (const r of origResult.results) {
+      merged.push(r);
+      seen.add(r.id);
+    }
+    if (strippedResult) {
       for (const r of strippedResult.results) {
         if (!seen.has(r.id)) {
-          searchResult.results.push(r);
+          // 去前缀结果插入到原始结果之后，标记为次级匹配
+          r._secondary = true;
+          merged.push(r);
           seen.add(r.id);
         }
       }
-      searchResult.total = searchResult.results.length;
     }
-    if (searchResult.results.length === 0) return `未找到"${cardName}"。请检查卡名拼写。`;
+
+    if (merged.length === 0) return `未找到"${cardName}"。请检查卡名拼写。`;
+
+    // 取第一个结果（原始查询命中 > 去前缀命中）
+    const searchResult = { results: merged, total: merged.length };
+    const bestCard = merged[0];
+    if (hasPrefix && bestCard._secondary) {
+      // 如果最优结果来自去前缀搜索，说明原始名没搜到对应卡，补充说明
+    }
 
     const targetId = searchResult.results[0].id;
     let targetData = await this.data.getFullCardData(targetId);
@@ -358,7 +375,7 @@ export class AIAnalysisService {
       warnings.forEach(w => lines.push(w));
     }
 
-    // 7. 卡组模板建议（基于机制自动生成框架）
+    // 7. 卡组模板建议（只使用搜索结果中已验证的卡）
     lines.push('\n---');
     lines.push('## 🃏 卡组构筑建议');
     if (isPokemon) {
@@ -368,27 +385,41 @@ export class AIAnalysisService {
       const attr = targetData['属性'] || '';
       const attrName = this._attrCodeToName(attr);
 
-      lines.push(`\n### 核心思路`);
-      lines.push(`- 主打手：**${targetName}**（${rating.tier}级，${rating.reasons.slice(0,3).join(' · ')}）`);
-      if (evoFrom) lines.push(`- 进化线：${evoFrom} → ${targetName}`);
-      lines.push(`- 能量类型：基本${attrName}能量`);
-      lines.push(`- 策略方向：${isEvo ? '中速进化型' : '基础快攻型'}，利用${targetEffects.slice(0,30)}...`);
-
-      lines.push(`\n### 推荐张数配比`);
-      const pokeCount = isEvo ? '16-20' : '12-16';
-      lines.push(`- 宝可梦：${pokeCount} 张`);
-      lines.push(`- 训练家卡：${isEvo ? '28-32' : '32-36'} 张`);
-      lines.push(`- ${attrName}能量：10-14 张`);
-
-      lines.push(`\n### 必备卡`);
-      if (isEvo) {
-        lines.push(`- 神奇糖果 ×3（加速进化）`);
-        lines.push(`- 好友宝芬/巢穴球 ×4（检索基础宝可梦）`);
+      // 收集所有在协同+泛用中出现过的卡，构建推荐列表
+      const deckCards = [];
+      // 目标卡本身
+      deckCards.push({ name: targetName, id: targetId, quantity: isEvo ? 3 : 4 });
+      // 前3张协同卡
+      for (const cat of categories) {
+        const catCards = allSynergyCards.filter(c => c.category === cat);
+        for (const c of catCards.slice(0, 1)) {
+          if (!deckCards.find(d => d.id === c.id)) {
+            deckCards.push({ name: c.name, id: c.id, quantity: 2 });
+          }
+        }
       }
-      lines.push(`- 博士的研究 ×4（核心过牌引擎）`);
-      lines.push(`- 老大的指令 ×2-3（抓对手关键宝可梦）`);
-      lines.push(`- 互换推车/气球 ×2（换位逃脱）`);
-      lines.push(`- 夜游记 ×1（回收宝可梦+能量）`);
+      // 前5张泛用卡
+      for (const g of generalCards.slice(0, 5)) {
+        if (!deckCards.find(d => d.id === g.id)) {
+          deckCards.push({ name: g.name, id: g.id, quantity: 2 });
+        }
+      }
+
+      lines.push(`\n核心: ${targetName} ×${isEvo ? 3 : 4}（${attrName}系，${props.stage}${props.scaling !== '固定' ? '，' + props.scaling : ''}）`);
+      lines.push(`\n推荐配合卡（共${deckCards.length}种）:`);
+      for (const c of deckCards.slice(1, 8)) {
+        lines.push(`- ${c.name} ×${c.quantity}  \`ID:${c.id}\``);
+      }
+
+      // 生成 JSON deck 代码块（含所有已验证卡名和ID）
+      const deckJson = JSON.stringify({
+        name: `${targetName}卡组`,
+        cards: deckCards.map(c => ({ id: String(c.id), quantity: c.quantity }))
+      });
+      lines.push(`\n\`\`\`json deck`);
+      lines.push(deckJson);
+      lines.push('```');
+      lines.push('\n> ⚠ 以上卡名和ID全部来自数据库搜索结果，不要替换或修改任何卡名。补充能量卡后即可组成完整卡组。');
     }
 
     // 8. 对局/换备建议
