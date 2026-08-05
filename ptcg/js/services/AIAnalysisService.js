@@ -241,16 +241,21 @@ export class AIAnalysisService {
   async deepAnalysis(cardName) {
     if (!cardName) return '请提供卡牌名称';
 
-    // 1. 定位目标卡（自动处理「某某的卡名」这种口语说法）
-    let searchResult = this.data.searchCards(cardName, null, 3);
-    let nameUsed = cardName;
-    // 如果搜不到，尝试去掉「某某的」前缀
-    if (searchResult.results.length === 0) {
-      const stripped = cardName.replace(/^.{1,4}的/, '').trim();
-      if (stripped !== cardName && stripped.length > 0) {
-        searchResult = this.data.searchCards(stripped, null, 3);
-        nameUsed = stripped;
+    // 1. 定位目标卡（同时搜索原始名和去前缀名，选匹配度最高的）
+    let searchResult = this.data.searchCards(cardName, null, 5);
+    // 尝试去掉「某某的」前缀再搜一次
+    const stripped = cardName.replace(/^[\u4e00-\u9fa5]{1,4}的/, '').trim();
+    if (stripped && stripped !== cardName && stripped.length > 1) {
+      const strippedResult = this.data.searchCards(stripped, null, 5);
+      // 合并：去前缀结果优先（名称精确匹配权重大），原始结果补充
+      const seen = new Set(searchResult.results.map(r => r.id));
+      for (const r of strippedResult.results) {
+        if (!seen.has(r.id)) {
+          searchResult.results.push(r);
+          seen.add(r.id);
+        }
       }
+      searchResult.total = searchResult.results.length;
     }
     if (searchResult.results.length === 0) return `未找到"${cardName}"。请检查卡名拼写。`;
 
