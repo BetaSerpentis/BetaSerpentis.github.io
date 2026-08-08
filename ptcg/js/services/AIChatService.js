@@ -14,8 +14,6 @@ export class AIChatService {
     this._history = [];
     this._data = new AICardDataService(cardManager);
     this._analysis = new AIAnalysisService(this._data);
-    this._env = null;       // 环境信息缓存（从 meta.json 动态加载）
-    this._knowledgeIndex = null; // 知识库索引
     this._loadHistory();
   }
 
@@ -23,90 +21,6 @@ export class AIChatService {
 
   async ensureDataLoaded() {
     await this._data.ensureLoaded();
-    await this._loadEnvironment();
-    await this._loadKnowledgeIndex();
-    // 确保 TSV 索引也加载完毕（否则 searchCards 的 TSV 搜索返回空）
-    if (!this.cardManager.allCardsCache) {
-      await this.cardManager.preloadAllCardBaseInfo();
-    }
-  }
-
-  /** 动态加载环境信息（meta.json → currentMarks 是唯一真相源） */
-  async _loadEnvironment() {
-    if (this._env) return;
-    try {
-      const resp = await fetch('data/meta.json');
-      if (resp.ok) {
-        const meta = await resp.json();
-        this._env = {
-          currentMarks: meta.currentMarks || ['G','H','I'],
-          retiredMarks: meta.retiredMarks || ['A','B','C','D','E','F'],
-          markSeries: meta.markSeries || {},
-          description: meta.description || ''
-        };
-        // 同步到数据层，让搜索过滤使用动态标
-        this._data.setCurrentMarks(this._env.currentMarks);
-        console.log('[AI Agent] 环境:', this._env.currentMarks.join('/'), '标');
-      }
-    } catch (e) {
-      console.warn('[AI Agent] 加载环境信息失败，使用默认 G/H/I:', e.message);
-      this._env = { currentMarks: ['G','H','I'], retiredMarks: ['A','B','C','D','E','F'], markSeries: {}, description: '' };
-    }
-  }
-
-  /** 预加载知识库文件并构建搜索索引 */
-  async _loadKnowledgeIndex() {
-    if (this._knowledgeIndex) return;
-    const files = ['techniques.md', 'deck-building.md', 'matchups.md', 'combos.md', 'rulings.md'];
-    const index = [];
-    // 文件名→中文标题映射
-    const titles = {
-      'techniques.md': '对战技巧',
-      'deck-building.md': '构筑理论',
-      'matchups.md': '对局分析',
-      'combos.md': '强力组合',
-      'rulings.md': '规则FAQ'
-    };
-    for (const file of files) {
-      try {
-        const resp = await fetch(`data/knowledge/${file}`);
-        if (resp.ok) {
-          const text = await resp.text();
-          // 按 ## 二级标题分段
-          const sections = text.split(/\n## /);
-          for (let i = 1; i < sections.length; i++) {
-            const section = sections[i];
-            const nlIdx = section.indexOf('\n');
-            const heading = nlIdx >= 0 ? section.slice(0, nlIdx).trim() : section.trim();
-            const body = nlIdx >= 0 ? section.slice(nlIdx + 1).trim() : '';
-            // 三级标题进一步拆分
-            const subSections = body.split(/\n### /);
-            if (subSections.length > 1) {
-              for (let j = 1; j < subSections.length; j++) {
-                const subNl = subSections[j].indexOf('\n');
-                const subHeading = subNl >= 0 ? subSections[j].slice(0, subNl).trim() : subSections[j].trim();
-                const subBody = subNl >= 0 ? subSections[j].slice(subNl + 1).trim() : '';
-                index.push({
-                  title: `${titles[file] || file} › ${heading} › ${subHeading}`,
-                  content: subBody.slice(0, 1500),
-                  file
-                });
-              }
-            } else {
-              index.push({
-                title: `${titles[file] || file} › ${heading}`,
-                content: body.slice(0, 1500),
-                file
-              });
-            }
-          }
-        }
-      } catch (e) {
-        console.warn(`[AI Agent] 知识库文件 ${file} 加载失败:`, e.message);
-      }
-    }
-    this._knowledgeIndex = index;
-    console.log('[AI Agent] 知识库索引:', index.length, '个段落');
   }
 
   // ========== 对话历史 ==========
@@ -235,26 +149,57 @@ export class AIChatService {
       {
         type: 'function',
         function: {
-          name: 'search_knowledge',
-          description: '查询本地 PTCG 知识库（对战技巧、构筑理论、对局分析、强力组合、规则FAQ）。当用户问「怎么打某个卡组」「如何构筑」「规则疑问」「有什么技巧」时使用。',
+          name: 'search_by_set',
+          description: '按卡包代码列出该包全部卡牌。用于探索新卡包（如共逐荣光CSV10C）有哪些新卡。',
           parameters: {
             type: 'object',
             properties: {
-              query: { type: 'string', description: '搜索关键词，如"先攻策略" "能量配比" "沙奈朵对局" "伤害指示物区别"' }
+              set_code: { type: 'string', description: '卡包代码，如 CSV10C（共逐荣光）、CSV9C（星彩晶璃）、CSV9.5C（太晶盛聚）' },
+              card_type: { type: 'string', enum: ['宝可梦', '支援者', '物品', '宝可梦道具', '竞技场', '基本能量', '特殊能量'] },
+              limit: { type: 'integer', description: '返回数量上限，默认50' }
             },
-            required: ['query']
+            required: ['set_code']
           }
         }
       },
       {
         type: 'function',
         function: {
-          name: 'search_meta',
-          description: '搜索当前环境元数据：上位卡组、常用泛用卡、赛标信息、环境趋势。用于了解当前PTCG简中环境的大环境信息。',
+          name: 'matchup_hint',
+          description: '环境对局预判：输入卡组核心卡牌，返回对当前主流卡组（沙奈朵ex/猛雷鼓ex/恶喷/多龙ex/洛奇亚等）的优劣势评估。',
           parameters: {
             type: 'object',
             properties: {
-              query: { type: 'string', description: '搜索词，如"上位卡组"、"ACE SPEC"、"支援者"、"沙奈朵"等' }
+              card_names: { type: 'string', description: '卡组核心卡牌名称，空格或逗号分隔，如"派帕的獒教父ex 愿增猿 藏饱栗鼠"' }
+            },
+            required: ['card_names']
+          }
+        }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'check_deck_consistency',
+          description: '自动化卡组一致性检验：检查总张数/类型比例/功能密度/ACE SPEC数量/进化线等。组完卡组后必调。输入为卡组序号（从get_my_decks获取）或直接对当前查看的卡组检验。',
+          parameters: {
+            type: 'object',
+            properties: {
+              deck_index: { type: 'integer', description: '卡组在列表中的序号（从0开始）。不传则检验最近查看的卡组。' }
+            },
+            required: []
+          }
+        }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'verify_card_name',
+          description: '模糊匹配纠错：输入疑似卡名，返回最接近的真实卡名列表。用于确认卡名拼写、防止"好友宝芬"vs"友好宝芬"类错误。',
+          parameters: {
+            type: 'object',
+            properties: {
+              query: { type: 'string', description: '疑似卡名，如"好友宝芬"、"派帕的敖教父"' },
+              limit: { type: 'integer', description: '返回数量，默认5' }
             },
             required: ['query']
           }
@@ -314,8 +259,33 @@ export class AIChatService {
         return result;
       }
 
-      case 'search_knowledge':
-        return this._searchKnowledge(args.query);
+      case 'search_by_set': {
+        const r = this._data.searchBySet(args.set_code, args.card_type, args.limit || 50);
+        return r.message;
+      }
+
+      case 'matchup_hint': {
+        return await this._analysis.matchupHint(args.card_names);
+      }
+
+      case 'check_deck_consistency': {
+        let deck;
+        if (args.deck_index != null && this.deckManager.decks[args.deck_index]) {
+          deck = this.deckManager.decks[args.deck_index];
+        } else if (this._lastBuiltDeck) {
+          deck = this._lastBuiltDeck;
+        } else if (this.deckManager.decks.length > 0) {
+          deck = this.deckManager.decks[0];
+        } else {
+          return '没有可检验的卡组。请先创建或导入卡组。';
+        }
+        return this._analysis.checkDeckConsistency(deck);
+      }
+
+      case 'verify_card_name': {
+        const r = this._data.verifyCardName(args.query, args.limit || 5);
+        return r.message;
+      }
 
       case 'search_meta': {
         return this._searchMeta(args.query);
@@ -540,42 +510,6 @@ export class AIChatService {
 
   // ========== Agent 循环 ==========
 
-  /** 搜索本地知识库 */
-  _searchKnowledge(query) {
-    if (!this._knowledgeIndex || this._knowledgeIndex.length === 0) {
-      return '知识库尚未加载，请稍后再试。';
-    }
-    const q = (query || '').toLowerCase();
-    const terms = q.split(/\s+/).filter(t => t.length > 0);
-    if (terms.length === 0) return '请提供搜索关键词。可搜索的主题：对战技巧、构筑理论、对局分析、强力组合、规则FAQ。';
-
-    // 关键词匹配评分
-    const scored = this._knowledgeIndex.map(item => {
-      const searchText = (item.title + ' ' + item.content).toLowerCase();
-      let score = 0;
-      for (const term of terms) {
-        const count = (searchText.match(new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi')) || []).length;
-        // 标题匹配权重更高
-        const titleCount = (item.title.toLowerCase().match(new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi')) || []).length;
-        score += count + titleCount * 3;
-      }
-      return { ...item, score };
-    }).filter(item => item.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 5);
-
-    if (scored.length === 0) {
-      return `未找到与「${query}」相关的知识库内容。可尝试的关键词：对战技巧、先攻策略、能量配比、沙奈朵对局、进化规则、组卡组检查清单等。`;
-    }
-
-    const lines = [`## 🔍 知识库搜索结果: ${query}`, `找到 ${scored.length} 个相关段落：`, ''];
-    for (const item of scored) {
-      lines.push(`### ${item.title}\n\n${item.content}\n`);
-    }
-    lines.push('> 以上内容来自本地 PTCG 知识库，可结合卡牌数据库进行深入分析。');
-    return lines.join('\n');
-  }
-
   /** 搜索元数据（上位卡组、环境信息） */
   async _searchMeta(query) {
     try {
@@ -643,14 +577,18 @@ export class AIChatService {
     let t = text;
     const first = t.search(/\bDSML\b/i);
     if (first >= 0) {
+      // 向前找段落的开头（上一个 \n\n 或文本开头）
       const cutStart = Math.max(0, t.lastIndexOf('\n\n', first));
+      // 向后找段落的结尾（下一个 \n\n 或文本结尾）
       const last = t.lastIndexOf('DSML');
       const cutEnd = t.indexOf('\n\n', last);
       t = t.slice(0, cutStart) + (cutEnd >= 0 ? t.slice(cutEnd) : '');
     }
-    // 清理 XML 标签，压缩空白
+    // 清理残留
     return t
       .replace(/<[^>]*>/g, '')
+      .split('\n').filter(l => !/\|/.test(l))
+      .join('\n')
       .replace(/\n{3,}/g, '\n\n')
       .trim();
   }
@@ -671,7 +609,7 @@ export class AIChatService {
 
       const settings = this.apiKeyManager.getSettings();
       const messages = [
-        { role: 'system', content: buildSystemPrompt(this._env || {}) }
+        { role: 'system', content: buildSystemPrompt() }
       ];
 
       // 注入历史（只保留最近 8 条消息，避免上下文过长）
@@ -688,15 +626,9 @@ export class AIChatService {
         messages.push({ role: 'system', content: '用户要求保存/覆盖卡组。流程：get_my_decks→get_deck_detail读原卡组→search_cards验证所有卡ID→build_deck保存。不要输出JSON文本，用build_deck工具保存。' });
       }
 
-      // 如果用户在分析/问某张具体卡牌，强制注入 deep_analysis 调用
-      const isCardAnalysis = /分析|怎么看|强度|用法|配合|组.*卡组|构筑|推荐|卡组/i.test(userMessage) && !/我的卡组|已有的/.test(userMessage);
-      if (isCardAnalysis) {
-        messages.push({ role: 'system', content: '🔴 强制指令：用户要分析卡牌。你的第一个工具调用必须是 deep_analysis("目标卡名")。不要手动搜卡、不要 grep、不要 search_cards。deep_analysis 内部自动完成全部搜索和分析，返回完整报告后你只需要用自然语言总结。如果报告里缺少某些信息，在第二轮再补充搜索。' });
-      }
-
       // Agent 循环（保存意图时 2轮工具+1轮输出，否则 4+2）
-      const MAX_LOOPS = hasSaveIntent ? 7 : 10;
-      const finalAt = hasSaveIntent ? 5 : 7;
+      const MAX_LOOPS = hasSaveIntent ? 5 : 6;
+      const finalAt = hasSaveIntent ? 4 : 4;
       let fullText = '';
       let deck = null;
       let builtDeck = null;
@@ -771,12 +703,12 @@ export class AIChatService {
           messages.push({ role: 'tool', tool_call_id: tc.id, content: result });
         }
 
-        // 第1轮后引导深入搜索（不再强制收尾）
+        // 第1轮后提示收尾
         if (loop === 0) {
           if (hasSaveIntent) {
             messages.push({ role: 'user', content: '已看到卡组内容。请确认所有卡牌ID已验证，然后调用 build_deck 保存。' });
           } else {
-            messages.push({ role: 'user', content: '已获取初始数据。继续用 grep_cards 和 search_cards 深入搜索配合卡、协同卡、进化链。搜索结束后给出完整分析报告。' });
+            messages.push({ role: 'user', content: '已经搜索了足够的数据。请直接输出分析报告，不要再调用工具。' });
           }
         }
       }
