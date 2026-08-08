@@ -343,8 +343,8 @@ export class AICardDataService {
       return this._buildTsvCardData(cardId);
     }
 
-    // 回退：仅 CSV 前缀 ID（过滤旧 JSON 编号 ID 如 "4521"）
-    if (!cardId || !cardId.startsWith('CSV')) return null;
+    // 回退：仅 TSV 索引中存在的卡（过滤旧 JSON 编号 ID 如 "4521"）
+    if (!cardId || !this._tsvIndex.has(cardId)) return null;
     let cardType = null;
     const cache = this.cardManager.allCardsCache || this.cardManager.cards || [];
     const basic = cache.find(c => c.id === cardId);
@@ -459,13 +459,13 @@ export class AICardDataService {
       }
     }
 
-    // 3. CardManager 回退（仅当前环境卡，过滤旧ID）
+    // 3. CardManager 回退（仅 TSV 索引中存在的当前环境卡）
     if (results.length === 0) {
       const cache = this.cardManager.allCardsCache || [];
       for (const card of cache) {
         if (cardType && card.type !== cardType) continue;
-        // 🔴 过滤退环境卡：仅接受 CSV 前缀 ID（TSV 数据均为当前环境）
-        if (!card.id || !card.id.startsWith('CSV')) continue;
+        // 🔴 过滤退环境卡：必须存在于 TSV 索引（build-cn-data.py 仅输出当前环境卡）
+        if (!card.id || !this._tsvIndex.has(card.id)) continue;
         const searchField = (card.searchText || '') + ' ' + (card.name || '');
         let score = 0;
         for (const term of terms) {
