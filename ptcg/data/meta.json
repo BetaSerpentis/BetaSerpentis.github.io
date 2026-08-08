@@ -1,966 +1,192 @@
 {
-  "format": "简中标准环境 G/H/I 标",
-  "currentMarks": [
-    "G",
-    "H",
-    "I"
-  ],
-  "retiredMarks": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F"
-  ],
-  "description": "简中 PTCG 当前标准赛制为 G/H/I 标（SV4-SV9）。F标已退环境。数据来源：tcg.mik.moe",
+  "format": "简中标准环境 F/G/H/I 标",
+  "currentMarks": ["F", "G", "H", "I"],
+  "retiredMarks": ["A", "B", "C", "D", "E"],
+  "description": "简中 PTCG 当前标准赛制为 F/G/H/I 标。数据来源：tcg.mik.moe（CN-Sync）。最新卡包：共逐荣光 CSV10C（2026/07/16）",
   "markSeries": {
-    "F": "SV1-SV3（已退环境）",
+    "F": "SV1-SV3",
     "G": "SV4-SV5",
     "H": "SV6-SV7",
     "I": "SV8-SV9"
   },
-  "lastUpdated": "2026-08-03",
-  "note": "currentMarks 是环境判断的唯一数据源。修改此处后 AI 自动切换标的过滤。",
   "basicEnergy": {
-    "description": "基本能量卡ID速查表",
+    "description": "基本能量卡ID速查表（当前环境最新ID）",
     "cards": [
-      {
-        "name": "基本草能量",
-        "id": "CBB1C-1801"
-      },
-      {
-        "name": "基本火能量",
-        "id": "CBB1C-1802"
-      },
-      {
-        "name": "基本水能量",
-        "id": "CBB1C-1803"
-      },
-      {
-        "name": "基本草能量",
-        "id": "CBB1C-1804"
-      },
-      {
-        "name": "基本火能量",
-        "id": "CBB1C-1805"
-      },
-      {
-        "name": "基本水能量",
-        "id": "CBB1C-1806"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "CBB2C-1101"
-      },
-      {
-        "name": "基本超能量",
-        "id": "CBB2C-1102"
-      },
-      {
-        "name": "基本恶能量",
-        "id": "CBB2C-1103"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "CBB2C-1104"
-      },
-      {
-        "name": "基本超能量",
-        "id": "CBB2C-1105"
-      },
-      {
-        "name": "基本恶能量",
-        "id": "CBB2C-1106"
-      },
-      {
-        "name": "基本斗能量",
-        "id": "CBB3C-2001"
-      },
-      {
-        "name": "基本钢能量",
-        "id": "CBB3C-2002"
-      },
-      {
-        "name": "基本斗能量",
-        "id": "CBB3C-2004"
-      },
-      {
-        "name": "基本钢能量",
-        "id": "CBB3C-2005"
-      },
-      {
-        "name": "基本恶能量",
-        "id": "CS2DaC-DAR"
-      },
-      {
-        "name": "基本斗能量",
-        "id": "CS2DaC-FIG"
-      },
-      {
-        "name": "基本火能量",
-        "id": "CS2DaC-FIR"
-      },
-      {
-        "name": "基本草能量",
-        "id": "CS2DaC-GRA"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "CS2DaC-LIG"
-      },
-      {
-        "name": "基本水能量",
-        "id": "CS2DaC-WAT"
-      },
-      {
-        "name": "基本水能量",
-        "id": "CS4.1C-005"
-      },
-      {
-        "name": "基本超能量",
-        "id": "CS4.1C-006"
-      },
-      {
-        "name": "基本草能量",
-        "id": "CS4DaC-426"
-      },
-      {
-        "name": "基本火能量",
-        "id": "CS4DaC-427"
-      },
-      {
-        "name": "基本水能量",
-        "id": "CS4DaC-428"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "CS4DaC-429"
-      },
-      {
-        "name": "基本超能量",
-        "id": "CS4DaC-430"
-      },
-      {
-        "name": "基本斗能量",
-        "id": "CS4DaC-431"
-      },
-      {
-        "name": "基本恶能量",
-        "id": "CS4DaC-432"
-      },
-      {
-        "name": "基本钢能量",
-        "id": "CS4DaC-433"
-      },
-      {
-        "name": "基本恶能量",
-        "id": "CS4DaC-DAR"
-      },
-      {
-        "name": "基本斗能量",
-        "id": "CS4DaC-FIG"
-      },
-      {
-        "name": "基本火能量",
-        "id": "CS4DaC-FIR"
-      },
-      {
-        "name": "基本草能量",
-        "id": "CS4DaC-GRA"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "CS4DaC-LIG"
-      },
-      {
-        "name": "基本钢能量",
-        "id": "CS4DaC-MET"
-      },
-      {
-        "name": "基本超能量",
-        "id": "CS4DaC-PSY"
-      },
-      {
-        "name": "基本水能量",
-        "id": "CS4DaC-WAT"
-      },
-      {
-        "name": "基本火能量",
-        "id": "CS4aC-183"
-      },
-      {
-        "name": "基本恶能量",
-        "id": "CS4aC-184"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "CS4bC-176"
-      },
-      {
-        "name": "基本超能量",
-        "id": "CS4bC-177"
-      },
-      {
-        "name": "基本火能量",
-        "id": "CS5.1C-005"
-      },
-      {
-        "name": "基本斗能量",
-        "id": "CS5.1C-006"
-      },
-      {
-        "name": "基本恶能量",
-        "id": "CS5.1C-007"
-      },
-      {
-        "name": "基本草能量",
-        "id": "CS6.1C-005"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "CS6.1C-006"
-      },
-      {
-        "name": "基本钢能量",
-        "id": "CS6.1C-007"
-      },
-      {
-        "name": "基本草能量",
-        "id": "CS6aC-168"
-      },
-      {
-        "name": "基本钢能量",
-        "id": "CS6aC-169"
-      },
-      {
-        "name": "基本水能量",
-        "id": "CS6bC-171"
-      },
-      {
-        "name": "基本斗能量",
-        "id": "CS6bC-172"
-      },
-      {
-        "name": "基本恶能量",
-        "id": "CSAC-DAR"
-      },
-      {
-        "name": "基本斗能量",
-        "id": "CSAC-FIG"
-      },
-      {
-        "name": "基本火能量",
-        "id": "CSAC-FIR"
-      },
-      {
-        "name": "基本草能量",
-        "id": "CSAC-GRA"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "CSAC-LIG"
-      },
-      {
-        "name": "基本钢能量",
-        "id": "CSAC-MET"
-      },
-      {
-        "name": "基本超能量",
-        "id": "CSAC-PSY"
-      },
-      {
-        "name": "基本水能量",
-        "id": "CSAC-WAT"
-      },
-      {
-        "name": "基本恶能量",
-        "id": "CSM1DC-DAR"
-      },
-      {
-        "name": "基本妖能量",
-        "id": "CSM1DC-FAI"
-      },
-      {
-        "name": "基本斗能量",
-        "id": "CSM1DC-FIG"
-      },
-      {
-        "name": "基本火能量",
-        "id": "CSM1DC-FIR"
-      },
-      {
-        "name": "基本草能量",
-        "id": "CSM1DC-GRA"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "CSM1DC-LIG"
-      },
-      {
-        "name": "基本钢能量",
-        "id": "CSM1DC-MET"
-      },
-      {
-        "name": "基本超能量",
-        "id": "CSM1DC-PSY"
-      },
-      {
-        "name": "基本水能量",
-        "id": "CSM1DC-WAT"
-      },
-      {
-        "name": "基本草能量",
-        "id": "CSM2.1C-037"
-      },
-      {
-        "name": "基本火能量",
-        "id": "CSM2.1C-038"
-      },
-      {
-        "name": "基本水能量",
-        "id": "CSM2.1C-039"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "CSM2.1C-040"
-      },
-      {
-        "name": "基本超能量",
-        "id": "CSM2.1C-041"
-      },
-      {
-        "name": "基本斗能量",
-        "id": "CSM2.1C-042"
-      },
-      {
-        "name": "基本恶能量",
-        "id": "CSM2.1C-043"
-      },
-      {
-        "name": "基本钢能量",
-        "id": "CSM2.1C-044"
-      },
-      {
-        "name": "基本妖能量",
-        "id": "CSM2.1C-045"
-      },
-      {
-        "name": "基本恶能量",
-        "id": "CSMAC-DAR"
-      },
-      {
-        "name": "基本妖能量",
-        "id": "CSMAC-FAI"
-      },
-      {
-        "name": "基本斗能量",
-        "id": "CSMAC-FIG"
-      },
-      {
-        "name": "基本火能量",
-        "id": "CSMAC-FIR"
-      },
-      {
-        "name": "基本草能量",
-        "id": "CSMAC-GRA"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "CSMAC-LIG"
-      },
-      {
-        "name": "基本钢能量",
-        "id": "CSMAC-MET"
-      },
-      {
-        "name": "基本超能量",
-        "id": "CSMAC-PSY"
-      },
-      {
-        "name": "基本水能量",
-        "id": "CSMAC-WAT"
-      },
-      {
-        "name": "基本草能量",
-        "id": "CSMPiC-016"
-      },
-      {
-        "name": "基本火能量",
-        "id": "CSMPiC-017"
-      },
-      {
-        "name": "基本水能量",
-        "id": "CSMPiC-018"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "CSMPiC-019"
-      },
-      {
-        "name": "基本超能量",
-        "id": "CSMPiC-020"
-      },
-      {
-        "name": "基本斗能量",
-        "id": "CSMPiC-021"
-      },
-      {
-        "name": "基本恶能量",
-        "id": "CSMPiC-022"
-      },
-      {
-        "name": "基本钢能量",
-        "id": "CSMPiC-023"
-      },
-      {
-        "name": "基本妖能量",
-        "id": "CSMPiC-024"
-      },
-      {
-        "name": "基本草能量",
-        "id": "CSMPiC-035"
-      },
-      {
-        "name": "基本火能量",
-        "id": "CSMPiC-036"
-      },
-      {
-        "name": "基本水能量",
-        "id": "CSMPiC-037"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "CSMPiC-038"
-      },
-      {
-        "name": "基本超能量",
-        "id": "CSMPiC-039"
-      },
-      {
-        "name": "基本斗能量",
-        "id": "CSMPiC-040"
-      },
-      {
-        "name": "基本恶能量",
-        "id": "CSMPiC-041"
-      },
-      {
-        "name": "基本钢能量",
-        "id": "CSMPiC-042"
-      },
-      {
-        "name": "基本妖能量",
-        "id": "CSMPiC-043"
-      },
-      {
-        "name": "基本恶能量",
-        "id": "CSVE1C-DAR"
-      },
-      {
-        "name": "基本斗能量",
-        "id": "CSVE1C-FIG"
-      },
-      {
-        "name": "基本火能量",
-        "id": "CSVE1C-FIR"
-      },
-      {
-        "name": "基本草能量",
-        "id": "CSVE1C-GRA"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "CSVE1C-LIG"
-      },
-      {
-        "name": "基本钢能量",
-        "id": "CSVE1C-MET"
-      },
-      {
-        "name": "基本超能量",
-        "id": "CSVE1C-PSY"
-      },
-      {
-        "name": "基本水能量",
-        "id": "CSVE1C-WAT"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "CSVE1pC-012"
-      },
-      {
-        "name": "基本超能量",
-        "id": "CSVE1pC-024"
-      },
-      {
-        "name": "基本火能量",
-        "id": "CSVE2pC-012"
-      },
-      {
-        "name": "基本水能量",
-        "id": "CSVE2pC-024"
-      },
-      {
-        "name": "基本恶能量",
-        "id": "CSVH1C-DAR"
-      },
-      {
-        "name": "基本斗能量",
-        "id": "CSVH1C-FIG"
-      },
-      {
-        "name": "基本火能量",
-        "id": "CSVH1C-FIR"
-      },
-      {
-        "name": "基本草能量",
-        "id": "CSVH1C-GRA"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "CSVH1C-LIG"
-      },
-      {
-        "name": "基本钢能量",
-        "id": "CSVH1C-MET"
-      },
-      {
-        "name": "基本超能量",
-        "id": "CSVH1C-PSY"
-      },
-      {
-        "name": "基本水能量",
-        "id": "CSVH1C-WAT"
-      },
-      {
-        "name": "基本恶能量",
-        "id": "CSVH1pC-DAR"
-      },
-      {
-        "name": "基本斗能量",
-        "id": "CSVH1pC-FIG"
-      },
-      {
-        "name": "基本火能量",
-        "id": "CSVH1pC-FIR"
-      },
-      {
-        "name": "基本草能量",
-        "id": "CSVH1pC-GRA"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "CSVH1pC-LIG"
-      },
-      {
-        "name": "基本钢能量",
-        "id": "CSVH1pC-MET"
-      },
-      {
-        "name": "基本超能量",
-        "id": "CSVH1pC-PSY"
-      },
-      {
-        "name": "基本水能量",
-        "id": "CSVH1pC-WAT"
-      },
-      {
-        "name": "基本火能量",
-        "id": "CSVH3C-FIR"
-      },
-      {
-        "name": "基本钢能量",
-        "id": "CSVH3C-MET"
-      },
-      {
-        "name": "基本超能量",
-        "id": "CSVH3C-PSY"
-      },
-      {
-        "name": "基本水能量",
-        "id": "CSVH3C-WAT"
-      },
-      {
-        "name": "基本斗能量",
-        "id": "CSVH4C-FIG"
-      },
-      {
-        "name": "基本火能量",
-        "id": "CSVH4C-FIR"
-      },
-      {
-        "name": "基本草能量",
-        "id": "CSVH4C-GRA"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "CSVH4C-LIG"
-      },
-      {
-        "name": "基本钢能量",
-        "id": "CSVH4C-MET"
-      },
-      {
-        "name": "基本超能量",
-        "id": "CSVH4C-PSY"
-      },
-      {
-        "name": "基本恶能量",
-        "id": "CSVH4pC-DAR"
-      },
-      {
-        "name": "基本斗能量",
-        "id": "CSVH4pC-FIG"
-      },
-      {
-        "name": "基本火能量",
-        "id": "CSVH4pC-FIR"
-      },
-      {
-        "name": "基本草能量",
-        "id": "CSVH4pC-GRA"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "CSVH4pC-LIG"
-      },
-      {
-        "name": "基本钢能量",
-        "id": "CSVH4pC-MET"
-      },
-      {
-        "name": "基本超能量",
-        "id": "CSVH4pC-PSY"
-      },
-      {
-        "name": "基本水能量",
-        "id": "CSVH4pC-WAT"
-      },
-      {
-        "name": "基本火能量",
-        "id": "CSVH5C-FIR"
-      },
-      {
-        "name": "基本草能量",
-        "id": "CSVH5C-GRA"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "CSVH5C-LIG"
-      },
-      {
-        "name": "基本草能量",
-        "id": "CSVH5C-NaN1"
-      },
-      {
-        "name": "基本超能量",
-        "id": "CSVH5C-PSY"
-      },
-      {
-        "name": "基本水能量",
-        "id": "CSVH5C-WAT"
-      },
-      {
-        "name": "基本草能量",
-        "id": "CSVL1C-126"
-      },
-      {
-        "name": "基本火能量",
-        "id": "CSVL1C-127"
-      },
-      {
-        "name": "基本水能量",
-        "id": "CSVL1C-128"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "CSVL1C-129"
-      },
-      {
-        "name": "基本超能量",
-        "id": "CSVL1C-130"
-      },
-      {
-        "name": "基本斗能量",
-        "id": "CSVL1C-131"
-      },
-      {
-        "name": "基本恶能量",
-        "id": "CSVL1C-132"
-      },
-      {
-        "name": "基本钢能量",
-        "id": "CSVL1C-133"
-      },
-      {
-        "name": "基本恶能量",
-        "id": "CSVL1C-DAR"
-      },
-      {
-        "name": "基本斗能量",
-        "id": "CSVL1C-FIG"
-      },
-      {
-        "name": "基本火能量",
-        "id": "CSVL1C-FIR"
-      },
-      {
-        "name": "基本草能量",
-        "id": "CSVL1C-GRA"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "CSVL1C-LIG"
-      },
-      {
-        "name": "基本钢能量",
-        "id": "CSVL1C-MET"
-      },
-      {
-        "name": "基本超能量",
-        "id": "CSVL1C-PSY"
-      },
-      {
-        "name": "基本水能量",
-        "id": "CSVL1C-WAT"
-      },
-      {
-        "name": "基本草能量",
-        "id": "CSVL2C-132"
-      },
-      {
-        "name": "基本火能量",
-        "id": "CSVL2C-133"
-      },
-      {
-        "name": "基本水能量",
-        "id": "CSVL2C-134"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "CSVL2C-135"
-      },
-      {
-        "name": "基本超能量",
-        "id": "CSVL2C-136"
-      },
-      {
-        "name": "基本斗能量",
-        "id": "CSVL2C-137"
-      },
-      {
-        "name": "基本恶能量",
-        "id": "CSVL2C-138"
-      },
-      {
-        "name": "基本钢能量",
-        "id": "CSVL2C-139"
-      },
-      {
-        "name": "基本恶能量",
-        "id": "CSVSC-DAR"
-      },
-      {
-        "name": "基本斗能量",
-        "id": "CSVSC-FIG"
-      },
-      {
-        "name": "基本火能量",
-        "id": "CSVSC-FIR"
-      },
-      {
-        "name": "基本草能量",
-        "id": "CSVSC-GRA"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "CSVSC-LIG"
-      },
-      {
-        "name": "基本钢能量",
-        "id": "CSVSC-MET"
-      },
-      {
-        "name": "基本超能量",
-        "id": "CSVSC-PSY"
-      },
-      {
-        "name": "基本水能量",
-        "id": "CSVSC-WAT"
-      },
-      {
-        "name": "基本草能量",
-        "id": "CSZC-059"
-      },
-      {
-        "name": "基本火能量",
-        "id": "CSZC-060"
-      },
-      {
-        "name": "基本水能量",
-        "id": "CSZC-061"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "CSZC-062"
-      },
-      {
-        "name": "基本超能量",
-        "id": "CSZC-063"
-      },
-      {
-        "name": "基本斗能量",
-        "id": "CSZC-064"
-      },
-      {
-        "name": "基本恶能量",
-        "id": "CSZC-065"
-      },
-      {
-        "name": "基本钢能量",
-        "id": "CSZC-066"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "SMP-047"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "SSP-038"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "SSP-076"
-      },
-      {
-        "name": "基本恶能量",
-        "id": "SVP-DAR"
-      },
-      {
-        "name": "基本恶能量",
-        "id": "SVP-DAR-1"
-      },
-      {
-        "name": "基本恶能量",
-        "id": "SVP-DAR-2"
-      },
-      {
-        "name": "基本恶能量",
-        "id": "SVP-DAR-3"
-      },
-      {
-        "name": "基本斗能量",
-        "id": "SVP-FIG"
-      },
-      {
-        "name": "基本斗能量",
-        "id": "SVP-FIG-1"
-      },
-      {
-        "name": "基本斗能量",
-        "id": "SVP-FIG-2"
-      },
-      {
-        "name": "基本斗能量",
-        "id": "SVP-FIG-3"
-      },
-      {
-        "name": "基本火能量",
-        "id": "SVP-FIR"
-      },
-      {
-        "name": "基本火能量",
-        "id": "SVP-FIR-1"
-      },
-      {
-        "name": "基本火能量",
-        "id": "SVP-FIR-2"
-      },
-      {
-        "name": "基本火能量",
-        "id": "SVP-FIR-3"
-      },
-      {
-        "name": "基本草能量",
-        "id": "SVP-GRA"
-      },
-      {
-        "name": "基本草能量",
-        "id": "SVP-GRA-1"
-      },
-      {
-        "name": "基本草能量",
-        "id": "SVP-GRA-2"
-      },
-      {
-        "name": "基本草能量",
-        "id": "SVP-GRA-3"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "SVP-LIG"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "SVP-LIG-1"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "SVP-LIG-2"
-      },
-      {
-        "name": "基本雷能量",
-        "id": "SVP-LIG-3"
-      },
-      {
-        "name": "基本钢能量",
-        "id": "SVP-MET"
-      },
-      {
-        "name": "基本钢能量",
-        "id": "SVP-MET-1"
-      },
-      {
-        "name": "基本钢能量",
-        "id": "SVP-MET-2"
-      },
-      {
-        "name": "基本钢能量",
-        "id": "SVP-MET-3"
-      },
-      {
-        "name": "基本超能量",
-        "id": "SVP-PSY"
-      },
-      {
-        "name": "基本超能量",
-        "id": "SVP-PSY-1"
-      },
-      {
-        "name": "基本超能量",
-        "id": "SVP-PSY-2"
-      },
-      {
-        "name": "基本超能量",
-        "id": "SVP-PSY-3"
-      },
-      {
-        "name": "基本水能量",
-        "id": "SVP-WAT"
-      },
-      {
-        "name": "基本水能量",
-        "id": "SVP-WAT-1"
-      },
-      {
-        "name": "基本水能量",
-        "id": "SVP-WAT-2"
-      },
-      {
-        "name": "基本水能量",
-        "id": "SVP-WAT-3"
-      }
+      {"name": "基本草能量", "ids": ["CSVSC-GRA"]},
+      {"name": "基本火能量", "ids": ["CSVSC-FIR"]},
+      {"name": "基本水能量", "ids": ["CSVSC-WAT"]},
+      {"name": "基本雷能量", "ids": ["CSVSC-LIG"]},
+      {"name": "基本超能量", "ids": ["CSVSC-PSY"]},
+      {"name": "基本斗能量", "ids": ["CSVSC-FIG"]},
+      {"name": "基本恶能量", "ids": ["CSVSC-DAR"]},
+      {"name": "基本钢能量", "ids": ["CSVSC-MET"]}
     ]
+  },
+  "topDecks": [
+    {
+      "name": "沙奈朵ex",
+      "type": "控制/填能引擎",
+      "core": ["拉鲁拉丝", "奇鲁莉安", "沙奈朵ex"],
+      "usageRate": "16.5%",
+      "conversionRate": "3.01%",
+      "strength": "特性双引擎不占支援者位（无限抽滤+无限填能），伤害指示物控制力强，钥圈儿封基础特性",
+      "weakness": "恶系打手可针对，自爆多龙可狙击后排奇鲁莉安",
+      "keyCards": ["沙奈朵ex", "奇鲁莉安(洗练)", "钥圈儿", "愿增猿", "玛纳霏", "梦幻ex"]
+    },
+    {
+      "name": "猛雷鼓ex",
+      "type": "爆发/基础ex",
+      "core": ["猛雷鼓ex"],
+      "usageRate": "14.3%",
+      "conversionRate": "2.4%",
+      "strength": "基础宝可梦直接上场，爆发速度快，克制恶喷和多龙",
+      "weakness": "对沙奈朵ex不利，依赖电气发生器填能"
+    },
+    {
+      "name": "自爆恶喷",
+      "type": "反击/高火力",
+      "core": ["喷火龙ex", "自爆磁怪"],
+      "usageRate": "10.4%",
+      "conversionRate": "2.1%",
+      "strength": "反击轴强力，HP330极难OHKO，不公印章控场",
+      "weakness": "猛雷鼓ex克制，自伤节奏需精确控制"
+    },
+    {
+      "name": "自爆多龙ex",
+      "type": "铺伤控制",
+      "core": ["多龙巴鲁托ex"],
+      "usageRate": "9.8%",
+      "conversionRate": "1.8%",
+      "strength": "HP320数值压制，伤害指示物扩散软控场，Drakloak抽牌引擎",
+      "weakness": "恶系打手克制，速度中等"
+    },
+    {
+      "name": "密勒顿ex",
+      "type": "速攻",
+      "core": ["密勒顿ex"],
+      "usageRate": "8.3%",
+      "conversionRate": "2.0%",
+      "strength": "最快拿奖速度（222模式），压制沙奈朵",
+      "weakness": "HP220脆皮，后期续航不足"
+    },
+    {
+      "name": "洛奇亚VSTAR",
+      "type": "多打手/加速",
+      "core": ["洛奇亚VSTAR", "始祖大鸟"],
+      "usageRate": "7.0%",
+      "conversionRate": "3.54%",
+      "strength": "上位转化率第二高，打手选择丰富，古旧能量减奖",
+      "weakness": "依赖特殊能量，改造之锤可针对"
+    },
+    {
+      "name": "LTB放逐三色",
+      "type": "控制/资源战",
+      "core": ["花疗环环", "勾魂眼", "古剑豹ex"],
+      "usageRate": "2.5%",
+      "conversionRate": "5.17%",
+      "strength": "上位转化率最高，放逐体系资源战极强",
+      "weakness": "使用率低，对操作要求高"
+    }
+  ],
+  "stapleCards": {
+    "supporters": [
+      {"name": "博士的研究", "role": "手牌刷新", "note": "弃手牌抽7张，泛用过牌核心", "format": "F/G/H/I"},
+      {"name": "老大的指令", "role": "抓枪", "note": "强制对手换位，斩杀回合关键卡", "format": "F/G/H/I"},
+      {"name": "派帕", "role": "精准检索", "note": "牌库搜1物品+1宝可梦道具，道具重型卡组核心引擎", "format": "G/H/I"},
+      {"name": "奇树", "role": "干扰+抽牌", "note": "双方手牌洗回牌库底，各抽奖赏卡数张", "format": "F/G/H/I"},
+      {"name": "妮莫", "role": "轻量抽牌", "note": "抽3张，不需弃手牌", "format": "F/G/H/I"},
+      {"name": "牡丹", "role": "回收", "note": "选1只基础宝可梦+附着卡全部回手", "format": "G/H/I"},
+      {"name": "艾莉丝的斗志", "role": "手牌补满", "note": "弃1手补满6张（I标新卡）", "format": "I"},
+      {"name": "暗码迷的解读", "role": "精准检索", "note": "任意选2张放牌库顶，可配夜间学院", "format": "H"}
+    ],
+    "items": [
+      {"name": "友好宝芬", "role": "基础铺场", "note": "牌库搜最多2张HP≤70的基础放备战区", "format": "H"},
+      {"name": "巢穴球", "role": "基础检索", "note": "牌库选1基础宝可梦放备战区", "format": "F/G/H/I"},
+      {"name": "高级球", "role": "通用检索", "note": "弃2手牌搜任意1张宝可梦", "format": "F/G/H/I"},
+      {"name": "厉害钓竿", "role": "回收", "note": "弃牌区宝可梦+基本能量最多3张回牌库", "format": "F/G/H/I"},
+      {"name": "大地之容器", "role": "能量检索", "note": "弃1手牌搜2基本能量", "format": "G"},
+      {"name": "改造之锤", "role": "能量干扰", "note": "拆对手1个特殊能量", "format": "H"},
+      {"name": "能量回收", "role": "能量回收", "note": "弃牌区2基本能量回手", "format": "F/G/H/I"},
+      {"name": "粉碎之锤", "role": "能量干扰", "note": "硬币正面拆对手1能量", "format": "F/G/H/I"}
+    ],
+    "tools": [
+      {"name": "英雄斗篷", "role": "ACE SPEC+HP", "note": "+100HP，单卡墙壁核心", "format": "H"},
+      {"name": "极限腰带", "role": "ACE SPEC+伤害", "note": "对ex宝可梦伤害+50", "format": "H"},
+      {"name": "不服输头带", "role": "伤害加成", "note": "奖赏落后时伤害+30", "format": "G/H/I"},
+      {"name": "不服输背心", "role": "减伤", "note": "奖赏落后时受到伤害-40", "format": "G"},
+      {"name": "学习装置", "role": "能量保留", "note": "被KO时保留1基本能量", "format": "G/H/I"},
+      {"name": "力之沙漏", "role": "能量加速", "note": "回合结束从弃牌区附1基本能量到战斗宝可梦", "format": "H"},
+      {"name": "幸运头盔", "role": "抽牌", "note": "战斗场受伤害时从牌库抽2张", "format": "H"},
+      {"name": "吃剩的东西", "role": "回复", "note": "回合结束战斗宝可梦回20HP", "format": "G"},
+      {"name": "招式学习器 演进", "role": "进化加速", "note": "附着的宝可梦可使用演进（从牌库进化）", "format": "G"}
+    ],
+    "stadiums": [
+      {"name": "伟大巨树", "role": "ACE SPEC进化", "note": "每回合1次牌库直接基础→1阶→2阶进化", "format": "H"},
+      {"name": "夜间学院", "role": "控顶+回收", "note": "每回合1张手牌放回牌库顶", "format": "H"},
+      {"name": "城镇百货公司", "role": "道具检索", "note": "每回合1次牌库搜1宝可梦道具", "format": "G"},
+      {"name": "中立中心", "role": "ACE SPEC防御", "note": "非规则宝可梦免疫ex/V招式伤害，弃牌区无法回收", "format": "H"},
+      {"name": "桌台市", "role": "宝可梦检索", "note": "每回合1次硬币正面搜1宝可梦", "format": "G"},
+      {"name": "自行车道", "role": "抽牌", "note": "每回合1次弃1能量抽1卡", "format": "G"}
+    ]
+  },
+  "aceSpec": {
+    "description": "全卡组限1张。简中环境共29种ACE SPEC（18物品+6宝可梦道具+3特殊能量+2竞技场），全部为H标。搜索方法：grep -i 'ACE' data_fast/{type}.detail.tsv",
+    "count": 29,
+    "byType": {"物品": 18, "宝可梦道具": 6, "特殊能量": 3, "竞技场": 2},
+    "topPicks": ["英雄斗篷", "极限腰带", "伟大巨树", "不公印章", "秘密箱", "遗赠能量", "大师球", "百万吨吹风机", "宝可梦旋风回收机"],
+    "item": [
+      "大师球（搜任意1宝可梦）", "顶尖捕捉器（双换位）", "高级香氛（搜3张1阶进化）",
+      "觉醒战鼓（抽古代宝可梦数量张）", "重启舱（弃牌区能量附未来宝可梦）",
+      "不公印章（被KO后双方洗牌，自抽5对手2）", "秘密箱（弃3手搜物品+道具+支援者+竞技场各1）",
+      "危险光线（灼伤+混乱）", "宝可生机剂A（回150HP，不可回收）",
+      "宝可梦旋风回收机（1只宝可梦+附着卡全部回手）", "钓竿MAX（弃牌区宝可梦+能量最多5张回手）",
+      "寻宝装置（搜最多5张道具）", "能量输送PRO（搜各属性基本能量各1）",
+      "紧急切换（换位+任意数量能量转附）", "完美搅拌器（牌库任意5张弃入弃牌区）",
+      "贵重推车（任意数量基础放备战区）", "奇迹耳机（弃牌区2张支援者回手）",
+      "百万吨吹风机（对手全部道具+特殊能量+竞技场丢弃）"
+    ],
+    "tool": [
+      "英雄斗篷（最大HP+100）", "极限腰带（对ex伤害+50）",
+      "幸存锻炼器（满血被KO留10HP，一次性）", "璀璨结晶（太晶宝可梦招式所需能量-1）",
+      "豪华炸弹（受伤害时放12伤害指示物给攻击者，一次性）", "希望护身符（被KO时牌库任意选3张加入手牌）"
+    ],
+    "specialEnergy": [
+      "新冲天能量（1无能量，2阶进化视为2全色）",
+      "遗赠能量（1全色能量，被KO少拿1奖，全局1次）",
+      "富裕能量（1无能量，附着时抽4张）"
+    ],
+    "stadium": [
+      "中立中心（非规则宝可梦免疫ex/V招式伤害，不可回收）",
+      "伟大巨树（每回合1次牌库基础→1阶→2阶进化）"
+    ]
+  },
+  "matchups": {
+    "dataSource": "2026/04 争锋时刻赛 ~3627人统计（小红书社区数据）",
+    "totalParticipants": 3627,
+    "topDecksByUsage": [
+      {"name": "沙奈朵ex", "count": 598, "top8": 16, "conversion": "3.01%"},
+      {"name": "猛雷鼓ex", "count": 520, "top8": 10, "conversion": "2.40%"},
+      {"name": "自爆恶喷", "count": 379, "top8": 8, "conversion": "2.11%"},
+      {"name": "自爆多龙ex", "count": 357, "top8": 5, "conversion": "1.40%"},
+      {"name": "密勒顿ex", "count": 302, "top8": 6, "conversion": "1.99%"},
+      {"name": "洛奇亚VSTAR", "count": 254, "top8": 9, "conversion": "3.54%"}
+    ],
+    "topConversion": [
+      {"name": "LTB放逐三色", "conversion": "5.17%"},
+      {"name": "多龙恶喷", "conversion": "3.88%"},
+      {"name": "洛奇亚VSTAR", "conversion": "3.54%"},
+      {"name": "沙奈朵ex", "conversion": "3.01%"},
+      {"name": "古剑豹ex", "conversion": "2.33%"}
+    ],
+    "risingTrends": ["多龙恶喷 ↑500%", "洛奇亚VSTAR ↑300%", "猛雷鼓ex ↑67%"]
+  },
+  "hpThresholds": {
+    "description": "环境常见HP阈值，用于斩杀线计算",
+    "basic": "60-130",
+    "evo1Prize": "100-160",
+    "basicExV": "170-230",
+    "evo1Ex": "250-310",
+    "evo2ExVstar": "300-340",
+    "topWalls": ["喷火龙ex(330)", "班基拉斯ex(340)", "多龙巴鲁托ex(320)", "沙奈朵ex(310)", "弃世猴ex(320)"]
   }
 }
