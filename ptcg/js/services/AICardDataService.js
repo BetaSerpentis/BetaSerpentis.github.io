@@ -328,24 +328,35 @@ export class AICardDataService {
     console.log('[AI Data] Ready — TSV:', this._tsvIndex.size, 'cards, JSON:', this._jsonCache.size, 'cards');
   }
 
-  /** 获取指定 ID 的完整数据（TSV 优先，JSON 回退） */
+  /** 获取指定 ID 的完整数据（TSV 优先，JSON 回退，过滤退环境） */
   async getFullCardData(cardId) {
-    // 优先从 JSON 缓存查找（数据更完整）
-    if (this._jsonCache.has(cardId)) return this._jsonCache.get(cardId);
+    // 优先从 JSON 缓存查找（数据更完整，但需过滤退环境卡）
+    if (this._jsonCache.has(cardId)) {
+      const data = this._jsonCache.get(cardId);
+      const v = this._extractVersion(data);
+      if (!v || this._isCurrentFormat(v)) return data;
+      // 退环境卡：不回退到旧数据，转 TSV
+    }
 
     // TSV 查找
     if (this._tsvIndex.has(cardId)) {
       return this._buildTsvCardData(cardId);
     }
 
-    // 回退：尝试按需加载 JSON
+    // 回退：仅 CSV 前缀 ID（过滤旧 JSON 编号 ID 如 "4521"）
+    if (!cardId || !cardId.startsWith('CSV')) return null;
     let cardType = null;
     const cache = this.cardManager.allCardsCache || this.cardManager.cards || [];
     const basic = cache.find(c => c.id === cardId);
     if (basic) cardType = basic.type;
     if (!cardType) return null;
     await this._loadJsonCache(cardType);
-    return this._jsonCache.get(cardId) || null;
+    const data = this._jsonCache.get(cardId);
+    if (data) {
+      const v = this._extractVersion(data);
+      if (v && !this._isCurrentFormat(v)) return null; // 退环境
+    }
+    return data || null;
   }
 
   async getFullCardDataBatch(cardIds) {
@@ -448,11 +459,13 @@ export class AICardDataService {
       }
     }
 
-    // 3. CardManager 回退
+    // 3. CardManager 回退（仅当前环境卡，过滤旧ID）
     if (results.length === 0) {
       const cache = this.cardManager.allCardsCache || [];
       for (const card of cache) {
         if (cardType && card.type !== cardType) continue;
+        // 🔴 过滤退环境卡：仅接受 CSV 前缀 ID（TSV 数据均为当前环境）
+        if (!card.id || !card.id.startsWith('CSV')) continue;
         const searchField = (card.searchText || '') + ' ' + (card.name || '');
         let score = 0;
         for (const term of terms) {
