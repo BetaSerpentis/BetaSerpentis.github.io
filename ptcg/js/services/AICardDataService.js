@@ -416,7 +416,20 @@ export class AICardDataService {
     if (!query || !query.trim()) return { results: [], total: 0, message: '请提供搜索关键词' };
     limit = Math.min(limit, 50);
     const normQuery = query.replace(/[【】]/g, '');
-    const terms = normQuery.split(/\s+/).filter(t => t.length > 0);
+    const spaceTerms = normQuery.split(/\s+/).filter(t => t.length > 0);
+    // 中文长短语无空格时，增加逐字和子串匹配
+    const terms = [...spaceTerms];
+    for (const t of spaceTerms) {
+      if (t.length > 3 && /[一-鿿]/.test(t)) {
+        // 连续中文长短语：加入首尾子串帮助匹配
+        terms.push(t.slice(0, 3));           // 前3字
+        terms.push(t.slice(-3));             // 后3字
+        // 2-gram 拆分
+        for (let i = 0; i < t.length - 1; i++) {
+          terms.push(t.slice(i, i + 2));
+        }
+      }
+    }
     const results = [];
     const seenIds = new Set();
 
@@ -486,7 +499,24 @@ export class AICardDataService {
       }
       const name = r._name || `卡牌 ${r.id}`;
       const type = r._type || '?';
-      return `- **${name}** [ID:${r.id}] [${type}] (TSV)`;
+      // 从 TSV 搜索文本提取特性/效果摘要
+      let tsvSummary = '';
+      const tsvEntry = this._tsvIndex.get(r.id);
+      if (tsvEntry && tsvEntry.searchText) {
+        const st = tsvEntry.searchText;
+        // 提取特性名和效果片段
+        const abiMatch = st.match(/(?:^|\s)([^\s]{2,6}(?:特性|回忆|之力|之幕|气场|领域|转换|变换|进化|再生|咆哮|支配|涡轮|加速|抽取|转移|置换|交换|封锁|守护|屏障|结界)[^\s]*)\s/);
+        if (abiMatch) {
+          tsvSummary = ` | 特性:${abiMatch[1]}`;
+        }
+        // 截取效果关键词
+        const keyEffects = ['伤害指示物', '填能', '加速', '抽', '检索', '回复', '进化', '招式', '弃牌区', '备战'];
+        const found = keyEffects.filter(k => st.includes(k)).slice(0, 4);
+        if (found.length > 0) {
+          tsvSummary += ` [${found.join('/')}]`;
+        }
+      }
+      return `- **${name}** [ID:${r.id}] [${type}]${tsvSummary}`;
     }).join('\n');
 
     const sourceTag = results.length > 0 && !results[0].data ? ' [TSV]' : '';
