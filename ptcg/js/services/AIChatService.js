@@ -571,7 +571,30 @@ export class AIChatService {
     }
   }
 
-  /** 清除 DSML：DSML 特征是有 | 管道符，正常卡牌文本不会出现 */
+  /** 带重试的 API 调用 */
+  async _fetchWithRetry(url, options, maxRetries = 2) {
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const resp = await fetch(url, options);
+        if (resp.ok) return resp;
+        if (resp.status === 503 && attempt < maxRetries) {
+          const delay = (attempt + 1) * 1500;
+          console.log(`[AI Agent] 503 retry ${attempt + 1}/${maxRetries}`);
+          await new Promise(r => setTimeout(r, delay));
+          continue;
+        }
+        return resp;
+      } catch (e) {
+        if (attempt < maxRetries && e.message.includes('fetch')) {
+          await new Promise(r => setTimeout(r, (attempt + 1) * 1000));
+          continue;
+        }
+        throw e;
+      }
+    }
+  }
+
+  /** 清除 DSML */
   _stripXml(text) {
     // 切除 DSML 块：从第一个 DSML 标记向前找最近的换行，到最后一个 DSML 标记向后找最近的换行
     let t = text;
@@ -584,11 +607,9 @@ export class AIChatService {
       const cutEnd = t.indexOf('\n\n', last);
       t = t.slice(0, cutStart) + (cutEnd >= 0 ? t.slice(cutEnd) : '');
     }
-    // 清理残留
+    // 清理残留（只清理XML标签，不过滤管道符以免误杀Markdown表格）
     return t
       .replace(/<[^>]*>/g, '')
-      .split('\n').filter(l => !/\|/.test(l))
-      .join('\n')
       .replace(/\n{3,}/g, '\n\n')
       .trim();
   }
@@ -641,7 +662,7 @@ export class AIChatService {
           messages.push({ role: 'user', content: '你已经搜索了足够的数据。现在请直接输出分析报告（Markdown格式），不要再调用任何工具。' });
 
           // 流式输出 + DSML 安全过滤
-          const resp = await fetch(CONFIG_AI.apiEndpoint, {
+          const resp = await this._fetchWithRetry(CONFIG_AI.apiEndpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
             body: JSON.stringify({ model: settings.model || CONFIG_AI.model, max_tokens: 16384, messages, stream: true })
@@ -677,7 +698,7 @@ export class AIChatService {
         }
 
         // === 工具调用轮：非流式（content 和 tool_calls 天然分离，无 DSML 泄漏）===
-        const resp = await fetch(CONFIG_AI.apiEndpoint, {
+        const resp = await this._fetchWithRetry(CONFIG_AI.apiEndpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
           body: JSON.stringify({ model: settings.model || CONFIG_AI.model, max_tokens: 8192, messages, tools: this._getTools(), tool_choice: 'auto' })

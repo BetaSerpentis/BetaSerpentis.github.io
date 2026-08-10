@@ -561,6 +561,27 @@ export class AIAnalysisService {
       scored.push({ name, id, type, data, score });
     }
 
+    // 从 TSV 索引补充（JSON 中未出现的训练家/物品/道具/竞技场）
+    for (const [id, entry] of this.data._tsvIndex) {
+      if (entry.type === '宝可梦' || entry.type === '基本能量' || entry.type === '特殊能量') continue;
+      const name = entry.name;
+      if (!name || seenNames.has(name)) continue;
+      if (entry.mark && !this.data._isCurrentFormat(entry.mark)) continue;
+      seenNames.add(name);
+
+      const text = entry.searchText || '';
+      let score = 1;
+      if (isEvo && text.includes('进化') && (text.includes('牌库') || text.includes('糖果'))) score += 5;
+      if (isEvo && text.includes('基础') && text.includes('牌库')) score += 3;
+      if (hasDmgCtr && text.includes('伤害指示物')) score += 4;
+      if (hasDiscard && text.includes('弃牌区') && text.includes('能量')) score += 3;
+      if (text.includes('牌库') && /抽出|抽.*张/.test(text)) score += 2;
+      if (text.includes('回收') || text.includes('加入手牌')) score += 2;
+      if (/战斗场|抓/.test(text)) score += 2;
+
+      scored.push({ name, id, type: entry.type, data: null, score });
+    }
+
     scored.sort((a, b) => b.score - a.score);
     return scored;
   }
