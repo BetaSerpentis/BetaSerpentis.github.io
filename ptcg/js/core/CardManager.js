@@ -166,11 +166,27 @@ export class CardManager {
         }
 
         const searchLower = searchText.toLowerCase().trim();
+        // 归一化搜索词：与搜索文本生成时的 compactSearchText 标点剥离规则对齐
+        const normalizedSearch = searchLower
+            .replace(/[，。；：！？、（）【】《》「」『』“”'".,;:!?()\[\]{}<>]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+        // 无空格紧凑形式（去掉所有空白）
+        const compactSearch = normalizedSearch.replace(/\s+/g, '');
         let filtered = this.cards.filter(card => {
             const searchFields = [card.name, card.searchText];
-            return searchFields.some(field =>
-                field && field.toLowerCase().includes(searchLower)
-            );
+            return searchFields.some(field => {
+                if (!field) return false;
+                const raw = String(field).toLowerCase();
+                const normalizedField = raw
+                    .replace(/[，。；：！？、（）【】《》「」『』“”'".,;:!?()\[\]{}<>]/g, ' ')
+                    .replace(/\s+/g, ' ');
+                const compactField = raw.replace(/\s+/g, '')
+                    .replace(/[，。；：！？、（）【】《》「」『』“”'".,;:!?()\[\]{}<>]/g, '');
+                // 两种匹配：带空格归一化，或无空格紧凑匹配
+                return normalizedField.includes(normalizedSearch) ||
+                    (compactSearch && compactField.includes(compactSearch));
+            });
         });
 
         // 应用世代筛选（如果是宝可梦类型）
