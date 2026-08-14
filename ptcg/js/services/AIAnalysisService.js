@@ -229,9 +229,25 @@ export class AIAnalysisService {
   async deepAnalysis(cardName) {
     if (!cardName) return '请提供卡牌名称';
 
-    // 1. 搜索目标卡
-    const searchResult = this.data.searchCards(cardName, null, 3);
-    if (searchResult.results.length === 0) return `未找到"${cardName}"。请检查卡名拼写。`;
+    // 1. 搜索目标卡（同时搜原始名和去前缀名，原始名结果优先）
+    const strippedName = cardName.replace(/^[\u4e00-\u9fa5]{1,4}的/, '').trim();
+    const hasPrefix = strippedName && strippedName !== cardName && strippedName.length > 1;
+
+    const origResult = this.data.searchCards(cardName, null, 5);
+    const strippedResult = hasPrefix ? this.data.searchCards(strippedName, null, 5) : null;
+
+    // 合并去重：原始查询结果在前，去前缀结果在后
+    const merged = [];
+    const seen = new Set();
+    for (const r of origResult.results) { merged.push(r); seen.add(r.id); }
+    if (strippedResult) {
+      for (const r of strippedResult.results) {
+        if (!seen.has(r.id)) { r._secondary = true; merged.push(r); seen.add(r.id); }
+      }
+    }
+
+    if (merged.length === 0) return `未找到"${cardName}"。请检查卡名拼写。`;
+    const searchResult = { results: merged, total: merged.length };
 
     const targetId = searchResult.results[0].id;
     const targetData = await this.data.getFullCardData(targetId);
