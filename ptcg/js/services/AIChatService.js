@@ -647,9 +647,15 @@ export class AIChatService {
         messages.push({ role: 'system', content: '用户要求保存/覆盖卡组。流程：get_my_decks→get_deck_detail读原卡组→search_cards验证所有卡ID→build_deck保存。不要输出JSON文本，用build_deck工具保存。' });
       }
 
+      // 卡牌分析意图：强制第一个工具调用 deep_analysis，避免手动搜卡浪费轮次
+      const isCardAnalysis = /分析|怎么看|强度|用法|配合|组.*卡组|构筑|推荐|评价/.test(userMessage) && !/我的卡组|已有的卡组/.test(userMessage);
+      if (isCardAnalysis) {
+        messages.push({ role: 'system', content: '🔴 强制指令：用户要分析卡牌。你的第一个工具调用必须是 deep_analysis("目标卡名")。不要手动搜卡、不要 grep、不要 search_cards。deep_analysis 内部自动完成搜索和分析。如果报告缺少信息，第二轮再补充搜索。' });
+      }
+
       // Agent 循环（保存意图时 2轮工具+1轮输出，否则 4+2）
-      const MAX_LOOPS = hasSaveIntent ? 5 : 6;
-      const finalAt = hasSaveIntent ? 4 : 4;
+      const MAX_LOOPS = hasSaveIntent ? 6 : 8;
+      const finalAt = hasSaveIntent ? 4 : 5;
       let fullText = '';
       let deck = null;
       let builtDeck = null;
