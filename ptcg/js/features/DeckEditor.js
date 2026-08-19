@@ -42,7 +42,7 @@ export class DeckEditor {
         const M = DeckEditor.MODE;
         const showSearch  = mode === M.BROWSE || mode === M.DECK_ADD;
         const showFeatTab = mode === M.BROWSE || mode === M.DECK_ADD;
-        const showDeckTab = mode === M.DECK_VIEW || mode === M.DECK_EDIT;
+        const showDeckTab = mode === M.DECK_VIEW || mode === M.DECK_EDIT || mode === M.COVER_SELECT;
         const showGenTab  = mode === M.BROWSE;
 
         const el = (s) => document.querySelector(s);
@@ -759,22 +759,23 @@ export class DeckEditor {
 
     _setupCoverSelectOverlay() {
         this._removeCoverSelectOverlay();
-        const overlay = document.createElement('div');
-        overlay.className = 'cover-select-overlay';
-        overlay.style.cssText = 'position:fixed;inset:0;z-index:900;background:transparent;';
-        overlay.addEventListener('click', (e) => {
-            // 点击的不是卡片 → 取消
+        // 用 document 级监听代替全屏遮罩层，避免 z-index 遮挡卡片导致无法点击选择
+        const handler = (e) => {
+            // 点击的不是卡片 → 取消封面选择
             if (!e.target.closest('.card')) {
                 this._cancelCoverSelection();
             }
-        });
-        document.body.appendChild(overlay);
-        this._coverSelectOverlay = overlay;
+        };
+        // 延迟绑定，避免当前封面点击事件冒泡时立即触发取消
+        setTimeout(() => {
+            document.addEventListener('click', handler, true);
+        }, 100);
+        this._coverSelectOverlay = { handler };
     }
 
     _removeCoverSelectOverlay() {
         if (this._coverSelectOverlay) {
-            this._coverSelectOverlay.remove();
+            document.removeEventListener('click', this._coverSelectOverlay.handler, true);
             this._coverSelectOverlay = null;
         }
     }
