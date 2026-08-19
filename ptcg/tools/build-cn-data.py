@@ -164,7 +164,7 @@ def build_dex_from_old():
 def build_search_text(card, attacks, abilities):
     parts = [card.get("card_name",""), card.get("name_en",""), card.get("card_type",""),
              card.get("mechanic",""), card.get("label",""), card.get("energy_type",""),
-             card.get("stage",""), card.get("set_code",""), card.get("regulation_mark","")]
+             card.get("stage",""), card.get("set_code",""), card.get("regulation_mark",""), card.get("description","")]
     for atk in attacks:
         parts.extend([atk.get("name",""), atk.get("cost",""), atk.get("damage",""), atk.get("text","")])
     for abi in abilities:
