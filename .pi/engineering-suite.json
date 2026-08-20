@@ -6,7 +6,7 @@
     "denyRead": [".env", ".env.*", "**/*.pem", "**/*.key", ".git/**"],
     "denyWrite": [".git/**", "node_modules/**", "dist/**", "build/**"],
     "bash": {
-      "mode": "ask",
+      "mode": "allow",
       "allow": [
         "ls*",
         "dir*",
@@ -31,6 +31,7 @@
         "rg*",
         "grep*",
         "find*",
+        "file*",
         "node*",
         "python*",
         "git status*",
