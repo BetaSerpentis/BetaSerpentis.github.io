@@ -14,6 +14,7 @@ export class AIChatService {
     this._history = [];
     this._data = new AICardDataService(cardManager);
     this._analysis = new AIAnalysisService(this._data);
+    this._knowledgeIndex = null;
     this._loadHistory();
   }
 
@@ -21,6 +22,7 @@ export class AIChatService {
 
   async ensureDataLoaded() {
     await this._data.ensureLoaded();
+    await this._loadKnowledgeIndex();
   }
 
   // ========== 对话历史 ==========
@@ -204,6 +206,34 @@ export class AIChatService {
             required: ['query']
           }
         }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'search_meta',
+          description: '搜索当前环境元数据：上位卡组、泛用卡、ACE SPEC、赛标、基本能量ID等。用于了解环境、组卡组查能量ID。',
+          parameters: {
+            type: 'object',
+            properties: {
+              query: { type: 'string', description: '搜索词，如"上位卡组"、"ACE SPEC"、"支援者"、"能量"、"沙奈朵"等' }
+            },
+            required: ['query']
+          }
+        }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'search_knowledge',
+          description: '查询本地 PTCG 知识库（对战技巧、构筑理论、对局分析、强力组合、规则FAQ）。用户问怎么打/怎么防/组卡配比/规则疑问时用。',
+          parameters: {
+            type: 'object',
+            properties: {
+              query: { type: 'string', description: '搜索关键词，如"先攻策略"、"能量配比"、"沙奈朵对局"、"伤害指示物区别"' }
+            },
+            required: ['query']
+          }
+        }
       }
     ];
   }
@@ -289,6 +319,10 @@ export class AIChatService {
 
       case 'search_meta': {
         return this._searchMeta(args.query);
+      }
+
+      case 'search_knowledge': {
+        return this._searchKnowledge(args.query);
       }
 
       default:
@@ -509,6 +543,85 @@ export class AIChatService {
   }
 
   // ========== Agent 循环 ==========
+  // ========== 本地知识库 ==========
+
+  /** 预加载知识库文件并构建搜索索引 */
+  async _loadKnowledgeIndex() {
+    if (this._knowledgeIndex) return;
+    const files = ['techniques.md', 'deck-building.md', 'matchups.md', 'combos.md', 'rulings.md'];
+    const titles = {
+      'techniques.md': '对战技巧',
+      'deck-building.md': '构筑理论',
+      'matchups.md': '对局分析',
+      'combos.md': '强力组合',
+      'rulings.md': '规则FAQ'
+    };
+    const index = [];
+    for (const file of files) {
+      try {
+        const resp = await fetch('data/knowledge/' + file);
+        if (!resp.ok) continue;
+        const text = await resp.text();
+        const sections = text.split(/\n## /);
+        for (let i = 1; i < sections.length; i++) {
+          const section = sections[i];
+          const nlIdx = section.indexOf('\n');
+          const heading = nlIdx >= 0 ? section.slice(0, nlIdx).trim() : section.trim();
+          const body = nlIdx >= 0 ? section.slice(nlIdx + 1).trim() : '';
+          const subSections = body.split(/\n### /);
+          if (subSections.length > 1) {
+            for (let j = 1; j < subSections.length; j++) {
+              const subNl = subSections[j].indexOf('\n');
+              const subHeading = subNl >= 0 ? subSections[j].slice(0, subNl).trim() : subSections[j].trim();
+              const subBody = subNl >= 0 ? subSections[j].slice(subNl + 1).trim() : '';
+              index.push({ title: (titles[file] || file) + ' › ' + heading + ' › ' + subHeading, content: subBody.slice(0, 1500), file });
+            }
+          } else {
+            index.push({ title: (titles[file] || file) + ' › ' + heading, content: body.slice(0, 1500), file });
+          }
+        }
+      } catch (e) {
+        console.warn('[AI Agent] 知识库文件 ' + file + ' 加载失败:', e.message);
+      }
+    }
+    this._knowledgeIndex = index;
+    console.log('[AI Agent] 知识库索引:', index.length, '个段落');
+  }
+
+  /** 搜索本地知识库 */
+  _searchKnowledge(query) {
+    if (!this._knowledgeIndex || this._knowledgeIndex.length === 0) {
+      return '知识库尚未加载，请稍后再试。';
+    }
+    const q = (query || '').toLowerCase();
+    const terms = q.split(/\s+/).filter(t => t.length > 0);
+    if (terms.length === 0) return '请提供搜索关键词。可搜：对战技巧、构筑理论、对局分析、强力组合、规则FAQ。';
+
+    const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const scored = this._knowledgeIndex.map(item => {
+      const searchText = (item.title + ' ' + item.content).toLowerCase();
+      let score = 0;
+      for (const term of terms) {
+        const count = (searchText.match(new RegExp(esc(term), 'gi')) || []).length;
+        const titleCount = (item.title.toLowerCase().match(new RegExp(esc(term), 'gi')) || []).length;
+        score += count + titleCount * 3;
+      }
+      return { ...item, score };
+    }).filter(item => item.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5);
+
+    if (scored.length === 0) {
+      return '未找到与「' + query + '」相关的知识库内容。可搜：对战技巧、先攻策略、能量配比、沙奈朵对局、进化规则、组卡组清单等。';
+    }
+
+    const lines = ['## 🔍 知识库搜索结果: ' + query, '找到 ' + scored.length + ' 个相关段落：', ''];
+    for (const item of scored) {
+      lines.push('### ' + item.title + '\n\n' + item.content + '\n');
+    }
+    lines.push('> 以上内容来自本地 PTCG 知识库，可结合卡牌数据库深入分析。');
+    return lines.join('\n');
+  }
 
   /** 搜索元数据（上位卡组、环境信息） */
   async _searchMeta(query) {
