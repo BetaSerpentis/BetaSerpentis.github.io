@@ -3179,6 +3179,10 @@
     "new_key": "151C-073",
     "method": "name_mark"
   },
+  "4879": {
+    "new_key": "SMP-038",
+    "method": "name_mark_attr"
+  },
   "4571": {
     "new_key": "CSM1bC-046",
     "method": "name_mark_attr"
@@ -3219,6 +3223,10 @@
     "new_key": "151C-074",
     "method": "name_mark"
   },
+  "4880": {
+    "new_key": "SMP-039",
+    "method": "name_mark_attr"
+  },
   "4572": {
     "new_key": "CSM1bC-047",
     "method": "name_mark_attr"
@@ -3257,6 +3265,10 @@
   },
   "8941": {
     "new_key": "151C-075",
+    "method": "name_mark"
+  },
+  "4881": {
+    "new_key": "CSM1bC-048",
     "method": "name_mark"
   },
   "3198": {
@@ -9183,6 +9195,10 @@
     "new_key": "CSVH4eC-010",
     "method": "name_mark"
   },
+  "13128": {
+    "new_key": "CSV10C-152",
+    "method": "exact_name"
+  },
   "4937": {
     "new_key": "CSM1aC-071",
     "method": "name_mark"
@@ -12227,6 +12243,10 @@
     "new_key": "CSV8C-055",
     "method": "name_mark"
   },
+  "13124": {
+    "new_key": "CSV10C-087",
+    "method": "exact_name"
+  },
   "5074": {
     "new_key": "CSM1cC-040",
     "method": "name_mark"
@@ -12274,6 +12294,10 @@
   "9560": {
     "new_key": "CSV4C-053",
     "method": "name_mark"
+  },
+  "13125": {
+    "new_key": "CSV10C-088",
+    "method": "exact_name"
   },
   "5075": {
     "new_key": "CSM1cC-041",
@@ -13115,6 +13139,14 @@
     "new_key": "CS2aC-092",
     "method": "name_mark_attr"
   },
+  "13129": {
+    "new_key": "CSV10C-153",
+    "method": "exact_name"
+  },
+  "13144": {
+    "new_key": "CSV10C-153",
+    "method": "exact_name"
+  },
   "4749": {
     "new_key": "CSM1aC-073",
     "method": "name_mark_attr"
@@ -13162,6 +13194,10 @@
   "13031": {
     "new_key": "CSVH5eC-028",
     "method": "name_mark"
+  },
+  "13130": {
+    "new_key": "CSV10C-154",
+    "method": "exact_name"
   },
   "4750": {
     "new_key": "CSM1aC-074",
@@ -13214,6 +13250,10 @@
   "13032": {
     "new_key": "CSVH5eC-029",
     "method": "name_mark"
+  },
+  "13131": {
+    "new_key": "CSV10C-155",
+    "method": "exact_name"
   },
   "5655": {
     "new_key": "CSMPhC-004",
@@ -17287,6 +17327,10 @@
     "new_key": "CS4DaC-349",
     "method": "name_mark_attr_rarity"
   },
+  "13147": {
+    "new_key": "CSV10C-140",
+    "method": "exact_name"
+  },
   "13053": {
     "new_key": "CSV10C-139",
     "method": "exact_name"
@@ -17322,6 +17366,10 @@
   "10005": {
     "new_key": "CSV6C-090",
     "method": "name_mark"
+  },
+  "13148": {
+    "new_key": "CSV10C-141",
+    "method": "exact_name"
   },
   "4927": {
     "new_key": "CSM1bC-089",
@@ -18451,6 +18499,10 @@
     "new_key": "CSVL2C-091",
     "method": "name_mark_attr_rarity"
   },
+  "13149": {
+    "new_key": "CSV10C-142",
+    "method": "exact_name"
+  },
   "4931": {
     "new_key": "CSM1DC-155",
     "method": "name_mark"
@@ -18490,6 +18542,10 @@
   "11389": {
     "new_key": "SVP-272",
     "method": "name_mark"
+  },
+  "13150": {
+    "new_key": "CSV10C-143",
+    "method": "exact_name"
   },
   "4932": {
     "new_key": "CSM1DC-156",
@@ -22378,6 +22434,10 @@
   "3872": {
     "new_key": "CSM2DC-102",
     "method": "name_mark_attr"
+  },
+  "13126": {
+    "new_key": "CSV10C-091",
+    "method": "exact_name"
   },
   "7010": {
     "new_key": "CS5.5C-048",
@@ -27859,6 +27919,10 @@
     "new_key": "CS6.5C-038",
     "method": "name_mark_attr"
   },
+  "13151": {
+    "new_key": "CSV10C-146",
+    "method": "exact_name"
+  },
   "2471": {
     "new_key": "CS1bC-078",
     "method": "name_mark_attr"
@@ -27890,6 +27954,14 @@
   "12664": {
     "new_key": "SVP-141",
     "method": "name_mark_attr"
+  },
+  "13152": {
+    "new_key": "CSV10C-147",
+    "method": "exact_name"
+  },
+  "13153": {
+    "new_key": "CSV10C-148",
+    "method": "exact_name"
   },
   "2472": {
     "new_key": "CS1bC-079",
@@ -28538,6 +28610,14 @@
   "8132": {
     "new_key": "SSP-064",
     "method": "name_mark_attr_rarity"
+  },
+  "13154": {
+    "new_key": "CSV10C-149",
+    "method": "exact_name"
+  },
+  "13168": {
+    "new_key": "CSV10C-149",
+    "method": "exact_name"
   },
   "2998": {
     "new_key": "CS1DC-081",
@@ -29550,6 +29630,14 @@
   "11169": {
     "new_key": "CSVM2bC-009",
     "method": "override_rarity"
+  },
+  "11613": {
+    "new_key": "CSVM2bC-009",
+    "method": "trad2simp_mark_rarity"
+  },
+  "11620": {
+    "new_key": "CSVM2bC-009",
+    "method": "trad2simp_mark_rarity"
   },
   "12555": {
     "new_key": "CSVM2bC-009",
@@ -31399,10 +31487,6 @@
     "new_key": "CSV8C-149",
     "method": "name_mark_attr"
   },
-  "9741": {
-    "new_key": "CSV4C-087",
-    "method": "name_mark_attr"
-  },
   "8353": {
     "new_key": "CSV1C-097",
     "method": "name_mark_attr"
@@ -32831,9 +32915,53 @@
     "new_key": "CSVH4C-004",
     "method": "override_rarity"
   },
+  "11300": {
+    "new_key": "CSVM2aC-001",
+    "method": "trad2simp_mark_rarity"
+  },
+  "11435": {
+    "new_key": "CSVM2aC-001",
+    "method": "trad2simp_mark_rarity"
+  },
+  "11446": {
+    "new_key": "CSVM2aC-001",
+    "method": "trad2simp_mark_rarity"
+  },
+  "12441": {
+    "new_key": "CSVM2aC-001",
+    "method": "trad2simp_mark_rarity"
+  },
+  "12814": {
+    "new_key": "CSVM2aC-001",
+    "method": "trad2simp_mark_rarity"
+  },
+  "12847": {
+    "new_key": "CSVM2aC-001",
+    "method": "trad2simp_mark_rarity"
+  },
   "11349": {
     "new_key": "CSV8C-121",
     "method": "override"
+  },
+  "11306": {
+    "new_key": "CSV8C-043",
+    "method": "trad2simp_mark"
+  },
+  "11436": {
+    "new_key": "CSV8C-043",
+    "method": "trad2simp_mark"
+  },
+  "11447": {
+    "new_key": "CSV8C-043",
+    "method": "trad2simp_mark"
+  },
+  "12447": {
+    "new_key": "CSV8C-043",
+    "method": "trad2simp_mark"
+  },
+  "12817": {
+    "new_key": "CSV8C-043",
+    "method": "trad2simp_mark"
   },
   "11322": {
     "new_key": "CSV8C-067",

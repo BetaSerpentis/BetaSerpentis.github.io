@@ -2,13 +2,13 @@
 import { parseEffect } from './EffectParser.js';
 
 const DATA_FILES = [
-  { path: '../ptcg/data/pokemon-cards.json',     nameField: '宝可梦名字', numberField: '编号', type: 'pokemon' },
-  { path: '../ptcg/data/Item-cards.json',          nameField: '卡牌名字', numberField: null, type: 'item' },
-  { path: '../ptcg/data/Supporter-cards.json',     nameField: '卡牌名字', numberField: null, type: 'supporter' },
-  { path: '../ptcg/data/Stadium-cards.json',       nameField: '卡牌名字', numberField: null, type: 'stadium' },
-  { path: '../ptcg/data/PokemonTool-cards.json',   nameField: '卡牌名字', numberField: null, type: 'tool' },
-  { path: '../ptcg/data/BasicEnergy-cards.json',   nameField: '卡牌名字', numberField: null, type: 'energy' },
-  { path: '../ptcg/data/SpecialEnergy-cards.json', nameField: '卡牌名字', numberField: null, type: 'specialEnergy' },
+  { path: '../ptcg/data/battle/pokemon-cards.json',     nameField: '宝可梦名字', numberField: '编号', type: 'pokemon' },
+  { path: '../ptcg/data/battle/Item-cards.json',          nameField: '卡牌名字', numberField: null, type: 'item' },
+  { path: '../ptcg/data/battle/Supporter-cards.json',     nameField: '卡牌名字', numberField: null, type: 'supporter' },
+  { path: '../ptcg/data/battle/Stadium-cards.json',       nameField: '卡牌名字', numberField: null, type: 'stadium' },
+  { path: '../ptcg/data/battle/PokemonTool-cards.json',   nameField: '卡牌名字', numberField: null, type: 'tool' },
+  { path: '../ptcg/data/battle/BasicEnergy-cards.json',   nameField: '卡牌名字', numberField: null, type: 'energy' },
+  { path: '../ptcg/data/battle/SpecialEnergy-cards.json', nameField: '卡牌名字', numberField: null, type: 'specialEnergy' },
 ];
 
 const ELEM = { '草':'grass','火':'fire','水':'water','雷':'lightning','斗':'fighting',
@@ -81,21 +81,23 @@ export class CardResolver {
     }
     const abilityText = r['特性效果']||'';
     const abilityParsed = parseEffect(abilityText);
-    const abilityActive = /可使用1次|可使用/.test(abilityText);
+    const abilityActive = /可使用1次|可以使用1次|可使用|可以使用/.test(abilityText);
     const ability = r['特性名字'] ? { name:r['特性名字'], effect:abilityText, effects:abilityParsed.effects,
-      active:abilityActive, passive:!abilityActive, oncePerTurn:/可使用1次/.test(abilityText), zone:this._abilityZone(abilityText) } : null;
+      active:abilityActive, passive:!abilityActive, oncePerTurn:/可使用1次|可以使用1次/.test(abilityText), zone:this._abilityZone(abilityText) } : null;
     const ruleText = r['规则'] || '';
     const rule2Text = r['规则2'] || '';
     const ruleBox = [ruleText, rule2Text].filter(Boolean).join(' ');
     const name = r['宝可梦名字'] || '未知';
-    const isEx = /(?:宝可梦)?【?ex】?|\bex\b/i.test(`${name} ${ruleBox}`);
-    const isRadiant = /光辉宝可梦|^光辉/.test(`${name} ${ruleBox}`);
-    const hasRuleBox = isEx || isRadiant || /(?:宝可梦)?(?:GX|V|VMAX|VSTAR|BREAK)\b|拥有规则的宝可梦|规则宝可梦|太晶/i.test(`${name} ${ruleBox}`);
+    const mechanic = r['mechanic'] || '';
+    const isEx = /(?:宝可梦)?【?ex】?|\bex\b/i.test(`${name} ${ruleBox}`) || mechanic === 'ex';
+    const isRadiant = /光辉宝可梦|^光辉/.test(`${name} ${ruleBox}`) || mechanic === 'Radiant';
+    const hasRuleBox = isEx || isRadiant || /(?:宝可梦)?(?:GX|V|VMAX|VSTAR|BREAK)\b|拥有规则的宝可梦|规则宝可梦|太晶/i.test(`${name} ${ruleBox}`) || ['GX','V','VMAX','VSTAR','BREAK','Prism Star'].includes(mechanic);
     return { cardType:'pokemon', name, number:r['编号']||null,
       stage:r['进化阶段']||'基础', evolvesFrom:r['进化自']||null,
       ruleText, rule2Text, ruleBox, isEx, isRadiant, hasRuleBox,
       hp:parseInt(r['HP'])||60, element:ELEM[r['属性']]||'colorless',
       weakness:r['弱点']? (ELEM[r['弱点']]||r['弱点']) : null, resistance:r['抵抗力']? (ELEM[r['抵抗力']]||r['抵抗力']) : null,
+      weaknessMultiplier:parseInt((r['弱点倍率']||'x2').match(/x?(\d+)/i)?.[1]||'2')||2, resistanceValue:(parseInt(r['抵抗值']||'')||-30),
       retreatCost:Number.isFinite(parseInt(r['撤退'],10))?parseInt(r['撤退'],10):1,
       ability, attacks };
   }
@@ -125,14 +127,14 @@ export class CardResolver {
   _energyProvidesMeta(name,text,type){
     if(type!=='specialEnergy') return [{types:[ELEM[name.match(/【(.+?)】/)?.[1]]||'colorless'],count:1}];
     const provides=[];
-    if(/提供(\d+)个所有属性/.test(text)||/视为提供(\d+)个所有属性/.test(text)){
-      const count=parseInt((text.match(/(?:提供|视为提供)(\d+)个所有属性/)||[])[1]||'1');
+    if(/提供(\d+)个所有属性/.test(text)||/视为提供(\d+)个所有属性/.test(text)||/被视作(\d+)个所有属性/.test(text)||/被视为(\d+)个所有属性/.test(text)){
+      const count=parseInt((text.match(/(?:提供|视为提供|被视作|被视为)(\d+)个所有属性/)||[])[1]||'1');
       provides.push({types:['any'],count});
     }
-    for(const m of text.matchAll(/(?:提供|视为提供)(\d+)个【(.+?)】能量/g)){
+    for(const m of text.matchAll(/(?:提供|视为提供|被视作|被视为)(\d+)个【(.+?)】能量/g)){
       provides.push({types:[ELEM[m[2]]||'colorless'],count:parseInt(m[1])||1});
     }
-    for(const m of text.matchAll(/(?:提供|视为提供)(\d+)个((?:【.+?】){2,})\d*种属性的能量/g)){
+    for(const m of text.matchAll(/(?:提供|视为提供|被视作|被视为)(\d+)个((?:【.+?】){2,})\d*种属性的能量/g)){
       const types=[...m[2].matchAll(/【(.+?)】/g)].map(x=>ELEM[x[1]]||'colorless');
       provides.push({types,count:parseInt(m[1])||1});
     }
@@ -144,19 +146,19 @@ export class CardResolver {
 
   _energySpecialRules(name,text){
     return {
-      damageOnAttach:/放置1个伤害指示物/.test(text)?10:0,
+      damageOnAttach:/放置1个伤害指示物|给该宝可梦身上放置1个伤害指示物/.test(text)?10:0,
       drawOnAttach:parseInt((text.match(/抽出(\d+)张/)||[])[1]||'0'),
-      preventWeakness:/弱点全部消除/.test(text),
-      retreatCostZero:/【撤退】所需的能量全部消除/.test(text),
-      damageBonus:parseInt((text.match(/伤害["“]?\+(\d+)["”]?点/)||[])[1]||'0'),
-      damageReduction:parseInt((text.match(/伤害["“]?-(\d+)["”]?点/)||[])[1]||'0'),
-      maxHpBonus:parseInt((text.match(/最大HP增加["“]?(\d+)["”]?/)||[])[1]||'0'),
+      preventWeakness:/弱点[，,]?(?:全部消除|全部消失|消除)/.test(text),
+      retreatCostZero:/【撤退】所需(?:的)?能量[，,]?(?:全部消除|消除)/.test(text),
+      damageBonus:parseInt((text.match(/伤害["“”「」]?\+(\d+)["“”「」]?(?:点)?/)||[])[1]||'0'),
+      damageReduction:parseInt((text.match(/伤害["“”「」]?-(\d+)["“”「」]?(?:点)?/)||[])[1]||'0'),
+      maxHpBonus:parseInt((text.match(/最大HP(?:增加|上升)["“”「」]?(\d+)["“”「」]?/)||[])[1]||'0'),
       blockSpecialCondition:/不会陷入特殊状态/.test(text),
       blockAttackEffects:/不会受到对手的宝可梦使用招式的效果/.test(text),
       recycleToHand:/不会丢到弃牌区，而是放回手牌/.test(text),
-      discardAtTurnEnd:/附上的回合结束时丢到弃牌区/.test(text),
-      requireEvolution:/只可附于进化宝可梦身上/.test(text),
-      requiresDiscardOnAttach:/必须将自己的1张手牌丢弃/.test(text),
+      discardAtTurnEnd:/(?:附上的回合结束时丢到弃牌区|附着的回合结束时放于弃牌区)/.test(text),
+      requireEvolution:/(?:只可附于|只能附着于)进化宝可梦身上/.test(text),
+      requiresDiscardOnAttach:/必须将自己的1张手牌(?:丢弃|放于弃牌区)/.test(text),
     };
   }
 }

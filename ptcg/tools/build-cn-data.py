@@ -230,6 +230,10 @@ _TRAD_TO_SIMP_NAME = {
     "谜拟ＱVMAX": "谜拟丘VMAX", "毒电婴": "电婴",
     "伽勒尔 死神板": "伽勒尔 迭失板",
     "洗翠　万针鱼": "洗翠 万针鱼", "洗翠 万针鱼": "洗翠 万针鱼",
+    "厄鬼椪": "厄诡椪", "厄鬼椪 碧草面具": "厄诡椪 碧草面具",
+    "厄鬼椪 碧草面具ex": "厄诡椪 碧草面具ex", "厄鬼椪 础石面具ex": "厄诡椪 础石面具ex",
+    "厄鬼椪 火灶面具ex": "厄诡椪 火灶面具ex", "厄鬼椪 水井面具ex": "厄诡椪 水井面具ex",
+    "月月熊 赫月 ex": "月月熊 赫月ex",
     "流氓熊猫": "霸道熊猫", "仆斩将军": "仆刀将军",
     "阿克罗玛的执著": "阿可萝玛的执念",
     "阿塞劳拉": "阿塞萝拉", "阿塞劳拉的预感": "阿塞萝拉的预感",
@@ -407,8 +411,10 @@ def build_old_to_new_map_v2(cards, dex_lookup, name_only_dex):
     # Helper: normalize full-width chars and brackets
     def name_normalize(s):
         s = s.replace("　"," ").replace("ａ","a").replace("Ｐ","Q")
-        s = re.sub(r"\[[^\]]*\]$", "", s)  # strip [进化前分岐α] etc.
-        return s
+        s = re.sub(r"[\[\]]", "", s)          # strip [进化前分岐α] 等方括号
+        s = re.sub(r"<([^>]*)>", r"\1", s)     # <大吾的> → 大吾的
+        s = re.sub(r"\s+", " ", s)              # 双空格/连续空格 → 单空格
+        return s.strip()
 
     for oid, old in old_by_id.items():
         match = None
@@ -928,9 +934,16 @@ def main():
             print(f"  Copied: {copied}...")
     print(f"  Done: {copied} copied, {skipped} skipped, {thumbed} thumbnails, {missing} missing")
 
-    # Generate updated meta.json
+    # Generate updated meta.json（保留既有手工策展字段，仅更新程序维护的基础字段）
     print("\nGenerating meta.json...")
-    meta = {
+    meta_path = PTCG / "data" / "meta.json"
+    if meta_path.exists():
+        with meta_path.open("r", encoding="utf-8") as f:
+            existing = json.load(f)
+    else:
+        existing = {}
+    meta = dict(existing)
+    meta.update({
         "format": "简中标准环境 F/G/H/I 标",
         "currentMarks": ["F", "G", "H", "I"],
         "retiredMarks": ["A", "B", "C", "D", "E"],
@@ -938,13 +951,15 @@ def main():
         "markSeries": {
             "F": "SV1-SV3", "G": "SV4-SV5", "H": "SV6-SV7", "I": "SV8-SV9"
         },
-        "basicEnergy": {
+    })
+    # 仅在缺失 basicEnergy 时才生成（避免覆盖手工策展的当前环境基本能量列表）
+    if "basicEnergy" not in meta or not meta.get("basicEnergy", {}).get("cards"):
+        meta["basicEnergy"] = {
             "description": "基本能量卡ID速查表",
             "cards": [{"name": c["card_name"], "id": c["card_key"]}
                       for c in cards if c["card_type"] == "Basic Energy"]
         }
-    }
-    with (PTCG / "data" / "meta.json").open("w", encoding="utf-8") as f:
+    with meta_path.open("w", encoding="utf-8") as f:
         json.dump(meta, f, ensure_ascii=False, indent=2)
 
     # Generate sets.tsv for frontend
