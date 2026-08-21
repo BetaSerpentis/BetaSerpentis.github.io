@@ -864,17 +864,24 @@ const EXECUTORS = {
   // ===== 百万吨吹风机：丢对手道具/特殊能量/竞技场 =====
   discard_field_attachments(gs, pl, p) {
     const opp = _opponent(gs, pl);
+    const owners = (p.target === 'both') ? [pl, opp] : [opp];
+    const maxCount = p.maxCount || Infinity;
     let n = 0;
-    for (const mon of [opp.active, ...opp.bench]) {
-      if (!mon) continue;
-      if (p.tools && mon.tool) { opp.discard.push(_toolCardValue(mon.tool)); mon.tool = null; n++; }
-      if (p.specialEnergy && mon.energy?.length) {
-        const kept = [];
-        for (const e of mon.energy) {
-          if (_isSpecialEnergyAttachment(gs, e)) { opp.discard.push(e); n++; }
-          else kept.push(e);
+    for (const owner of owners) {
+      for (const mon of [owner.active, ...(owner.bench || [])]) {
+        if (!mon) continue;
+        if (n >= maxCount) break;
+        if (p.tools && mon.tool) { owner.discard.push(_toolCardValue(mon.tool)); mon.tool = null; n++; }
+        if (n >= maxCount) break;
+        if (p.specialEnergy && mon.energy?.length) {
+          const kept = [];
+          for (const e of mon.energy) {
+            if (n >= maxCount) { kept.push(e); continue; }
+            if (_isSpecialEnergyAttachment(gs, e)) { owner.discard.push(e); n++; }
+            else kept.push(e);
+          }
+          mon.energy = kept;
         }
-        mon.energy = kept;
       }
     }
     if (p.stadium) {
@@ -992,6 +999,7 @@ const EXECUTORS = {
     if (!pl.bench[idx]) return;
     pl.active = pl.bench.splice(idx, 1)[0];
     pl.bench.push(oldActive);
+    gs._removeSpecialConditions?.(oldActive);
     const heal = p.heal || 30;
     oldActive.hp = Math.min(oldActive.maxHp, oldActive.hp + heal);
     gs.addLog(`交替推车：换位并恢复 ${heal} HP`);
@@ -1004,6 +1012,7 @@ const EXECUTORS = {
     const oldActive = pl.active;
     pl.active = pl.bench.splice(idx, 1)[0];
     if (oldActive) pl.bench.push(oldActive);
+    gs._removeSpecialConditions?.(oldActive);
     gs.addLog(`${pl.active.name} 因特性换到战斗场`);
     gs.recomputePassives?.();
   },
@@ -1025,17 +1034,17 @@ const EXECUTORS = {
         failRequired, requiredAction:eff?.action
       });
       const idx = slot?.startsWith('bench-') ? parseInt(slot.replace('bench-', '')) : -1;
-      if (opp.bench[idx]) { const t = opp.active; opp.active = opp.bench.splice(idx,1)[0]; if (t) opp.bench.push(t); gs.addLog('对手换位'); }
+      if (opp.bench[idx]) { const t = opp.active; opp.active = opp.bench.splice(idx,1)[0]; if (t) { opp.bench.push(t); gs._removeSpecialConditions?.(t); } gs.addLog('对手换位'); }
       else if (failRequired) _requiredFailure(eff?.action, 'required_invalid_switch_target');
     } else if (p.who === 'both') {
       for (const pp of [pl, _opponent(gs, pl)]) {
-        if (pp.bench.length > 0) { const t = pp.active; pp.active = pp.bench.shift(); if (t) pp.bench.push(t); }
+        if (pp.bench.length > 0) { const t = pp.active; pp.active = pp.bench.shift(); if (t) { pp.bench.push(t); gs._removeSpecialConditions?.(t); } }
       }
       gs.addLog('双方换位');
     } else {
       const slot = await _pickPokemonTarget(gs, pl, pl, { mode:'switch', side:'self', allowActive:false, allowBench:true, prompt:'选择换上场的备战宝可梦', failRequired, requiredAction:eff?.action });
       const idx = slot?.startsWith('bench-') ? parseInt(slot.replace('bench-', '')) : -1;
-      if (pl.bench[idx]) { const t = pl.active; pl.active = pl.bench.splice(idx,1)[0]; if (t) pl.bench.push(t); gs.addLog('换位'); }
+      if (pl.bench[idx]) { const t = pl.active; pl.active = pl.bench.splice(idx,1)[0]; if (t) { pl.bench.push(t); gs._removeSpecialConditions?.(t); } gs.addLog('换位'); }
       else if (failRequired) _requiredFailure(eff?.action, 'required_invalid_switch_target');
     }
   },
@@ -1278,7 +1287,13 @@ const EXECUTORS = {
 
   // ===== 无视 =====
   ignore(gs, pl, p) {
-    if (pl.active) { pl.active.ignore = pl.active.ignore || []; pl.active.ignore.push(p.what); gs.addLog(`无视${p.what}`); }
+    if (pl.active) {
+      pl.active.ignore = pl.active.ignore || [];
+      // 组合值拆分为 BattleEngine 可识别的单个标记
+      const whats = p.what === 'weakness_resistance_effects' ? ['weakness', 'resistance', 'opponent_effects'] : [p.what];
+      for (const w of whats) { if (!pl.active.ignore.includes(w)) pl.active.ignore.push(w); }
+      gs.addLog(`无视${p.what}`);
+    }
   },
 
   // ===== 无法攻击 =====

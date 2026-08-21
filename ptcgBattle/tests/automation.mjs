@@ -15,13 +15,15 @@ import { PTCGBattleApp, cardPickerTitleFor, energyElementClass, energyLabel, pok
 import { pokemonSpriteImgHtml, pokemonSpriteSrc } from '../js/ui/SpriteUtils.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA_DIR = path.resolve(__dirname, '../../ptcg/data');
+const DATA_DIR = path.resolve(__dirname, '../../ptcg/data/battle');
+const ID_MAPPING_PATH = path.resolve(__dirname, '../../ptcg/tools/id_mapping.json');
 
-// Parser coverage guardrails are intentionally below the latest validated WP5 baseline
-// (4518/7208 parsed, 4499 residual) so routine fixture/card-data churn does not make
-// this trend test brittle while still catching broad parser regressions.
-const PARSER_COVERAGE_MIN_RATIO = 0.60;
-const PARSER_RESIDUAL_MAX_COUNT = 4650;
+// Parser coverage guardrails（2026-08 简中数据迁移后重新基线）：
+// 旧数据为繁中措辞，解析覆盖率 4631/7208 (64%)。迁移到 tcg.mik.moe 简中数据后，
+// 全卡池扩到 12346 张且措辞发生官方译名变化，EffectParser 已加 normalizeCn 归一化层
+// + 大量简中规则适配，覆盖率从 27% 提升到 ~49%。这两条保护线用于拦截大面积退化。
+const PARSER_COVERAGE_MIN_RATIO = 0.45;
+const PARSER_RESIDUAL_MAX_COUNT = 13000;
 const PARSER_TOP_BUCKET_LIMIT = 8;
 
 const RESIDUAL_BUCKETS = [
@@ -129,10 +131,10 @@ function buildSpecialEnergy(raw) {
   const text = raw['效果'] || '';
   const cnToType = { '草':'grass','火':'fire','水':'water','雷':'lightning','斗':'fighting','恶':'dark','钢':'metal','超':'psychic','无':'colorless','龙':'dragon','妖':'fairy' };
   const provides = [];
-  const all = text.match(/(?:提供|视为提供)(\d+)个所有属性/);
+  const all = text.match(/(?:提供|视为提供|被视作|被视为)(\d+)个所有属性/);
   if (all) provides.push({ types:['any'], count:parseInt(all[1]) });
-  for (const m of text.matchAll(/(?:提供|视为提供)(\d+)个【(.+?)】能量/g)) provides.push({ types:[cnToType[m[2]]||'colorless'], count:parseInt(m[1]) });
-  for (const m of text.matchAll(/(?:提供|视为提供)(\d+)个((?:【.+?】){2,})\d*种属性的能量/g)) {
+  for (const m of text.matchAll(/(?:提供|视为提供|被视作|被视为)(\d+)个【(.+?)】能量/g)) provides.push({ types:[cnToType[m[2]]||'colorless'], count:parseInt(m[1]) });
+  for (const m of text.matchAll(/(?:提供|视为提供|被视作|被视为)(\d+)个((?:【.+?】){2,})\d*种属性的能量/g)) {
     provides.push({ types:[...m[2].matchAll(/【(.+?)】/g)].map(x=>cnToType[x[1]]||'colorless'), count:parseInt(m[1]) });
   }
   if (!provides.length) provides.push({ types:['colorless'], count:1 });
@@ -143,10 +145,10 @@ function buildSpecialEnergy(raw) {
     provides,
     specialRules: {
       damageOnAttach:/放置1个伤害指示物/.test(text)?10:0,
-      preventWeakness:/弱点全部消除/.test(text),
-      retreatCostZero:/【撤退】所需的能量全部消除/.test(text),
-      damageBonus:parseInt((text.match(/伤害["“]?\+(\d+)["”]?点/)||[])[1]||'0'),
-      maxHpBonus:parseInt((text.match(/最大HP增加["“]?(\d+)["”]?/)||[])[1]||'0'),
+      preventWeakness:/弱点[，,]?(?:全部消除|全部消失|消除)/.test(text),
+      retreatCostZero:/【撤退】所需(?:的)?能量[，,]?(?:全部消除|消除)/.test(text),
+      damageBonus:parseInt((text.match(/伤害["“”「」]?\+(\d+)["“”「」]?(?:点)?/)||[])[1]||'0'),
+      maxHpBonus:parseInt((text.match(/最大HP(?:增加|上升)["“”「」]?(\d+)["“”「」]?/)||[])[1]||'0'),
     },
   };
 }
@@ -171,8 +173,41 @@ function assertHasAction(text, action) {
   assert.equal(parsed.effects.some(e => e.action === action), true, `${text}\nparsed=${JSON.stringify(parsed)}`);
 }
 
+// 旧数字 ID → 新 set-code ID 反向映射（迁移桥：让历史测试里的旧 ID 引用继续可用）。
+let _oldToNew = null;
+let _newToOld = null;
+function _loadIdMapping() {
+  if (_oldToNew) return;
+  try {
+    const mapping = JSON.parse(fs.readFileSync(ID_MAPPING_PATH, 'utf8'));
+    _oldToNew = mapping;
+    _newToOld = new Map();
+    for (const [oldId, info] of Object.entries(mapping)) {
+      const key = info && info.new_key;
+      if (!key) continue;
+      if (!_newToOld.has(key)) _newToOld.set(key, []);
+      _newToOld.get(key).push(oldId);
+    }
+  } catch (e) {
+    _oldToNew = {};
+    _newToOld = new Map();
+  }
+}
+
 function loadJson(file) {
-  return JSON.parse(fs.readFileSync(path.join(DATA_DIR, file), 'utf8'));
+  const cards = JSON.parse(fs.readFileSync(path.join(DATA_DIR, file), 'utf8'));
+  // 把旧数字 ID 挂回每张卡的 卡牌ID，使历史旧 ID 引用无需逐条改写。
+  _loadIdMapping();
+  for (const c of cards) {
+    const ids = c['卡牌ID'] || [];
+    for (const id of ids) {
+      const olds = _newToOld.get(id);
+      if (olds && olds.length) {
+        for (const o of olds) if (!ids.includes(o)) ids.push(o);
+      }
+    }
+  }
+  return cards;
 }
 
 function getPokemonRawByAbility(abilityName) {
@@ -192,8 +227,8 @@ function abilityZone(text) {
 function buildAbilityFromRaw(raw) {
   const text = raw['特性效果'] || '';
   const parsed = parseEffect(text);
-  const active = /可使用1次|可使用/.test(text);
-  return { name: raw['特性名字'], effect: text, effects: parsed.effects, active, passive: !active, oncePerTurn: /可使用1次/.test(text), zone: abilityZone(text) };
+  const active = /可使用1次|可以使用1次|可使用|可以使用/.test(text);
+  return { name: raw['特性名字'], effect: text, effects: parsed.effects, active, passive: !active, oncePerTurn: /可使用1次|可以使用1次/.test(text), zone: abilityZone(text) };
 }
 
 // ============================================================
@@ -301,7 +336,7 @@ await test('WP7解析：弃牌区选择/抽出能量附于单一己方目标', (
 
 await test('真实数据：宝可梦交替与宝可齿轮3.0在 Item-cards.json 中可解析', () => {
   const items = loadJson('Item-cards.json');
-  const gear = items.find(c => c['卡牌名字'] === '宝可齿轮3.0');
+  const gear = items.find(c => c['卡牌名字'] === '宝可装置3.0');
   const swap = items.find(c => c['卡牌名字'] === '宝可梦交替');
   assert.equal(gear && swap ? true : false, true);
   assertHasAction(gear['效果'], 'peek_and_keep');
@@ -415,7 +450,7 @@ await test('真实数据：WP6 polish cards parse targeted automation effects', 
 await test('真实数据：WP5 preset safety fixes parse conditional status, coin damage, and Mela prerequisite', () => {
   const pokemon = loadJson('pokemon-cards.json');
   const supporters = loadJson('Supporter-cards.json');
-  const purrloin = pokemon.find(c => (c['卡牌ID'] || []).includes('7654'));
+  const purrloin = pokemon.find(c => c['宝可梦名字'] === '扒手猫' && (c['技能1']||{})['名字'] === '乱抓');
   const cryogonal = pokemon.find(c => (c['卡牌ID'] || []).includes('9539'));
   const mela = supporters.find(c => (c['卡牌ID'] || []).includes('10024'));
   assert.ok(purrloin && cryogonal && mela);
@@ -2595,6 +2630,7 @@ await test('UI宝可梦选择器标题：效果选择使用prompt且普通视图
 
 await test('玩家攻击后会触发并完成对手回合，回到玩家 main 阶段', async () => {
   const gs = new GameState();
+  gs.player1.deck = ['c1', 'c2']; gs.player2.deck = ['c1', 'c2'];
   gs.phase = PHASE.BATTLE;
   gs.currentPlayer = gs.player1;
   gs.player1.active = mon('攻击方', 'atk', [{ name: '撞击', damage: 10, cost: [], effects: [] }]);
@@ -2621,6 +2657,7 @@ await test('玩家攻击后会触发并完成对手回合，回到玩家 main �
 
 await test('AI在main阶段有合法招式时会进入battle并攻击后交还玩家', async () => {
   const gs = new GameState();
+  gs.player1.deck = ['c1', 'c2']; gs.player2.deck = ['c1', 'c2'];
   gs.phase = PHASE.MAIN;
   gs.currentPlayer = gs.player2;
   gs.player1.active = mon('玩家出战');
@@ -2638,6 +2675,7 @@ await test('AI在main阶段有合法招式时会进入battle并攻击后交还�
 
 await test('AI无合法招式或能量不足时会pass并回到玩家', async () => {
   const gs = new GameState();
+  gs.player1.deck = ['c1', 'c2']; gs.player2.deck = ['c1', 'c2'];
   gs.phase = PHASE.MAIN;
   gs.currentPlayer = gs.player2;
   gs.player1.active = mon('玩家出战');
@@ -2655,6 +2693,7 @@ await test('AI无合法招式或能量不足时会pass并回到玩家', async ()
 
 await test('AI攻击失败路径会结束回合且不遗留进行中状态', async () => {
   const gs = new GameState();
+  gs.player1.deck = ['c1', 'c2']; gs.player2.deck = ['c1', 'c2'];
   gs.phase = PHASE.BATTLE;
   gs.currentPlayer = gs.player2;
   gs.player1.active = mon('玩家出战');
@@ -2673,6 +2712,7 @@ await test('AI攻击失败路径会结束回合且不遗留进行中状态', asy
 
 await test('连续回合循环不会卡在对手回合或重复触发AI', async () => {
   const gs = new GameState();
+  gs.player1.deck = ['c1', 'c2']; gs.player2.deck = ['c1', 'c2'];
   gs.phase = PHASE.BATTLE;
   gs.currentPlayer = gs.player1;
   gs.player1.active = mon('玩家出战', 'p', [{ name: '轻击', damage: 5, cost: [], effects: [] }]);
@@ -2744,7 +2784,9 @@ await test('中毒/灼伤在回合结束时结算伤害', () => {
   gs.currentPlayer = gs.player1;
   gs.player1.active = mon('异常宝可梦');
   gs.player1.active.status = 'poison,burn';
-  gs.endTurn();
+  const realRandom = Math.random;
+  Math.random = () => 0.9; // 灼伤投币为反面 → 放2个伤害指示物(-20)
+  try { gs.endTurn(); } finally { Math.random = realRandom; }
   assert.equal(gs.player1.active.hp, 30);
 });
 
@@ -3974,6 +4016,7 @@ await test('先攻玩家最初回合：不能攻击且不造成伤害、不执�
 
 await test('后攻玩家最初回合：若其他条件合法则可以攻击', async () => {
   const gs = new GameState();
+  gs.player1.deck = ['c1', 'c2']; gs.player2.deck = ['c1', 'c2'];
   gs.phase = PHASE.BATTLE;
   gs.currentPlayer = gs.player2;
   gs.firstPlayer = gs.player1;
@@ -3992,6 +4035,7 @@ await test('后攻玩家最初回合：若其他条件合法则可以攻击', as
 
 await test('先攻玩家后续回合：先攻标记已清除时若其他条件合法则可以攻击', async () => {
   const gs = new GameState();
+  gs.player1.deck = ['c1', 'c2']; gs.player2.deck = ['c1', 'c2'];
   gs.phase = PHASE.BATTLE;
   gs.currentPlayer = gs.player1;
   gs.firstPlayer = gs.player1;
@@ -4979,7 +5023,7 @@ await test('招式伤害：无伤害招式为0伤害但仍可执行效果', asyn
   const realSetTimeout = globalThis.setTimeout;
   globalThis.setTimeout = () => 0;
   try { await makeEngine(gs).attack(); } finally { globalThis.setTimeout = realSetTimeout; }
-  assert.equal(gs.player2.active.hp, 60);
+  assert.equal(gs.player2.active.hp, 50); // 0 伤害招式自身不造成伤害，但回合结束时中毒结算 -10
   assert.equal(gs.player2.active.status, 'poison');
 });
 
@@ -5255,7 +5299,7 @@ await test('特殊能量：双重无色、单位能量、彩虹能量供能规�
   assert.equal(gs.attachEnergy(pl, 0, doubleColorless, 'active'), true);
   assert.equal(gs.checkEnergy(pl.active, 0), true);
 
-  const unit = getSpecialEnergy('单位能量【草】【火】【水】');
+  const unit = getSpecialEnergy('组合能量【草】【火】【水】');
   pl.hand = ['5754'];
   pl.active = mon('火费用', 'm2', [{ name:'火招', damage:30, cost:['fire'], effects:[] }]);
   assert.equal(gs.attachEnergy(pl, 0, unit, 'active'), false); // 同一回合已附能
@@ -5284,7 +5328,7 @@ await test('特殊能量：弱点防守/高温火/潜行恶/强力无效果', as
 
   gs = new GameState();
   pl = gs.player1;
-  const heat = getSpecialEnergy('高温火能量');
+  const heat = getSpecialEnergy('高温【火】能量');
   pl.hand = ['1430'];
   pl.active = mon('火宝可梦');
   pl.active.element = 'fire';
@@ -5294,7 +5338,7 @@ await test('特殊能量：弱点防守/高温火/潜行恶/强力无效果', as
 
   gs = new GameState();
   pl = gs.player1;
-  const hideDark = getSpecialEnergy('潜行恶能量');
+  const hideDark = getSpecialEnergy('潜行【恶】能量');
   pl.hand = ['1285'];
   pl.active = mon('恶宝可梦');
   pl.active.element = 'dark';
@@ -5307,7 +5351,7 @@ await test('特殊能量：弱点防守/高温火/潜行恶/强力无效果', as
   gs = new GameState();
   gs.phase = PHASE.BATTLE;
   gs.currentPlayer = gs.player1;
-  const power = getSpecialEnergy('强力无能量');
+  const power = getSpecialEnergy('强力【无】能量');
   gs.player1.active = mon('无色攻击方', 'atk', [{ name:'打击', damage:20, cost:['colorless'], effects:[] }]);
   gs.player1.active.element = 'colorless';
   gs.player1.active.energy = [{ cardId:'1432', name:power.name, provides:power.provides, specialRules:power.specialRules }];
@@ -5356,7 +5400,7 @@ await test('招式执行顺序：正面通过失败检查后才造成伤害并�
     Math.random = () => 0.1; // 正面，通过
     const ok = await makeEngine(gs).attack();
     assert.equal(ok, true);
-    assert.equal(gs.player2.active.hp, 10);
+    assert.equal(gs.player2.active.hp, 0); // 50 伤害后 10，回合结束时中毒结算 -10 → 0
     assert.equal(gs.player2.active.status, 'poison');
     assert.equal(gs.currentPlayer, gs.player2);
   } finally {
@@ -5548,9 +5592,9 @@ await test('真实卡特性：化学变化气体只在战斗场上消除对手�
 });
 
 await test('真实卡特性：暗夜羽击只消除对手战斗宝可梦特性并尊重例外', () => {
-  const ability = buildAbilityFromRaw(getPokemonRawByAbility('暗夜羽击'));
+  const ability = buildAbilityFromRaw(getPokemonRawByAbility('暗夜振翼'));
   assert.equal(ability.effects.some(e => e.action === 'ability_nullify' && e.params.scope === 'opponent_active'), true);
-  assert.deepEqual(ability.effects[0].params.exceptAbilityNames, ['暗夜羽击']);
+  assert.deepEqual(ability.effects[0].params.exceptAbilityNames, ['暗夜振翼']);
 
   const gs = new GameState();
   gs.player1.active = mon('振翼发');
@@ -5563,7 +5607,7 @@ await test('真实卡特性：暗夜羽击只消除对手战斗宝可梦特性�
   assert.equal(gs.player2.active.abilityDisabled, true);
   assert.equal(gs.player2.bench[0].abilityDisabled, false);
 
-  gs.player2.active.ability = { name:'暗夜羽击', active:true, zone:'field', effects:[{ action:'draw', params:{ count:1 } }] };
+  gs.player2.active.ability = { name:'暗夜振翼', active:true, zone:'field', effects:[{ action:'draw', params:{ count:1 } }] };
   gs.recomputePassives();
   assert.equal(gs.player2.active.abilityDisabled, false);
 

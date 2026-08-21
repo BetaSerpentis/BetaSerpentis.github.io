@@ -1,5 +1,27 @@
 # ptcgBattle 开发进度
 
+## 数据同步（2026-08 重要变更）
+
+ptcgBattle 卡牌数据已从旧繁中数字 ID 数据迁移到与 ptcg 完全同源的简中 set-code ID 数据：
+
+- **数据来源**：`ptcg/data/battle/*.json`，由 `ptcg/tools/build-battle-data.py` 从 `E:\PTCG-CN-Sync`（tcg.mik.moe 简中，与 ptcg 的 `data_fast` 同源）生成。
+- **卡牌 ID**：统一为 set-code ID（如 `CSVE1C-003`），与 ptcg 主程序一致；旧数字 ID（如 `7970`）通过 `ptcg/tools/id_mapping.json` 迁移（测试里保留反向映射桥）。
+- **卡池**：完整 12346 张（9248 宝可梦 + 3098 训练家/能量），覆盖 A–J 标（含 SV10「共逐荣光」），与 `data_fast` 卡 ID 集合 100% 一致。
+- **CardResolver** 改读 `ptcg/data/battle/`；`decks.js` 测试卡组已换新 ID；`isEx/isRadiant/hasRuleBox` 改用 `mechanic` 字段判定。
+- **弱点/抵抗力**：新增 `弱点倍率`/`抵抗值` 真实数据，BattleEngine 由固定 x2 / -30 改为读取卡牌真实值。
+- **数据构建**：`python ptcg/tools/build-battle-data.py`（battle 数据）与 `python ptcg/tools/build-cn-data.py`（data_fast + id_mapping）各自可独立重跑。
+
+### EffectParser 简中迁移（已完成主要迁移）
+
+数据已同步，效果解析器 EffectParser 已加 `normalizeCn()` 简中→繁中归一化层（若→如果、抛掷→掷、放于弃牌区→丢到弃牌区、附着于→附于、回复→恢复、下一个→下个、使/令→将、给对手看过后等）+ 大量高频简中规则适配。
+
+- 现状：解析覆盖率 7563/15394 (**49%**)（迁移前 27%，旧繁中基线 64%）。
+- 全部 ptcgBattle 自动化测试通过（含真实卡牌效果解析用例）。
+- 剩余未覆盖：被动能力（只要…就…）、多分支、特殊能量文本、化石等复杂/连续效果。
+- 保护线：`PARSER_COVERAGE_MIN_RATIO=0.45`、`PARSER_RESIDUAL_MAX_COUNT=13000`，随解析迁移推进继续上调。
+
+---
+
 ## 文件结构
 ```
 ptcgBattle/
