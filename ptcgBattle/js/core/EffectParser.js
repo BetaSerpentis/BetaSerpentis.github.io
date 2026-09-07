@@ -36,6 +36,7 @@ function normalizeCn(text) {
     // 放置：放于 → 放置于；附着于 → 附于
     .replace(/放于/g, '放置于')
     .replace(/附着于/g, '附于')
+    .replace(/附有/g, '附着')
     // 掷硬币：抛掷 → 掷
     .replace(/抛掷/g, '掷')
     // 条件：如果...的话 → 若
@@ -297,6 +298,15 @@ const RULES = [
   { re: /受到这个招式影响的宝可梦(?:所)?受到的?招式的伤害["“”「」]?([+-]?\d+)["“”「」]?/, act:'damage_received_mod', p:m=>({amount:+m[1],target:'opponent'}) },
   { re: /自己所有的宝可梦[，,]受到对手宝可梦的招式的伤害["“”「」]?([+-]?\d+)["“”「」]?/, act:'damage_received_mod', p:m=>({amount:+m[1],target:'own_field'}) },
   { re: /自己(?:所有|的)?宝可梦的【撤退】所需能量[，,]?全部消除/, act:'retreat_cost_zero', p:()=>({target:'own_field'}) },
+  { re: /身上放有这张卡的宝可梦[，,]【撤退】所需能量减少(\d+)个/, act:'retreat_cost_reduce', p:m=>({amount:+m[1],target:'self'}) },
+  { re: /受到这个招式影响的宝可梦[，,]【撤退】所需能量增加(\d+)个/, act:'retreat_cost_increase', p:m=>({amount:+m[1]}) },
+  { re: /对手的(?:所有备战|所有)宝可梦[，,]?无法回复HP/, act:'block_heal', p:m=>({target:/备战/.test(m[0])?'opponent_bench':'opponent_field'}) },
+  { re: /双方(?:所有|场上所有)的宝可梦[，,]?无法回复HP/, act:'block_heal', p:()=>({target:'both_field'}) },
+  { re: /属性变为【(.+?)】和【(.+?)】2种/, act:'dual_type', p:m=>({types:[ELEM[m[1]]||m[1],ELEM[m[2]]||m[2]]}) },
+  { re: /(?:自己的所有|自己所有)宝可梦[，,]?不会陷入特殊状态/, act:'block_special_condition', p:()=>({target:'own_field'}) },
+  { re: /(?:身上附有能量的)?自己所有的宝可梦[，,]?不会受到对手宝可梦(?:使用|所使用的)招式的效果影响/, act:'prevent_effect', p:()=>({target:'own_field',source:'attack'}) },
+  { re: /对手的战斗宝可梦[，,]?因【中毒】而放置的伤害指示物数量增加(\d+)个/, act:'poison_damage_increase', p:m=>({target:'opponent_active',amount:+m[1]}) },
+  { re: /(?:自己所有宝可梦|双方场上所有的【(.+?)】宝可梦)的弱点[，,]?全部消除/, act:'weakness_null', p:m=>({target:m[1]?'both_type':'own_field',type:m[1]?(ELEM[m[1]]||m[1]):undefined}) },
   { re: /造成对手的战斗宝可梦【撤退】所需的能量的数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'opponent_retreat_cost',mode:'per_unit'}) },
   { re: /造成对手战斗宝可梦【撤退】所需能量数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'opponent_retreat_cost',mode:'per_unit'}) },
   { re: /增加对手的战斗宝可梦身上附加的能量的数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'opponent_active_energy_count',mode:'per_unit'}) },
@@ -309,6 +319,14 @@ const RULES = [
   { re: /追加造成这只宝可梦身上附着的.+?能量数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'self_energy',mode:'per_unit'}) },
   { re: /增加双方的备战宝可梦的数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'total_bench',mode:'per_unit'}) },
   { re: /增加.+?的.*?张数[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'count',mode:'per_unit'}) },
+  { re: /造成这只宝可梦身上附着的(.+?)能量(?:张数|数量)[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[2],condition:'self_energy',mode:'per_unit'}) },
+  { re: /追加造成(?:对手|自己的).*?身上附着的(.+?)能量(?:张数|数量)[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[2],condition:m[0].includes('对手')?'opponent_active_energy_count':'self_energy',mode:'per_unit'}) },
+  { re: /造成对手(?:的)?战斗宝可梦的【撤退】所需能量(?:的)?数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'opponent_retreat_cost',mode:'per_unit'}) },
+  { re: /追加造成对手(?:的)?战斗宝可梦的【撤退】所需能量(?:的)?数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'opponent_retreat_cost',mode:'per_unit'}) },
+  { re: /造成这只宝可梦身上附有的能量(?:的)?数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'self_energy',mode:'per_unit'}) },
+  { re: /造成对手(?:的)?场上宝可梦身上附有的能量(?:的)?数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'opponent_field_energy',mode:'per_unit'}) },
+  { re: /追加造成自己(?:的)?场上宝可梦身上附有的能量(?:的)?数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'own_field_energy',mode:'per_unit'}) },
+  { re: /造成对手(?:的)?所有宝可梦身上附着的【(.+?)】能量数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[2],condition:'opponent_field_energy_type',type:m[1],mode:'per_unit'}) },
 
   // ===== 防止伤害/效果 =====
   { re: /在下个对手的回合[，,]这只宝可梦不会受到招式的伤害与效果的影响/, act:'prevent_damage_effect', p:()=>({duration:'next_opp_turn'}) },
@@ -342,15 +360,27 @@ const RULES = [
 
   // ===== 丢弃自身能量 =====
   { re: /将这只宝可梦身上所附加的(.+?)能量全部丢弃/, act:'discard_energy', p:m=>({target:'self',filter:m[1],count:'all'}) },
-  { re: /将附着于这只宝可梦身上的所有能量(?:放于弃牌区|丢到弃牌区)/, act:'discard_energy', p:()=>({target:'self',count:'all'}) },
-  { re: /将附着于这只宝可梦身上的(\d+)个能量(?:放于弃牌区|丢到弃牌区)/, act:'discard_energy', p:m=>({target:'self',count:+m[1]}) },
+  { re: /将附于这只宝可梦身上的(?:所有)?能量[，,]?(?:全部)?(?:放于弃牌区|丢到弃牌区)/, act:'discard_energy', p:()=>({target:'self',count:'all'}) },
+  { re: /将附于这只宝可梦身上的(\d+)个能量(?:放于弃牌区|丢到弃牌区)/, act:'discard_energy', p:m=>({target:'self',count:+m[1]}) },
   { re: /将这只宝可梦身上附加的(.+?)能量(?:丢弃|丢到弃牌区)/, act:'discard_energy', p:m=>({target:'self',filter:m[1],count:1}) },
   { re: /将这只宝可梦身上所附加的(\d+)个能量丢到弃牌区/, act:'discard_energy', p:m=>({target:'self',count:+m[1]}) },
   { re: /将这只宝可梦身上附加的能量卡全部丢弃/, act:'discard_energy', p:()=>({target:'self',count:'all'}) },
   { re: /选择2个这只宝可梦身上附加的能量[，,]将其丢弃/, act:'discard_energy', p:()=>({target:'self',count:2}) },
   { re: /选择这只宝可梦身上附着的(\d+)个(?:【.+?】)?能量[，,](?:放于弃牌区|丢到弃牌区)/, act:'discard_energy', p:m=>({target:'self',count:+m[1]}) },
-  { re: /选择附着于这只宝可梦身上的(\d+)个(?:【.+?】)?能量[，,](?:放于弃牌区|丢到弃牌区)/, act:'discard_energy', p:m=>({target:'self',count:+m[1]}) },
+  { re: /选择附于这只宝可梦身上的(\d+)个(?:【.+?】)?能量[，,](?:放于弃牌区|丢到弃牌区)/, act:'discard_energy', p:m=>({target:'self',count:+m[1]}) },
   { re: /选择1个这只宝可梦身上附加的能量[，,]将其丢弃/, act:'discard_energy', p:()=>({target:'self',count:1}) },
+
+  // ===== 对手能量丢弃/移动/弃牌区附能（简中高频变体）=====
+  { re: /将附于对手(?:的)?战斗宝可梦身上的(\d+)个(?:特殊|【.+?】)?能量[，,]?(?:放于弃牌区|丢到弃牌区)/, act:'discard_energy', p:m=>({target:'opponent',count:+m[1]}) },
+  { re: /选择附于对手(?:的)?战斗宝可梦身上的(\d+)个(?:【.+?】)?能量[，,](?:放于弃牌区|丢到弃牌区)/, act:'discard_energy', p:m=>({target:'opponent',count:+m[1]}) },
+  { re: /选择对手战斗宝可梦身上附着的(\d+)个(?:【.+?】)?能量[，,](?:放于弃牌区|丢到弃牌区)/, act:'discard_energy', p:m=>({target:'opponent',count:+m[1]}) },
+  { re: /选择这只宝可梦身上附着的(\d+)个(?:【.+?】)?能量[，,]转附于(?:1只|一只)?备战宝可梦身上/, act:'move_energy', p:()=>({source:'self',dest:'bench'}) },
+  { re: /将自己弃牌区中的(\d+)张(.+?能量)[，,]附于自己的(?:【.+?】)?宝可梦身上/, act:'attach_energy_from_discard', p:m=>withCount({filter:m[2].trim(),target:'any'},m[1],false) },
+  { re: /从自己的弃牌区选择最多(\d+)张【(.+?)】能量[，,]以任意方式附于自己的宝可梦身上/, act:'attach_energy_from_discard', p:m=>withCount({filter:`【${m[2]}】能量`,target:'any'},m[1],true) },
+  { re: /选择自己手牌中的(?:基本)?【(.+?)】能量和(?:基本)?【(.+?)】能量各最多1张[，,]以任意方式附于自己宝可梦身上/, act:'attach_energy_from_hand', p:m=>({target:'any',optional:true,filter:`【${m[1]}】能量或【${m[2]}】能量`}) },
+  { re: /选择自己手牌中的(\d+)张能量[，,]附于自己的备战宝可梦身上/, act:'attach_energy_from_hand', p:m=>withCount({filter:'能量',target:'bench'},m[1],false) },
+  { re: /选择自己手牌中的(\d+)张(.+?能量)[，,]附于自己的(?:备战)?宝可梦身上/, act:'attach_energy_from_hand', p:m=>withCount({filter:m[2].trim(),target:'any'},m[1],false) },
+  { re: /(?:若希望，)?可选择附于对手战斗宝可梦身上的(\d+)个(?:【.+?】)?能量[，,]放回对手的手牌/, act:'return_energy_to_hand', p:m=>({count:+m[1],optional:/若希望/.test(m[0])}) },
 
   // ===== 丢弃对手能量 =====
   { re: /选择1个对手的(?:战斗宝可梦|备战宝可梦|(?:场上)?宝可梦|1只宝可梦)身上附加的能量[，,]将其丢弃/, act:'discard_energy', p:m=>opponentDiscardEnergyParams(m[0]) },

@@ -11,14 +11,20 @@ ptcgBattle 卡牌数据已从旧繁中数字 ID 数据迁移到与 ptcg 完全�
 - **弱点/抵抗力**：新增 `弱点倍率`/`抵抗值` 真实数据，BattleEngine 由固定 x2 / -30 改为读取卡牌真实值。
 - **数据构建**：`python ptcg/tools/build-battle-data.py`（battle 数据）与 `python ptcg/tools/build-cn-data.py`（data_fast + id_mapping）各自可独立重跑。
 
-### EffectParser 简中迁移（已完成主要迁移）
+### EffectParser 简中迁移（已基本完成）
 
 数据已同步，效果解析器 EffectParser 已加 `normalizeCn()` 简中→繁中归一化层（若→如果、抛掷→掷、放于弃牌区→丢到弃牌区、附着于→附于、回复→恢复、下一个→下个、使/令→将、给对手看过后等）+ 大量高频简中规则适配。
 
-- 现状：解析覆盖率 7563/15394 (**49%**)（迁移前 27%，旧繁中基线 64%）。
+- 现状：解析覆盖率 9302/15394 (**60%**)（迁移前 27%，旧繁中基线 64%）。
 - 全部 ptcgBattle 自动化测试通过（含真实卡牌效果解析用例）。
-- 剩余未覆盖：被动能力（只要…就…）、多分支、特殊能量文本、化石等复杂/连续效果。
+- 已接入：条件伤害 per_unit、受到的招式的伤害±N（damage_received_mod）、异常状态合并、特殊能量供能、化石、被动光环（通用伤害光环/撤退费全消/无法撤退/受伤增减/防状态/弱点消除/中毒加伤）。
+- 被动层已重构为运行时查询架构：`_passiveEffectsFor` / `_hasPassive` / `getPassiveDamageReceivedModifier`。
 - 保护线：`PARSER_COVERAGE_MIN_RATIO=0.45`、`PARSER_RESIDUAL_MAX_COUNT=13000`，随解析迁移推进继续上调。
+
+#### 未覆盖 43% 构成（6653 条）
+- 宝可梦技能 4629 / 特性 1159 / 道具 293 / 支援者 281 / 物品 172 / 竞技场 106 / 特殊能量 13。
+- 语义类型：条件触发+持续被动 ~1800、能量操作 ~800、牌库操作 ~400、伤害修正/无视 ~300、换位/回手/化石/杂项 ~300。
+- 尚未接执行的（仅解析）：dual_type（双属性）、block_heal（无法回复HP）、prevent_effect（不受到招式效果）。
 
 ---
 
