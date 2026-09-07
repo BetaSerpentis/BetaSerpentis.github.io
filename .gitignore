@@ -20,3 +20,19 @@ build/
 
 # 本地测试 ROM（不要提交版权游戏文件）
 #emulator/roms/
+
+# 本地个人数据 / AI 助手状态（claude、pi）
+.claude/
+.pi/state/
+.pi/memory/work-log/
+
+# Python 缓存
+__pycache__/
+Python/
+
+# 打包产物
+*.zip
+
+# 本地调试脚本（含本机绝对路径 / 环境变量依赖）
+ptcg/tools/analyze_dropped.py
+ptcg/test-ai-save.mjs
