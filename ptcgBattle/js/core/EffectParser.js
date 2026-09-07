@@ -56,13 +56,19 @@ function normalizeCn(text) {
     .replace(/点HP/g, 'HP')
     .replace(/丢到弃牌区后才可使用/g, '丢到弃牌区才可使用')
     .replace(/从(?:自己的|自己)牌库中/g, '从自己的牌库')
+    // 被动光环前缀：只要这只宝可梦在…上，/ 只要这张竞技场在场上，/ 只要身上放有这张卡牌的宝可梦在战斗场上，
+    .replace(/只要这只宝可梦在(?:战斗场上|场上|备战区)[，,]?/g, '')
+    .replace(/只要这张竞技场在场上[，,]?/g, '')
+    .replace(/只要身上放有这张卡牌的宝可梦在战斗场上[，,]?/g, '')
     // 不受到 → 不会受到
     .replace(/不受到/g, '不会受到')
     // 下一个 → 下个；给这只宝可梦也造成 → 这只宝可梦也受到
     .replace(/在下一个/g, '在下个')
-    .replace(/给这只宝可梦也造成(\d+)伤害/g, '这只宝可梦也受到$1点伤害')
-    // 追加造成 → 增加
-    .replace(/追加造成(\d+)伤害/g, '增加$1点伤害')
+    // 造成/受到 N点伤害 → N伤害（统一去掉“点”，便于匹配）
+    .replace(/(\d+)点伤害/g, '$1伤害')
+    .replace(/给这只宝可梦也造成(\d+)伤害/g, '这只宝可梦也受到$1伤害')
+    // 追加造成 → 增加（仅“追加造成N伤害”形式，其他含“数量×N”由单独规则处理）
+    .replace(/追加造成(\d+)伤害/g, '增加$1伤害')
     // 可以使用 → 可使用；在自己的回合可使用 → 在自己的回合时可使用
     .replace(/可以使用/g, '可使用')
     .replace(/在自己的回合可使用/g, '在自己的回合时可使用');
@@ -148,6 +154,7 @@ const RULES = [
   { re: /自己【火】属性的【基础】宝可梦(?:（除["“”「」]?火焰鸟["“”「」]?外）)?使用的招式[，,]?给对手战斗宝可梦造成的伤害["“”「」]?\+10["“”「」]?/, act:'passive_damage_mod', p:()=>({target:'own_field',amount:10,attackerType:'fire',attackerStage:'basic',excludeSourceName:'火焰鸟',defender:'opponent_active'}) },
   { re: /(?:自己的|这只)宝可梦使用的招式.*?造成的伤害["“]?([+-]\d+)["”]?点/, act:'passive_damage_mod', p:m=>({target:/这只/.test(m[0])?'self':'own_field',amount:+m[1]}) },
   { re: /(?:自己的|这只)宝可梦使用的招式.*?伤害["“]?([+-]\d+)["”]?点/, act:'passive_damage_mod', p:m=>({target:/这只/.test(m[0])?'self':'own_field',amount:+m[1]}) },
+  { re: /自己的(?:所有|【(.+?)】(?:属性)?|"(.+?)")(?:宝可梦)?(?:所)?使用(?:的)?招式[，,]?给对手(?:的)?战斗宝可梦造成的伤害["“”「」]?([+-]?\d+)["“”「」]?/, act:'passive_damage_mod', p:m=>({target:'own_field',amount:+m[3],attackerType:m[1]?(ELEM[m[1]]||m[1]):undefined,attackerName:m[2]||undefined}) },
   { re: /基本【(.+?)】能量.*?(?:视为各?提供|各?被视作)2个【\1】能量/, act:'energy_provides_multiplier', p:m=>({target:/自己的场上宝可梦|场上宝可梦|自己场上宝可梦/.test(m.input)?'own_field':'self',energyType:ELEM[m[1]]||m[1],multiplier:2,basicOnly:true}) },
   // ===== 典型物品/特性复合效果 =====
   { re: /从自己的手牌选择1张【2阶进化】宝可梦(?:卡)?[，,]放置于(?:自己的场上的可进化成|自己场上能够进化成)(?:那只|该)宝可梦的【基础】宝可梦身上[，,]跳过【1阶进化】(?:完成|进行)进化/, act:'evolve_rare_candy', p:()=>({stage:'2阶',targetStage:'基础',bypassStage:'1阶',noPlacedThisTurn:true,noFirstTurn:true}) },
@@ -184,11 +191,11 @@ const RULES = [
   { re: /掷1次硬币若为正面[，,]则在下个对手的回合[，,]这只宝可梦不会受到招式的伤害与效果的影响/, act:'coin_flip', p:()=>({count:1,heads:[{action:'prevent_damage',params:{duration:'next_opp_turn'}},{action:'prevent_effect',params:{duration:'next_opp_turn'}}]}) },
   { re: /掷1次硬币若为正面[，,]则在下个对手的回合[，,]这只宝可梦不会受到招式的伤害/, act:'coin_flip', p:()=>({count:1,heads:[{action:'prevent_damage',params:{duration:'next_opp_turn'}}]}) },
   { re: /掷1次硬币若为正面[，,]则选择1个对手的(?:战斗宝可梦|备战宝可梦|(?:场上)?宝可梦|1只宝可梦)身上附加的能量[，,]将其丢弃/, act:'coin_flip', p:m=>opponentDiscardEnergyHeads(m[0]) },
-  { re: /掷1次硬币若为正面[，,]则增加(\d+)点伤害/, act:'coin_flip_damage', p:m=>({count:1,damage:+m[1]}) },
+  { re: /掷1次硬币若为正面[，,]则增加(\d+)伤害/, act:'coin_flip_damage', p:m=>({count:1,damage:+m[1]}) },
   { re: /若在后攻玩家的最初回合[，,]?则将对手的(?:战斗)?宝可梦【(.+?)】/, act:'inflict_status', p:m=>({statuses:[STATUS_MAP[m[1]]||m[1]], condition:'second_player_first_turn'}) },
   { re: /若是?后攻玩家的最初回合[，,]?则将对手的(?:战斗)?宝可梦【(.+?)】/, act:'inflict_status', p:m=>({statuses:[STATUS_MAP[m[1]]||m[1]], condition:'second_player_first_turn'}) },
-  { re: /掷硬币直到出现反面[，,]造成正面(?:出现的)?次数[×x](\d+)点伤害/, act:'coin_flip_until_tails', p:m=>({damage_per:+m[1]}) },
-  { re: /掷(\d+)次硬币[，,]造成正面(?:出现的)?次数[×x](\d+)点伤害/, act:'coin_flip_damage', p:m=>({count:+m[1],damage_per:+m[2]}) },
+  { re: /掷硬币直到出现反面[，,]造成正面(?:出现的)?次数[×x](\d+)伤害/, act:'coin_flip_until_tails', p:m=>({damage_per:+m[1]}) },
+  { re: /掷(\d+)次硬币[，,]造成正面(?:出现的)?次数[×x](\d+)伤害/, act:'coin_flip_damage', p:m=>({count:+m[1],damage_per:+m[2]}) },
   { re: /掷(\d+)次硬币/, act:'coin_flip', p:m=>({count:+m[1]}) },
   { re: /掷1次硬币/, act:'coin_flip', p:()=>({count:1}) },
 
@@ -249,7 +256,7 @@ const RULES = [
   { re: /将双方的战斗宝可梦【(.+?)】/, act:'inflict_status_both', p:m=>({statuses:[STATUS_MAP[m[1]]||m[1]]}) },
 
   // ===== 自身伤害 =====
-  { re: /这只宝可梦也受到(\d+)点伤害/, act:'self_damage', p:m=>({amount:+m[1]}) },
+  { re: /这只宝可梦也受到(\d+)伤害/, act:'self_damage', p:m=>({amount:+m[1]}) },
 
   // ===== 换位 =====
   { re: /双方玩家将自己的战斗宝可梦与备战宝可梦互换/, act:'switch_pokemon', p:()=>({who:'both'}) },
@@ -265,11 +272,12 @@ const RULES = [
   { re: /将这只宝可梦与备战宝可梦互换/, act:'switch_pokemon', p:()=>({who:'self'}) },
 
   // ===== 备战区伤害 =====
-  { re: /对手的1只备战宝可梦也受到(\d+)点伤害/, act:'damage_bench', p:m=>({target:'opponent_1',damage:+m[1]}) },
-  { re: /对手的1只宝可梦受到(\d+)点伤害/, act:'damage_bench', p:m=>({target:'opponent_any',damage:+m[1]}) },
+  { re: /对手的1只备战宝可梦也受到(\d+)伤害/, act:'damage_bench', p:m=>({target:'opponent_1',damage:+m[1]}) },
+  { re: /给对手的1只备战宝可梦[，,]也造成(\d+)伤害/, act:'damage_bench', p:m=>({target:'opponent_1',damage:+m[1]}) },
+  { re: /对手的1只宝可梦受到(\d+)伤害/, act:'damage_bench', p:m=>({target:'opponent_any',damage:+m[1]}) },
   { re: /给对手的1只宝可梦[，,]造成(\d+)伤害/, act:'damage_bench', p:m=>({target:'opponent_any',damage:+m[1]}) },
-  { re: /对手的所有备战宝可梦也各受到(\d+)点伤害/, act:'damage_bench', p:m=>({target:'opponent_all',damage:+m[1]}) },
-  { re: /自己的所有备战宝可梦也各受到(\d+)点伤害/, act:'damage_bench', p:m=>({target:'self_all',damage:+m[1]}) },
+  { re: /对手的所有备战宝可梦也各受到(\d+)伤害/, act:'damage_bench', p:m=>({target:'opponent_all',damage:+m[1]}) },
+  { re: /自己的所有备战宝可梦也各受到(\d+)伤害/, act:'damage_bench', p:m=>({target:'self_all',damage:+m[1]}) },
 
   // ===== 伤害指示物 =====
   { re: /将(\d+)个伤害指示物以任意方式放置于对手的宝可梦身上/, act:'damage_place', p:m=>({target:'opponent_any',count:+m[1]}) },
@@ -278,21 +286,29 @@ const RULES = [
   { re: /在这只宝可梦身上放置(\d+)个伤害指示物/, act:'damage_place', p:m=>({target:'self',count:+m[1]}) },
 
   // ===== 伤害增减 =====
-  { re: /在上个对手的回合[，,]?若自己的宝可梦因招式的伤害而【昏厥】了[，,]?则增加(\d+)点伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'own_pokemon_knocked_out_last_opponent_turn'}) },
-  { re: /在上一个对手的回合[，,]?若因为招式的伤害[，,]而导致自己的宝可梦【昏厥】[，,]?则增加(\d+)点伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'own_pokemon_knocked_out_last_opponent_turn'}) },
-  { re: /若这只宝可梦身上放置有伤害指示物[，,]则增加(\d+)点伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'self_has_damage'}) },
-  { re: /若对手的战斗宝可梦为【(.+?)】宝可梦[，,]则增加(\d+)点伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[2],condition:'opponent_active_type',type:ELEM[m[1]]||m[1]}) },
-  { re: /在下个对手的回合[，,]这只宝可梦受到招式的伤害"?([+-]?\d+)"?点/, act:'damage_modify', p:m=>({amount:+m[1],duration:'next_opp_turn',target:'self'}) },
-  { re: /这只宝可梦受到招式的伤害"?([+-]?\d+)"?点/, act:'damage_modify', p:m=>({amount:+m[1],target:'self'}) },
-  { re: /造成对手的战斗宝可梦【撤退】所需的能量的数量[×x](\d+)点伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'opponent_retreat_cost',mode:'per_unit'}) },
+  { re: /在上个对手的回合[，,]?若自己的宝可梦因招式的伤害而【昏厥】了[，,]?则增加(\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'own_pokemon_knocked_out_last_opponent_turn'}) },
+  { re: /在上一个对手的回合[，,]?若因为招式的伤害[，,]而导致自己的宝可梦【昏厥】[，,]?则增加(\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'own_pokemon_knocked_out_last_opponent_turn'}) },
+  { re: /若这只宝可梦身上放置有伤害指示物[，,]则增加(\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'self_has_damage'}) },
+  { re: /若对手的战斗宝可梦身上放置有伤害指示物[，,]则增加(\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'opponent_active_has_damage'}) },
+  { re: /若对手的战斗宝可梦为【(.+?)】宝可梦[，,]则增加(\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[2],condition:'opponent_active_type',type:ELEM[m[1]]||m[1]}) },
+  // 受到(的)招式的伤害±N：伤害接收修正（减伤为负、增伤为正）
+  { re: /在下个对手的回合[，,]这只宝可梦(?:所)?受到的?招式的伤害["“”「」]?([+-]?\d+)["“”「」]?/, act:'damage_received_mod', p:m=>({amount:+m[1],target:'self',duration:'next_opp_turn'}) },
+  { re: /这只宝可梦(?:所)?受到的?招式的伤害["“”「」]?([+-]?\d+)["“”「」]?/, act:'damage_received_mod', p:m=>({amount:+m[1],target:'self'}) },
+  { re: /受到这个招式影响的宝可梦(?:所)?受到的?招式的伤害["“”「」]?([+-]?\d+)["“”「」]?/, act:'damage_received_mod', p:m=>({amount:+m[1],target:'opponent'}) },
+  { re: /自己所有的宝可梦[，,]受到对手宝可梦的招式的伤害["“”「」]?([+-]?\d+)["“”「」]?/, act:'damage_received_mod', p:m=>({amount:+m[1],target:'own_field'}) },
+  { re: /自己(?:所有|的)?宝可梦的【撤退】所需能量[，,]?全部消除/, act:'retreat_cost_zero', p:()=>({target:'own_field'}) },
+  { re: /造成对手的战斗宝可梦【撤退】所需的能量的数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'opponent_retreat_cost',mode:'per_unit'}) },
   { re: /造成对手战斗宝可梦【撤退】所需能量数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'opponent_retreat_cost',mode:'per_unit'}) },
-  { re: /增加对手的战斗宝可梦身上附加的能量的数量[×x](\d+)点伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'opponent_active_energy_count',mode:'per_unit'}) },
+  { re: /增加对手的战斗宝可梦身上附加的能量的数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'opponent_active_energy_count',mode:'per_unit'}) },
   { re: /追加造成对手战斗宝可梦身上附着的能量数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'opponent_active_energy_count',mode:'per_unit'}) },
-  { re: /增加对手的战斗宝可梦身上放置的伤害指示物的数量[×x](\d+)点伤害/, act:'damage_modify', p:m=>({amount:+m[1],condition:'opponent_damage_counters'}) },
-  { re: /增加这只宝可梦身上放置的伤害指示物的数量[×x](\d+)点伤害/, act:'damage_modify', p:m=>({amount:+m[1],condition:'self_damage_counters'}) },
-  { re: /增加这只宝可梦身上附加的.+?能量的数量[×x](\d+)点伤害/, act:'damage_modify', p:m=>({amount:+m[1],condition:'self_energy'}) },
-  { re: /增加双方的备战宝可梦的数量[×x](\d+)点伤害/, act:'damage_modify', p:m=>({amount:+m[1],condition:'total_bench'}) },
-  { re: /增加.+?的.*?张数[×x](\d+)点伤害/, act:'damage_modify', p:m=>({amount:+m[1],condition:'count'}) },
+  { re: /增加对手的战斗宝可梦身上放置的伤害指示物的数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'opponent_damage_counters',mode:'per_unit'}) },
+  { re: /追加造成对手战斗宝可梦身上放置的伤害指示物数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'opponent_damage_counters',mode:'per_unit'}) },
+  { re: /增加这只宝可梦身上放置的伤害指示物的数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'self_damage_counters',mode:'per_unit'}) },
+  { re: /追加造成这只宝可梦身上放置的伤害指示物数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'self_damage_counters',mode:'per_unit'}) },
+  { re: /增加这只宝可梦身上附加的.+?能量的数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'self_energy',mode:'per_unit'}) },
+  { re: /追加造成这只宝可梦身上附着的.+?能量数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'self_energy',mode:'per_unit'}) },
+  { re: /增加双方的备战宝可梦的数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'total_bench',mode:'per_unit'}) },
+  { re: /增加.+?的.*?张数[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'count',mode:'per_unit'}) },
 
   // ===== 防止伤害/效果 =====
   { re: /在下个对手的回合[，,]这只宝可梦不会受到招式的伤害与效果的影响/, act:'prevent_damage_effect', p:()=>({duration:'next_opp_turn'}) },
@@ -332,6 +348,8 @@ const RULES = [
   { re: /将这只宝可梦身上所附加的(\d+)个能量丢到弃牌区/, act:'discard_energy', p:m=>({target:'self',count:+m[1]}) },
   { re: /将这只宝可梦身上附加的能量卡全部丢弃/, act:'discard_energy', p:()=>({target:'self',count:'all'}) },
   { re: /选择2个这只宝可梦身上附加的能量[，,]将其丢弃/, act:'discard_energy', p:()=>({target:'self',count:2}) },
+  { re: /选择这只宝可梦身上附着的(\d+)个(?:【.+?】)?能量[，,](?:放于弃牌区|丢到弃牌区)/, act:'discard_energy', p:m=>({target:'self',count:+m[1]}) },
+  { re: /选择附着于这只宝可梦身上的(\d+)个(?:【.+?】)?能量[，,](?:放于弃牌区|丢到弃牌区)/, act:'discard_energy', p:m=>({target:'self',count:+m[1]}) },
   { re: /选择1个这只宝可梦身上附加的能量[，,]将其丢弃/, act:'discard_energy', p:()=>({target:'self',count:1}) },
 
   // ===== 丢弃对手能量 =====
@@ -391,7 +409,9 @@ const RULES = [
   { re: /放置于放逐区/, act:'lost_zone', p:()=>({}) },
 
   // ===== 化石放置 =====
-  { re: /作为HP(\d+)的/, act:'fossil_place', p:m=>({hp:+m[1]}) },
+  { re: /作为HP(?:为)?(\d+)的/, act:'fossil_place', p:m=>({hp:+m[1]}) },
+  { re: /(?:被视作|被视为|视作)(\d+)个所有属性/, act:'energy_provides', p:m=>({types:['any'],count:+m[1]}) },
+  { re: /(?:被视作|被视为|视作)(\d+)个【(.+?)】能量/, act:'energy_provides', p:m=>({types:[ELEM[m[2]]||m[2]],count:+m[1]}) },
 
   // ===== 消除能量费用 =====
   { re: /将这只宝可梦使用招式所需的能量全部消除/, act:'energy_cost_eliminate', p:()=>({target:'self'}) },

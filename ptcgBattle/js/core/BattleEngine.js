@@ -417,6 +417,8 @@ export class BattleEngine {
     for (const e of (def.active.energy||[])) {
       if (e?.specialRules?.damageReduction) damage -= e.specialRules.damageReduction;
     }
+    // 受到招式的伤害±N（防守方：一次性标记 + 能力被动运行时查询）
+    damage += (def.active.damageReceivedMod || 0) + (gs.getPassiveDamageReceivedModifier?.(def.active) || 0);
     if (damage < 0) damage = 0;
 
     // Prevent damage check
