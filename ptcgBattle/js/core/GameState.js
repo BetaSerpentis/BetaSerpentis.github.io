@@ -113,7 +113,7 @@ export class GameState {
 
   checkEnergy(mon,ai){const a=mon.attacks?.[ai];if(!a||!a.cost||a.cost.length===0)return true;
     return this._canPayEnergyCost(mon,this.adjustedAttackCost(mon,a));}
-  adjustedAttackCost(mon,attack){return this._adjustAttackCostForPassives(mon,attack?.cost||[],attack);}
+  adjustedAttackCost(mon,attack){let adjusted=this._adjustAttackCostForPassives(mon,attack?.cost||[],attack);const inc=(mon?.attackCostIncrease||0)+this._passiveAttackCostIncrease(mon);for(let i=0;i<inc;i++)adjusted.push('colorless');return adjusted;}
   _adjustAttackCostForPassives(mon,cost,attack=null){let adjusted=[...(cost||[])];
     const owner=[this.player1,this.player2].find(pl=>this.getPokemonInPlay(pl).includes(mon));
     if(!owner)return adjusted;
@@ -129,6 +129,7 @@ export class GameState {
     }
     return adjusted;}
   _prizesTaken(pl){return Math.max(0,6-(pl?.prizes?.length??6));}
+  _passiveAttackCostIncrease(mon){let total=0;const owner=[this.player1,this.player2].find(pl=>this.getPokemonInPlay(pl).includes(mon));if(!owner)return 0;const opp=this.getOpponent(owner);for(const source of this.getPokemonInPlay(opp)){if(!source?.ability?.effects?.length||source.abilityDisabled)continue;for(const eff of this._enabledAbilityEffects(source).filter(e=>e.action==='attack_cost_increase')){const p=eff.params||{};if(p.target==='opponent_active'&&mon!==owner.active)continue;total+=p.amount||0;}}return total;}
 
   _energyProvides(energy,mon=null){
     let base;
@@ -186,7 +187,7 @@ export class GameState {
     }
     return true;
   }
-  _removeSpecialConditions(mon){if(!mon)return;mon.status=null;mon.cannotAttackNext=false;mon.cannotRetreat=false;mon.preventDamage=false;mon.preventEffect=false;mon.damageMod=0;mon.damageReceivedMod=0;mon.ignore=[];mon.costEliminated=false;mon.retreatCostIncrease=0;}
+  _removeSpecialConditions(mon){if(!mon)return;mon.status=null;mon.cannotAttackNext=false;mon.cannotRetreat=false;mon.preventDamage=false;mon.preventEffect=false;mon.damageMod=0;mon.damageReceivedMod=0;mon.ignore=[];mon.costEliminated=false;mon.retreatCostIncrease=0;mon.attackCostIncrease=0;}
 
   retreat(pl,benchIndex,selectedEnergyIndices=null){if(pl.retreatUsed){this.addLog('本回合已撤退过');return false;}if(!pl.active||!pl.bench[benchIndex]){this.addLog('撤退目标不存在');return false;}
     const st=pl.active.status||'';if(st.includes('sleep')||st.includes('paralysis')||pl.active.cannotRetreat){this.addLog('无法撤退');return false;}
@@ -425,6 +426,7 @@ export class GameState {
     return total;}
   getConditionalDamageModifier(attacker,defender,move,pl){let total=0;
     for(const eff of move?.effects||[]){
+      if(eff.action==='discard_energy_for_damage'){const cnt=eff.params?.mode==='type_count'?(eff._discardedTypeCount||0):(eff._discardedCount||0);total+=(eff.params?.amountPer||0)*cnt;continue;}
       if(eff.action!=='conditional_damage_mod')continue;
       const p=eff.params||{};
       if(p.condition==='own_pokemon_knocked_out_last_opponent_turn'){if(!this.wasOwnPokemonKnockedOutLastOpponentTurn(pl))continue;total+=p.amount||0;continue;}
@@ -441,6 +443,8 @@ export class GameState {
       if(p.condition==='opponent_field_energy'){const opp=this.getOpponent(pl);total+=(p.amount||0)*[opp.active,...(opp.bench||[])].filter(Boolean).reduce((s,m)=>s+(m.energy?.length||0),0);continue;}
       if(p.condition==='own_field_energy'){total+=(p.amount||0)*[pl.active,...(pl.bench||[])].filter(Boolean).reduce((s,m)=>s+(m.energy?.length||0),0);continue;}
       if(p.condition==='opponent_field_energy_type'){const opp=this.getOpponent(pl);const want=p.type||'';total+=(p.amount||0)*[opp.active,...(opp.bench||[])].filter(Boolean).reduce((s,m)=>s+(m.energy||[]).filter(e=>String(e).includes(`【${want}】`)).length,0);continue;}
+      if(p.condition==='own_field_energy_type_count'){const ts=new Set();for(const m of [pl.active,...(pl.bench||[])]){if(!m)continue;for(const e of (m.energy||[])){const mm=String(e).match(/【(.+?)】/);if(mm)ts.add(mm[1]);}}total+=(p.amount||0)*ts.size;continue;}
+      if(p.condition==='own_field_energy_type'){const want=p.type||'';total+=(p.amount||0)*[pl.active,...(pl.bench||[])].filter(Boolean).reduce((s,m)=>s+(m.energy||[]).filter(e=>String(e).includes(`【${want}】`)).length,0);continue;}
       // 未知条件：默认不加伤，避免误判（不再落入无条件加伤）
     }
     total+=this._applyTurnAttackModifiers(attacker,defender,move,pl);

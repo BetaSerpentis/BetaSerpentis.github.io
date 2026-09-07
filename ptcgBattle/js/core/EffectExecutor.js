@@ -1151,13 +1151,13 @@ const EXECUTORS = {
 
   // ===== 对手能量回手 =====
   async return_energy_to_hand(gs, pl, p) {
-    const owner = _opponent(gs, pl);
+    const owner = (p.target === 'self') ? pl : _opponent(gs, pl);
     const mon = owner.active;
     if (!mon?.energy?.length) return;
     const items = _attachedEnergyItems(gs, owner, mon, 'active', p.filter);
     const selected = await _pickAttachedEnergy(gs, pl, items, p.count || 1, { filter:p.filter || null, allowFewer:!!p.allowFewer, allowEmpty:!!p.allowEmpty, optional:!!p.optional });
     for (const item of _removeAttachedEnergy(selected)) owner.hand.push(item.energy);
-    if (selected.length) gs.addLog(`对手能量回手 ${selected.length} 张`);
+    if (selected.length) gs.addLog(`能量回手 ${selected.length} 张`);
   },
 
   // ===== 弃牌区附能 =====
@@ -1187,6 +1187,30 @@ const EXECUTORS = {
     for (const item of selected.sort((a,b)=>b.index-a.index)) mon.energy.push(pl.deck.splice(item.index, 1)[0]);
     gs._shuffle(pl.deck);
     gs.addLog(`从牌库附能 ${selected.length} 张`);
+  },
+
+  // ===== 丢弃能量 =====
+  async discard_energy_for_damage(gs, pl, p, eff) {
+    const source = p.source || 'hand';
+    let n = 0;
+    const types = new Set();
+    const record = e => { const m = String(e).match(/【(.+?)】/); if (m) types.add(m[1]); };
+    if (source === 'hand') {
+      const selected = await _pickCardsFromZone(gs, pl, pl, pl.hand, p.count === 'any' || p.count === 'all' ? pl.hand.length : (p.count || 1), {
+        source:'discard-energy-for-damage', filter:p.filter || '能量', prompt:'选择丢弃的能量',
+        allowFewer:true, allowEmpty:true, maxCount:p.count === 'any' || p.count === 'all' ? undefined : p.count, minCount:0, optional:true
+      });
+      n = selected.length;
+      for (const item of selected.sort((a,b)=>b.index-a.index)) { const card = pl.hand.splice(item.index, 1)[0]; pl.discard.push(card); record(card); }
+    } else {
+      const mon = pl.active;
+      const items = _attachedEnergyItems(gs, pl, mon, 'active', p.filter);
+      const selected = await _pickAttachedEnergy(gs, pl, items, p.count === 'any' || p.count === 'all' ? items.length : (p.count || 1), { filter:p.filter || null, allowFewer:true, allowEmpty:true, optional:true });
+      n = selected.length;
+      for (const item of _removeAttachedEnergy(selected)) { _pushEnergyDiscard(item.owner, item.energy); record(item.energy); }
+    }
+    if (eff) { eff._discardedCount = n; eff._discardedTypeCount = types.size; }
+    gs.addLog(`丢弃 ${n} 张能量（用于伤害）`);
   },
 
   // ===== 丢弃能量 =====
@@ -1389,6 +1413,12 @@ const EXECUTORS = {
   retreat_cost_increase(gs, pl, p) {
     const opp = _opponent(gs, pl);
     if (opp.active) { opp.active.retreatCostIncrease = (opp.active.retreatCostIncrease || 0) + (p.amount || 1); gs.addLog(`对手撤退费用 +${p.amount || 1}`); }
+  },
+
+  // ===== 使用招式所需能量增加（一次性）=====
+  attack_cost_increase(gs, pl, p) {
+    const opp = _opponent(gs, pl);
+    if (opp.active) { opp.active.attackCostIncrease = (opp.active.attackCostIncrease || 0) + (p.amount || 1); gs.addLog(`对手使用招式所需能量 +${p.amount || 1}`); }
   },
 
   // ===== 特性消除（主动/临时效果）=====
