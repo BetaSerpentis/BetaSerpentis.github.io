@@ -443,6 +443,8 @@ export class GameState {
       if(p.condition==='opponent_field_energy'){const opp=this.getOpponent(pl);total+=(p.amount||0)*[opp.active,...(opp.bench||[])].filter(Boolean).reduce((s,m)=>s+(m.energy?.length||0),0);continue;}
       if(p.condition==='own_field_energy'){total+=(p.amount||0)*[pl.active,...(pl.bench||[])].filter(Boolean).reduce((s,m)=>s+(m.energy?.length||0),0);continue;}
       if(p.condition==='opponent_field_energy_type'){const opp=this.getOpponent(pl);const want=p.type||'';total+=(p.amount||0)*[opp.active,...(opp.bench||[])].filter(Boolean).reduce((s,m)=>s+(m.energy||[]).filter(e=>String(e).includes(`【${want}】`)).length,0);continue;}
+      if(p.condition==='opponent_bench_count'){const opp=this.getOpponent(pl);total+=(p.amount||0)*(opp.bench?.length||0);continue;}
+      if(p.condition==='opponent_prizes_taken'){const opp=this.getOpponent(pl);total+=(p.amount||0)*Math.max(0,6-(opp.prizes?.length??6));continue;}
       if(p.condition==='own_field_energy_type_count'){const ts=new Set();for(const m of [pl.active,...(pl.bench||[])]){if(!m)continue;for(const e of (m.energy||[])){const mm=String(e).match(/【(.+?)】/);if(mm)ts.add(mm[1]);}}total+=(p.amount||0)*ts.size;continue;}
       if(p.condition==='own_field_energy_type'){const want=p.type||'';total+=(p.amount||0)*[pl.active,...(pl.bench||[])].filter(Boolean).reduce((s,m)=>s+(m.energy||[]).filter(e=>String(e).includes(`【${want}】`)).length,0);continue;}
       if(p.condition==='opponent_active_status'){if(!defender?.status||!String(defender.status).includes(p.status))continue;total+=p.amount||0;continue;}
@@ -491,6 +493,8 @@ export class GameState {
       case 'self_has_special_energy': return (attacker?.energy||[]).some(e=>String(e).includes('特殊'));
       case 'own_bench_has_damage': return (pl.bench||[]).some(m=>m&&m.maxHp&&m.hp<m.maxHp);
       case 'stadium_in_play': return !!this.getActiveStadium();
+      case 'supporter_used_this_turn': return !!pl.supporterUsed;
+      case 'evolved_this_turn': return !!attacker?.evolvedThisTurn;
       default: return false;
     }
   }
@@ -523,6 +527,8 @@ export class GameState {
     }
     return out;}
   _hasPassive(mon,action){return this._passiveEffectsFor(mon,action).length>0;}
+  // 最大 HP 被动加成（特性「附特殊能量则最大HP+N」）
+  getPassiveMaxHpModifier(mon){let total=0;for(const {source,params:p} of this._passiveEffectsFor(mon,'max_hp_mod')){if(p.condition==='self_has_special_energy'&&!(mon?.energy||[]).some(e=>String(e).includes('特殊')))continue;total+=p.amount||0;}return total;}
   // 检查 pl 的对手场上是否有某被动（“对手的…无法…”类）
   _opponentHasPassive(pl,action){const opp=this.getOpponent(pl);return this._passiveEffectsFor(opp.active,action).length>0;}
   // 防守方受击时的被动受伤修正（能力“只要在场上…受到伤害±N”）

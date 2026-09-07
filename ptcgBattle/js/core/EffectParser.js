@@ -276,7 +276,7 @@ const RULES = [
   // ===== 抽卡 =====
   { re: /从自己的弃牌区选择1张["“”]?基本【火】能量["“”]?卡[，,]附于自己的1只备战宝可梦身上/, act:'attach_energy_from_discard', p:()=>withCount({filter:'基本【火】能量',target:'bench'},1,false) },
   { re: /(?:然后[，,])?从牌库抽卡直到(?:自己的)?手牌满(\d+)张(?:为止)?/, act:'draw_until', p:m=>({target:+m[1]}) },
-  { re: /从牌库上方抽取卡牌[，,]直到自己的手牌变为(\d+)张(?:为止)?/, act:'draw_until', p:m=>({target:+m[1]}) },
+  { re: /(?:若希望[，,]?)?从牌库上方抽出卡牌[，,]直到自己的手牌(?:数量)?变为(\d+)张(?:为止)?/, act:'draw_until', p:m=>({target:+m[1]}) },
   { re: /从牌库抽出卡牌[，,]直到自己的手牌变为(\d+)张(?:为止)?/, act:'draw_until', p:m=>({target:+m[1]}) },
   { re: /从(?:自己的)?牌库抽出(\d+)张卡/, act:'draw', p:m=>({count:+m[1]}) },
   { re: /从牌库抽出(\d+)张/, act:'draw', p:m=>({count:+m[1]}) },
@@ -340,6 +340,8 @@ const RULES = [
   { re: /若这只宝可梦身上放置有伤害指示物[，,]则增加(\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'self_has_damage'}) },
   { re: /若对手的战斗宝可梦身上放置有伤害指示物[，,]则增加(\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'opponent_active_has_damage'}) },
   { re: /若(.{2,30}?)(?:的话)?[，,]?则(?:追加造成|增加)(\d+)伤害/, act:'conditional_damage_mod', p:m=>conditionDamageParams(m[1], +m[2]) },
+  { re: /在这个回合[，,]?若(?:从手牌使出了支援者|使用了支援者)(?:的话)?[，,]?则(?:追加造成|增加)(\d+)伤害/, act:'conditional_damage_mod', p:m=>({condition:'supporter_used_this_turn', amount:+m[1], mode:'fixed'}) },
+  { re: /在这个回合[，,]?若这只宝可梦(?:刚|在)这个回合(?:完成)?进化(?:的话)?[，,]?则这个招式失败/, act:'conditional_effect', p:()=>({condition:'evolved_this_turn', effect:{action:'attack_fail'}}) },
   { re: /若(.{2,30}?)(?:的话)?[，,]?则(?:使该宝可梦|使对手的战斗宝可梦|将对手的战斗宝可梦)【昏厥】/, act:'conditional_effect', p:m=>conditionalEffectParams(m[1], {action:'knockout'}) },
   { re: /若(.{2,30}?)(?:的话)?[，,]?则这个招式失败/, act:'conditional_effect', p:m=>conditionalEffectParams(m[1], {action:'attack_fail'}) },
   { re: /若(.{2,30}?)(?:的话)?[，,]?则这只宝可梦【撤退】所需能量[，,]?全部消除/, act:'conditional_effect', p:m=>conditionalEffectParams(m[1], {action:'retreat_cost_zero', params:{target:'self'}}) },
@@ -351,6 +353,8 @@ const RULES = [
   { re: /自己所有的宝可梦[，,]受到对手宝可梦的招式的伤害["“”「」]?([+-]?\d+)["“”「」]?/, act:'damage_received_mod', p:m=>({amount:+m[1],target:'own_field'}) },
   { re: /自己(?:所有|的)?宝可梦的【撤退】所需能量[，,]?全部消除/, act:'retreat_cost_zero', p:()=>({target:'own_field'}) },
   { re: /身上放有这张卡的宝可梦[，,]【撤退】所需能量减少(\d+)个/, act:'retreat_cost_reduce', p:m=>({amount:+m[1],target:'self'}) },
+  { re: /身上放有这张卡的(?:【.+?】)?宝可梦(?:（[^）]*）)?(?:的)?最大HP(?:增加)?["“”]?\+?(\d+)["“”]?/, act:'max_hp_mod', p:m=>({amount:+m[1],target:'self'}) },
+  { re: /若这只宝可梦身上附着了特殊能量(?:的话)?[，,]?则这只宝可梦(?:的)?最大HP(?:增加)?["“”]?\+?(\d+)["“”]?/, act:'max_hp_mod', p:m=>({condition:'self_has_special_energy',amount:+m[1]}) },
   { re: /受到这个招式影响的宝可梦[，,]【撤退】所需能量增加(\d+)个/, act:'retreat_cost_increase', p:m=>({amount:+m[1]}) },
   { re: /受到这个招式影响的宝可梦[，,]使用招式所需能量[，,]?(?:就会)?增加(\d+)个【无】能量/, act:'attack_cost_increase', p:m=>({amount:+m[1]}) },
   { re: /对手的(?:战斗)?宝可梦使用招式所需能量[，,]?就会增加(\d+)个【无】能量/, act:'attack_cost_increase', p:m=>({target:'opponent_active',amount:+m[1]}) },
@@ -385,6 +389,9 @@ const RULES = [
   { re: /造成对手(?:的)?所有宝可梦身上附着的【(.+?)】能量数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[2],condition:'opponent_field_energy_type',type:m[1],mode:'per_unit'}) },
   { re: /追加造成附于自己场上宝可梦身上的基本能量的属性种类数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'own_field_energy_type_count',mode:'per_unit'}) },
   { re: /追加造成附于自己场上宝可梦身上的能量的属性种类数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'own_field_energy_type_count',mode:'per_unit'}) },
+  { re: /追加造成对手(?:的)?备战宝可梦(?:的)?数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'opponent_bench_count',mode:'per_unit'}) },
+  { re: /追加造成对手已经获得的奖赏卡(?:张数|数量)[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'opponent_prizes_taken',mode:'per_unit'}) },
+  { re: /追加造成放置于这只宝可梦身上的伤害指示物数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'self_damage_counters',mode:'per_unit'}) },
 
   // ===== 防止伤害/效果 =====
   { re: /在下个对手的回合[，,]这只宝可梦不会受到招式的伤害与效果的影响/, act:'prevent_damage_effect', p:()=>({duration:'next_opp_turn'}) },
@@ -460,6 +467,8 @@ const RULES = [
   { re: /从备战宝可梦.*?改附于.*?战斗宝可梦/, act:'move_energy', p:()=>({source:'bench',dest:'active'}) },
   { re: /选择附于自己场上宝可梦身上的1个基本能量[，,]转附于自己其他宝可梦身上/, act:'move_energy', p:()=>({source:'self',dest:'bench'}) },
   { re: /选择1个这只宝可梦身上附加的能量[，,]改附于备战宝可梦身上/, act:'move_energy', p:()=>({source:'self',dest:'bench'}) },
+  { re: /将这只宝可梦身上附着的所有能量[，,]以任意方式转附于(?:1只|一只)?备战宝可梦身上/, act:'move_energy', p:()=>({source:'self',dest:'bench',count:'all'}) },
+  { re: /将这只宝可梦身上附着的所有能量[，,]转附于(?:1只|一只)?备战宝可梦身上/, act:'move_energy', p:()=>({source:'self',dest:'bench',count:'all'}) },
 
   // ===== 回手 =====
   { re: /选择1只自己的场上宝可梦[，,]?将那只宝可梦与附加的卡[，,]全部放回手牌/, act:'return_to_hand', p:()=>({target:'choose',with_attachments:true}) },
@@ -486,6 +495,8 @@ const RULES = [
 
   // ===== 对手牌库丢弃 =====
   { re: /将对手的牌库上方(\d+)张卡丢弃/, act:'mill', p:m=>({target:'opponent',count:+m[1]}) },
+  { re: /将对手(?:的)?牌库上方的(\d+)张卡(?:牌)?丢到弃牌区/, act:'mill', p:m=>({target:'opponent',count:+m[1]}) },
+  { re: /将自己(?:的)?牌库上方的(\d+)张卡(?:牌)?丢到弃牌区/, act:'mill', p:m=>({target:'self',count:+m[1]}) },
 
   // ===== 查看对手手牌 =====
   { re: /查看对手的手牌/, act:'look_at', p:()=>({target:'opponent_hand'}) },
@@ -496,7 +507,7 @@ const RULES = [
   // ===== 牌库上方卡操作 =====
   { re: /查看(自己|对手)的牌库上方(\d+)张卡[，,]从其中选择任意数量的物品卡[，,]将其丢弃[。.]将剩余卡放回牌库并重洗/, act:'manipulate_deck_top', p:m=>({target:m[1]==='对手'?'opponent':'self',count:+m[2],mode:'discard_matching',filter:'物品',allowFewer:true,allowEmpty:true,remainder:'shuffle'}) },
   { re: /查看(自己|对手)的牌库上方(\d+)张卡[，,]选择其中1张[，,]放回牌库上方[。.]将剩余卡放回牌库下方/, act:'manipulate_deck_top', p:m=>({target:m[1]==='对手'?'opponent':'self',count:+m[2],mode:'choose_top_rest_bottom',keep:1}) },
-  { re: /查看(自己|对手)的牌库上方(\d+)张卡[，,]以任意顺序排列[，,]放回牌库上方/, act:'manipulate_deck_top', p:m=>({target:m[1]==='对手'?'opponent':'self',count:+m[2],mode:'top_any_order',keepOrder:true}) },
+  { re: /查看(自己|对手)(?:的)?牌库上方(\d+)张卡(?:牌)?[，,]以任意顺序(?:重新)?排列[，,]放回牌库上方/, act:'manipulate_deck_top', p:m=>({target:m[1]==='对手'?'opponent':'self',count:+m[2],mode:'top_any_order',keepOrder:true}) },
   { re: /查看(自己|对手)的牌库上方1张卡[，,]回复原样[。.]若希望[，,]将那张卡丢弃/, act:'manipulate_deck_top', p:m=>({target:m[1]==='对手'?'opponent':'self',count:1,mode:'look_then_optional',optionalAction:'discard',optional:true}) },
   { re: /查看(自己|对手)的牌库上方1张卡[，,]回复原样[。.]若希望[，,]将那张卡放回牌库下方/, act:'manipulate_deck_top', p:m=>({target:m[1]==='对手'?'opponent':'self',count:1,mode:'look_then_optional',optionalAction:'bottom',optional:true}) },
   { re: /查看(自己|对手)的牌库上方1张卡[，,]回复原样[。.]若希望[，,]重洗那个牌库/, act:'manipulate_deck_top', p:m=>({target:m[1]==='对手'?'opponent':'self',count:1,mode:'look_then_optional',optionalAction:'shuffle',optional:true}) },
