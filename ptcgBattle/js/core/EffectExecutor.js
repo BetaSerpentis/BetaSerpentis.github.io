@@ -971,6 +971,16 @@ const EXECUTORS = {
     gs.addLog(`恢复 ${amount} HP`);
   },
 
+  // ===== 己方全体回复 =====
+  heal_all(gs, pl, p) {
+    const amount = p.amount || 10;
+    for (const mon of [pl.active, ...(pl.bench || [])]) { if (mon) mon.hp = Math.min(mon.maxHp, mon.hp + amount); }
+    gs.addLog(`己方所有宝可梦恢复 ${amount} HP`);
+  },
+
+  // ===== 丢弃竞技场 =====
+  discard_stadium(gs, pl, p) { const old = gs.clearActiveStadium?.(); gs.addLog(old ? '丢弃竞技场' : '无竞技场'); },
+
   // ===== 自身伤害 =====
   self_damage(gs, pl, p) {
     const mon = pl.active;
