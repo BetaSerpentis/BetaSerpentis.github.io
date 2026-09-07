@@ -394,6 +394,12 @@ function _makeBenchPokemonFromCard(gs, cid) {
 
 // === 辅助 ===
 function _opponent(gs, pl) { return pl === gs.player1 ? gs.player2 : gs.player1; }
+function _applyStatus(mon, statuses) {
+  if (!mon || !statuses || !statuses.length) return;
+  const cur = mon.status ? mon.status.split(',') : [];
+  for (const s of statuses) { if (!cur.includes(s)) cur.push(s); }
+  mon.status = cur.join(',') || null;
+}
 function _getMon(pl, slot) {
   if (slot === 'active') return pl.active;
   if (slot?.startsWith('bench-')) return pl.bench[parseInt(slot.replace('bench-', ''))];
@@ -977,15 +983,15 @@ const EXECUTORS = {
   inflict_status(gs, pl, p) {
     if (!_conditionSatisfied(gs, pl, p.condition)) return;
     const opp = _opponent(gs, pl);
-    if (opp.active && p.statuses) { opp.active.status = p.statuses.join(','); gs.addLog(`对手 ${p.statuses.join('、')}`); }
+    if (opp.active && p.statuses) { _applyStatus(opp.active, p.statuses); gs.addLog(`对手 ${p.statuses.join('、')}`); }
   },
   inflict_status_self(gs, pl, p) {
-    if (pl.active && p.statuses) { pl.active.status = p.statuses.join(','); gs.addLog(`陷入 ${p.statuses.join('、')}`); }
+    if (pl.active && p.statuses) { _applyStatus(pl.active, p.statuses); gs.addLog(`陷入 ${p.statuses.join('、')}`); }
   },
   inflict_status_both(gs, pl, p) {
     const opp = _opponent(gs, pl);
-    if (pl.active && p.statuses) pl.active.status = p.statuses.join(',');
-    if (opp.active && p.statuses) opp.active.status = p.statuses.join(',');
+    if (pl.active && p.statuses) _applyStatus(pl.active, p.statuses);
+    if (opp.active && p.statuses) _applyStatus(opp.active, p.statuses);
     gs.addLog(`双方 ${p.statuses.join('、')}`);
   },
 
@@ -1240,7 +1246,7 @@ const EXECUTORS = {
   async coin_flip_status(gs, pl, p) {
     if (Math.random() < 0.5) {
       const opp = _opponent(gs, pl);
-      if (opp.active && p.statuses) { opp.active.status = p.statuses.join(','); gs.addLog(`硬币正面→${p.statuses.join('、')}`); }
+      if (opp.active && p.statuses) { _applyStatus(opp.active, p.statuses); gs.addLog(`硬币正面→${p.statuses.join('、')}`); }
     } else { gs.addLog('硬币反面'); }
   },
   async coin_flip_damage(gs, pl, p) {
@@ -1268,6 +1274,23 @@ const EXECUTORS = {
       pl.active.damageMod = pl.active.damageMod || 0;
       pl.active.damageMod += (p.amount || 0);
       gs.addLog(`伤害修正 ${p.amount > 0 ? '+' : ''}${p.amount}`);
+    }
+  },
+  damage_received_mod(gs, pl, p) {
+    // 受到的招式的伤害±N：作用于目标宝可梦（self=这只 / opponent=对手 / own_field=自己所有）
+    if (p.target === 'own_field') {
+      for (const mon of [pl.active, ...(pl.bench||[])]) {
+        if (!mon) continue;
+        mon.damageReceivedMod = (mon.damageReceivedMod || 0) + (p.amount || 0);
+      }
+      gs.addLog(`己方所有宝可梦受到的伤害修正 ${p.amount > 0 ? '+' : ''}${p.amount}`);
+      return;
+    }
+    const mon = (p.target === 'opponent') ? _opponent(gs, pl)?.active : pl.active;
+    if (mon) {
+      mon.damageReceivedMod = mon.damageReceivedMod || 0;
+      mon.damageReceivedMod += (p.amount || 0);
+      gs.addLog(`${mon.name} 受到的伤害修正 ${p.amount > 0 ? '+' : ''}${p.amount}`);
     }
   },
 
@@ -1341,6 +1364,10 @@ const EXECUTORS = {
 
   // ===== 化石放置 =====
   fossil_place(gs, pl, p) { gs.addLog('化石放置'); },
+  // ===== 被动光环（解析已支持；连续生效的执行需在 GameState 被动层接入）=====
+  retreat_cost_zero(gs, pl, p) { /* 被动：由 GameState.effectiveRetreatCost 运行时查询 */ },
+  cannot_retreat_passive(gs, pl, p) { /* 被动：由 GameState.retreat 运行时查询 */ },
+  energy_provides(gs, pl, p) { /* 特殊能量供能由 CardResolver 处理，此处 no-op */ },
 
   // ===== 竞技场 =====
   // stadium effects are handled as passives, not here
