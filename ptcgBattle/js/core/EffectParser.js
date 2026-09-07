@@ -342,7 +342,8 @@ const RULES = [
   { re: /若(.{2,30}?)(?:的话)?[，,]?则(?:追加造成|增加)(\d+)伤害/, act:'conditional_damage_mod', p:m=>conditionDamageParams(m[1], +m[2]) },
   { re: /在这个回合[，,]?若(?:从手牌使出了支援者|使用了支援者)(?:的话)?[，,]?则(?:追加造成|增加)(\d+)伤害/, act:'conditional_damage_mod', p:m=>({condition:'supporter_used_this_turn', amount:+m[1], mode:'fixed'}) },
   { re: /在这个回合[，,]?若这只宝可梦(?:刚|在)这个回合(?:完成)?进化(?:的话)?[，,]?则这个招式失败/, act:'conditional_effect', p:()=>({condition:'evolved_this_turn', effect:{action:'attack_fail'}}) },
-  { re: /若(.{2,30}?)(?:的话)?[，,]?则(?:使该宝可梦|使对手的战斗宝可梦|将对手的战斗宝可梦)【昏厥】/, act:'conditional_effect', p:m=>conditionalEffectParams(m[1], {action:'knockout'}) },
+  { re: /若(.{2,30}?)(?:的话)?[，,]?则(?:使该宝可梦|使对手的战斗宝可梦|将对手的战斗宝可梦|令其)【昏厥】/, act:'conditional_effect', p:m=>conditionalEffectParams(m[1], {action:'knockout'}) },
+  { re: /令对手的战斗宝可梦【昏厥】/, act:'knockout', p:()=>({target:'opponent'}) },
   { re: /若(.{2,30}?)(?:的话)?[，,]?则这个招式失败/, act:'conditional_effect', p:m=>conditionalEffectParams(m[1], {action:'attack_fail'}) },
   { re: /若(.{2,30}?)(?:的话)?[，,]?则这只宝可梦【撤退】所需能量[，,]?全部消除/, act:'conditional_effect', p:m=>conditionalEffectParams(m[1], {action:'retreat_cost_zero', params:{target:'self'}}) },
   { re: /若对手的战斗宝可梦为【(.+?)】宝可梦[，,]则增加(\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[2],condition:'opponent_active_type',type:ELEM[m[1]]||m[1]}) },
@@ -400,6 +401,11 @@ const RULES = [
   { re: /自己的所有备战宝可梦[，,]?不会受到对手宝可梦的招式的伤害(?:和|与)效果(?:的)?影响/, act:'bench_attack_shield', p:()=>({target:'own_bench',source:'opponent_attack',preventDamage:true,preventEffect:true}) },
   { re: /自己所有的备战宝可梦[，,]?不会受到对手宝可梦的招式的伤害(?:和|与)效果(?:的)?影响/, act:'bench_attack_shield', p:()=>({target:'own_bench',source:'opponent_attack',preventDamage:true,preventEffect:true}) },
   { re: /这只宝可梦不会受到对手的宝可梦使用招式的效果的影响/, act:'prevent_effect', p:()=>({source:'attack'}) },
+  { re: /这只宝可梦[，,]?不会受到对手(?:的)?宝可梦(?:所使用|使用)招式的效果(?:的)?影响/, act:'prevent_effect', p:()=>({source:'attack'}) },
+  { re: /这只宝可梦[，,]?不会受到对手(?:的)?宝可梦特性的效果影响/, act:'prevent_effect', p:()=>({source:'ability'}) },
+  { re: /这只宝可梦不会陷入【(.+?)】状态/, act:'block_status', p:m=>({status:STATUS_MAP[m[1]]||m[1],target:'self'}) },
+  { re: /(?:自己的所有|自己所有)宝可梦[，,]?不会陷入【(.+?)】状态/, act:'block_status', p:m=>({status:STATUS_MAP[m[1]]||m[1],target:'own_field'}) },
+  { re: /双方(?:的)?所有宝可梦[，,]?不会陷入【(.+?)】状态/, act:'block_status', p:m=>({status:STATUS_MAP[m[1]]||m[1],target:'both_field'}) },
   { re: /不会受到.*?招式的伤害/, act:'prevent_damage', p:()=>({source:'attack'}) },
 
   // ===== 无视弱抗/效果 =====

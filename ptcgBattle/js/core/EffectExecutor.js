@@ -990,10 +990,10 @@ const EXECUTORS = {
   inflict_status(gs, pl, p) {
     if (!_conditionSatisfied(gs, pl, p.condition)) return;
     const opp = _opponent(gs, pl);
-    if (opp.active && p.statuses) { if (gs._hasPassive?.(opp.active, 'block_special_condition')) { gs.addLog('目标免疫特殊状态'); return; } _applyStatus(opp.active, p.statuses); gs.addLog(`对手 ${p.statuses.join('、')}`); }
+    if (opp.active && p.statuses) { if (gs._hasPassive?.(opp.active, 'block_special_condition')) { gs.addLog('目标免疫特殊状态'); return; } const applied = (p.statuses||[]).filter(s => !(gs._passiveEffectsFor?.(opp.active, 'block_status')||[]).some(e => e.params?.status === s)); if (!applied.length) { gs.addLog('目标免疫该状态'); return; } _applyStatus(opp.active, applied); gs.addLog(`对手 ${applied.join('、')}`); }
   },
   inflict_status_self(gs, pl, p) {
-    if (pl.active && p.statuses) { if (gs._hasPassive?.(pl.active, 'block_special_condition')) { gs.addLog('自身免疫特殊状态'); return; } _applyStatus(pl.active, p.statuses); gs.addLog(`陷入 ${p.statuses.join('、')}`); }
+    if (pl.active && p.statuses) { if (gs._hasPassive?.(pl.active, 'block_special_condition')) { gs.addLog('自身免疫特殊状态'); return; } const applied = (p.statuses||[]).filter(s => !(gs._passiveEffectsFor?.(pl.active, 'block_status')||[]).some(e => e.params?.status === s)); if (!applied.length) { gs.addLog('自身免疫该状态'); return; } _applyStatus(pl.active, applied); gs.addLog(`陷入 ${applied.join('、')}`); }
   },
   inflict_status_both(gs, pl, p) {
     const opp = _opponent(gs, pl);
@@ -1448,6 +1448,12 @@ const EXECUTORS = {
     }
     const fn = EXECUTORS[inner.action];
     if (fn) await fn(gs, pl, inner.params || {}, eff, options);
+  },
+
+  // ===== 直接击倒 =====
+  knockout(gs, pl, p) {
+    const target = (p.target === 'self') ? pl.active : _opponent(gs, pl).active;
+    if (target) { target.hp = 0; gs.knockout?.(target); gs.addLog(`${target.name} 被击倒`); }
   },
 
   // ===== 特性消除（主动/临时效果）=====
