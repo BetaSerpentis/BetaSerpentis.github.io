@@ -121,6 +121,47 @@ function discardAttachParams(m, optional=false) {
   }, m[1], optional);
 }
 
+// 条件分支「如果 CONDITION 的话，则 EFFECT」：把条件文本映射为 condition key + 参数
+function conditionKey(condText) {
+  const t = String(condText || '').replace(/[「」"“”]/g, '').replace(/，/g, ',');
+  const statusM = t.match(/对手(?:的)?战斗宝可梦处于【(中毒|灼伤|睡眠|麻痹|混乱)】/);
+  if (statusM) return { condition:'opponent_active_status', status:STATUS_MAP[statusM[1]] || statusM[1] };
+  if (/对手(?:的)?战斗宝可梦处于特殊状态/.test(t)) return { condition:'opponent_active_any_status' };
+  if (/对手(?:的)?战斗宝可梦(?:为|是)进化宝可梦/.test(t)) return { condition:'opponent_active_is_evolved' };
+  const typeM = t.match(/对手(?:的)?战斗宝可梦(?:为|是)【(.+?)】宝可梦/);
+  if (typeM) return { condition:'opponent_active_type', type:ELEM[typeM[1]] || typeM[1] };
+  const nameM = t.match(/对手(?:的)?战斗宝可梦是(.+)$/);
+  if (nameM) return { condition:'opponent_active_name', name:nameM[1].trim() };
+  const toolSelfM = t.match(/这只宝可梦身上放有(.+)$/);
+  if (toolSelfM) return { condition:'self_has_tool', name:toolSelfM[1].trim() };
+  const toolOppM = t.match(/对手(?:的)?战斗宝可梦身上放有(.+)$/);
+  if (toolOppM) return { condition:'opponent_active_has_tool', name:toolOppM[1].trim() };
+  if (/对手(?:的)?战斗宝可梦身上没有/.test(t)) return { condition:'opponent_active_no_damage' };
+  if (/这只宝可梦身上没有附着(?:任何)?能量/.test(t)) return { condition:'self_no_energy' };
+  if (/这只宝可梦身上没有/.test(t)) return { condition:'self_no_damage' };
+  if (/自己没有手牌/.test(t)) return { condition:'self_no_hand' };
+  if (/自己(?:的)?手牌(?:张数|数量)与对手(?:的)?手牌(?:张数|数量)相同/.test(t)) return { condition:'hand_count_equal' };
+  const prizeM = t.match(/对手(?:的)?剩余奖赏卡(?:张数|数量)为(\d+)张/);
+  if (prizeM) return { condition:'opponent_prizes', count:+prizeM[1] };
+  if (/自己(?:的)?剩余奖赏卡(?:张数|数量)[，,]?比对手(?:的)?剩余奖赏卡(?:张数|数量)多/.test(t)) return { condition:'own_prizes_more' };
+  const eM = t.match(/这只宝可梦身上附(?:着了|着|有)【(.+?)】能量/);
+  if (eM) return { condition:'self_has_energy_type', type:ELEM[eM[1]] || eM[1] };
+  if (/这只宝可梦身上附(?:着了|着|有)特殊能量/.test(t)) return { condition:'self_has_special_energy' };
+  if (/自己(?:的)?备战宝可梦身上(?:放置有|有)伤害指示物/.test(t)) return { condition:'own_bench_has_damage' };
+  if (/场上有(?:自己的)?竞技场/.test(t)) return { condition:'stadium_in_play' };
+  if (/这只宝可梦身上(?:放置有|有)伤害指示物/.test(t)) return { condition:'self_has_damage' };
+  if (/对手(?:的)?战斗宝可梦身上(?:放置有|有)伤害指示物/.test(t)) return { condition:'opponent_active_has_damage' };
+  return null;
+}
+function conditionDamageParams(condText, amount) {
+  const c = conditionKey(condText);
+  return c ? { ...c, amount, mode:'fixed' } : null;
+}
+function conditionalEffectParams(condText, effect) {
+  const c = conditionKey(condText);
+  return c ? { ...c, effect } : null;
+}
+
 const RULES = [
   // ===== 训练家/特性使用前提：仅解析为元数据，不执行合法性或费用 =====
   { re: /若从自己的手牌将1张["“”「」]?基本【火】能量["“”「」]?卡?(?:丢弃|丢到弃牌区|放于弃牌区)/, act:'ability_discard_cost', p:m=>({ count:1, filter:'基本【火】能量', zone:'hand', raw:m[0] }) },
@@ -292,6 +333,10 @@ const RULES = [
   { re: /在上一个对手的回合[，,]?若因为招式的伤害[，,]而导致自己的宝可梦【昏厥】[，,]?则增加(\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'own_pokemon_knocked_out_last_opponent_turn'}) },
   { re: /若这只宝可梦身上放置有伤害指示物[，,]则增加(\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'self_has_damage'}) },
   { re: /若对手的战斗宝可梦身上放置有伤害指示物[，,]则增加(\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'opponent_active_has_damage'}) },
+  { re: /若(.{2,30}?)(?:的话)?[，,]?则(?:追加造成|增加)(\d+)伤害/, act:'conditional_damage_mod', p:m=>conditionDamageParams(m[1], +m[2]) },
+  { re: /若(.{2,30}?)(?:的话)?[，,]?则(?:使该宝可梦|使对手的战斗宝可梦|将对手的战斗宝可梦)【昏厥】/, act:'conditional_effect', p:m=>conditionalEffectParams(m[1], {action:'knockout'}) },
+  { re: /若(.{2,30}?)(?:的话)?[，,]?则这个招式失败/, act:'conditional_effect', p:m=>conditionalEffectParams(m[1], {action:'attack_fail'}) },
+  { re: /若(.{2,30}?)(?:的话)?[，,]?则这只宝可梦【撤退】所需能量[，,]?全部消除/, act:'conditional_effect', p:m=>conditionalEffectParams(m[1], {action:'retreat_cost_zero', params:{target:'self'}}) },
   { re: /若对手的战斗宝可梦为【(.+?)】宝可梦[，,]则增加(\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[2],condition:'opponent_active_type',type:ELEM[m[1]]||m[1]}) },
   // 受到(的)招式的伤害±N：伤害接收修正（减伤为负、增伤为正）
   { re: /在下个对手的回合[，,]这只宝可梦(?:所)?受到的?招式的伤害["“”「」]?([+-]?\d+)["“”「」]?/, act:'damage_received_mod', p:m=>({amount:+m[1],target:'self',duration:'next_opp_turn'}) },
@@ -476,7 +521,9 @@ export function parseEffect(text) {
     for (const rule of RULES) {
       const m = remaining.match(rule.re);
       if (m) {
-        effects.push({ action: rule.act, params: rule.p(m) });
+        const params = rule.p(m);
+        if (params === null || params === undefined) continue; // 条件不满足，跳过此规则
+        effects.push({ action: rule.act, params });
         remaining = remaining.replace(rule.re, '').replace(/^[,，。\s]+/, '').trim();
         changed = true;
         break;

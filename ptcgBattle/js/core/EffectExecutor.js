@@ -1421,6 +1421,24 @@ const EXECUTORS = {
     if (opp.active) { opp.active.attackCostIncrease = (opp.active.attackCostIncrease || 0) + (p.amount || 1); gs.addLog(`对手使用招式所需能量 +${p.amount || 1}`); }
   },
 
+  // ===== 条件效果（如果…则…：先判条件，再执行内层效果）=====
+  async conditional_effect(gs, pl, p, eff, options) {
+    if (!gs._conditionSatisfied?.(pl.active, p.condition, p)) return;
+    const inner = p.effect;
+    if (!inner) return;
+    if (inner.action === 'knockout') {
+      const target = inner.params?.target === 'self' ? pl.active : _opponent(gs, pl).active;
+      if (target) { target.hp = 0; gs.knockout?.(target); gs.addLog(`${target.name} 被击倒`); }
+      return;
+    }
+    if (inner.action === 'attack_fail') {
+      gs.addLog('条件不满足，招式失败');
+      throw new RequiredEffectFailed('attack_fail', '条件不满足，招式失败');
+    }
+    const fn = EXECUTORS[inner.action];
+    if (fn) await fn(gs, pl, inner.params || {}, eff, options);
+  },
+
   // ===== 特性消除（主动/临时效果）=====
   ability_nullify(gs, pl, p) {
     if (p.duration !== 'turn') return;
