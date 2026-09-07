@@ -65,6 +65,7 @@ export class GameState {
       if(pl===this.currentPlayer&&mon.status&&mon.status.includes('paralysis')){mon.status=mon.status.split(',').filter(s=>s!=='paralysis').join(',')||null;this.addLog(`${mon.name} 麻痹恢复`);}
       if(mon.hp<=0){this.knockout(pl);}
     }
+    this.emitTriggerEvent('checkup',{});
     if(this.firstPlayerFirstTurnInProgress&&this.currentPlayer===this.firstPlayer)this.firstPlayerFirstTurnInProgress=false;
     this.currentPlayer.supporterUsed=false;this.currentPlayer.energyAttached=false;this.currentPlayer.retreatUsed=false;this.currentPlayer.abilityUsedThisTurn={};this.currentPlayer.stadiumUsedThisTurn={};this.currentPlayer.turnAttackModifiers=[];
     this.temporaryAbilityLocks=(this.temporaryAbilityLocks||[]).filter(lock=>lock.expires!=='turn'&&lock.owner!==this.currentPlayer);
@@ -109,7 +110,7 @@ export class GameState {
     if(cd.specialRules?.blockAttackEffects)t.preventEffect=true;
     if(cd.specialRules?.blockSpecialCondition)t.status=null;
     pl.energyAttached=true;
-    this.addLog(`${pl.name} 为 ${t.name} 附着了 ${cd.name}`);return true;}
+    this.addLog(`${pl.name} 为 ${t.name} 附着了 ${cd.name}`);this.emitTriggerEvent('energy_attached',{target:t,owner:pl});return true;}
 
   checkEnergy(mon,ai){const a=mon.attacks?.[ai];if(!a||!a.cost||a.cost.length===0)return true;
     return this._canPayEnergyCost(mon,this.adjustedAttackCost(mon,a));}
@@ -204,7 +205,7 @@ export class GameState {
     t.stage=cd.stage||t.stage;t.evolvesFrom=cd.evolvesFrom||null;t.ruleText=cd.ruleText||'';t.rule2Text=cd.rule2Text||'';t.ruleBox=cd.ruleBox||'';t.isEx=!!cd.isEx;t.isRadiant=!!cd.isRadiant;t.hasRuleBox=!!cd.hasRuleBox;
     t.attacks=cd.attacks;t.element=cd.element;t.weakness=cd.weakness||null;t.resistance=cd.resistance||null;t.weaknessMultiplier=cd.weaknessMultiplier||2;t.resistanceValue=cd.resistanceValue??-30;t.retreatCost=cd.retreatCost??1;t.ability=cd.ability||null;t.abilityUsed=false;t.abilityDisabled=false;t.abilityDisabledBy=null;t.placedThisTurn=false;t.evolvedThisTurn=true;
     this._removeSpecialConditions(t);
-    this.addLog(`${pl.name} 的宝可梦进化成了 ${cd.name}！`);this.recomputePassives();return true;}
+    this.addLog(`${pl.name} 的宝可梦进化成了 ${cd.name}！`);this.recomputePassives();this.emitTriggerEvent('evolved',{target:t,owner:pl});return true;}
 
   _toolLabel(tool){return (tool&&typeof tool==='object')?(tool.name||tool.cardId||'宝可梦道具'):tool;}
   _toolCardValue(tool){return (tool&&typeof tool==='object')?(tool.cardId||tool.name||tool):tool;}
@@ -527,6 +528,8 @@ export class GameState {
     }
     return out;}
   _hasPassive(mon,action){return this._passiveEffectsFor(mon,action).length>0;}
+  // 触发式事件分发：由 EffectExecutor 注入 handler（_emitTriggers）
+  emitTriggerEvent(event,payload={}){if(this._triggerHandler){try{this._triggerHandler(event,payload);}catch(e){/* 忽略 */}}}
   // 最大 HP 被动加成（特性「附特殊能量则最大HP+N」）
   getPassiveMaxHpModifier(mon){let total=0;for(const {source,params:p} of this._passiveEffectsFor(mon,'max_hp_mod')){if(p.condition==='self_has_special_energy'&&!(mon?.energy||[]).some(e=>String(e).includes('特殊')))continue;total+=p.amount||0;}return total;}
   // 检查 pl 的对手场上是否有某被动（“对手的…无法…”类）

@@ -162,7 +162,29 @@ function conditionalEffectParams(condText, effect) {
   return c ? { ...c, effect } : null;
 }
 
+// 触发式「当/每当 CONDITION 时，EFFECT」：识别事件类型 + 内层效果
+function triggerEventKey(condText) {
+  const t = String(condText || '');
+  if (/昏厥/.test(t)) return 'knocked_out';
+  if (/受到(?:对手(?:的)?宝可梦(?:的)?招式)?的?伤害/.test(t)) return 'attacked_damage';
+  if (/附着.*能量|从手牌将能量/.test(t)) return 'energy_attached';
+  if (/进化/.test(t)) return 'evolved';
+  if (/检查/.test(t)) return 'checkup';
+  if (/从手牌使出/.test(t)) return 'card_played';
+  if (/进入战斗场|从备战区被放入/.test(t)) return 'entered_active';
+  return null;
+}
+function triggerParams(m) {
+  const event = triggerEventKey(m[1]);
+  if (!event) return null;
+  const inner = parseEffect(m[2]);
+  if (!inner.effects.length) return null;
+  return { event, effect: inner.effects[0], optional:/可选择|若希望|可以/.test(m[0]) };
+}
+
 const RULES = [
+  // ===== 触发式「当/每当…时，效果」：优先匹配，避免效果部分被其他规则先吃掉 =====
+  { re: /^(?:每当|当)(.{2,40}?)(?:时)[，,]?(.+)$/, act:'trigger', p:triggerParams },
   // ===== 训练家/特性使用前提：仅解析为元数据，不执行合法性或费用 =====
   { re: /若从自己的手牌将1张["“”「」]?基本【火】能量["“”「」]?卡?(?:丢弃|丢到弃牌区|放于弃牌区)/, act:'ability_discard_cost', p:m=>({ count:1, filter:'基本【火】能量', zone:'hand', raw:m[0] }) },
   { re: /若将自己手牌中的1张["“”「」]?基本【火】能量["“”「」]?卡?(?:丢弃|丢到弃牌区|放于弃牌区)/, act:'ability_discard_cost', p:m=>({ count:1, filter:'基本【火】能量', zone:'hand', raw:m[0] }) },
@@ -294,6 +316,7 @@ const RULES = [
   { re: /将对手的(?:战斗)?宝可梦【灼伤】与【混乱】/, act:'inflict_status', p:()=>({statuses:['burn','confusion']}) },
   { re: /将对手的(?:战斗)?宝可梦【(.+?)】与【(.+?)】/, act:'inflict_status', p:m=>({statuses:[STATUS_MAP[m[1]]||m[1],STATUS_MAP[m[2]]||m[2]]}) },
   { re: /将对手的(?:战斗)?宝可梦【(.+?)】/, act:'inflict_status', p:m=>({statuses:[STATUS_MAP[m[1]]||m[1]]}) },
+  { re: /会使?使用了招式的宝可梦陷入【(.+?)】状态/, act:'inflict_status', p:m=>({statuses:[STATUS_MAP[m[1]]||m[1]],target:'attacker'}) },
   { re: /将这只宝可梦【(.+?)】/, act:'inflict_status_self', p:m=>({statuses:[STATUS_MAP[m[1]]||m[1]]}) },
   { re: /将双方的战斗宝可梦【(.+?)】/, act:'inflict_status_both', p:m=>({statuses:[STATUS_MAP[m[1]]||m[1]]}) },
 
@@ -326,10 +349,12 @@ const RULES = [
 
   // ===== 伤害指示物 =====
   { re: /将(\d+)个伤害指示物以任意方式放置于对手的宝可梦身上/, act:'damage_place', p:m=>({target:'opponent_any',count:+m[1]}) },
+  { re: /将(\d+)个伤害指示物放置于(?:使用了|使用)招式的宝可梦身上/, act:'damage_place', p:m=>({target:'attacker',count:+m[1]}) },
   { re: /将(\d+)个伤害指示物[，,]以任意方式放置于对手的备战宝可梦身上/, act:'damage_place', p:m=>({target:'opponent_bench',count:+m[1]}) },
-  { re: /给对手的1只宝可梦身上[，,]放置(\d+)个伤害指示物/, act:'damage_place', p:m=>({target:'opponent_any',count:+m[1]}) },
-  { re: /给对手的战斗宝可梦身上[，,]放置(\d+)个伤害指示物/, act:'damage_place', p:m=>({target:'opponent_active',count:+m[1]}) },
-  { re: /给自己(?:的)?1只宝可梦身上[，,]放置(\d+)个伤害指示物/, act:'damage_place', p:m=>({target:'self',count:+m[1]}) },
+  { re: /给对手的1只宝可梦身上[，,]?放置(\d+)个伤害指示物/, act:'damage_place', p:m=>({target:'opponent_any',count:+m[1]}) },
+  { re: /给对手的战斗宝可梦身上[，,]?放置(\d+)个伤害指示物/, act:'damage_place', p:m=>({target:'opponent_active',count:+m[1]}) },
+  { re: /给(?:那只|该|这只)宝可梦身上[，,]?放置(\d+)个伤害指示物/, act:'damage_place', p:m=>({target:'attacker',count:+m[1]}) },
+  { re: /给自己(?:的)?1只宝可梦身上[，,]?放置(\d+)个伤害指示物/, act:'damage_place', p:m=>({target:'self',count:+m[1]}) },
   { re: /在对手的战斗宝可梦身上放置(\d+)个伤害指示物/, act:'damage_place', p:m=>({target:'opponent_active',count:+m[1]}) },
   { re: /在使用招式的宝可梦身上放置(\d+)个伤害指示物/, act:'damage_place', p:m=>({target:'attacker',count:+m[1]}) },
   { re: /在这只宝可梦身上放置(\d+)个伤害指示物/, act:'damage_place', p:m=>({target:'self',count:+m[1]}) },
@@ -475,6 +500,7 @@ const RULES = [
   { re: /选择1个这只宝可梦身上附加的能量[，,]改附于备战宝可梦身上/, act:'move_energy', p:()=>({source:'self',dest:'bench'}) },
   { re: /将这只宝可梦身上附着的所有能量[，,]以任意方式转附于(?:1只|一只)?备战宝可梦身上/, act:'move_energy', p:()=>({source:'self',dest:'bench',count:'all'}) },
   { re: /将这只宝可梦身上附着的所有能量[，,]转附于(?:1只|一只)?备战宝可梦身上/, act:'move_energy', p:()=>({source:'self',dest:'bench',count:'all'}) },
+  { re: /(?:可选择|选择)(?:该|这只)?战斗宝可梦身上附着的(\d+)张(.+?能量)[，,]转附于这只宝可梦身上/, act:'move_energy', p:m=>({source:'self',dest:'bench',count:+m[1],filter:m[2].trim()}) },
 
   // ===== 回手 =====
   { re: /选择1只自己的场上宝可梦[，,]?将那只宝可梦与附加的卡[，,]全部放回手牌/, act:'return_to_hand', p:()=>({target:'choose',with_attachments:true}) },
