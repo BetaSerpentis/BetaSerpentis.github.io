@@ -1489,6 +1489,19 @@ const EXECUTORS = {
     if (opp.active) { opp.active.attackCostIncrease = (opp.active.attackCostIncrease || 0) + (p.amount || 1); gs.addLog(`对手使用招式所需能量 +${p.amount || 1}`); }
   },
 
+  // ===== 使用招式 + 撤退所需能量同时增加（一次性）=====
+  cost_increase_both(gs, pl, p) {
+    const opp = _opponent(gs, pl);
+    if (opp.active) { opp.active.attackCostIncrease = (opp.active.attackCostIncrease || 0) + (p.amount || 1); opp.active.retreatCostIncrease = (opp.active.retreatCostIncrease || 0) + (p.amount || 1); gs.addLog(`对手使用招式与撤退所需能量各 +${p.amount || 1}`); }
+  },
+
+  // ===== 丢弃对手道具 =====
+  discard_tool(gs, pl, p) {
+    const opp = _opponent(gs, pl);
+    const mon = opp.active;
+    if (mon?.tool) { opp.discard.push(mon.tool); mon.tool = null; gs.addLog('丢弃对手道具'); }
+  },
+
   // ===== 条件效果（如果…则…：先判条件，再执行内层效果）=====
   async conditional_effect(gs, pl, p, eff, options) {
     if (!gs._conditionSatisfied?.(pl.active, p.condition, p)) return;
