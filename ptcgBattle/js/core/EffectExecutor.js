@@ -1224,6 +1224,16 @@ const EXECUTORS = {
     if (selected.length) gs.addLog(`能量回手 ${selected.length} 张`);
   },
 
+  // ===== 弃牌区放备战 =====
+  async discard_to_bench(gs, pl, p) {
+    const selected = await _pickCardsFromZone(gs, pl, pl, pl.discard, p.count || 1, {
+      source:'discard-to-bench', filter:p.filter || '宝可梦', prompt:'选择放到备战区的宝可梦',
+      allowFewer:!!p.allowFewer, allowEmpty:!!p.allowEmpty, maxCount:p.maxCount, minCount:p.minCount, optional:!!p.optional
+    });
+    for (const item of selected) { const idx = pl.discard.indexOf(item.card); if (idx >= 0) pl.discard.splice(idx, 1); const mon = _makeBenchPokemonFromCard(gs, item.card); if (mon && pl.bench.length < 5) pl.bench.push(mon); }
+    gs.addLog(`从弃牌区放置 ${selected.length} 只宝可梦到备战区`);
+  },
+
   // ===== 弃牌区附能 =====
   async attach_energy_from_discard(gs, pl, p) {
     const allowActive = p.target !== 'bench';
