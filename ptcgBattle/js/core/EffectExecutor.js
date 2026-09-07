@@ -605,6 +605,11 @@ const EXECUTORS = {
   draw(gs, pl, p) { const n = p.count || 1; pl.draw(n); gs.addLog(`抽了 ${n} 张卡`); },
   draw_until(gs, pl, p) { const t = p.target || 6; while (pl.hand.length < t && pl.deck.length > 0) pl.draw(1); gs.addLog(`抽卡至 ${t} 张`); },
 
+  // ===== 结束回合 / 丢所有手牌 / 洗牌 =====
+  end_turn(gs, pl, p) { gs.endTurn?.(); gs.addLog('回合结束'); },
+  discard_all_hand(gs, pl, p) { pl.discard.push(...pl.hand); pl.hand = []; gs.addLog('丢弃所有手牌'); },
+  shuffle_deck(gs, pl, p) { gs._shuffle?.(pl.deck); gs.addLog('重洗牌库'); },
+
   // ===== 搜牌库加手 =====
   async search_deck_to_hand(gs, pl, p, eff, options) {
     if (pl.deck.length === 0) {
@@ -959,6 +964,8 @@ const EXECUTORS = {
   heal(gs, pl, p) {
     const mon = pl.active;
     if (!mon) return;
+    const opp = _opponent(gs, pl);
+    if ((gs._passiveEffectsFor?.(opp.active, 'block_heal') || []).some(e => ['both_field', 'opponent_field', 'opponent_bench'].includes(e.params?.target))) { gs.addLog('无法回复HP'); return; }
     const amount = p.amount === 'full' ? mon.maxHp : (p.amount || 20);
     mon.hp = Math.min(mon.maxHp, mon.hp + amount);
     gs.addLog(`恢复 ${amount} HP`);
@@ -1509,6 +1516,19 @@ const EXECUTORS = {
   retreat_cost_zero(gs, pl, p) { /* 被动：由 GameState.effectiveRetreatCost 运行时查询 */ },
   cannot_retreat_passive(gs, pl, p) { /* 被动：由 GameState.retreat 运行时查询 */ },
   energy_provides(gs, pl, p) { /* 特殊能量供能由 CardResolver 处理，此处 no-op */ },
+  energy_provides_multiplier(gs, pl, p) { /* 特殊能量倍增供能由 CardResolver 处理，此处 no-op */ },
+  block_heal(gs, pl, p) { /* 被动：由 heal 执行器运行时查询 */ },
+  block_special_condition(gs, pl, p) { /* 被动：由 inflict_status 运行时查询 */ },
+  block_status(gs, pl, p) { /* 被动：由 inflict_status 运行时查询 */ },
+  dual_type(gs, pl, p) { /* 双属性：元素判断待接入 */ },
+  weakness_null(gs, pl, p) { /* 被动：由 BattleEngine 弱点计算查询 */ },
+  poison_damage_increase(gs, pl, p) { /* 被动：由 endTurn 中毒结算查询 */ },
+  attack_cost_reduction(gs, pl, p) { /* 被动：由 adjustedAttackCost 查询 */ },
+  retreat_cost_reduce(gs, pl, p) { /* 被动：由 effectiveRetreatCost 查询 */ },
+  attach_energy_trigger(gs, pl, p) { /* 触发式：由事件系统处理 */ },
+  conditional_damage_mod(gs, pl, p) { /* 由 getConditionalDamageModifier 运行时计算 */ },
+  passive_damage_mod(gs, pl, p) { /* 由 getPassiveDamageModifier 运行时计算 */ },
+  trigger(gs, pl, p) { /* 由事件系统 _emitTriggers 处理 */ },
 
   // ===== 竞技场 =====
   // stadium effects are handled as passives, not here

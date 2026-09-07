@@ -394,8 +394,9 @@ export class BattleEngine {
     const moveName = move.name || '攻击';
 
     // Execute pre-damage failure checks first (coin flip failure, etc.), plus discard-for-damage costs. 
+    const DAMAGE_CALC_ACTIONS = new Set(['conditional_damage_mod', 'passive_damage_mod', 'trigger']);
     const preEffects = (move.effects || []).filter(e => (e.action === 'coin_flip' && e.params?.fail_on_tails) || e.action === 'discard_energy_for_damage');
-    const postEffects = (move.effects || []).filter(e => !((e.action === 'coin_flip' && e.params?.fail_on_tails) || e.action === 'discard_energy_for_damage'));
+    const postEffects = (move.effects || []).filter(e => !((e.action === 'coin_flip' && e.params?.fail_on_tails) || e.action === 'discard_energy_for_damage' || DAMAGE_CALC_ACTIONS.has(e.action)));
     if (preEffects.length && !def.active.preventEffect) {
       try { await executeEffects(gs, atk, preEffects, { propagateFailure: true }); }
       catch(e) { this.cb.onLog?.('招式失败'); return false; }
