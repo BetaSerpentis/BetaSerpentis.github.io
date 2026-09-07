@@ -70,6 +70,7 @@ function _requiredFailure(action, reason) {
 }
 
 export async function executeEffects(gs, player, effects, options = {}) {
+  if (!gs._triggerHandler) gs._triggerHandler = (event, payload) => _emitTriggers(gs, event, payload);
   for (const eff of effects) {
     try {
       const fn = EXECUTORS[eff.action];
@@ -521,18 +522,56 @@ function _isOwnFirstTurn(gs, player) {
   return !!(gs && player && gs.firstPlayer && ((gs.turn === 1 && player === gs.firstPlayer) || (gs.turn === 2 && player !== gs.firstPlayer)));
 }
 
+let _emitDepth = 0;
+function _shouldTrigger(event, mon, payload, ownerPl) {
+  switch (event) {
+    case 'attacked_damage':
+    case 'knocked_out':
+    case 'evolved': return payload.target === mon; // 自身事件
+    case 'energy_attached': return payload.owner !== ownerPl; // 对手附着能量
+    default: return true;
+  }
+}
+function _emitTriggers(gs, event, payload = {}) {
+  if (_emitDepth > 6) return; // 防重入循环
+  _emitDepth++;
+  try {
+    for (const pl of [gs.player1, gs.player2]) {
+      for (const mon of [pl.active, ...(pl.bench || [])]) {
+        if (!mon) continue;
+        if (!_shouldTrigger(event, mon, payload, pl)) continue;
+        const effects = gs._enabledAbilityEffects?.(mon) || [];
+        for (const eff of effects) {
+          if (eff.action !== 'trigger' || eff.params?.event !== event) continue;
+          const inner = eff.params.effect;
+          if (!inner) continue;
+          const fn = EXECUTORS[inner.action];
+          if (!fn) continue;
+          // target:'attacker' 应指向事件源（使用招式的宝可梦）
+          const execPl = (inner.params?.target === 'attacker' && payload.source)
+            ? ([gs.player1, gs.player2].find(p => p.active === payload.source || p.bench?.includes(payload.source)) || pl)
+            : pl;
+          try { Promise.resolve(fn(gs, execPl, inner.params || {}, eff)).catch(() => {}); } catch (e) { /* 忽略触发式执行错误 */ }
+        }
+      }
+    }
+  } finally { _emitDepth--; }
+}
 function _applyDamageToPokemon(gs, owner, mon, amount, logSuffix = '受到', options = {}) {
   if (!mon || !amount) return false;
   if (options.source === 'attack' && gs.isBenchProtectedFromOpponentAttack?.(owner, mon, 'damage')) { gs.addLog(`${mon.name} 防止了备战伤害`); return false; }
   mon.hp -= amount;
   gs.addLog(`${mon.name} ${logSuffix} ${amount} 伤害`);
   if (mon.hp <= 0) _knockoutPokemon(gs, owner, mon);
+  const attacker = options.attacker || gs.getOpponent?.(owner)?.active || null;
+  _emitTriggers(gs, 'attacked_damage', { target: mon, source: attacker });
   return true;
 }
 function _knockoutPokemon(gs, owner, mon) {
   if (!owner || !mon) return;
   if (owner.active === mon) {
     gs.knockout(owner);
+    _emitTriggers(gs, 'knocked_out', { target: mon, owner });
     return;
   }
   const benchIndex = owner.bench.indexOf(mon);
@@ -540,6 +579,7 @@ function _knockoutPokemon(gs, owner, mon) {
   owner.bench.splice(benchIndex, 1);
   owner.discard.push(mon.cardId);
   gs.addLog(`${owner.name} 的 ${mon.name} 被击倒！`);
+  _emitTriggers(gs, 'knocked_out', { target: mon, owner });
   const prizeTaker = gs.getOpponent?.(owner) || [gs.player1, gs.player2].find(p => p !== owner);
   if (typeof gs._recordKnockout === 'function') gs._recordKnockout(owner);
   if (prizeTaker) gs.takePrizesForKnockout?.(prizeTaker, mon) ?? gs.takePrize(prizeTaker);
@@ -989,8 +1029,8 @@ const EXECUTORS = {
   // ===== 状态异常 =====
   inflict_status(gs, pl, p) {
     if (!_conditionSatisfied(gs, pl, p.condition)) return;
-    const opp = _opponent(gs, pl);
-    if (opp.active && p.statuses) { if (gs._hasPassive?.(opp.active, 'block_special_condition')) { gs.addLog('目标免疫特殊状态'); return; } const applied = (p.statuses||[]).filter(s => !(gs._passiveEffectsFor?.(opp.active, 'block_status')||[]).some(e => e.params?.status === s)); if (!applied.length) { gs.addLog('目标免疫该状态'); return; } _applyStatus(opp.active, applied); gs.addLog(`对手 ${applied.join('、')}`); }
+    const target = (p.target === 'attacker') ? pl.active : _opponent(gs, pl).active;
+    if (target && p.statuses) { if (gs._hasPassive?.(target, 'block_special_condition')) { gs.addLog('目标免疫特殊状态'); return; } const applied = (p.statuses||[]).filter(s => !(gs._passiveEffectsFor?.(target, 'block_status')||[]).some(e => e.params?.status === s)); if (!applied.length) { gs.addLog('目标免疫该状态'); return; } _applyStatus(target, applied); gs.addLog(`对手 ${applied.join('、')}`); }
   },
   inflict_status_self(gs, pl, p) {
     if (pl.active && p.statuses) { if (gs._hasPassive?.(pl.active, 'block_special_condition')) { gs.addLog('自身免疫特殊状态'); return; } const applied = (p.statuses||[]).filter(s => !(gs._passiveEffectsFor?.(pl.active, 'block_status')||[]).some(e => e.params?.status === s)); if (!applied.length) { gs.addLog('自身免疫该状态'); return; } _applyStatus(pl.active, applied); gs.addLog(`陷入 ${applied.join('、')}`); }
