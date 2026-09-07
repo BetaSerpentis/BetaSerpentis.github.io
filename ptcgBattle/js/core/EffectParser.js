@@ -317,6 +317,8 @@ const RULES = [
   { re: /对手的1只备战宝可梦也受到(\d+)伤害/, act:'damage_bench', p:m=>({target:'opponent_1',damage:+m[1]}) },
   { re: /给对手的1只备战宝可梦[，,]也造成(\d+)伤害/, act:'damage_bench', p:m=>({target:'opponent_1',damage:+m[1]}) },
   { re: /给对手的1只备战宝可梦[，,]造成(\d+)伤害/, act:'damage_bench', p:m=>({target:'opponent_1',damage:+m[1]}) },
+  { re: /给对手的(\d+)只备战宝可梦[，,](?:也)?各造成(\d+)伤害/, act:'damage_bench', p:m=>({target:'opponent_N',count:+m[1],damage:+m[2]}) },
+  { re: /给对手的所有宝可梦[，,]各造成(\d+)伤害/, act:'damage_bench', p:m=>({target:'opponent_all_field',damage:+m[1]}) },
   { re: /对手的1只宝可梦受到(\d+)伤害/, act:'damage_bench', p:m=>({target:'opponent_any',damage:+m[1]}) },
   { re: /给对手的1只宝可梦[，,]造成(\d+)伤害/, act:'damage_bench', p:m=>({target:'opponent_any',damage:+m[1]}) },
   { re: /对手的所有备战宝可梦也各受到(\d+)伤害/, act:'damage_bench', p:m=>({target:'opponent_all',damage:+m[1]}) },
@@ -324,6 +326,10 @@ const RULES = [
 
   // ===== 伤害指示物 =====
   { re: /将(\d+)个伤害指示物以任意方式放置于对手的宝可梦身上/, act:'damage_place', p:m=>({target:'opponent_any',count:+m[1]}) },
+  { re: /将(\d+)个伤害指示物[，,]以任意方式放置于对手的备战宝可梦身上/, act:'damage_place', p:m=>({target:'opponent_bench',count:+m[1]}) },
+  { re: /给对手的1只宝可梦身上[，,]放置(\d+)个伤害指示物/, act:'damage_place', p:m=>({target:'opponent_any',count:+m[1]}) },
+  { re: /给对手的战斗宝可梦身上[，,]放置(\d+)个伤害指示物/, act:'damage_place', p:m=>({target:'opponent_active',count:+m[1]}) },
+  { re: /给自己(?:的)?1只宝可梦身上[，,]放置(\d+)个伤害指示物/, act:'damage_place', p:m=>({target:'self',count:+m[1]}) },
   { re: /在对手的战斗宝可梦身上放置(\d+)个伤害指示物/, act:'damage_place', p:m=>({target:'opponent_active',count:+m[1]}) },
   { re: /在使用招式的宝可梦身上放置(\d+)个伤害指示物/, act:'damage_place', p:m=>({target:'attacker',count:+m[1]}) },
   { re: /在这只宝可梦身上放置(\d+)个伤害指示物/, act:'damage_place', p:m=>({target:'self',count:+m[1]}) },
@@ -390,16 +396,16 @@ const RULES = [
   { re: /不会受到.*?招式的伤害/, act:'prevent_damage', p:()=>({source:'attack'}) },
 
   // ===== 无视弱抗/效果 =====
-  { re: /这个招式的伤害[，,]?不计算(?:抵抗|抗力)/, act:'ignore', p:()=>({what:'resistance'}) },
+  { re: /这个招式的伤害[，,]?不计算弱点[、，]?抗性(?:以及对手(?:的)?战斗宝可梦身上(?:所)?附加的效果)?/, act:'ignore', p:m=>({what:/以及|效果/.test(m[0])?'weakness_resistance_effects':'weakness_resistance'}) },
   { re: /这个招式的伤害[，,]?不计算弱点/, act:'ignore', p:()=>({what:'weakness'}) },
-  { re: /这个招式的伤害[，,]?不计算对手的战斗宝可梦身上的附加效果/, act:'ignore', p:()=>({what:'opponent_effects'}) },
-  { re: /这个招式的伤害[，,]不计算弱点、抗性以及对手战斗宝可梦身上所附加的效果/, act:'ignore', p:()=>({what:'weakness_resistance_effects'}) },
+  { re: /这个招式的伤害[，,]?不计算(?:抵抗|抗力|抗性)/, act:'ignore', p:()=>({what:'resistance'}) },
+  { re: /这个招式的伤害[，,]?不计算对手(?:的)?战斗宝可梦身上(?:所)?附加的效果/, act:'ignore', p:()=>({what:'opponent_effects'}) },
 
   // ===== 无法攻击/撤退 =====
   { re: /在下个自己的回合[，,]这只宝可梦无法使用招式/, act:'cannot_attack_next', p:()=>({duration:'next_self_turn'}) },
   { re: /在下个自己的回合[，,]这只宝可梦无法使用"?(.+?)"?[,。]/, act:'cannot_attack_next', p:m=>({move:m[1]}) },
-  { re: /在下个对手的回合[，,]受到这个招式的宝可梦无法撤退/, act:'cannot_retreat', p:()=>({target:'opponent',duration:'next_opp_turn'}) },
-  { re: /对手的(?:战斗)?宝可梦无法撤退/, act:'cannot_retreat', p:()=>({target:'opponent'}) },
+  { re: /在下个对手的回合[，,]受到这个招式(?:影响)?的宝可梦[，,]?无法撤退/, act:'cannot_retreat', p:()=>({target:'opponent',duration:'next_opp_turn'}) },
+  { re: /对手的(?:战斗)?宝可梦[，,]无法撤退/, act:'cannot_retreat_passive', p:()=>({target:'opponent_active'}) },
 
   // ===== 弃牌区附能 =====
   { re: /从自己的弃牌区(?:选择|抽出)最多(\d+)张["“”]?([^"“”。，,]+?能量)["“”]?卡?[，,]附于((?:(?!(?:所有|各|那些|以任意方式)).)+?宝可梦)(?:身上)?/, act:'attach_energy_from_discard', p:m=>discardAttachParams(m,true) },
@@ -461,6 +467,8 @@ const RULES = [
   { re: /将自己的.*?宝可梦与(?:所附加的所有卡|附加的卡)[,，]?(?:全部)?放回手牌/, act:'return_to_hand', p:()=>({target:'choose',with_attachments:true}) },
   { re: /将自己的.*?宝可梦[,，]?(?:全部)?放回手牌/, act:'return_to_hand', p:()=>({target:'choose',with_attachments:false}) },
   { re: /将这只宝可梦与附加的卡[，,]全部放回手牌/, act:'return_to_hand', p:()=>({target:'self',with_attachments:true}) },
+  { re: /将这只宝可梦[，,]以及放置于其身上的所有卡(?:牌)?[，,]放回手牌/, act:'return_to_hand', p:()=>({target:'self',with_attachments:true}) },
+  { re: /选择自己场上(?:的)?1只宝可梦[，,]将(?:那只|该)宝可梦[，,]以及放置于其身上的所有卡(?:牌)?[，,]放回手牌/, act:'return_to_hand', p:()=>({target:'choose',with_attachments:true}) },
 
   // ===== 弃牌区回收 =====
   { re: /从(?:自己的)?弃牌区选择(.+?)合计最多(\d+)张[，,]在给对手看过后加入手牌/, act:'recover_from_discard', p:m=>withCount({filter:m[1].trim(),target:'hand'},m[2],true) },

@@ -973,6 +973,13 @@ const EXECUTORS = {
     } else if (p.target === 'opponent_all') {
       for (const mon of [...opp.bench]) if (mon) _applyDamageToPokemon(gs, opp, mon, dmg, '备战受', { source:'attack' });
       gs.addLog(`对手备战区各受 ${dmg}`);
+    } else if (p.target === 'opponent_N') {
+      const n = Math.min(p.count || 1, opp.bench.length);
+      for (let i = 0; i < n; i++) { const mon = opp.bench[i]; if (mon) _applyDamageToPokemon(gs, opp, mon, dmg, '备战受', { source:'attack' }); }
+      gs.addLog(`对手 ${n} 只备战宝可梦各受 ${dmg}`);
+    } else if (p.target === 'opponent_all_field') {
+      for (const mon of [opp.active, ...opp.bench]) if (mon) _applyDamageToPokemon(gs, opp, mon, dmg, mon === opp.active ? '受到' : '备战受', { source:'attack' });
+      gs.addLog(`对手所有宝可梦各受 ${dmg}`);
     } else if (p.target === 'self_all') {
       for (const mon of [...pl.bench]) if (mon) _applyDamageToPokemon(gs, pl, mon, dmg, '备战受', { source:'attack' });
       gs.addLog(`己方备战区各受 ${dmg}`);
