@@ -241,6 +241,7 @@ const RULES = [
   { re: /查看(?:自己的)?牌库上方1张卡[，,]回复原样[。.]若希望[，,]选择1张自己的反面朝上的奖赏卡[，,]与自己的牌库上方的卡维持反面朝上互换/, act:'prize_deck_top_swap', p:()=>({optional:true}) },
   { re: /将对手的所有宝可梦身上附加的"?宝可梦道具"?卡与"?特殊能量"?卡[，,]与场上的"?竞技场"?卡[，,]全部丢弃/, act:'discard_field_attachments', p:()=>({target:'opponent',tools:true,specialEnergy:true,stadium:true}) },
   { re: /选择放置于双方场上宝可梦身上的最多(\d+)张["“”「」]?宝可梦道具["“”「」]?[，,]丢到弃牌区/, act:'discard_field_attachments', p:m=>({target:'both',tools:true,maxCount:+m[1]}) },
+  { re: /选择放置于对手场上宝可梦身上最多(\d+)张["“”「」]?宝可梦道具["“”「」]?[，,]丢到弃牌区/, act:'discard_field_attachments', p:m=>({target:'opponent',tools:true,maxCount:+m[1]}) },
   { re: /在造成伤害前[，,]将放于对手战斗宝可梦身上的["“”「」]?宝可梦道具["“”「」]?丢到弃牌区/, act:'discard_tool', p:()=>({target:'opponent_active'}) },
   { re: /掷1次硬币[。.]?若为正面[，,]则选择对手的1只备战宝可梦[，,]与战斗宝可梦互换/, act:'coin_flip', p:()=>({count:1,heads:[{action:'switch_pokemon',params:{who:'opponent'}}]}) },
   { re: /掷1次硬币[。.]?若为正面[，,]则从自己的牌库选择1张宝可梦[，,]在给对手看过后加入手牌[。.]并且重洗牌库/, act:'coin_flip', p:()=>({count:1,heads:[{action:'search_deck_to_hand',params:{count:1,filter:'宝可梦'}}]}) },
@@ -493,6 +494,8 @@ const RULES = [
   { re: /选择这只宝可梦身上附着的(\d+)个(?:【.+?】)?能量[，,]转附于(?:1只|一只)?备战宝可梦身上/, act:'move_energy', p:()=>({source:'self',dest:'bench'}) },
   { re: /将自己弃牌区中的(\d+)张(.+?能量)[，,]附于自己的(?:1只|一只)?(?:备战)?(?:【.+?】)?宝可梦身上/, act:'attach_energy_from_discard', p:m=>withCount({filter:m[2].trim(),target:'any'},m[1],false) },
   { re: /从自己的弃牌区选择最多(\d+)张【(.+?)】能量[，,]以任意方式附于自己的宝可梦身上/, act:'attach_energy_from_discard', p:m=>withCount({filter:`【${m[2]}】能量`,target:'any'},m[1],true) },
+  { re: /从自己的弃牌区选择最多(\d+)张["“”「」]?(.+?能量)["“”「」]?[，,]以任意方式附于(?:自己的)?备战宝可梦身上/, act:'attach_energy_from_discard', p:m=>withCount({filter:m[2].trim(),target:'bench'},m[1],true) },
+  { re: /从自己的弃牌区选择(\d+)张(?:【.+?】)?宝可梦[，,]放置于备战区/, act:'discard_to_bench', p:m=>withCount({filter:'宝可梦'},m[1],false) },
   { re: /选择自己手牌中的["“”]?(?:基本)?【(.+?)】能量["“”]?和["“”]?(?:基本)?【(.+?)】能量["“”]?各最多1张[，,]以任意方式附于自己宝可梦身上/, act:'attach_energy_from_hand', p:m=>({target:'any',optional:true,filter:`【${m[1]}】能量或【${m[2]}】能量`}) },
   { re: /选择自己手牌中的(\d+)张能量[，,]附于自己的备战宝可梦身上/, act:'attach_energy_from_hand', p:m=>withCount({filter:'能量',target:'bench'},m[1],false) },
   { re: /选择自己手牌中的(\d+)张(.+?能量)[，,]附于自己的(?:备战)?宝可梦身上/, act:'attach_energy_from_hand', p:m=>withCount({filter:m[2].trim(),target:'any'},m[1],false) },
@@ -538,8 +541,8 @@ const RULES = [
 
   // ===== 对手牌库丢弃 =====
   { re: /将对手的牌库上方(\d+)张卡丢弃/, act:'mill', p:m=>({target:'opponent',count:+m[1]}) },
-  { re: /将对手(?:的)?牌库上方的(\d+)张卡(?:牌)?丢到弃牌区/, act:'mill', p:m=>({target:'opponent',count:+m[1]}) },
-  { re: /将自己(?:的)?牌库上方的(\d+)张卡(?:牌)?丢到弃牌区/, act:'mill', p:m=>({target:'self',count:+m[1]}) },
+  { re: /将对手(?:的)?牌库上方(?:的)?(\d+)张卡(?:牌)?丢到弃牌区/, act:'mill', p:m=>({target:'opponent',count:+m[1]}) },
+  { re: /将自己(?:的)?牌库上方(?:的)?(\d+)张卡(?:牌)?丢到弃牌区/, act:'mill', p:m=>({target:'self',count:+m[1]}) },
 
   // ===== 查看对手手牌 =====
   { re: /查看对手的手牌/, act:'look_at', p:()=>({target:'opponent_hand'}) },
