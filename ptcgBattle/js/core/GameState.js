@@ -445,10 +445,55 @@ export class GameState {
       if(p.condition==='opponent_field_energy_type'){const opp=this.getOpponent(pl);const want=p.type||'';total+=(p.amount||0)*[opp.active,...(opp.bench||[])].filter(Boolean).reduce((s,m)=>s+(m.energy||[]).filter(e=>String(e).includes(`【${want}】`)).length,0);continue;}
       if(p.condition==='own_field_energy_type_count'){const ts=new Set();for(const m of [pl.active,...(pl.bench||[])]){if(!m)continue;for(const e of (m.energy||[])){const mm=String(e).match(/【(.+?)】/);if(mm)ts.add(mm[1]);}}total+=(p.amount||0)*ts.size;continue;}
       if(p.condition==='own_field_energy_type'){const want=p.type||'';total+=(p.amount||0)*[pl.active,...(pl.bench||[])].filter(Boolean).reduce((s,m)=>s+(m.energy||[]).filter(e=>String(e).includes(`【${want}】`)).length,0);continue;}
+      if(p.condition==='opponent_active_status'){if(!defender?.status||!String(defender.status).includes(p.status))continue;total+=p.amount||0;continue;}
+      if(p.condition==='opponent_active_any_status'){if(!defender?.status)continue;total+=p.amount||0;continue;}
+      if(p.condition==='opponent_active_is_evolved'){if(!defender)continue;const st=String(defender.stage||'');if(!defender.evolvesFrom&&(!st||st==='基础'||/^basic$/i.test(st)))continue;total+=p.amount||0;continue;}
+      if(p.condition==='opponent_active_name'){if(!defender?.name||!String(defender.name).includes(p.name))continue;total+=p.amount||0;continue;}
+      if(p.condition==='self_has_tool'){if(!attacker?.tool)continue;total+=p.amount||0;continue;}
+      if(p.condition==='opponent_active_has_tool'){if(!defender?.tool)continue;total+=p.amount||0;continue;}
+      if(p.condition==='opponent_active_no_damage'){if(defender&&defender.maxHp&&defender.hp<defender.maxHp)continue;total+=p.amount||0;continue;}
+      if(p.condition==='self_no_damage'){if(attacker&&attacker.maxHp&&attacker.hp<attacker.maxHp)continue;total+=p.amount||0;continue;}
+      if(p.condition==='self_no_hand'){if((pl.hand?.length||0)!==0)continue;total+=p.amount||0;continue;}
+      if(p.condition==='hand_count_equal'){const opp=this.getOpponent(pl);if((pl.hand?.length||0)!==(opp.hand?.length||0))continue;total+=p.amount||0;continue;}
+      if(p.condition==='opponent_prizes'){const opp=this.getOpponent(pl);if((opp.prizes?.length??6)!==(p.count??1))continue;total+=p.amount||0;continue;}
+      if(p.condition==='own_prizes_more'){const opp=this.getOpponent(pl);if((pl.prizes?.length??6)<=(opp.prizes?.length??6))continue;total+=p.amount||0;continue;}
+      if(p.condition==='self_has_energy_type'){const want=p.type||'';if(!(attacker?.energy||[]).some(e=>String(e).includes(`【${want}】`)))continue;total+=p.amount||0;continue;}
+      if(p.condition==='self_has_special_energy'){if(!(attacker?.energy||[]).some(e=>String(e).includes('特殊')))continue;total+=p.amount||0;continue;}
+      if(p.condition==='own_bench_has_damage'){if(!(pl.bench||[]).some(m=>m&&m.maxHp&&m.hp<m.maxHp))continue;total+=p.amount||0;continue;}
+      if(p.condition==='stadium_in_play'){if(!this.getActiveStadium())continue;total+=p.amount||0;continue;}
       // 未知条件：默认不加伤，避免误判（不再落入无条件加伤）
     }
     total+=this._applyTurnAttackModifiers(attacker,defender,move,pl);
     return total;}
+  // 条件分支判断：供 conditional_effect / conditional_damage_mod 复用
+  _conditionSatisfied(attacker,condition,p={}){
+    const pl=[this.player1,this.player2].find(x=>this.getPokemonInPlay(x).includes(attacker))||this.currentPlayer;
+    const defender=this.getOpponent(pl)?.active;
+    switch(condition){
+      case 'own_pokemon_knocked_out_last_opponent_turn': return this.wasOwnPokemonKnockedOutLastOpponentTurn(pl);
+      case 'self_has_damage': return !!(attacker&&attacker.maxHp&&attacker.hp<attacker.maxHp);
+      case 'opponent_active_has_damage': return !!(defender&&defender.maxHp&&defender.hp<defender.maxHp);
+      case 'opponent_active_type': return !!(defender&&this._normalizeType(defender.element)===this._normalizeType(p.type));
+      case 'opponent_active_status': return !!(defender?.status&&String(defender.status).includes(p.status));
+      case 'opponent_active_any_status': return !!defender?.status;
+      case 'opponent_active_is_evolved': {if(!defender)return false;const st=String(defender.stage||'');return !!(defender.evolvesFrom||(st&&st!=='基础'&&!/^basic$/i.test(st)));}
+      case 'opponent_active_name': return !!(defender?.name&&String(defender.name).includes(p.name));
+      case 'self_has_tool': return !!attacker?.tool;
+      case 'opponent_active_has_tool': return !!defender?.tool;
+      case 'opponent_active_no_damage': return !(defender&&defender.maxHp&&defender.hp<defender.maxHp);
+      case 'self_no_damage': return !(attacker&&attacker.maxHp&&attacker.hp<attacker.maxHp);
+      case 'self_no_energy': return (attacker?.energy?.length||0)===0;
+      case 'self_no_hand': return (pl.hand?.length||0)===0;
+      case 'hand_count_equal': return (pl.hand?.length||0)===(this.getOpponent(pl).hand?.length||0);
+      case 'opponent_prizes': return (this.getOpponent(pl).prizes?.length??6)===(p.count??1);
+      case 'own_prizes_more': return (pl.prizes?.length??6)>(this.getOpponent(pl).prizes?.length??6);
+      case 'self_has_energy_type': return (attacker?.energy||[]).some(e=>String(e).includes(`【${p.type}】`));
+      case 'self_has_special_energy': return (attacker?.energy||[]).some(e=>String(e).includes('特殊'));
+      case 'own_bench_has_damage': return (pl.bench||[]).some(m=>m&&m.maxHp&&m.hp<m.maxHp);
+      case 'stadium_in_play': return !!this.getActiveStadium();
+      default: return false;
+    }
+  }
   isBenchProtectedFromOpponentAttack(owner,mon,kind='damage',attackerOwner=null){
     if(!owner?.bench?.includes(mon))return false;
     if(attackerOwner&&attackerOwner!==this.getOpponent(owner))return false;
