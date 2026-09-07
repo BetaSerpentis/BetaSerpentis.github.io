@@ -56,7 +56,7 @@ export class GameState {
     for(const pl of [this.player1, this.player2]){
       const mon=pl.active;
       if(!mon||!mon.status)continue;
-      if(mon.status.includes('poison')){mon.hp-=10;this.addLog(`${mon.name} 中毒 -10`);}
+      if(mon.status.includes('poison')){let pd=10;for(const {params:q} of this._passiveEffectsFor(this.getOpponent(pl).active,'poison_damage_increase')){pd+=(q.amount||0)*10;}mon.hp-=pd;this.addLog(`${mon.name} 中毒 -${pd}`);}
       if(mon.status.includes('burn')){
         if(Math.random()<0.5){mon.status=mon.status.split(',').filter(s=>s!=='burn').join(',')||null;this.addLog(`${mon.name} 灼伤恢复`);}
         else{mon.hp-=20;this.addLog(`${mon.name} 灼伤 -20`);}
@@ -167,7 +167,7 @@ export class GameState {
   isExPokemon(mon){const card=this.getCardForMon(mon);return !!(card?.isEx||mon?.isEx||/(?:宝可梦)?【?ex】?|\bex\b/i.test(`${card?.name||''} ${mon?.name||''} ${card?.ruleBox||''} ${mon?.ruleBox||''} ${card?.ruleText||''} ${mon?.ruleText||''}`));}
   isRadiantPokemonCard(card){return !!(card?.isRadiant||/光辉宝可梦|^光辉/.test(`${card?.name||''} ${card?.ruleBox||''} ${card?.ruleText||''}`));}
   hasRuleBoxPokemonCard(card){return !!(card?.hasRuleBox||card?.isEx||card?.isRadiant||/(?:宝可梦)?(?:ex|EX|GX|V|VMAX|VSTAR|BREAK)\b|拥有规则的宝可梦|规则宝可梦|光辉宝可梦|太晶/.test(`${card?.name||''} ${card?.ruleBox||''} ${card?.ruleText||''} ${card?.rule2Text||''}`));}
-  effectiveRetreatCost(mon){let cost=mon?.retreatCostOverride??mon?.retreatCost??1;const tool=mon?.tool;if(tool&&(String(tool.cardId||'')==='9024'||tool.name==='大气球')){if(this.isStage2Pokemon(mon))cost=0;}if(this._hasPassive(mon,'retreat_cost_zero'))cost=0;return Math.max(0,cost||0);}
+  effectiveRetreatCost(mon){let cost=mon?.retreatCostOverride??mon?.retreatCost??1;const tool=mon?.tool;if(tool&&(String(tool.cardId||'')==='9024'||tool.name==='大气球')){if(this.isStage2Pokemon(mon))cost=0;}if(this._hasPassive(mon,'retreat_cost_zero'))cost=0;for(const {params:p} of this._passiveEffectsFor(mon,'retreat_cost_reduce'))cost-=(p.amount||0);cost+=(mon?.retreatCostIncrease||0);return Math.max(0,cost||0);}
   _discardEnergyForRetreat(mon,count,pl,selectedIndices=null){
     if(count<=0)return true;
     if(selectedIndices){
@@ -186,7 +186,7 @@ export class GameState {
     }
     return true;
   }
-  _removeSpecialConditions(mon){if(!mon)return;mon.status=null;mon.cannotAttackNext=false;mon.cannotRetreat=false;mon.preventDamage=false;mon.preventEffect=false;mon.damageMod=0;mon.damageReceivedMod=0;mon.ignore=[];mon.costEliminated=false;}
+  _removeSpecialConditions(mon){if(!mon)return;mon.status=null;mon.cannotAttackNext=false;mon.cannotRetreat=false;mon.preventDamage=false;mon.preventEffect=false;mon.damageMod=0;mon.damageReceivedMod=0;mon.ignore=[];mon.costEliminated=false;mon.retreatCostIncrease=0;}
 
   retreat(pl,benchIndex,selectedEnergyIndices=null){if(pl.retreatUsed){this.addLog('本回合已撤退过');return false;}if(!pl.active||!pl.bench[benchIndex]){this.addLog('撤退目标不存在');return false;}
     const st=pl.active.status||'';if(st.includes('sleep')||st.includes('paralysis')||pl.active.cannotRetreat){this.addLog('无法撤退');return false;}
@@ -438,6 +438,9 @@ export class GameState {
       if(p.condition==='self_energy'){total+=(p.amount||0)*(attacker?.energy?.length||0);continue;}
       if(p.condition==='total_bench'){total+=(p.amount||0)*((this.player1.bench?.length||0)+(this.player2.bench?.length||0));continue;}
       if(p.condition==='count'){total+=p.amount||0;continue;}
+      if(p.condition==='opponent_field_energy'){const opp=this.getOpponent(pl);total+=(p.amount||0)*[opp.active,...(opp.bench||[])].filter(Boolean).reduce((s,m)=>s+(m.energy?.length||0),0);continue;}
+      if(p.condition==='own_field_energy'){total+=(p.amount||0)*[pl.active,...(pl.bench||[])].filter(Boolean).reduce((s,m)=>s+(m.energy?.length||0),0);continue;}
+      if(p.condition==='opponent_field_energy_type'){const opp=this.getOpponent(pl);const want=p.type||'';total+=(p.amount||0)*[opp.active,...(opp.bench||[])].filter(Boolean).reduce((s,m)=>s+(m.energy||[]).filter(e=>String(e).includes(`【${want}】`)).length,0);continue;}
       // 未知条件：默认不加伤，避免误判（不再落入无条件加伤）
     }
     total+=this._applyTurnAttackModifiers(attacker,defender,move,pl);
@@ -471,6 +474,8 @@ export class GameState {
     }
     return out;}
   _hasPassive(mon,action){return this._passiveEffectsFor(mon,action).length>0;}
+  // 检查 pl 的对手场上是否有某被动（“对手的…无法…”类）
+  _opponentHasPassive(pl,action){const opp=this.getOpponent(pl);return this._passiveEffectsFor(opp.active,action).length>0;}
   // 防守方受击时的被动受伤修正（能力“只要在场上…受到伤害±N”）
   getPassiveDamageReceivedModifier(mon){let total=0;
     for(const {source,params:p} of this._passiveEffectsFor(mon,'damage_received_mod')){

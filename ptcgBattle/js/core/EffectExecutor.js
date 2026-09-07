@@ -983,10 +983,10 @@ const EXECUTORS = {
   inflict_status(gs, pl, p) {
     if (!_conditionSatisfied(gs, pl, p.condition)) return;
     const opp = _opponent(gs, pl);
-    if (opp.active && p.statuses) { _applyStatus(opp.active, p.statuses); gs.addLog(`对手 ${p.statuses.join('、')}`); }
+    if (opp.active && p.statuses) { if (gs._hasPassive?.(opp.active, 'block_special_condition')) { gs.addLog('目标免疫特殊状态'); return; } _applyStatus(opp.active, p.statuses); gs.addLog(`对手 ${p.statuses.join('、')}`); }
   },
   inflict_status_self(gs, pl, p) {
-    if (pl.active && p.statuses) { _applyStatus(pl.active, p.statuses); gs.addLog(`陷入 ${p.statuses.join('、')}`); }
+    if (pl.active && p.statuses) { if (gs._hasPassive?.(pl.active, 'block_special_condition')) { gs.addLog('自身免疫特殊状态'); return; } _applyStatus(pl.active, p.statuses); gs.addLog(`陷入 ${p.statuses.join('、')}`); }
   },
   inflict_status_both(gs, pl, p) {
     const opp = _opponent(gs, pl);
@@ -1128,6 +1128,36 @@ const EXECUTORS = {
     const dc = p.draw_count || 4;
     for (const pp of targets) pp.draw(dc);
     gs.addLog(`手牌回牌库，抽 ${dc} 张`);
+  },
+
+  // ===== 手牌附能 =====
+  async attach_energy_from_hand(gs, pl, p) {
+    const selected = await _pickCardsFromZone(gs, pl, pl, pl.hand, p.count || 1, {
+      source:'hand-energy', filter:p.filter || '能量', prompt:'选择从手牌附着的能量',
+      allowFewer:!!p.allowFewer, allowEmpty:!!p.allowEmpty, maxCount:p.maxCount, minCount:p.minCount, optional:!!p.optional
+    });
+    if (!selected.length) return;
+    const allowActive = p.target !== 'bench';
+    const allowBench = p.target !== 'active';
+    const slot = await _pickPokemonTarget(gs, pl, pl, {
+      mode:'attach-energy', side:'self', allowActive, allowBench, prompt:'选择附能目标',
+      slotFilter: candidateSlot => _monMatchesType(_getMon(pl, candidateSlot), p.targetType)
+    });
+    const mon = _getMon(pl, slot);
+    if (!mon) return;
+    for (const item of selected.sort((a,b)=>b.index-a.index)) mon.energy.push(pl.hand.splice(item.index, 1)[0]);
+    gs.addLog(`从手牌附能 ${selected.length} 张`);
+  },
+
+  // ===== 对手能量回手 =====
+  async return_energy_to_hand(gs, pl, p) {
+    const owner = _opponent(gs, pl);
+    const mon = owner.active;
+    if (!mon?.energy?.length) return;
+    const items = _attachedEnergyItems(gs, owner, mon, 'active', p.filter);
+    const selected = await _pickAttachedEnergy(gs, pl, items, p.count || 1, { filter:p.filter || null, allowFewer:!!p.allowFewer, allowEmpty:!!p.allowEmpty, optional:!!p.optional });
+    for (const item of _removeAttachedEnergy(selected)) owner.hand.push(item.energy);
+    if (selected.length) gs.addLog(`对手能量回手 ${selected.length} 张`);
   },
 
   // ===== 弃牌区附能 =====
@@ -1353,6 +1383,12 @@ const EXECUTORS = {
   // ===== 消除能量费用 =====
   energy_cost_eliminate(gs, pl, p) {
     if (pl.active) { pl.active.costEliminated = true; gs.addLog('招式费用消除'); }
+  },
+
+  // ===== 撤退费用增减 =====
+  retreat_cost_increase(gs, pl, p) {
+    const opp = _opponent(gs, pl);
+    if (opp.active) { opp.active.retreatCostIncrease = (opp.active.retreatCostIncrease || 0) + (p.amount || 1); gs.addLog(`对手撤退费用 +${p.amount || 1}`); }
   },
 
   // ===== 特性消除（主动/临时效果）=====
