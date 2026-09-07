@@ -1253,11 +1253,12 @@ const EXECUTORS = {
 
   // ===== 能量换位 =====
   async move_energy(gs, pl, p) {
+    const wantCount = p.count === 'all' ? Infinity : (p.count || 1);
     if (p.source === 'bench' && p.dest === 'active' && pl.active) {
       const sourceSlot = await _pickPokemonTarget(gs, pl, pl, { mode:'move-energy-source', side:'self', allowActive:false, allowBench:true, prompt:'选择移动能量来源' });
       const sourceMon = _getMon(pl, sourceSlot);
       const items = _attachedEnergyItems(gs, pl, sourceMon, sourceSlot, p.filter);
-      const selected = await _pickAttachedEnergy(gs, pl, items, p.count || 1, { filter:p.filter || null });
+      const selected = await _pickAttachedEnergy(gs, pl, items, wantCount, { filter:p.filter || null, allowFewer:p.count === 'all' });
       for (const item of _removeAttachedEnergy(selected)) pl.active.energy.push(item.energy);
       if (selected.length) gs.addLog('能量转至出战');
     } else if (p.source === 'self' && p.dest === 'bench' && pl.active) {
@@ -1265,7 +1266,7 @@ const EXECUTORS = {
       const destMon = _getMon(pl, destSlot);
       if (!destMon) return;
       const items = _attachedEnergyItems(gs, pl, pl.active, 'active', p.filter);
-      const selected = await _pickAttachedEnergy(gs, pl, items, p.count || 1, { filter:p.filter || null });
+      const selected = await _pickAttachedEnergy(gs, pl, items, wantCount, { filter:p.filter || null, allowFewer:p.count === 'all' });
       for (const item of _removeAttachedEnergy(selected)) destMon.energy.push(item.energy);
       if (selected.length) gs.addLog('能量转至备战');
     }
@@ -1393,10 +1394,10 @@ const EXECUTORS = {
 
   // ===== 对手牌库丢弃 =====
   mill(gs, pl, p) {
-    const opp = _opponent(gs, pl);
-    const n = Math.min(p.count || 1, opp.deck.length);
-    for (let i = 0; i < n; i++) opp.discard.push(opp.deck.pop());
-    gs.addLog(`对手弃 ${n} 张`);
+    const owner = (p.target === 'self') ? pl : _opponent(gs, pl);
+    const n = Math.min(p.count || 1, owner.deck.length);
+    for (let i = 0; i < n; i++) owner.discard.push(owner.deck.pop());
+    gs.addLog(`${p.target === 'self' ? '自己' : '对手'}弃 ${n} 张`);
   },
 
   // ===== 查看对手手牌 =====
@@ -1421,6 +1422,9 @@ const EXECUTORS = {
     const opp = _opponent(gs, pl);
     if (opp.active) { opp.active.retreatCostIncrease = (opp.active.retreatCostIncrease || 0) + (p.amount || 1); gs.addLog(`对手撤退费用 +${p.amount || 1}`); }
   },
+
+  // ===== 最大HP加成（被动：由 specialRules.maxHpBonus 附着时应用 + 特性由 getPassiveMaxHpModifier 查询）=====
+  max_hp_mod(gs, pl, p) { gs.addLog('最大HP加成'); },
 
   // ===== 使用招式所需能量增加（一次性）=====
   attack_cost_increase(gs, pl, p) {
