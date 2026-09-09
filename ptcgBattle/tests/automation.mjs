@@ -22,8 +22,8 @@ const ID_MAPPING_PATH = path.resolve(__dirname, '../../ptcg/tools/id_mapping.jso
 // 旧数据为繁中措辞，解析覆盖率 4631/7208 (64%)。迁移到 tcg.mik.moe 简中数据后，
 // 全卡池扩到 12346 张且措辞发生官方译名变化，EffectParser 已加 normalizeCn 归一化层
 // + 大量简中规则适配，覆盖率从 27% 提升到 ~49%。这两条保护线用于拦截大面积退化。
-const PARSER_COVERAGE_MIN_RATIO = 0.45;
-const PARSER_RESIDUAL_MAX_COUNT = 13000;
+const PARSER_COVERAGE_MIN_RATIO = 0.99;
+const PARSER_RESIDUAL_MAX_COUNT = 8000;
 const PARSER_TOP_BUCKET_LIMIT = 8;
 
 const RESIDUAL_BUCKETS = [
@@ -529,7 +529,9 @@ await test('解析覆盖：条件硬币只在可映射时消费正面分支', ()
 
   const incubator = parseEffect('掷1次硬币。若为正面，则从自己的牌库选择1张进化宝可梦卡，在给对手看过后加入手牌。若为反面，则将这张卡放回牌库底。并且重洗牌库。');
   assert.equal(incubator.effects.some(e => e.action === 'coin_flip'), true);
-  assert.equal(incubator.unparsed.includes('若为正面'), true, 'unsupported mixed heads/tails branch should remain visible');
+  // 未支持的反面分支由 finalize 残余句收尾机制记录为 residual_sentence（unparsed 清零），不再保留为裸文本。
+  assert.equal(incubator.unparsed, '', 'unsupported branches are folded into residual_sentence metadata');
+  assert.equal(incubator.effects.some(e => e.params?.kind === 'residual_sentence'), true);
 });
 
 await test('Stadium：打出后只保存完整竞技场资料，不立即执行效果', async () => {

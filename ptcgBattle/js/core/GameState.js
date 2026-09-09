@@ -22,6 +22,7 @@ export class GameState {
     for(const mod of pl?.turnAttackModifiers||[]){
       if((mod.target==='own_field'||mod.target==='field')&&!this.getPokemonInPlay(pl).includes(attacker))continue;
       if(mod.defender==='opponent_active'&&defender!==this.getOpponent(pl)?.active)continue;
+      if(mod.defenderRule&&!this._isRuleMon(defender,mod.defenderRule))continue;
       total+=mod.amount||0;
     }
     return total;}
@@ -68,6 +69,7 @@ export class GameState {
     this.emitTriggerEvent('checkup',{});
     if(this.firstPlayerFirstTurnInProgress&&this.currentPlayer===this.firstPlayer)this.firstPlayerFirstTurnInProgress=false;
     this.currentPlayer.supporterUsed=false;this.currentPlayer.energyAttached=false;this.currentPlayer.retreatUsed=false;this.currentPlayer.abilityUsedThisTurn={};this.currentPlayer.stadiumUsedThisTurn={};this.currentPlayer.turnAttackModifiers=[];
+    this.currentPlayer.playRestrictions=null;
     this.temporaryAbilityLocks=(this.temporaryAbilityLocks||[]).filter(lock=>lock.expires!=='turn'&&lock.owner!==this.currentPlayer);
     for(const mon of[this.currentPlayer.active,...this.currentPlayer.bench]){if(mon){mon.placedThisTurn=false;mon.evolvedThisTurn=false;}}
     this.currentPlayer=(this.currentPlayer===this.player1)?this.player2:this.player1;
@@ -216,6 +218,7 @@ export class GameState {
     const prereqFailure=this._trainerPrerequisiteFailure(pl,cd);
     if(prereqFailure)return prereqFailure;
     const tt=cd.trainerType;
+    if(tt==='item'&&pl.playRestrictions?.item){return {ok:false,reason:'play_restriction_item',message:'受到招式效果，下回合无法从手牌使出物品卡'};}
     const hasFirstPlayerFirstTurnSupporterException=(cd.effects||[]).some(e=>e.action==='trainer_prerequisite'&&e.params?.kind==='first_player_first_turn_supporter_exception');
     if(tt==='supporter'&&pl===this.firstPlayer&&this.firstPlayerFirstTurnInProgress&&!hasFirstPlayerFirstTurnSupporterException)return {ok:false,reason:'first_player_first_turn_supporter',message:'先攻玩家最初回合不能使用支援者卡'};
     if(tt==='supporter'&&pl.supporterUsed)return {ok:false,reason:'supporter_used',message:'已用过支援者卡'};
@@ -422,12 +425,52 @@ export class GameState {
       if(p.attackerName&&attacker?.name&&!attacker.name.includes(p.attackerName))continue;
       if(p.attackerStage==='basic'&&!this._isBasicPokemonInPlay(attacker))continue;
       if(p.excludeSourceName&&attacker?.name===p.excludeSourceName)continue;
+      if(p.defenderRule&&!this._isRuleMon(defender,p.defenderRule))continue;
       total+=p.amount||0;
     }
     return total;}
+  // 统一计数类条件求值（counter conditions）
+  _counterValue(pl, attacker, defender, kind, extra = {}) {
+    const opp = this.getOpponent(pl);
+    const inPlay = [...(pl.active ? [pl.active] : []), ...(pl.bench || [])].filter(Boolean);
+    switch (kind) {
+      case 'hand': return pl.hand?.length || 0;
+      case 'opponent_hand': return opp.hand?.length || 0;
+      case 'own_field_pokemon_count': return inPlay.length;
+      case 'own_prizes_taken': return Math.max(0, 6 - (pl.prizes?.length ?? 6));
+      case 'own_field_basic_energy_types': { const a = extra.typeA || ''; const b = extra.typeB || ''; let c = 0; for (const m of inPlay) { for (const e of (m.energy || [])) { const s = String(typeof e === 'object' ? (e.cardId || e.name || e) : e); if (s.includes(`【${a}】`) || s.includes(`【${b}】`)) c++; } } return c; }
+      case 'own_bench_energy_type_count': { const want = extra.type || ''; let c = 0; for (const m of (pl.bench || [])) { for (const e of (m.energy || [])) { const s = String(typeof e === 'object' ? (e.cardId || e.name || e) : e); if (s.includes(`【${want}】`)) c++; } } return c; }
+      case 'own_field_energy_type_count': { const want = extra.type || ''; let c = 0; for (const m of inPlay) { for (const e of (m.energy || [])) { const s = String(typeof e === 'object' ? (e.cardId || e.name || e) : e); if (s.includes(`【${want}】`)) c++; } } return c; }
+      case 'own_lost_zone_pokemon': return (pl.lostZone || pl.lost_zone || []).length;
+      case 'opponent_field_ability_count': return [opp.active, ...(opp.bench || [])].filter(Boolean).filter(m => m.ability).length;
+      case 'own_field_has_damage': return inPlay.filter(m => m && m.maxHp && m.hp < m.maxHp).length;
+      case 'own_field_pokemon_type': { const ty = this._normalizeType(extra.type || ''); return inPlay.filter(m => m && this._normalizeType(m.element) === ty).length; }
+      case 'own_bench_pokemon_type': { const ty = this._normalizeType(extra.type || ''); return (pl.bench || []).filter(m => m && this._normalizeType(m.element) === ty).length; }
+      case 'own_field_tool': return inPlay.filter(m => m && m.tool).length;
+      case 'self_basic_type_count': { const ts = new Set(); for (const e of (attacker?.energy || [])) { const s = String(typeof e === 'object' ? (e.cardId || e.name || e) : e); const mm = s.match(/【(.+?)】/); if (mm && (s.includes('基本') || !String(e).includes('特殊'))) ts.add(mm[1]); } return ts.size; }
+      case 'discard_supporter': { let c = 0; for (const d of (pl.discard || [])) { const cd = (typeof d === 'object' && d) ? d : this.cardResolver?.getCard?.(d); if (!cd) continue; if ((cd.cardType === 'trainer' && cd.trainerType === 'supporter') || String(cd.name || cd['卡牌名字'] || '').includes('支援者')) c++; } return c; }
+      case 'opponent_discard_supporter': { let c = 0; for (const d of (opp.discard || [])) { const cd = (typeof d === 'object' && d) ? d : this.cardResolver?.getCard?.(d); if (!cd) continue; if ((cd.cardType === 'trainer' && cd.trainerType === 'supporter') || String(cd.name || cd['卡牌名字'] || '').includes('支援者')) c++; } return c; }
+      case 'discard_name': { const want = extra.name || ''; let c = 0; for (const d of (pl.discard || [])) { const cd = (typeof d === 'object' && d) ? d : this.cardResolver?.getCard?.(d); if (!cd) continue; if (String(cd.name || cd['卡牌名字'] || '').includes(want)) c++; } return c; }
+      case 'discard_pokemon': { let c = 0; for (const d of (pl.discard || [])) { const cd = (typeof d === 'object' && d) ? d : this.cardResolver?.getCard?.(d); if (!cd) continue; if (cd.cardType === 'pokemon' || (cd['类型'] || cd['类别'] || '') === '宝可梦') c++; } return c; }
+      case 'discard_energy_type': { const want = extra.type || ''; let c = 0; for (const d of (pl.discard || [])) { const s = String(typeof d === 'object' ? (d.name || d.cardId || d) : d); if (s.includes(`【${want}】`)) c++; } return c; }
+      case 'opponent_field_rule': { const rule = extra.rule || ''; return [opp.active, ...(opp.bench || [])].filter(Boolean).filter(m => this._isRuleMon(m, rule)).length; }
+      case 'opponent_active_status_count': return opp.active?.status ? String(opp.active.status).split(',').filter(Boolean).length : 0;
+      default: return 0;
+    }
+  }
+  // 判断场上宝可梦是否为特定规则（宝可梦V/GX/ex），用于防守方限定伤害加成
+  _isRuleMon(mon, rule){
+    if(!mon)return false;
+    if(rule==='ex')return !!mon.isEx;
+    if(rule==='宝可梦V'){const name=mon.name||'';if(/(?:^|[^a-zA-Z0-9])(?:VMAX|VSTAR|V)$/.test(name))return true;const cd=mon.cardId&&this.cardResolver?.getCard?.(mon.cardId);return !!(cd&&['V','VMAX','VSTAR'].includes(cd.mechanic));}
+    if(rule==='宝可梦GX・EX'){const name=mon.name||'';if(/(?:^|[^a-zA-Z0-9])GX$/.test(name))return true;if(mon.isEx)return true;const cd=mon.cardId&&this.cardResolver?.getCard?.(mon.cardId);return !!(cd&&(cd.mechanic==='GX'||cd.mechanic==='ex'));}
+    if(/V(?:MAX|STAR)?|GX|ex/i.test(rule)){return this._isRuleMon(mon, rule.includes('GX')?'宝可梦GX・EX':rule.includes('V')?'宝可梦V':'ex');}
+    return false;}
   getConditionalDamageModifier(attacker,defender,move,pl){let total=0;
     for(const eff of move?.effects||[]){
       if(eff.action==='discard_energy_for_damage'){const cnt=eff.params?.mode==='type_count'?(eff._discardedTypeCount||0):(eff._discardedCount||0);total+=(eff.params?.amountPer||0)*cnt;continue;}
+      if(eff.params?.mode==='reduce'){const dmg=attacker?Math.max(0,(attacker.maxHp||0)-attacker.hp):0;total-=(eff.params?.amount||0)*Math.floor(dmg/10);continue;}
+      if(eff.params?.condition==='counter'){total+=(eff.params?.amount||0)*this._counterValue(pl,attacker,defender,eff.params?.counter||'',eff.params||{});continue;}
       if(eff.action!=='conditional_damage_mod')continue;
       const p=eff.params||{};
       if(p.condition==='own_pokemon_knocked_out_last_opponent_turn'){if(!this.wasOwnPokemonKnockedOutLastOpponentTurn(pl))continue;total+=p.amount||0;continue;}
@@ -446,6 +489,12 @@ export class GameState {
       if(p.condition==='opponent_field_energy_type'){const opp=this.getOpponent(pl);const want=p.type||'';total+=(p.amount||0)*[opp.active,...(opp.bench||[])].filter(Boolean).reduce((s,m)=>s+(m.energy||[]).filter(e=>String(e).includes(`【${want}】`)).length,0);continue;}
       if(p.condition==='opponent_bench_count'){const opp=this.getOpponent(pl);total+=(p.amount||0)*(opp.bench?.length||0);continue;}
       if(p.condition==='opponent_prizes_taken'){const opp=this.getOpponent(pl);total+=(p.amount||0)*Math.max(0,6-(opp.prizes?.length??6));continue;}
+      if(p.condition==='both_active_energy_count'){total+=(p.amount||0)*((attacker?.energy?.length||0)+(defender?.energy?.length||0));continue;}
+      if(p.condition==='own_bench_count'){total+=(p.amount||0)*(pl.bench?.length||0);continue;}
+      if(p.condition==='own_bench_type_count'){const ts=new Set();for(const m of (pl.bench||[])){if(!m)continue;for(const e of (m.energy||[])){const mm=String(e).match(/【(.+?)】/);if(mm)ts.add(mm[1]);}}total+=(p.amount||0)*ts.size;continue;}
+      if(p.condition==='own_discard_move_count'){const want=p.moveName||'';let c=0;for(const d of (pl.discard||[])){const cd=(typeof d==='object'&&d)?d:this.cardResolver?.getCard?.(d);if(!cd)continue;const atks=Array.isArray(cd.attacks)?cd.attacks:(Array.isArray(cd['技能列表'])?cd['技能列表']:[]);if(atks.some(a=>String(a?.name||a?.名字||'').includes(want)))c++;}total+=(p.amount||0)*c;continue;}
+      if(p.condition==='own_bench_move_count'){const want=p.moveName||'';let c=0;for(const m of (pl.bench||[])){if(!m?.attacks)continue;if(m.attacks.some(a=>String(a?.name||'').includes(want)))c++;}total+=(p.amount||0)*c;continue;}
+      if(p.condition==='own_discard_type_count'){const want=p.energyType||'';let c=0;for(const d of (pl.discard||[])){const cd=(typeof d==='object'&&d)?d:this.cardResolver?.getCard?.(d);if(!cd)continue;if(String(cd['属性']||cd.element||'').includes(want))c++;}total+=(p.amount||0)*c;continue;}
       if(p.condition==='own_field_energy_type_count'){const ts=new Set();for(const m of [pl.active,...(pl.bench||[])]){if(!m)continue;for(const e of (m.energy||[])){const mm=String(e).match(/【(.+?)】/);if(mm)ts.add(mm[1]);}}total+=(p.amount||0)*ts.size;continue;}
       if(p.condition==='own_field_energy_type'){const want=p.type||'';total+=(p.amount||0)*[pl.active,...(pl.bench||[])].filter(Boolean).reduce((s,m)=>s+(m.energy||[]).filter(e=>String(e).includes(`【${want}】`)).length,0);continue;}
       if(p.condition==='opponent_active_status'){if(!defender?.status||!String(defender.status).includes(p.status))continue;total+=p.amount||0;continue;}
@@ -458,6 +507,7 @@ export class GameState {
       if(p.condition==='self_no_damage'){if(attacker&&attacker.maxHp&&attacker.hp<attacker.maxHp)continue;total+=p.amount||0;continue;}
       if(p.condition==='self_no_hand'){if((pl.hand?.length||0)!==0)continue;total+=p.amount||0;continue;}
       if(p.condition==='hand_count_equal'){const opp=this.getOpponent(pl);if((pl.hand?.length||0)!==(opp.hand?.length||0))continue;total+=p.amount||0;continue;}
+      if(p.condition==='supporter_used_this_turn'){if(!pl.supporterUsed)continue;total+=p.amount||0;continue;}
       if(p.condition==='opponent_prizes'){const opp=this.getOpponent(pl);if((opp.prizes?.length??6)!==(p.count??1))continue;total+=p.amount||0;continue;}
       if(p.condition==='own_prizes_more'){const opp=this.getOpponent(pl);if((pl.prizes?.length??6)<=(opp.prizes?.length??6))continue;total+=p.amount||0;continue;}
       if(p.condition==='self_has_energy_type'){const want=p.type||'';if(!(attacker?.energy||[]).some(e=>String(e).includes(`【${want}】`)))continue;total+=p.amount||0;continue;}
@@ -496,6 +546,13 @@ export class GameState {
       case 'stadium_in_play': return !!this.getActiveStadium();
       case 'supporter_used_this_turn': return !!pl.supporterUsed;
       case 'evolved_this_turn': return !!attacker?.evolvedThisTurn;
+      case 'own_discard_items_gte': {
+        let c=0;
+        for(const d of (pl.discard||[])){const s=String((typeof d==='object'&&d)?(d.name||d.cardId||d):d);if(s.includes('宝可梦道具')||s.includes('工具'))c++;}
+        return c>=(p.count||9);
+      }
+      case 'stadium_not_in_play': return !this.getActiveStadium();
+      case 'own_energy_eq_opponent': return (attacker?.energy?.length || 0) === (defender?.energy?.length || 0);
       default: return false;
     }
   }
