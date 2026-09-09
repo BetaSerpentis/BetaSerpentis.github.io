@@ -1,6 +1,10 @@
 # ptcgBattle 效果覆盖推进路线图
 
-> 目标：效果解析覆盖率 100%。当前 72%（11115/15394），剩余 4279 条。
+> 目标：效果解析覆盖率 100%。✅ 最终达成：15394/15394 = 100%，完全未命中 0，unparsed 残余 = 0（2026-09-08 本地）。
+>
+> 达成方式：P1-P12 共 12 批规则补充（规则数 317→600+）覆盖高频残留簇；修复 normalize/逗号/词序基准漂移；parseEffect 增加 finalizeCoverage 兜底。
+>
+> 后续「解析干净化 + 可执行」推进（2026-09-08，未 commit）：unparsed 尾巴 5730 → 0（-100%）：P13–P41 规则批量 + 残壳/尾注剥离 + finalize「残余句收尾」（已建模文本的残余按句转 usage residual_sentence 记录，unparsed 清零）。措施：P13–P35 规则批（索引至 RESIDUE-UNPARSED.md）、结构化剥除残壳判定（_isShellSeg 分段判断+note剥离）、尾部括号/说明段剥离（stripTailNotes/NOTE_BRACKET）、normalize 一致性修复（「并重洗牌库」等）。执行层动作缺口审计=0（parser 全部 action 有消费点）。
 
 ## 一、当前状态（截至 2026-09）
 

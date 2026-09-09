@@ -403,6 +403,8 @@ export class BattleEngine {
     }
 
     let damage = move ? (parseInt(String(move.damage).match(/\d+/)?.[0]) || 0) : 20;
+    damage += (atk.active.nextOwnTurnDamageBoost || 0);
+    atk.active.nextOwnTurnDamageBoost = 0;
     damage += gs.getConditionalDamageModifier?.(atk.active, def.active, move, atk) || 0;
 
     // Weakness/resistance: 弱点倍率/抵抗值来自真实卡牌数据（简中 CN-Sync），缺省时退回 x2 / -30。
@@ -420,6 +422,12 @@ export class BattleEngine {
     }
     // 受到招式的伤害±N（防守方：一次性标记 + 能力被动运行时查询）
     damage += (def.active.damageReceivedMod || 0) + (gs.getPassiveDamageReceivedModifier?.(def.active) || 0);
+    // 受到招式效果：本回合该宝可梦攻击伤害 -N（一次性）
+    if ((atk.active.attackDamageReduction || 0) > 0) {
+      damage = Math.max(0, damage - atk.active.attackDamageReduction);
+      this.cb.onLog?.(`${atk.active.name} 招式伤害被减少 ${atk.active.attackDamageReduction}`);
+      atk.active.attackDamageReduction = 0;
+    }
     if (damage < 0) damage = 0;
 
     // Prevent damage check
@@ -448,6 +456,7 @@ export class BattleEngine {
 
     // Execute skill effects (unless prevented)
     if (postEffects.length && !def.active.preventEffect) {
+      for (const e of postEffects) { e._attackDamage = damage; }
       await executeEffects(gs, atk, postEffects);
     }
 

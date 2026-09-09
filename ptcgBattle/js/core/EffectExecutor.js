@@ -604,6 +604,19 @@ const EXECUTORS = {
   // ===== 抽卡 =====
   draw(gs, pl, p) { const n = p.count || 1; pl.draw(n); gs.addLog(`抽了 ${n} 张卡`); },
   draw_until(gs, pl, p) { const t = p.target || 6; while (pl.hand.length < t && pl.deck.length > 0) pl.draw(1); gs.addLog(`抽卡至 ${t} 张`); },
+  // 相对抽卡：直到自己的手牌比对手多 delta 张
+  draw_until_opp_hand_plus(gs, pl, p) { const opp = _opponent(gs, pl); const target = (opp.hand?.length || 0) + (p.delta || 1); while (pl.hand.length < target && pl.deck.length > 0) pl.draw(1); gs.addLog(`抽卡至比对手多 ${p.delta || 1} 张`); },
+  // 弃 N 张手牌抽 N*mult（亚洛）
+  async discard_hand_draw(gs, pl, p, eff, options) {
+    const selected = await _pickCardsFromZone(gs, pl, pl, pl.hand, p.maxDiscard || 2, {
+      source:'discard-hand-draw', prompt:'选择要丢弃的手牌', allowFewer:true, allowEmpty:true, maxCount:p.maxDiscard || 2, minCount:0, optional:true
+    });
+    const n = selected.length;
+    for (const item of selected.sort((a,b)=>b.index-a.index)) { const c = pl.hand.splice(item.index, 1)[0]; pl.discard.push(c); }
+    const drawN = n * (p.drawMult || 2);
+    for (let i = 0; i < drawN && pl.deck.length > 0; i++) pl.draw(1);
+    gs.addLog(`弃 ${n} 张手牌，抽 ${drawN} 张`);
+  },
 
   // ===== 结束回合 / 丢所有手牌 / 洗牌 =====
   end_turn(gs, pl, p) { gs.endTurn?.(); gs.addLog('回合结束'); },
@@ -961,12 +974,12 @@ const EXECUTORS = {
   },
 
   // ===== 恢复HP =====
-  heal(gs, pl, p) {
+  heal(gs, pl, p, eff) {
     const mon = pl.active;
     if (!mon) return;
     const opp = _opponent(gs, pl);
     if ((gs._passiveEffectsFor?.(opp.active, 'block_heal') || []).some(e => ['both_field', 'opponent_field', 'opponent_bench'].includes(e.params?.target))) { gs.addLog('无法回复HP'); return; }
-    const amount = p.amount === 'full' ? mon.maxHp : (p.amount || 20);
+    const amount = p.amount === 'full' ? mon.maxHp : p.amount === 'as_attack_damage' ? (eff?._attackDamage || 0) : (p.amount || 20);
     mon.hp = Math.min(mon.maxHp, mon.hp + amount);
     gs.addLog(`恢复 ${amount} HP`);
   },
@@ -1014,6 +1027,13 @@ const EXECUTORS = {
       _applyDamageToPokemon(gs, opp, _getMon(opp, slot), dmg);
       return;
     }
+    if (target === 'opponent_bench_N') {
+      const n = Math.min(p.count || 1, opp.bench.length);
+      const per = (p.per || 1) * 10;
+      for (let i = 0; i < n; i++) { const mon = opp.bench[i]; if (mon) _applyDamageToPokemon(gs, opp, mon, per); }
+      gs.addLog(`对手 ${n} 只备战宝可梦各放 ${p.per || 1} 个伤害指示物`);
+      return;
+    }
     if (target === 'opponent_all') {
       for (const mon of [opp.active, ...opp.bench]) _applyDamageToPokemon(gs, opp, mon, dmg);
     }
@@ -1040,6 +1060,10 @@ const EXECUTORS = {
     } else if (p.target === 'self_all') {
       for (const mon of [...pl.bench]) if (mon) _applyDamageToPokemon(gs, pl, mon, dmg, '备战受', { source:'attack' });
       gs.addLog(`己方备战区各受 ${dmg}`);
+    } else if (p.target === 'both_bench') {
+      for (const mon of [...pl.bench]) if (mon) _applyDamageToPokemon(gs, pl, mon, dmg, '备战受', { source:'attack' });
+      for (const mon of [...opp.bench]) if (mon) _applyDamageToPokemon(gs, opp, mon, dmg, '备战受', { source:'attack' });
+      gs.addLog(`双方备战区各受 ${dmg}`);
     }
   },
 
@@ -1180,6 +1204,11 @@ const EXECUTORS = {
   shuffle_hand_to_deck(gs, pl, p) {
     const targets = p.who === 'both' ? [gs.player1, gs.player2] : p.who === 'opponent' ? [_opponent(gs, pl)] : [pl];
     for (const pp of targets) { while (pp.hand.length > 0) pp.deck.push(pp.hand.pop()); gs._shuffle(pp.deck); }
+    // 奇树类：各抽与自己剩余奖赏卡张数相同数量（放回牌库下方近似为重洗+抽卡）
+    if (p.draw_by_prizes) {
+      for (const pp of targets) { const n = pp.prizes?.length || 0; for (let i = 0; i < n && pp.deck.length > 0; i++) pp.draw(1); gs.addLog(`${pp.name} 抽 ${n} 张`); }
+      return;
+    }
     if (p.who === 'both' && (p.self_draw_count || p.opponent_draw_count)) {
       const opp = _opponent(gs, pl);
       const selfDraw = p.self_draw_count ?? p.draw_count ?? 4;
@@ -1328,6 +1357,15 @@ const EXECUTORS = {
       const selected = await _pickAttachedEnergy(gs, pl, items, wantCount, { filter:p.filter || null, allowFewer:p.count === 'all' });
       for (const item of _removeAttachedEnergy(selected)) pl.active.energy.push(item.energy);
       if (selected.length) gs.addLog('能量转至出战');
+    } else if (p.source === 'opponent_active' && p.dest === 'opponent_bench') {
+      const opp = _opponent(gs, pl);
+      const destSlot = await _pickPokemonTarget(gs, pl, opp, { mode:'move-energy-dest', side:'opponent', allowActive:false, allowBench:true, prompt:'选择对手转附能量的备战宝可梦' });
+      const destMon = _getMon(opp, destSlot);
+      if (!destMon) return;
+      const items = _attachedEnergyItems(gs, opp, opp.active, 'active', p.filter);
+      const selected = await _pickAttachedEnergy(gs, pl, items, wantCount, { filter:p.filter || null, allowFewer:p.count === 'all' });
+      for (const item of _removeAttachedEnergy(selected)) destMon.energy.push(item.energy);
+      if (selected.length) gs.addLog('对手能量转至备战');
     } else if (p.source === 'self' && p.dest === 'bench' && pl.active) {
       const destSlot = await _pickPokemonTarget(gs, pl, pl, { mode:'move-energy-dest', side:'self', allowActive:false, allowBench:true, prompt:'选择移动能量目标' });
       const destMon = _getMon(pl, destSlot);
@@ -1450,7 +1488,38 @@ const EXECUTORS = {
 
   // ===== 无法攻击 =====
   cannot_attack_next(gs, pl, p) {
-    if (pl.active) { pl.active.cannotAttackNext = true; gs.addLog('下回合无法攻击'); }
+    const target = p.target === 'opponent' ? _opponent(gs, pl).active : pl.active;
+    if (target) { target.cannotAttackNext = true; gs.addLog(p.target === 'opponent' ? '对手下回合无法使用招式' : '下回合无法攻击'); }
+  },
+
+  // ===== 下回合招式伤害降低（对手受击宝可梦攻击伤害 -N）=====
+  damage_reduction_next(gs, pl, p) {
+    const opp = _opponent(gs, pl);
+    if (opp.active) { opp.active.attackDamageReduction = (opp.active.attackDamageReduction || 0) + (p.amount || 0); gs.addLog(`对手下回合招式伤害 -${p.amount || 0}`); }
+  },
+
+  // ===== 下个自己回合招式伤害提升 =====
+  damage_boost_next_self(gs, pl, p) {
+    if (pl.active) { pl.active.nextOwnTurnDamageBoost = (pl.active.nextOwnTurnDamageBoost || 0) + (p.amount || 0); gs.addLog(`下个自己回合招式伤害 +${p.amount || 0}`); }
+  },
+
+  // ===== 道具效果消除（被动近似）=====
+  tool_effect_nullify(gs, pl, p) {
+    if (p.scope === 'both_field') { gs.toolEffectNullified = true; gs.addLog('双方宝可梦道具的效果被消除（近似）'); }
+  },
+
+  // ===== 出牌限制（下回合对手无法使出物品等；由 canUseTrainer 查询）=====
+  play_restriction(gs, pl, p) {
+    const opp = _opponent(gs, pl);
+    opp.playRestrictions = opp.playRestrictions || {};
+    opp.playRestrictions[p.what || 'item'] = 'next_opp_turn';
+    gs.addLog(`对手下回合无法使用${p.what === 'item' ? '物品' : (p.what || '指定卡')}`);
+  },
+
+  // ===== 特殊状态全恢复 =====
+  heal_status(gs, pl, p) {
+    const target = p.target === 'opponent' ? _opponent(gs, pl).active : pl.active;
+    if (target) { gs._removeSpecialConditions?.(target); gs.addLog('特殊状态全部恢复'); }
   },
 
   // ===== 无法撤退 =====
