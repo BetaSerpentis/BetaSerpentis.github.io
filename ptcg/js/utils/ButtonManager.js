@@ -129,6 +129,9 @@ export class ButtonManager {
         this.menu.appendChild(this.createButton('编辑', 'deck-edit-button', () => {
             this.deckEditor.enterEditMode();
         }));
+        this.menu.appendChild(this.createButton('试抽', 'deck-draw-button', () => {
+            this.deckEditor.enterDrawTest();
+        }));
 
         this.createImportExportButtons();
         this.collapseMenu();

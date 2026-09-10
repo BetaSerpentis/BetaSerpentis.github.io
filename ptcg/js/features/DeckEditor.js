@@ -11,6 +11,13 @@ export class DeckEditor {
         COVER_SELECT: 'cover-select'
     });
 
+    // 试抽：起手 7 张 + 奖赏 6 张
+    static DRAW_TEST = Object.freeze({
+        OPENING: 7,
+        PRIZES:  6,
+        TOTAL:   13
+    });
+
     constructor(deckManager, cardManager, imageLoader, cardGrid, modalView) {
         this.deckManager = deckManager;
         this.cardManager = cardManager;
@@ -20,6 +27,8 @@ export class DeckEditor {
 
         this.mode = DeckEditor.MODE.BROWSE;
         this.isMissingMode = false;
+        this.isDrawTestMode = false;
+        this.drawTestCards = [];
         this.deckTabsContainer = null;
         this.defaultGetDisplayCards = cardManager.getDisplayCards.bind(cardManager);
 
@@ -59,6 +68,10 @@ export class DeckEditor {
     // ---- 模式切换（仅改状态 + UI，业务逻辑由调用方处理）----
     _switchMode(newMode) {
         this.mode = newMode;
+        // 离开卡组查看模式时退出试抽，避免 7 列布局污染其他视图
+        if (newMode !== DeckEditor.MODE.DECK_VIEW) {
+            this.exitDrawTest();
+        }
         if (this.cardGrid) this.cardGrid.setMode(newMode);
         this._applyModeUI(newMode);
     }
@@ -141,6 +154,8 @@ export class DeckEditor {
 
     // 在 renderDeckTabs 方法中确保编辑模式下有删除按钮
     renderDeckTabs() {
+        if (!this.deckTabsContainer) return;
+
         this.deckTabsContainer.innerHTML = '';
         
         // 添加新建卡组按钮 - 简化结构，只显示加号
@@ -247,26 +262,36 @@ export class DeckEditor {
                 // debugLog('🖼️ 点击了封面或名称，由专门的事件处理');
                 return;
             }
-            
+
             // 编辑模式下，只有当前卡组可以操作，其他卡组不能切换
             if (this.deckManager.isEditing) {
-                if (index === this.deckManager.currentDeckIndex) {
-                    // debugLog('🔄 编辑模式下点击当前卡组的其他区域');
-                    // 当前卡组的其他区域点击不做特殊处理
-                } else {
+                if (index !== this.deckManager.currentDeckIndex) {
                     // debugLog('🚫 编辑模式下不能切换卡组');
                     return;
                 }
-            } else {
-                if (index === this.deckManager.currentDeckIndex) {
-                    this.toggleMissingMode();
-                } else {
-                    // 非编辑模式下可以正常切换卡组，切换卡组时回到普通卡组内容
-                    this.isMissingMode = false;
-                    this.deckManager.switchDeck(index);
+                // 当前卡组的其他区域：若正在试抽则恢复卡组内容
+                if (this.exitDrawTest()) {
                     this.renderDeckTabs();
                     this.renderCurrentDeck();
                 }
+                return;
+            }
+
+            if (index === this.deckManager.currentDeckIndex) {
+                // 试抽状态下点击当前页签：恢复卡组内容
+                if (this.exitDrawTest()) {
+                    this.renderDeckTabs();
+                    this.renderCurrentDeck();
+                    return;
+                }
+                this.toggleMissingMode();
+            } else {
+                // 非编辑模式下可以正常切换卡组，切换卡组时回到普通卡组内容
+                this.isMissingMode = false;
+                this.exitDrawTest();
+                this.deckManager.switchDeck(index);
+                this.renderDeckTabs();
+                this.renderCurrentDeck();
             }
         });
         
@@ -299,13 +324,93 @@ export class DeckEditor {
         }
     }
 
+    // ---- 试抽（起手 7 张 + 奖赏 6 张）----
+
+    // 从卡组中随机抽取卡牌；按卡组内张数展开后洗牌，不会抽出卡组里没有的卡
+    static pickRandomCards(deck, opening = DeckEditor.DRAW_TEST.OPENING, prizes = DeckEditor.DRAW_TEST.PRIZES) {
+        const pool = [];
+        if (deck && Array.isArray(deck.cards)) {
+            deck.cards.forEach(card => {
+                const quantity = Math.max(0, card.quantity || 0);
+                for (let i = 0; i < quantity; i++) pool.push(card);
+            });
+        }
+
+        // Fisher-Yates 洗牌
+        for (let i = pool.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [pool[i], pool[j]] = [pool[j], pool[i]];
+        }
+
+        const wanted = opening + prizes;
+        return pool.slice(0, Math.min(wanted, pool.length)).map(card => ({
+            ...card,
+            quantity: 1
+        }));
+    }
+
+    // 进入试抽（重复调用会重新抽取）
+    enterDrawTest() {
+        if (this.mode !== DeckEditor.MODE.DECK_VIEW) return;
+
+        const deck = this.deckManager.getCurrentDeck();
+        const totalCount = deck ? (deck.totalCount || 0) : 0;
+        if (!deck || totalCount === 0) {
+            showToast('当前卡组还没有卡牌，无法试抽', 'info', 1500);
+            return;
+        }
+
+        this.isDrawTestMode = true;
+        this.isMissingMode = false;
+        this.drawTestCards = DeckEditor.pickRandomCards(deck);
+        this._applyDrawTestGridClass(true);
+        this.renderDeckTabs();
+        this.renderCurrentDeck();
+
+        if (this.drawTestCards.length < DeckEditor.DRAW_TEST.TOTAL) {
+            showToast(`卡组只有 ${totalCount} 张，已抽取 ${this.drawTestCards.length} 张`, 'info', 2000);
+        } else {
+            showToast('试抽：起手 7 张 + 奖赏 6 张，再点一次可重新抽取', 'success', 1500);
+        }
+    }
+
+    // 退出试抽；返回是否真的退出了
+    exitDrawTest() {
+        if (!this.isDrawTestMode) return false;
+
+        this.isDrawTestMode = false;
+        this.drawTestCards = [];
+        this._applyDrawTestGridClass(false);
+        return true;
+    }
+
+    _applyDrawTestGridClass(active) {
+        const grid = document.querySelector('.card-grid');
+        if (grid) grid.classList.toggle('draw-test', !!active);
+    }
+
     // 渲染当前卡组 - 修复数据显示问题
     renderCurrentDeck() {
         if (this.mode === DeckEditor.MODE.DECK_ADD) return;
 
-        const deckCards = this.isMissingMode
-            ? this.deckManager.getDeckMissingCards()
-            : this.deckManager.getDeckDisplayCards();
+        let deckCards;
+        let infoMessage;
+
+        if (this.isDrawTestMode) {
+            deckCards = this.drawTestCards;
+            const currentDeck = this.deckManager.getCurrentDeck();
+            const totalCount = currentDeck ? (currentDeck.totalCount || 0) : 0;
+            infoMessage = deckCards.length < DeckEditor.DRAW_TEST.TOTAL
+                ? `试抽：卡组仅 ${totalCount} 张，已抽取 ${deckCards.length} 张，点击卡组页签返回卡组内容`
+                : `试抽：起手 7 张 + 奖赏 6 张（共 ${deckCards.length} 张），点击卡组页签返回卡组内容`;
+        } else if (this.isMissingMode) {
+            deckCards = this.deckManager.getDeckMissingCards();
+            infoMessage = `缺卡清单：${deckCards.length} 种卡缺少，点击当前卡组页签返回完整卡组`;
+        } else {
+            deckCards = this.deckManager.getDeckDisplayCards();
+            const currentDeck = this.deckManager.getCurrentDeck();
+            infoMessage = `当前卡组：${currentDeck?.name || '新卡组'}（${currentDeck?.totalCount || 0}/60）`;
+        }
 
         // 临时修改 cardManager 的行为
         this.cardManager.getDisplayCards = () => {
@@ -323,10 +428,7 @@ export class DeckEditor {
         };
 
         this.cardGrid.render();
-        const currentDeck = this.deckManager.getCurrentDeck();
-        this.cardGrid.updateSearchInfo(this.isMissingMode
-            ? `缺卡清单：${deckCards.length} 种卡缺少，点击当前卡组页签返回完整卡组`
-            : `当前卡组：${currentDeck?.name || '新卡组'}（${currentDeck?.totalCount || 0}/60）`);
+        this.cardGrid.updateSearchInfo(infoMessage);
     }
 
     toggleMissingMode() {
