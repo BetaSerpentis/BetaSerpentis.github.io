@@ -282,6 +282,21 @@
     box-sizing: border-box;
 }
 
+/* 试抽视图：固定 7 列，前 7 张（起手）一行结束后自动换行，后 6 张（奖赏）另起一行 */
+.card-grid.draw-test {
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    row-gap: 16px;
+    align-content: start;
+}
+
+@media (max-width: 480px) {
+    .card-grid.draw-test {
+        gap: 4px;
+        row-gap: 10px;
+    }
+}
+
 /* 拖拽时的样式 */
 .card-grid.dragging {
     cursor: grabbing;

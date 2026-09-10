@@ -397,12 +397,30 @@ export class DeckManager {
     }
 
     // 保存卡组数据
-    saveDecks() {
+    // lastSavedDeck: 本次被保存（修改）的卡组，默认当前卡组；保存后会移动到列表首位
+    saveDecks(lastSavedDeck = this.getCurrentDeck()) {
         // 保存前确保所有卡组都排序
         this.decks.forEach(deck => {
             this.sortDeckCards(deck);
         });
+        this.moveLastSavedDeckToFront(lastSavedDeck);
         this.storageService.saveDecks(this.decks);
+    }
+
+    // 将最后保存的卡组移动到列表首位（卡组页签按 decks 顺序渲染）
+    // 同时同步 currentDeckIndex，保证当前选中的仍是同一个卡组
+    moveLastSavedDeckToFront(lastSavedDeck) {
+        if (!lastSavedDeck) return;
+
+        const index = this.decks.indexOf(lastSavedDeck);
+        if (index <= 0) return;
+
+        const currentDeck = this.getCurrentDeck();
+        this.decks.splice(index, 1);
+        this.decks.unshift(lastSavedDeck);
+
+        const newCurrentIndex = this.decks.indexOf(currentDeck);
+        this.currentDeckIndex = newCurrentIndex >= 0 ? newCurrentIndex : 0;
     }
 
     // 导出卡组数据

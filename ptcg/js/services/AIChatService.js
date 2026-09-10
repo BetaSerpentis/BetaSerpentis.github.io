@@ -384,7 +384,7 @@ export class AIChatService {
         deck.cards = validCards;
         this.deckManager.sortDeckCards(deck);
         deck.totalCount = validCards.reduce((s, c) => s + c.quantity, 0);
-        this.deckManager.saveDecks();
+        this.deckManager.saveDecks(deck);
         const warn = invalidCards.length > 0 ? `\n⚠ ${invalidCards.length} 张无效卡已过滤` : '';
         return this._formatDeckResult(deckName, validCards, invalidCards, '更新');
       } else {
@@ -394,7 +394,7 @@ export class AIChatService {
         deck.cards = validCards;
         this.deckManager.sortDeckCards(deck);
         deck.totalCount = validCards.reduce((s, c) => s + c.quantity, 0);
-        this.deckManager.saveDecks();
+        this.deckManager.saveDecks(deck);
         const warn = invalidCards.length > 0 ? `\n⚠ ${invalidCards.length} 张无效卡已过滤` : '';
         return this._formatDeckResult(deckName, validCards, invalidCards, '创建');
       }
