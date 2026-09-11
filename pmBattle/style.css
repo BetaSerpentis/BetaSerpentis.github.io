@@ -1,0 +1,233 @@
+/* pmBattle 样式 — 全屏战斗区（iPhone 竖屏适配） */
+:root {
+  --bg: #1a1a2e;
+  --panel: #16213e;
+  --panel-border: #0f3460;
+  --text: #eaeaea;
+  --hp-green: #4cd964;
+  --hp-yellow: #ffcc00;
+  --hp-red: #ff3b30;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+[hidden] { display: none !important; }
+
+body {
+  background: var(--bg);
+  font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#battle-screen {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  height: 100vh;
+  max-height: 960px;
+  /* 刘海/底部指示条对称留空 */
+  padding-top: calc(var(--safe-top) + 10px);
+  padding-bottom: calc(var(--safe-bottom) + 10px);
+  background: linear-gradient(180deg, #4a90d9 0%, #87ceeb 45%, #7ec850 46%, #5da838 100%);
+  overflow: hidden;
+}
+
+/* ================= 血条（无底板，加厚，血量居中） ================= */
+.info-box {
+  position: absolute;
+  width: 50%;
+  z-index: 6;
+  /* 无底板 */
+  background: none;
+  border: none;
+}
+/* 对方血条：右上 */
+.info-box.opponent { top: 14px; right: 0; }
+/* 己方血条：左下 */
+.info-box.player { bottom: 14px; left: 0; }
+
+.info-top { display: flex; align-items: center; gap: 5px; margin-bottom: 3px; }
+.info-name {
+  font-weight: bold; font-size: 15px; color: #fff;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+  text-shadow: 0 1px 2px rgba(0,0,0,.6);
+}
+.status-tag {
+  font-size: 11px; font-weight: bold; padding: 1px 6px; border-radius: 8px;
+  background: #ff9500; color: #fff; flex-shrink: 0;
+}
+.info-level { font-size: 12px; color: #fff; margin-left: auto; flex-shrink: 0; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+
+/* HP 条：加厚，血量文字居中包裹在条内 */
+.hp-bar {
+  position: relative;
+  height: 26px;
+  background: rgba(0, 0, 0, .45);
+  border-radius: 13px;
+  overflow: hidden;
+}
+.hp-fill {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 100%;
+  background: var(--hp-green);
+  transition: width .4s, background .4s;
+}
+.hp-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,.7);
+  z-index: 1;
+}
+
+/* ================= 宝可梦立绘 ================= */
+.sprite-slot { position: absolute; width: 50%; z-index: 2; }
+/* 对方宝可梦：血条正下方 */
+.sprite-slot.opp { top: 76px; right: 0; }
+/* 己方宝可梦：血条正上方 */
+.sprite-slot.pl { bottom: 76px; left: 0; }
+.sprite {
+  width: 100%; height: auto; object-fit: contain;
+  image-rendering: pixelated; filter: drop-shadow(3px 3px 4px rgba(0,0,0,.4));
+  will-change: transform, opacity;
+}
+
+/* --- 立绘动画 --- */
+#pl-sprite.anim-attack { animation: lunge-pl .45s ease-out; }
+@keyframes lunge-pl {
+  0% { transform: translate(0,0); }
+  40% { transform: translate(28px,-24px); }
+  100% { transform: translate(0,0); }
+}
+#opp-sprite.anim-attack { animation: lunge-opp .45s ease-out; }
+@keyframes lunge-opp {
+  0% { transform: translate(0,0); }
+  40% { transform: translate(-28px,24px); }
+  100% { transform: translate(0,0); }
+}
+.anim-hit { animation: hitFlash .55s ease; }
+@keyframes hitFlash {
+  0%, 100% { opacity: 1; }
+  20% { opacity: .2; }
+  40% { opacity: 1; }
+  60% { opacity: .3; }
+  80% { opacity: 1; }
+}
+.anim-enter { animation: enterScale .5s ease-out; }
+@keyframes enterScale {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.anim-exit { animation: exitScale .5s ease-in forwards; }
+@keyframes exitScale {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0); opacity: 0; }
+}
+
+/* ================= 战斗日志（左上角，从上往下） ================= */
+#battle-log {
+  position: absolute;
+  top: 14px; left: 0;
+  width: 40%;
+  max-width: 40%;
+  z-index: 4;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.log-line {
+  background: rgba(0,0,0,.5);
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  animation: fadeIn .25s;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; } }
+
+/* ================= 操作按钮（左下浮动一列，无底板，半透明） ================= */
+#menu-area {
+  position: absolute;
+  bottom: 14px; right: 0;
+  width: 40%;
+  max-width: 40%;
+  z-index: 10;
+  /* 无底板 */
+  background: none;
+  border: none;
+  pointer-events: none; /* 容器不挡点击，按钮自身可点 */
+}
+
+#menu-moves, #menu-switch {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* 强化按钮行（横排小按钮） */
+.menu-top-row {
+  display: flex;
+  gap: 4px;
+  pointer-events: auto;
+}
+.menu-top-row .menu-item {
+  flex: 1;
+  padding: 4px 2px;
+  font-size: 11px;
+  text-align: center;
+  white-space: nowrap;
+  border-radius: 6px;
+  border-width: 1px;
+  background: rgba(20, 25, 45, .55);
+}
+.menu-top-row .menu-item.active { background: rgba(90, 61, 138, .75); border-color: #9b6cf0; }
+
+/* 技能按钮：竖排一列 */
+.menu-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  pointer-events: auto;
+}
+/* 一列按钮内容：名字 + PP 横排单行 */
+.menu-grid .menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.menu-grid .mv-pp { margin-top: 0; flex-shrink: 0; }
+
+/* 通用按钮：暗色半透明 */
+.menu-item {
+  background: rgba(20, 25, 45, .55);
+  border: 1px solid rgba(90, 108, 200, .55);
+  border-radius: 6px;
+  padding: 5px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #fff;
+  transition: all .12s;
+  backdrop-filter: blur(2px);
+}
+.menu-item:hover { background: rgba(53, 67, 122, .7); border-color: #5a6cff; }
+.menu-item:active { transform: scale(.97); }
+.menu-item.disabled { opacity: .4; pointer-events: none; }
+.menu-item .mv-name { font-weight: bold; font-size: 13px; }
+.menu-item .mv-meta { font-size: 10px; color: #c4c9d8; margin-top: 1px; }
+.menu-item .mv-pp { font-size: 10px; color: #9fb4ff; margin-top: 1px; }
+
+.menu-message { pointer-events: auto; text-align: center; padding: 14px; font-size: 15px; color: #fff; }
+.menu-message .menu-item { padding: 12px; font-size: 15px; }

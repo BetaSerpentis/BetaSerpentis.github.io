@@ -1,0 +1,17 @@
+{
+  "name": "pmbattle",
+  "version": "0.2.0",
+  "description": "宝可梦单打回合制战斗（Gen 9，全量 PS 引擎，玩家 vs AI，中文）",
+  "type": "module",
+  "scripts": {
+    "build": "node build/bundle.mjs",
+    "test": "node tests/adapter.test.mjs",
+    "serve": "node server.js"
+  },
+  "engines": {
+    "node": ">=22.6"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}
