@@ -15,14 +15,20 @@
 
 [hidden] { display: none !important; }
 
+html, body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none; /* 禁止拉动/回弹 */
+}
+
 body {
-  background: var(--bg);
+  position: fixed; /* 固定视口，彻底禁止拖动滚动 */
+  inset: 0;
+  width: 100%;
   font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
   color: var(--text);
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  /* 游戏真实战斗背景（PS 客户端资源），与 #battle-screen 同源无缝 */
+  background: #5da838 url('assets/bg-gen4.png') no-repeat center center / cover;
 }
 
 #battle-screen {
@@ -30,11 +36,14 @@ body {
   width: 100%;
   max-width: 520px;
   height: 100vh;
+  height: 100dvh; /* 动态视口高，避开地址栏/刘海计算误差 */
   max-height: 960px;
+  margin: 0 auto;
   /* 刘海/底部指示条对称留空 */
   padding-top: calc(var(--safe-top) + 10px);
   padding-bottom: calc(var(--safe-bottom) + 10px);
-  background: linear-gradient(180deg, #4a90d9 0%, #87ceeb 45%, #7ec850 46%, #5da838 100%);
+  /* 背景继承 body 背景（透传），无缝 */
+  background: none;
   overflow: hidden;
 }
 
@@ -48,9 +57,9 @@ body {
   border: none;
 }
 /* 对方血条：右上 */
-.info-box.opponent { top: 14px; right: 0; }
+.info-box.opponent { top: 14px; right: 6px; }
 /* 己方血条：左下 */
-.info-box.player { bottom: 14px; left: 0; }
+.info-box.player { bottom: 14px; left: 6px; }
 
 .info-top { display: flex; align-items: center; gap: 5px; margin-bottom: 3px; }
 .info-name {
@@ -139,7 +148,7 @@ body {
 /* ================= 战斗日志（左上角，从上往下） ================= */
 #battle-log {
   position: absolute;
-  top: 14px; left: 0;
+  top: 14px; left: 6px;
   width: 40%;
   max-width: 40%;
   z-index: 4;
@@ -161,7 +170,7 @@ body {
 /* ================= 操作按钮（左下浮动一列，无底板，半透明） ================= */
 #menu-area {
   position: absolute;
-  bottom: 14px; right: 0;
+  bottom: 14px; right: 6px;
   width: 40%;
   max-width: 40%;
   z-index: 10;
