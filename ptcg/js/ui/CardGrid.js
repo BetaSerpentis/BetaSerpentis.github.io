@@ -15,6 +15,7 @@ export class CardGrid {
         this.currentBatch = 0;
         this.isLoadingBatch = false;
         this.currentMode = 'browse'; // 由外部 setMode() 更新
+        this.isDrawTestView = false; // 试抽视图：每张卡独立显示，不显示卡组数量
         
         // 触摸状态变量
         this.touchState = {
@@ -135,7 +136,8 @@ export class CardGrid {
         const isDeckAddMode = this.currentMode === 'deck-add' || this.currentMode === 'cover-select';
         
         if (isDeckMode) {
-            if (this.deckManager) {
+            // 试抽视图：每张卡独立显示，不显示其在卡组中的数量
+            if (!this.isDrawTestView && this.deckManager) {
                 const currentDeck = this.deckManager.getCurrentDeck();
                 if (currentDeck) {
                     const deckCard = currentDeck.cards.find(c => c.id === card.id);
@@ -524,6 +526,11 @@ export class CardGrid {
     
     setMode(mode) {
         this.currentMode = mode;
+    }
+
+    // 试抽视图开关：开启后卡片不再显示其在卡组中的数量
+    setDrawTestView(active) {
+        this.isDrawTestView = !!active;
     }
 
     showLoading() {

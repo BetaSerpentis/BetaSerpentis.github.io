@@ -326,8 +326,9 @@ export class DeckEditor {
 
     // ---- 试抽（起手 7 张 + 奖赏 6 张）----
 
-    // 从卡组中随机抽取卡牌；按卡组内张数展开后洗牌，不会抽出卡组里没有的卡
-    static pickRandomCards(deck, opening = DeckEditor.DRAW_TEST.OPENING, prizes = DeckEditor.DRAW_TEST.PRIZES) {
+    // 按卡组内张数展开并洗牌，返回完整牌库顺序（每张单独显示）
+    // 前 OPENING 张为起手，接着 PRIZES 张为奖赏卡，其余为牌库剩余
+    static shuffleDeck(deck) {
         const pool = [];
         if (deck && Array.isArray(deck.cards)) {
             deck.cards.forEach(card => {
@@ -342,14 +343,13 @@ export class DeckEditor {
             [pool[i], pool[j]] = [pool[j], pool[i]];
         }
 
-        const wanted = opening + prizes;
-        return pool.slice(0, Math.min(wanted, pool.length)).map(card => ({
+        return pool.map(card => ({
             ...card,
             quantity: 1
         }));
     }
 
-    // 进入试抽（重复调用会重新抽取）
+    // 进入试抽（重复调用会重新洗牌）
     enterDrawTest() {
         if (this.mode !== DeckEditor.MODE.DECK_VIEW) return;
 
@@ -362,15 +362,16 @@ export class DeckEditor {
 
         this.isDrawTestMode = true;
         this.isMissingMode = false;
-        this.drawTestCards = DeckEditor.pickRandomCards(deck);
-        this._applyDrawTestGridClass(true);
+        this.drawTestCards = DeckEditor.shuffleDeck(deck);
+        this._applyDrawTestView(true);
         this.renderDeckTabs();
         this.renderCurrentDeck();
 
-        if (this.drawTestCards.length < DeckEditor.DRAW_TEST.TOTAL) {
-            showToast(`卡组只有 ${totalCount} 张，已抽取 ${this.drawTestCards.length} 张`, 'info', 2000);
+        const { OPENING: opening, PRIZES: prizes, TOTAL: wanted } = DeckEditor.DRAW_TEST;
+        if (this.drawTestCards.length < wanted) {
+            showToast(`卡组只有 ${totalCount} 张，已全部洗牌展示`, 'info', 2000);
         } else {
-            showToast('试抽：起手 7 张 + 奖赏 6 张，再点一次可重新抽取', 'success', 1500);
+            showToast(`试抽：起手 ${opening} 张 + 奖赏 ${prizes} 张，其余 ${this.drawTestCards.length - wanted} 张为牌库剩余`, 'success', 1800);
         }
     }
 
@@ -380,13 +381,18 @@ export class DeckEditor {
 
         this.isDrawTestMode = false;
         this.drawTestCards = [];
-        this._applyDrawTestGridClass(false);
+        this._applyDrawTestView(false);
         return true;
     }
 
-    _applyDrawTestGridClass(active) {
+    // 试抽视图开关：7 列布局类 + CardGrid 隐藏数量角标
+    _applyDrawTestView(active) {
+        const on = !!active;
+        if (this.cardGrid && typeof this.cardGrid.setDrawTestView === 'function') {
+            this.cardGrid.setDrawTestView(on);
+        }
         const grid = document.querySelector('.card-grid');
-        if (grid) grid.classList.toggle('draw-test', !!active);
+        if (grid) grid.classList.toggle('draw-test', on);
     }
 
     // 渲染当前卡组 - 修复数据显示问题
@@ -398,11 +404,11 @@ export class DeckEditor {
 
         if (this.isDrawTestMode) {
             deckCards = this.drawTestCards;
-            const currentDeck = this.deckManager.getCurrentDeck();
-            const totalCount = currentDeck ? (currentDeck.totalCount || 0) : 0;
-            infoMessage = deckCards.length < DeckEditor.DRAW_TEST.TOTAL
-                ? `试抽：卡组仅 ${totalCount} 张，已抽取 ${deckCards.length} 张，点击卡组页签返回卡组内容`
-                : `试抽：起手 7 张 + 奖赏 6 张（共 ${deckCards.length} 张），点击卡组页签返回卡组内容`;
+            const { OPENING: opening, PRIZES: prizes, TOTAL: wanted } = DeckEditor.DRAW_TEST;
+            const rest = Math.max(0, deckCards.length - wanted);
+            infoMessage = deckCards.length < wanted
+                ? `试抽：卡组仅 ${deckCards.length} 张，已全部洗牌展示，点击卡组页签返回卡组内容`
+                : `试抽：起手 ${opening} 张 + 奖赏 ${prizes} 张 + 牌库剩余 ${rest} 张（按洗牌顺序，点击卡组页签返回卡组内容）`;
         } else if (this.isMissingMode) {
             deckCards = this.deckManager.getDeckMissingCards();
             infoMessage = `缺卡清单：${deckCards.length} 种卡缺少，点击当前卡组页签返回完整卡组`;
