@@ -36,6 +36,14 @@ Python/
 # 本地调试脚本（含本机绝对路径 / 环境变量依赖）
 ptcg/tools/analyze_dropped.py
 ptcg/test-ai-save.mjs
+<<<<<<< HEAD
 
 # macOS 系统文件
 .DS_Store
+=======
+# pmBattle 构建脚本源码（非产物）
+!pmBattle/build/
+>>>>>>> 51358e55 (feat(pmBattle): 宝可梦单打复刻 v0.2 — 全量 PS 引擎 + 竖屏战斗 UI)
+
+# pmBattle 构建脚本源码（非产物）
+!pmBattle/build/

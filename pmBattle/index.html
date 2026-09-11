@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <title>pmBattle 宝可梦对战</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="battle-screen">
+    <!-- 战斗日志（左上） -->
+    <div id="battle-log"></div>
+
+    <!-- 对方血条（右上） -->
+    <div class="info-box opponent" id="opponent-info">
+      <div class="info-top">
+        <span class="info-name" id="opp-name">对手</span>
+        <span class="status-tag" id="opp-status" style="display:none"></span>
+        <span class="info-level" id="opp-level">Lv.50</span>
+      </div>
+      <div class="hp-bar">
+        <div class="hp-fill" id="opp-hp-bar"></div>
+        <span class="hp-text" id="opp-hp-text"></span>
+      </div>
+    </div>
+
+    <!-- 对方宝可梦（血条正下方） -->
+    <div class="sprite-slot opp" id="opp-sprite-slot">
+      <img class="sprite" id="opp-sprite" alt="">
+    </div>
+
+    <!-- 我方宝可梦（血条正上方） -->
+    <div class="sprite-slot pl" id="player-sprite-slot">
+      <img class="sprite" id="pl-sprite" alt="">
+    </div>
+
+    <!-- 我方血条（左下） -->
+    <div class="info-box player" id="player-info">
+      <div class="info-top">
+        <span class="info-name" id="pl-name">我</span>
+        <span class="status-tag" id="pl-status" style="display:none"></span>
+        <span class="info-level" id="pl-level">Lv.50</span>
+      </div>
+      <div class="hp-bar">
+        <div class="hp-fill" id="pl-hp-bar"></div>
+        <span class="hp-text" id="pl-hp-text"></span>
+      </div>
+    </div>
+
+    <!-- 操作按钮（左下浮动一列，无底板） -->
+    <div id="menu-area">
+      <div id="menu-moves"></div>
+      <div id="menu-switch" hidden></div>
+      <div id="menu-message" class="menu-message" hidden></div>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
