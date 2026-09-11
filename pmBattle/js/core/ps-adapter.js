@@ -145,9 +145,12 @@ export function statusZh(s) { return STATUS_ZH[s] || s; }
 // ---------------------------------------------------------------------------
 // 战斗日志解析：PS 协议（|event|args）→ 中文可读文本
 // ---------------------------------------------------------------------------
-export function parseLog(logLines, dex = DEX) {
+// 持久 HP 追踪（模块级）：跨 flushLog 批次存活，避免 -damage 行在跨批次时拿不到 prev 被丢弃
+const persistentHpMap = new Map();
+
+export function parseEvents(logLines, dex = DEX) {
   const out = [];
-  const hpMap = new Map(); // ident → 上次真实 HP，用于计算伤害差值
+  const hpMap = persistentHpMap;
   for (const raw of logLines) {
     if (typeof raw !== 'string' || !raw) continue;
     const line = raw.startsWith('|') ? raw : `|${raw}`;
@@ -158,60 +161,126 @@ export function parseLog(logLines, dex = DEX) {
     if ((evt === 'switch' || evt === 'drag') && isPercentHp(args[2])) continue;
     if ((evt === '-damage' || evt === '-heal' || evt === '-sethp') && isPercentHp(args[1])) continue;
 
-    const text = translateEvent(evt, args, dex, hpMap);
-    if (text) out.push(text);
+    const ev = translateEvent(evt, args, dex, hpMap);
+    if (ev) out.push(ev);
   }
   return out;
 }
 
+// 旧接口：只返回文本数组（单测兼容）
+export function parseLog(logLines, dex = DEX) {
+  return parseEvents(logLines, dex).map(e => e.text);
+}
+
+// ident（如 p1a: Gyarados / p2: Dragonite）→ 所属方 'p1' | 'p2' | null
+function sideOfIdent(ident) {
+  const m = String(ident || '').match(/^p([12])/);
+  return m ? `p${m[1]}` : null;
+}
+
 function isPercentHp(hpStr) {
-  const m = String(hpStr || '').match(/(\d+)\s*\/\s*(\d+)/);
+  const m = String(hpStr || '').match(/(\d+)\s*\/(\d+)/);
   return !!m && parseInt(m[2]) === 100;
 }
 
 function translateEvent(evt, args, dex, hpMap) {
+  const base = { evt };
   switch (evt) {
-    case 'turn': return `— 第 ${args[0]} 回合 —`;
+    case 'turn': return { ...base, text: `— 第 ${args[0]} 回合 —` };
     case 'switch': case 'drag': {
       const p = parsePokemonIdent(args[0]);
       const hp = parseHp(args[2]);
-      if (hp) hpMap.set(args[0], hp.cur);
-      return `${p.name}${evt === 'drag' ? '被强制' : ''}出场了！`;
+      if (hp) hpMap.set(args[0], { cur: hp.cur, max: hp.max });
+      return { ...base, side: sideOfIdent(args[0]), hp: hp ? { cur: hp.cur, max: hp.max } : null,
+        text: `${p.name}${evt === 'drag' ? '被强制' : ''}出场了！` };
     }
     case 'move': {
       const p = parsePokemonIdent(args[0]);
       const mv = moveName(args[1], dex);
-      return `${p.name}使用了 ${mv}！`;
+      return { ...base, side: sideOfIdent(args[0]), text: `${p.name}使用了 ${mv}！` };
     }
     case '-damage': {
       const p = parsePokemonIdent(args[0]);
       const hp = parseHp(args[1]);
       if (hp === null) return null;
       const ident = args[0];
-      const prev = hpMap.get(ident);
+      // [from] 参数：伤害来源标记（ability:/item:/recoil/confusion/burn 等）→ 非招式直伤
+      const fromArg = args.slice(2).find(a => a.startsWith('[from]'));
+      const from = fromArg ? fromArg.slice(6).trim() : null;
+      const rec = hpMap.get(ident);
+      const prev = rec ? rec.cur : undefined;
+      const max = hp.max ?? (rec ? rec.max : null);
       const damage = prev !== undefined ? prev - hp.cur : null;
-      hpMap.set(ident, hp.cur);
-      if (damage === null || damage <= 0) return null;
-      return `${p.name}损失了 ${damage} HP！（${hp.cur}/${hp.max}）`;
+      // 濒死行不能丢：击倒序列 = 受击 → 血量归0 → faint 倒下
+      // （引擎会把 0 fnt 发两次，第二条 damage<=0 观点为重复丢弃）
+      if (hp.fnt) {
+        if (damage !== null && damage <= 0) return null;
+        if (max !== null) hpMap.set(ident, { cur: 0, max }); // 记录归零，重复 fnt 行才会被去重
+        return { ...base, side: sideOfIdent(ident), hp: { cur: 0, max }, from,
+          text: `${p.name}损失了 ${damage !== null ? damage : ''} HP！（0/${max ?? '??'}）` };
+      }
+      hpMap.set(ident, { cur: hp.cur, max });
+      if (damage === null || damage <= 0) {
+        if (hp.cur > 0) return null; // 没变化的普通行仍丢弃
+        return { ...base, side: sideOfIdent(ident), hp: { cur: 0, max }, from,
+          text: `${p.name}倒下了！` };
+      }
+      return { ...base, side: sideOfIdent(ident), hp: { cur: hp.cur, max }, from,
+        text: `${p.name}损失了 ${damage} HP！（${hp.cur}/${max ?? '??'}）` };
     }
     case '-heal': {
       const p = parsePokemonIdent(args[0]);
       const hp = parseHp(args[1]);
-      if (hp === null) return null;
+      if (hp === null || hp.fnt) return null;
       const ident = args[0];
-      const prev = hpMap.get(ident);
+      const rec = hpMap.get(ident);
+      const prev = rec ? rec.cur : undefined;
+      const max = hp.max ?? (rec ? rec.max : null);
       const healed = prev !== undefined ? hp.cur - prev : null;
-      hpMap.set(ident, hp.cur);
-      return `${p.name}回复了${healed !== null && healed > 0 ? ` ${healed} HP` : ' HP'}！（${hp.cur}/${hp.max}）`;
+      hpMap.set(ident, { cur: hp.cur, max });
+      return { ...base, side: sideOfIdent(ident), hp: { cur: hp.cur, max },
+        text: `${p.name}回复了${healed !== null && healed > 0 ? ` ${healed} HP` : ' HP'}！（${hp.cur}/${max ?? '??'}）` };
     }
     case '-sethp': {
       const p = parsePokemonIdent(args[0]);
       const hp = parseHp(args[1]);
-      if (hp === null) return null;
-      hpMap.set(args[0], hp.cur);
-      return `${p.name}的 HP 变为 ${hp.cur}/${hp.max}。`;
+      if (hp === null || hp.fnt) return null;
+      const rec = hpMap.get(args[0]);
+      const max = hp.max ?? (rec ? rec.max : null);
+      hpMap.set(args[0], { cur: hp.cur, max });
+      return { ...base, side: sideOfIdent(args[0]), hp: { cur: hp.cur, max },
+        text: `${p.name}的 HP 变为 ${hp.cur}/${max ?? '??'}。` };
     }
-    case 'faint': return `${parsePokemonIdent(args[0]).name}倒下了！`;
+    case 'faint': {
+      const p = parsePokemonIdent(args[0]);
+      return { ...base, side: sideOfIdent(args[0]), text: `${p.name}倒下了！` };
+    }
+    case '-status': {
+      const p = parsePokemonIdent(args[0]);
+      return { ...base, side: sideOfIdent(args[0]), statusKey: args[1], text: `${p.name}陷入了${statusZh(args[1])}状态！` };
+    }
+    case '-curestatus': {
+      const p = parsePokemonIdent(args[0]);
+      return { ...base, side: sideOfIdent(args[0]), statusKey: null, text: `${p.name}的${statusZh(args[1])}状态治好了` };
+    }
+    case '-boost': case '-unboost': {
+      const p = parsePokemonIdent(args[0]);
+      const stat = statZh(args[1], dex);
+      const dir = evt === '-boost' ? '提升' : '降低';
+      const n = Number(args[2]) || 1;
+      const nZh = ['', '', '大幅', '急剧', '急剧'][Math.min(Math.abs(n), 4)] || '';
+      return { ...base, side: sideOfIdent(args[0]), text: `${p.name}的${stat}${nZh}${dir}了${n >= 2 ? '！' : '！'}` };
+    }
+    default: {
+      // 其余事件沿用旧文本逻辑（不带 side，播放时按普通行处理）
+      const text = translateEventMisc(evt, args, dex, hpMap);
+      return text ? { ...base, text } : null;
+    }
+  }
+}
+
+function translateEventMisc(evt, args, dex, hpMap) {
+  switch (evt) {
     case '-supereffective': return '效果绝佳！';
     case '-resisted': case '-notveryeffective': return '效果不理想……';
     case '-immune': {
@@ -219,24 +288,6 @@ function translateEvent(evt, args, dex, hpMap) {
       return '没有效果……';
     }
     case '-crit': return '击中要害！';
-    case '-status': {
-      const p = parsePokemonIdent(args[0]);
-      return `${p.name}陷入了${statusZh(args[1])}状态！`;
-    }
-    case '-curestatus': {
-      const p = parsePokemonIdent(args[0]);
-      return `${p.name}解除了${statusZh(args[1])}状态。`;
-    }
-    case '-boost': {
-      const p = parsePokemonIdent(args[0]);
-      const stat = args[2] ? statZh(args[2], dex) : '能力';
-      return `${p.name}的${stat}提升了！`;
-    }
-    case '-unboost': {
-      const p = parsePokemonIdent(args[0]);
-      const stat = args[2] ? statZh(args[2], dex) : '能力';
-      return `${p.name}的${stat}降低了！`;
-    }
     case '-weather': return weatherZh(args[0]);
     case '-fieldstart': return `场地被${args[0]}覆盖了。`;
     case '-fieldend': return '场地效果消失了。';
@@ -274,13 +325,21 @@ function translateEvent(evt, args, dex, hpMap) {
 
 function parsePokemonIdent(ident) {
   const m = String(ident || '').match(/(?:p[12][ab]?:\s*)?([^|]+)/);
-  return { name: m ? m[1].trim() : (ident || '???') };
+  const raw = m ? m[1].trim() : (ident || '???');
+  // 日志行内宝可梦名用中文（与 activeSnapshot().name 一致，供 UI 判定动画归属方）
+  return { name: speciesName(raw), rawName: raw };
 }
 function parseHp(str) {
-  const m = String(str || '').match(/(\d+)\s*\/\s*(\d+)/);
-  if (!m) return null;
-  const cur = parseInt(m[1]), max = parseInt(m[2]);
-  return { cur, max, damage: null };
+  const s = String(str || '');
+  const m = s.match(/(\d+)\s*\/\s*(\d+)/);
+  if (m) {
+    const cur = parseInt(m[1]), max = parseInt(m[2]);
+    return { cur, max, fnt: false };
+  }
+  // 濒死格式 '0 fnt'：cur=0，max 未知（由 hpMap 记录恢复）
+  const f = s.match(/^(\d+)\s+fnt/);
+  if (f) return { cur: parseInt(f[1]), max: null, fnt: true };
+  return null;
 }
 function statZh(s, dex) {
   return zhName({ name: s, effectType: 'Type' }, dex) || s;

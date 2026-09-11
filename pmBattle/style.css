@@ -23,12 +23,32 @@ html, body {
 
 body {
   position: fixed; /* 固定视口，彻底禁止拖动滚动 */
-  inset: 0;
+  top: 0; left: 0; right: 0;
+  height: 100dvh; /* 与 #battle-screen 同基准（动态视口），保证上下留空对称 */
   width: 100%;
   font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
   color: var(--text);
-  /* 游戏真实战斗背景（PS 客户端资源），与 #battle-screen 同源无缝 */
-  background: #5da838 url('assets/bg-gen4.png') no-repeat center center / cover;
+  /* 与战斗屏同源渐变，两侧露出无缝（图片资源待选型） */
+  /* 草原渐变背景（天空拉至对方精灵身高一半 ≈20%）+ 草地斑驳纹理 */
+  background:
+    /* 草地斑驳：不规则亮/暗色块（多层椭圆错落叠加） */
+    radial-gradient(ellipse 34% 12% at 24% 48%, rgba(255, 253, 175, .26) 0%, transparent 72%),
+    radial-gradient(ellipse 40% 14% at 76% 52%, rgba(255, 253, 175, .22) 0%, transparent 72%),
+    radial-gradient(ellipse 46% 15% at 40% 62%, rgba(255, 253, 175, .30) 0%, transparent 74%),
+    radial-gradient(ellipse 38% 11% at 68% 70%, rgba(126, 200, 80, .34) 0%, transparent 72%),
+    radial-gradient(ellipse 44% 13% at 28% 76%, rgba(126, 200, 80, .32) 0%, transparent 72%),
+    radial-gradient(ellipse 36% 10% at 56% 84%, rgba(126, 200, 80, .38) 0%, transparent 70%),
+    radial-gradient(ellipse 48% 13% at 18% 92%, rgba(93, 168, 56, .40) 0%, transparent 72%),
+    radial-gradient(ellipse 42% 12% at 64% 96%, rgba(93, 168, 56, .38) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 11% at 44% 40%, rgba(126, 200, 80, .28) 0%, transparent 72%),
+    radial-gradient(ellipse 38% 10% at 10% 60%, rgba(126, 200, 80, .30) 0%, transparent 70%),
+    radial-gradient(ellipse 42% 11% at 88% 62%, rgba(255, 253, 175, .20) 0%, transparent 72%),
+    radial-gradient(ellipse 36% 10% at 90% 84%, rgba(93, 168, 56, .36) 0%, transparent 70%),
+    /* 草原主体渐变（天空 20% 分界） */
+    linear-gradient(180deg,
+      #4a90d9 0%, #87ceeb 14%,
+      #9fd890 19%, #7ec850 22%,
+      #6bb043 55%, #5da838 100%);
 }
 
 #battle-screen {
@@ -42,9 +62,25 @@ body {
   /* 刘海/底部指示条对称留空 */
   padding-top: calc(var(--safe-top) + 10px);
   padding-bottom: calc(var(--safe-bottom) + 10px);
-  /* 背景继承 body 背景（透传），无缝 */
-  background: none;
   overflow: hidden;
+  /* 草原渐变背景（天空拉至对方精灵身高一半 ≈20%）+ 草地斑驳，与 body 同源无缝 */
+  background:
+    radial-gradient(ellipse 34% 12% at 24% 48%, rgba(255, 253, 175, .26) 0%, transparent 72%),
+    radial-gradient(ellipse 40% 14% at 76% 52%, rgba(255, 253, 175, .22) 0%, transparent 72%),
+    radial-gradient(ellipse 46% 15% at 40% 62%, rgba(255, 253, 175, .30) 0%, transparent 74%),
+    radial-gradient(ellipse 38% 11% at 68% 70%, rgba(126, 200, 80, .34) 0%, transparent 72%),
+    radial-gradient(ellipse 44% 13% at 28% 76%, rgba(126, 200, 80, .32) 0%, transparent 72%),
+    radial-gradient(ellipse 36% 10% at 56% 84%, rgba(126, 200, 80, .38) 0%, transparent 70%),
+    radial-gradient(ellipse 48% 13% at 18% 92%, rgba(93, 168, 56, .40) 0%, transparent 72%),
+    radial-gradient(ellipse 42% 12% at 64% 96%, rgba(93, 168, 56, .38) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 11% at 44% 40%, rgba(126, 200, 80, .28) 0%, transparent 72%),
+    radial-gradient(ellipse 38% 10% at 10% 60%, rgba(126, 200, 80, .30) 0%, transparent 70%),
+    radial-gradient(ellipse 42% 11% at 88% 62%, rgba(255, 253, 175, .20) 0%, transparent 72%),
+    radial-gradient(ellipse 36% 10% at 90% 84%, rgba(93, 168, 56, .36) 0%, transparent 70%),
+    linear-gradient(180deg,
+      #4a90d9 0%, #87ceeb 14%,
+      #9fd890 19%, #7ec850 22%,
+      #6bb043 55%, #5da838 100%);
 }
 
 /* ================= 血条（无底板，加厚，血量居中） ================= */
@@ -112,6 +148,16 @@ body {
   image-rendering: pixelated; filter: drop-shadow(3px 3px 4px rgba(0,0,0,.4));
   will-change: transform, opacity;
 }
+/* 像素脚踏台（用户抠图 platform.png，精灵脚下） */
+.platform {
+  position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
+  width: 92%; height: auto; z-index: -1;
+  image-rendering: pixelated;
+}
+/* 我方平台（近处更大） */
+.sprite-slot.pl .platform { width: 100%; }
+/* 对方平台（远处更小） */
+.sprite-slot.opp .platform { width: 78%; }
 
 /* --- 立绘动画 --- */
 #pl-sprite.anim-attack { animation: lunge-pl .45s ease-out; }

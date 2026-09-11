@@ -13,45 +13,90 @@ export function spriteUrl(num, back = false) {
 // --- 动画触发（CSS class 方式） ---
 export function animateAttack(side) { pulseClass(side, 'anim-attack', 450); }
 export function animateHit(side) { pulseClass(side, 'anim-hit', 550); }
-export function animateEnter(side) { pulseClass(side, 'anim-enter', 500); }
+// 登场动画：先进入 scale(0) 起始态（立即隐藏旧精灵），再执行换图回调
+export function animateEnter(side, onSwap) {
+  const el = side === 'pl' ? $('#pl-sprite') : $('#opp-sprite');
+  if (!el) return;
+  el.classList.remove('anim-attack', 'anim-hit', 'anim-enter', 'anim-exit');
+  el.classList.add('anim-enter');
+  // 强制应用起始帧后再换图，避免旧精灵以全尺寸闪现
+  void el.offsetWidth;
+  if (onSwap) onSwap();
+  setTimeout(() => el.classList.remove('anim-enter'), 520);
+}
 export function animateExit(side) { pulseClass(side, 'anim-exit', 500); }
 
 function pulseClass(side, cls, ms) {
-  const el = side === PLAYER ? $('#pl-sprite') : $('#opp-sprite');
+  const el = side === 'pl' ? $('#pl-sprite') : $('#opp-sprite');
   if (!el) return;
   el.classList.remove('anim-attack', 'anim-hit', 'anim-enter', 'anim-exit');
   // 强制重绘以支持连续触发同一动画
   void el.offsetWidth;
   el.classList.add(cls);
+  // 退场动画保持终态（缩小不反弹）：换人 enter 时统一清除
+  if (cls === 'anim-exit') return;
   setTimeout(() => el.classList.remove(cls), ms);
 }
 
 // 渲染场上宝可梦（side: PLAYER/OPPONENT）
-export function renderActive(battle, side) {
+// 同值不重写 DOM（避免每次 renderBoth 重复触发 mutation / 闪烁）
+function setTextIfChanged(el, text) {
+  if (el.textContent !== text) el.textContent = text;
+}
+
+// 异常状态标签即时更新（-status/-curestatus 行播放时）
+export function setStatusDisplay(side, statusKey) {
+  const prefix = side === 'pl' ? 'pl' : 'opp';
+  const statusEl = $(`#${prefix}-status`);
+  setTextIfChanged(statusEl, statusKey ? statusZh(statusKey) : '');
+  statusEl.style.display = statusKey ? 'inline-block' : 'none';
+}
+
+// hpOverride：日志事件行内的 HP 快照（switch/drag 出场值）。
+// 播放中 battle 已是整回合结算后的终态，直接读 snap.hp 会把后续伤害提前显示。
+export function renderActive(battle, side, hpOverride = null) {
   const snap = activeSnapshot(battle, side);
   const prefix = side === PLAYER ? 'pl' : 'opp';
   if (!snap) return;
+  const hp = hpOverride && hpOverride.max ? hpOverride : { cur: snap.hp, max: snap.maxhp };
 
-  $(`#${prefix}-name`).textContent = snap.name;
-  $(`#${prefix}-level`).textContent = `Lv.${snap.level}`;
-  $(`#${prefix}-hp-text`).textContent = `${snap.hp} / ${snap.maxhp}`;
+  setTextIfChanged($(`#${prefix}-name`), snap.name);
+  setTextIfChanged($(`#${prefix}-level`), `Lv.${snap.level}`);
+  setTextIfChanged($(`#${prefix}-hp-text`), `${hp.cur} / ${hp.max}`);
 
-  const ratio = snap.hp / snap.maxhp;
+  const ratio = Math.max(0, hp.cur / hp.max);
   const bar = $(`#${prefix}-hp-bar`);
   bar.style.width = `${Math.max(0, ratio * 100)}%`;
   bar.style.background = ratio > 0.5 ? 'var(--hp-green)' : ratio > 0.2 ? 'var(--hp-yellow)' : 'var(--hp-red)';
 
+  // 播放中（hpOverride 存在）不显示终态异常标签：新出场精灵的烧伤等由 -status 行播到时再上
+  const st = hpOverride ? null : snap.status;
   const statusEl = $(`#${prefix}-status`);
-  statusEl.textContent = snap.status ? statusZh(snap.status) : '';
-  statusEl.style.display = snap.status ? 'inline-block' : 'none';
+  setTextIfChanged(statusEl, st ? statusZh(st) : '');
+  statusEl.style.display = st ? 'inline-block' : 'none';
 
   const img = $(`#${prefix}-sprite`);
   // 己方显示背面形象，对方显示正面形象；背面 404 时回退正面
-  img.src = spriteUrl(battle[side].active[0].species.num, side === PLAYER);
-  img.onerror = () => {
-    if (side === PLAYER) img.src = spriteUrl(battle[side].active[0].species.num, false);
-  };
+  const newSrc = spriteUrl(battle[side].active[0].species.num, side === PLAYER);
+  if (img.getAttribute('src') !== newSrc) {
+    // 换新精灵：清残留的退场缩小态，保证 enter 从全尺寸开始
+    img.classList.remove('anim-exit');
+    img.src = newSrc;
+    img.onerror = () => {
+      if (side === PLAYER) img.src = spriteUrl(battle[side].active[0].species.num, false);
+    };
+  }
   img.alt = snap.name;
+}
+
+// 仅按行内 HP 更新血条（受击节奏：先动画再掉血；同值跳过）
+export function setHpDisplay(side, cur, max) {
+  const prefix = side === 'pl' ? 'pl' : 'opp';
+  const ratio = Math.max(0, Math.min(1, cur / max));
+  setTextIfChanged($(`#${prefix}-hp-text`), `${cur} / ${max}`);
+  const bar = $(`#${prefix}-hp-bar`);
+  bar.style.width = `${ratio * 100}%`;
+  bar.style.background = ratio > 0.5 ? 'var(--hp-green)' : ratio > 0.2 ? 'var(--hp-yellow)' : 'var(--hp-red)';
 }
 
 // 渲染战斗日志（中文文本数组）
