@@ -282,17 +282,24 @@
     box-sizing: border-box;
 }
 
-/* 试抽视图：固定 7 列；前 7 张（起手）一行，接着 6 张（奖赏）另起一行，第 14 张起（牌库剩余）再次换行 */
+/* 试抽视图：固定 7 列；前 7 张（起手）、接着 6 张（奖赏）各占一行，第 14 张起为牌库剩余 */
 .card-grid.draw-test {
     grid-template-columns: repeat(7, 1fr);
     gap: 8px;
     row-gap: 16px;
     align-content: start;
+    /* 卡片保持自身宽高比，避免调整行距（负 margin）时被拉伸变形 */
+    align-items: start;
 }
 
+/* 第 14 张（牌库剩余首张）另起一行，与同行其他卡顶部对齐 */
 .card-grid.draw-test > .card:nth-child(14) {
     grid-column-start: 1;
-    margin-top: 14px;
+}
+
+/* 牌库剩余区域行距更紧凑（16 - 10 = 6px），与手牌/奖赏的 16px 行距区分 */
+.card-grid.draw-test > .card:nth-child(n+14) {
+    margin-bottom: -10px;
 }
 
 @media (max-width: 480px) {
@@ -301,8 +308,9 @@
         row-gap: 10px;
     }
 
-    .card-grid.draw-test > .card:nth-child(14) {
-        margin-top: 10px;
+    /* 移动端牌库剩余行距净 4px */
+    .card-grid.draw-test > .card:nth-child(n+14) {
+        margin-bottom: -6px;
     }
 }
 
