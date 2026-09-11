@@ -3,10 +3,10 @@
 // 播放流程：每次引擎推进后，逐条日志播放（文字 + 动画 + 节奏停顿），
 // 播放期间锁定菜单，一回合表现播完才轮到玩家下一轮操作。
 
-import { createBattle, requestState, parseLog, getEnhancements, activeSnapshot, FORMATS, PLAYER, OPPONENT } from './core/ps-adapter.js';
+import { createBattle, requestState, parseEvents, getEnhancements, FORMATS, PLAYER, OPPONENT } from './core/ps-adapter.js';
 import { chooseAiAction } from './core/ai.js';
 import { PLAYER_TEAM, AI_TEAM } from './data/teams.js';
-import { renderActive, renderLog, clearLog, renderMoveMenu, renderSwitchMenu, showMessage, animateAttack, animateHit, animateEnter, animateExit } from './ui/BattleField.js';
+import { renderActive, renderLog, clearLog, renderMoveMenu, renderSwitchMenu, showMessage, animateAttack, animateHit, animateEnter, animateExit, setHpDisplay, setStatusDisplay } from './ui/BattleField.js';
 
 let battle;
 let logCursor = 0;
@@ -40,57 +40,86 @@ function hideMenus() {
 async function flushLog() {
   const newLogs = battle.log.slice(logCursor);
   logCursor = battle.log.length;
-  const zh = parseLog(newLogs);
-  if (!zh.length) return;
+  const events = parseEvents(newLogs);
+  if (!events.length) return;
 
   // 新回合开始：清空上一回合的日志
-  if (zh.some(l => l.startsWith('— 第'))) clearLog();
+  if (events.some(e => e.evt === 'turn')) clearLog();
 
   playing = true;
   hideMenus();
 
-  for (const line of zh) {
-    renderLog([line]);            // 逐条显示
-    await playLine(line);         // 该行的动画与停顿
+  for (const ev of events) {
+    renderLog([ev.text]);       // 逐条显示
+    await playLine(ev);         // 该行动画与停顿
   }
 
   playing = false;
+  renderBoth();                // 播完后同步真实状态（名字/状态等）
 }
 
-// --- 单行播放节奏：有动画的行走动画时长，否则留阅读时间 ---
-async function playLine(line) {
-  const oppSnap = activeSnapshot(battle, OPPONENT);
-  const oppName = oppSnap ? oppSnap.name : '';
-  const isOpp = oppName && line.startsWith(oppName);
+// 事件 side（'p1'/'p2'）→ UI 侧（pl/opp）
+function uiSide(side) { return side === PLAYER ? 'pl' : side === OPPONENT ? 'opp' : null; }
 
-  if (line.includes('使用了')) {
-    animateAttack(isOpp ? 'opp' : 'pl');
-    await sleep(750);            // 前冲动画 .45s + 停顿
-    return;
+// --- 单行播放节奏：按结构化事件分派（顺序：攻击→受击→掉血） ---
+async function playLine(ev) {
+  const s = uiSide(ev.side);
+  switch (ev.evt) {
+    case 'move': {
+      // 攻方前冲
+      if (s) animateAttack(s);
+      await sleep(750);          // 前冲动画 .45s + 停顿
+      return;
+    }
+    case '-damage': {
+      // 受击闪烁 → 按事件 HP 掉血条（正确顺序，不依赖名字）
+      // [from] 伤害（特性/道具/异常状态/反动/混乱等非招式直伤）不播受击动画
+      if (s) {
+        if (!ev.from) animateHit(s);
+        await sleep(ev.from ? 150 : 560);   // 无动画时仅短暂停顿
+        if (ev.hp) setHpDisplay(s, ev.hp.cur, ev.hp.max);
+      }
+      await sleep(420);         // 血条过渡 .4s + 停顿
+      return;
+    }
+    case '-heal': case '-sethp': {
+      if (s && ev.hp) setHpDisplay(s, ev.hp.cur, ev.hp.max);
+      await sleep(500);
+      return;
+    }
+    case '-status': {
+      if (s) setStatusDisplay(s, ev.statusKey || null); // 即时上标签（如烧伤/麻痹）
+      await sleep(520);
+      return;
+    }
+    case '-curestatus': {
+      if (s) setStatusDisplay(s, null);                  // 即时摘标签
+      await sleep(520);
+      return;
+    }
+    case 'switch': case 'drag': {
+      if (s) {
+        // 先 enter 起始态（scale0 隐藏旧图）→ 回调内换图渲染（旧图不再闪现）
+        // HP 用事件行内出场快照：battle 终态已含本回合后续伤害，不能提前显示
+        animateEnter(s, () => renderActive(battle, s === 'pl' ? PLAYER : OPPONENT, ev.hp));
+      }
+      await sleep(700);         // 登场动画 .5s
+      return;
+    }
+    case 'faint': {
+      if (s) animateExit(s);
+      await sleep(800);         // 退场动画 .5s + 停顿
+      return;
+    }
+    case 'turn': {
+      await sleep(560);         // 回合分隔稍停
+      return;
+    }
+    default: {
+      await sleep(520);         // 普通行阅读时间
+      return;
+    }
   }
-  if (line.includes('损失了')) {
-    animateHit(isOpp ? 'opp' : 'pl');
-    renderBoth();                // 受击时血条同步变化
-    await sleep(650);            // 闪烁动画 .55s + 停顿
-    return;
-  }
-  if (line.includes('出场了')) {
-    animateEnter(isOpp ? 'opp' : 'pl');
-    renderBoth();
-    await sleep(700);            // 登场动画 .5s
-    return;
-  }
-  if (line.includes('倒下了')) {
-    animateExit(isOpp ? 'opp' : 'pl');
-    renderBoth();
-    await sleep(800);            // 退场动画 .5s + 停顿
-    return;
-  }
-  if (line.startsWith('— 第')) {
-    await sleep(500);            // 回合分隔稍停
-    return;
-  }
-  await sleep(520);              // 普通行阅读时间
 }
 
 // --- 统一推进：先让 AI 处理完它的所有待决策（含濒死换人），再轮到玩家 ---

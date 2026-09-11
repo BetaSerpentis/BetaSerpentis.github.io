@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pmBattle 背景选型</title>
+<style>
+  body { font-family: sans-serif; background: #14161d; color: #eee; margin: 0; padding: 16px; }
+  h1 { font-size: 18px; }
+  p.tip { font-size: 13px; color: #9ab; }
+  .card { margin: 20px 0; }
+  .label { font-size: 13px; color: #cde; margin-bottom: 6px; }
+  /* 手机竖屏 393x852 比例预览 */
+  .preview {
+    width: 260px; height: 564px; /* 393:852 ≈ 260:564 */
+    background-size: cover; background-position: center;
+    border-radius: 12px; position: relative; overflow: hidden;
+    border: 2px solid #345;
+  }
+  /* 模拟当前游戏 UI 摆位 */
+  .mock { position: absolute; font-size: 11px; color: #fff; text-shadow: 0 1px 2px #000; }
+  .mock.opp { top: 14px; right: 8px; width: 50%; text-align: right; }
+  .mock.hp-opp { top: 44px; right: 8px; width: 50%; height: 14px; background: rgba(0,0,0,.45); border-radius: 7px; }
+  .mock.hp-opp i { display: block; height: 100%; width: 70%; background: #4cd964; border-radius: 7px; }
+  .mock.pl { bottom: 44px; left: 8px; width: 50%; }
+  .mock.hp-pl { bottom: 14px; left: 8px; width: 50%; height: 14px; background: rgba(0,0,0,.45); border-radius: 7px; }
+  .mock.hp-pl i { display: block; height: 100%; width: 85%; background: #4cd964; border-radius: 7px; }
+  .code { font-family: monospace; font-size: 12px; color: #ffd479; margin-top: 6px; }
+  /* 精灵立绘 mock（模拟真实摆位） */
+  .mock.sprite { width: 50%; height: 40%; display: flex; align-items: flex-end; justify-content: center; }
+  .mock.sprite.opp { top: 58px; right: 0; }
+  .mock.sprite.pl { bottom: 58px; left: 0; }
+  .mock.sprite img { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,.4)); }
+  h2 { font-size: 15px; color: #ffd479; margin-top: 32px; }
+  /* 立体脚踏台：顶面椭圆 + 侧壁厚度（3D 透视感） */
+  .mock.platform { width: 46%; height: 60px; position: absolute; }
+  .mock.platform.opp { top: 150px; right: 3%; }
+  .mock.platform.pl { bottom: 150px; left: 3%; }
+  .mock.platform .top {
+    position: absolute; inset: 0; border-radius: 50%;
+    background: radial-gradient(ellipse at 35% 30%, #b9d08a 0%, #8fae5e 45%, #6b8a42 75%, #57743a 100%);
+    box-shadow: inset 0 3px 8px rgba(255,255,255,.35), inset 0 -5px 10px rgba(0,0,0,.25);
+  }
+  .mock.platform .side {
+    position: absolute; left: 4%; right: 4%; top: 55%; bottom: -12px;
+    background: linear-gradient(180deg, #57743a 0%, #46602f 55%, #3a5128 100%);
+    border-radius: 0 0 50% 50% / 0 0 100% 100%;
+  }
+</style>
+</head>
+<body>
+  <h1>pmBattle 战斗背景选型</h1>
+  <p class="tip">每张按手机竖屏 393×852 cover 模拟效果（含 UI 摆位）。看中哪张告诉我编号即可。</p>
+  <div id="list"></div>
+<script>
+const bgs = [
+  ['A', 'client-bg.jpg', '1280×853 客户端默认·3D 地平线'],
+  ['B', 'client-bg-horizon.jpg', '1280×853 地平线·3D'],
+  ['C', 'client-bg-ocean.jpg', '1500×1000 海洋·3D'],
+  ['D', 'client-bg-charizards.jpg', '1500×891 喷火龙·活动'],
+  ['E', 'client-bg-shaymin.jpg', '1280×800 谢米·活动'],
+  ['F', 'bg-meadow.png', '753×500 草原·像素'],
+  ['G', 'bg-forest.png', '753×500 森林·像素'],
+  ['H', 'bg-mountain.png', '753×500 山岳·像素'],
+  ['I', 'bg-river.png', '753×500 河边·像素'],
+  ['J', 'bg-desert.png', '753×500 沙漠·像素'],
+  ['K', 'bg-thunderplains.png', '753×500 雷之平原·像素'],
+];
+// fx-gen：PS 官方 fx/ 下 Gen3/4/5 游戏原生提取的战斗背景（753×500）
+// Gen3：GBA 2D 绘制；Gen4/5：NDS 3D 渲染（地面自带立体感）
+const fxGen = [
+  ['AE', 'bg-gen3.png', 'Gen3 草原'],
+  ['AF', 'bg-gen3-cave.png', 'Gen3 洞窟'],
+  ['AG', 'bg-gen3-ocean.png', 'Gen3 海洋'],
+  ['AH', 'bg-gen3-sand.png', 'Gen3 沙地'],
+  ['AI', 'bg-gen3-forest.png', 'Gen3 森林'],
+  ['AJ', 'bg-gen3-arena.png', 'Gen3 竞技场'],
+  ['AK', 'bg-gen4.png', 'Gen4 草原'],
+  ['AL', 'bg-gen4-cave.png', 'Gen4 洞窟'],
+  ['AM', 'bg-gen4-snow.png', 'Gen4 雪地'],
+  ['AN', 'bg-gen4-indoors.png', 'Gen4 室内'],
+  ['AO', 'bg-gen4-water.png', 'Gen4 水上'],
+  ['AP', 'bg-beach.png', 'Gen5 海滩'],
+  ['AQ', 'bg-beachshore.png', 'Gen5 海岸'],
+  ['AR', 'bg-desert.png', 'Gen5 沙漠'],
+  ['AS', 'bg-city.png', 'Gen5 城市'],
+  ['AT', 'bg-earthycave.png', 'Gen5 土窟'],
+  ['AU', 'bg-mountain.png', 'Gen5 山岳'],
+  ['AV', 'bg-volcanocave.png', 'Gen5 火山洞窟'],
+  ['AW', 'bg-dampcave.png', 'Gen5 潮湿洞窟'],
+  ['AX', 'bg-deepsea.png', 'Gen5 深海'],
+  ['AY', 'bg-icecave.png', 'Gen5 冰窟'],
+  ['AZ', 'bg-river.png', 'Gen5 河流'],
+  ['BA', 'bg-forest.png', 'Gen5 森林'],
+  ['BB', 'bg-meadow.png', 'Gen5 草原'],
+  ['BC', 'bg-thunderplains.png', 'Gen5 雷之平原'],
+];
+
+const gen6bgs = [
+  ['L', 'bg-aquacordetown.jpg', 'XY 水边小镇'],
+  ['M', 'bg-beach.jpg', 'XY 海滩'],
+  ['N', 'bg-city.jpg', 'XY 城市'],
+  ['O', 'bg-dampcave.jpg', 'XY 潮湿洞窟'],
+  ['P', 'bg-darkbeach.jpg', 'XY 夜海滩'],
+  ['Q', 'bg-darkcity.jpg', 'XY 夜城市'],
+  ['R', 'bg-darkmeadow.jpg', 'XY 夜草原'],
+  ['S', 'bg-deepsea.jpg', 'XY 深海'],
+  ['T', 'bg-desert.jpg', 'XY 沙漠'],
+  ['U', 'bg-earthycave.jpg', 'XY 土窟'],
+  ['V', 'bg-elite4drake.jpg', 'XY 天王房间'],
+  ['W', 'bg-forest.jpg', 'XY 森林'],
+  ['X', 'bg-icecave.jpg', 'XY 冰窟'],
+  ['Y', 'bg-leaderwallace.jpg', 'XY 馆主房间'],
+  ['Z', 'bg-library.jpg', 'XY 图书馆'],
+  ['AA', 'bg-meadow.jpg', 'XY 草原'],
+  ['AB', 'bg-orasdesert.jpg', 'ORAS 沙漠'],
+  ['AC', 'bg-orassea.jpg', 'ORAS 海面'],
+  ['AD', 'bg-skypillar.jpg', 'ORAS 天柱'],
+];
+
+const list = document.getElementById('list');
+for (const [id, file, desc] of bgs) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="label"><b>${id}</b> · ${file}（${desc}）</div>
+    <div class="preview" style="background-image:url('assets/${file}')">
+      <div class="mock opp">快龙 Lv.50</div>
+      <div class="mock hp-opp"><i></i></div>
+      <div class="mock pl">喷火龙 Lv.50</div>
+      <div class="mock hp-pl"><i></i></div>
+    </div>
+    <div class="code">url('assets/${file}') no-repeat center / cover</div>`;
+  list.appendChild(card);
+}
+
+// gen6bgs：PS 官方 XY/ORAS 游戏原生战斗背景（800×480，自带地面/站台透视）
+const h = document.createElement('h2');
+h.textContent = 'gen6bgs — XY/ORAS 官方游戏原生背景（PS 客户端同款，含立绘摆位）';
+list.appendChild(h);
+for (const [id, file, desc] of gen6bgs) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="label"><b>${id}</b> · assets/gen6bgs/${file}（${desc}）</div>
+    <div class="preview" style="background-image:url('assets/gen6bgs/${file}')">
+      <div class="mock opp">快龙 Lv.50</div>
+      <div class="mock hp-opp"><i></i></div>
+      <div class="mock sprite opp"><img src="https://play.pokemonshowdown.com/sprites/gen5/dragonite.png"></div>
+      <div class="mock sprite pl"><img src="https://play.pokemonshowdown.com/sprites/gen5-back/dragonite.png"></div>
+      <div class="mock pl">喷火龙 Lv.50</div>
+      <div class="mock hp-pl"><i></i></div>
+    </div>
+    <div class="code">url('assets/gen6bgs/${file}') no-repeat center / cover</div>`;
+  list.appendChild(card);
+}
+
+// fx-gen：Gen3/4/5 官方背景（含立绘摆位）
+const h2 = document.createElement('h2');
+h2.textContent = 'fx-gen — Gen3/4/5 官方游戏原生背景（PS 客户端同款，753×500）';
+list.appendChild(h2);
+for (const [id, file, desc] of fxGen) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="label"><b>${id}</b> · assets/fx-gen/${file}（${desc}）</div>
+    <div class="preview" style="background-image:url('assets/fx-gen/${file}')">
+      <div class="mock opp">快龙 Lv.50</div>
+      <div class="mock hp-opp"><i></i></div>
+      <div class="mock platform opp"><div class="side"></div><div class="top"></div></div>
+      <div class="mock sprite opp"><img src="https://play.pokemonshowdown.com/sprites/gen5/dragonite.png"></div>
+      <div class="mock platform pl"><div class="side"></div><div class="top"></div></div>
+      <div class="mock sprite pl"><img src="https://play.pokemonshowdown.com/sprites/gen5-back/dragonite.png"></div>
+      <div class="mock pl">喷火龙 Lv.50</div>
+      <div class="mock hp-pl"><i></i></div>
+    </div>
+    <div class="code">url('assets/fx-gen/${file}') no-repeat center / cover</div>`;
+  list.appendChild(card);
+}
+</script>
+</body>
+</html>
