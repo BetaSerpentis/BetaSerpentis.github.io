@@ -282,7 +282,7 @@
     box-sizing: border-box;
 }
 
-/* 试抽视图：固定 7 列，前 7 张（起手）一行结束后自动换行，后 6 张（奖赏）另起一行 */
+/* 试抽视图：固定 7 列；前 7 张（起手）一行，接着 6 张（奖赏）另起一行，第 14 张起（牌库剩余）再次换行 */
 .card-grid.draw-test {
     grid-template-columns: repeat(7, 1fr);
     gap: 8px;
@@ -290,10 +290,19 @@
     align-content: start;
 }
 
+.card-grid.draw-test > .card:nth-child(14) {
+    grid-column-start: 1;
+    margin-top: 14px;
+}
+
 @media (max-width: 480px) {
     .card-grid.draw-test {
         gap: 4px;
         row-gap: 10px;
+    }
+
+    .card-grid.draw-test > .card:nth-child(14) {
+        margin-top: 10px;
     }
 }
 
