@@ -4,7 +4,10 @@ import { BattleEngine } from './core/BattleEngine.js';
 import { CardResolver } from './core/CardResolver.js';
 import { executeEffects } from './core/EffectExecutor.js';
 import { TEST_DECKS, expandDeck } from './data/decks.js';
-import { pokemonSpriteImgHtml, pokemonSpriteSrc } from './ui/SpriteUtils.js';
+import { pokemonSpriteImgHtml, pokemonSpriteSrc, cardThumbImgHtml, cardFullImgHtml } from './ui/SpriteUtils.js';
+
+// 卡面显示开关（true=卡图缩略图；后续可切 false 只保留名字与标签）
+const SHOW_CARD_ART = true;
 
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
@@ -158,7 +161,7 @@ export class PTCGBattleApp {
         opt.className = 'deck-option' + (this[col.key] === i ? ' selected' : '');
         const info = this.resolver.getInfo(deck.coverCardId);
         const imgSrc = pokemonSpriteSrc(info.number);
-        opt.innerHTML = `${imgSrc ? pokemonSpriteImgHtml(info.number, info.name) : ''}<span>${deck.name}</span>`;
+        opt.innerHTML = `${imgSrc ? pokemonSpriteImgHtml(info.number, info.name, { preferOnline: true }) : ''}<span>${deck.name}</span>`;
         opt.addEventListener('click', () => { this[col.key] = i; this._renderDeckSelect(body); });
         div.appendChild(opt);
       });
@@ -428,6 +431,9 @@ export class PTCGBattleApp {
       item.className = 'card-list-item' + (isSelected ? ' selected' : '');
       item.dataset.idx = i;
       item.textContent = info.name || cid;
+      if (this._cardArtEnabled() && typeof item.insertAdjacentHTML === 'function') {
+        item.insertAdjacentHTML('afterbegin', cardThumbImgHtml(cid, info.name || ''));
+      }
       list.appendChild(item);
     });
     if (page.cards.length === 0) {
@@ -487,8 +493,13 @@ export class PTCGBattleApp {
     const stadium = this._getCardPages?.()[this._cardPage]?.stadiumState || null;
     const info = stadium && (stadium.cardId === cid || stadium.name === cid) ? { name:stadium.name, number:null } : this.resolver.getInfo(cid);
     const cd = stadium && (stadium.cardId === cid || stadium.name === cid) ? stadium.card : this.resolver.getCard(cid);
-      const src = pokemonSpriteSrc(info.number);
-      thumb.innerHTML = src ? pokemonSpriteImgHtml(info.number, info.name) : `<div style="font-size:16px;color:#4878a8">${info.name?.[0] || '?'}</div>`;
+      const art = this._cardArtEnabled() ? cardFullImgHtml(cid, info.name || '') : '';
+      if (art) {
+        thumb.innerHTML = `${art}<div class="card-art-fallback" hidden>${info.name || ''}</div>`;
+      } else {
+        const src = pokemonSpriteSrc(info.number);
+        thumb.innerHTML = src ? pokemonSpriteImgHtml(info.number, info.name, { preferOnline: true }) : `<div style="font-size:16px;color:#4878a8">${info.name?.[0] || '?'}</div>`;
+      }
     nameEl.textContent = info.name || '';
     let desc = '';
     if (cd) {
@@ -728,7 +739,7 @@ export class PTCGBattleApp {
         ? pokemonPickerSlotClass('active', effectPickOptions, this._selectedPokeSlot)
         : { allowed: allowActivePick, className: `${allowActivePick ? ' selectable' : ''}${this._selectedPokeSlot === 'active' ? ' selected' : ''}` };
       activeDiv.innerHTML = `
-        <div class="pokemon-active-sprite${activeSlotClass.className}" data-slot="active">${src ? pokemonSpriteImgHtml(info.number, pl.active.name) : ''}</div>
+        <div class="pokemon-active-sprite${activeSlotClass.className}" data-slot="active">${src ? pokemonSpriteImgHtml(info.number, pl.active.name, { preferOnline: true, back: true }) : ''}</div>
         <div class="pokemon-active-name">${pl.active.name}</div>
         <div class="pokemon-active-hp">HP ${pl.active.hp}/${pl.active.maxHp}</div>
         <div class="energy-icons">${(pl.active.energy || []).map(e => `<span class="energy ${this._eleClass(e)}" title="${energyLabel(e)}"></span>`).join('')}</div>
@@ -765,7 +776,7 @@ export class PTCGBattleApp {
         const info = this.resolver.getInfo(mon.cardId);
         const src = pokemonSpriteSrc(info.number);
         slot.innerHTML = `
-          <div class="bench-sprite">${src ? pokemonSpriteImgHtml(info.number, mon.name) : ''}</div>
+          <div class="bench-sprite">${src ? pokemonSpriteImgHtml(info.number, mon.name, { preferOnline: true, back: true }) : ''}</div>
           <div><div class="bench-name">${mon.name}</div><div class="bench-hp">HP ${mon.hp}/${mon.maxHp}</div></div>`;
         if (benchSlotClass.allowed) {
           slot.addEventListener('click', () => { this._selectedBenchIdx = i; this._selectedPokeSlot = slotName; this._renderPokemonScreen(); });
@@ -864,13 +875,16 @@ export class PTCGBattleApp {
     if (!mon) { this._showMessage('无出战宝可梦'); return; }
     const menu = $('#fight-menu');
     menu.innerHTML = '';
+    const elem = this._elementLabel(mon.element);
     (mon.attacks || []).forEach((atk, i) => {
       const canUse = this.gs.checkEnergy(mon, i);
       const item = document.createElement('div');
       item.className = 'menu-item' + (!canUse ? ' disabled' : '') + (i === 0 ? ' selected' : '');
       item.dataset.idx = i;
-      const costStr = (atk.cost || []).length > 0 ? `[${atk.cost.join('')}]` : '';
-      item.textContent = `${atk.name}${costStr ? ` ${costStr}` : ''}`;
+      const cost = (atk.cost || []).map(c => this._elementLabel(c)).join('·');
+      const dmg = atk.damage ? String(atk.damage) : '变化';
+      const meta = `${elem} · ${dmg}${cost ? ` · 需 ${cost}` : ' · 无需能量'}`;
+      item.innerHTML = `<span class="mv-name">${atk.name}</span><span class="mv-meta">${meta}</span>`;
       menu.appendChild(item);
     });
     const back = document.createElement('div');
@@ -884,8 +898,28 @@ export class PTCGBattleApp {
   async _doAttack(atkIdx) {
     const mon = this.gs.player1.active;
     if (!mon?.attacks?.[atkIdx] || !this.gs.checkEnergy(mon, atkIdx)) return;
-    this._playAttackAnim();
+    const anim = this._animEnabled();
+    const beforeOppId = this.gs.player2.active?.cardId ?? null;
+    const beforeOppHp = this.gs.player2.active?.hp ?? null;
+    if (anim) await this._playAttackAnimAsync('pl');
+    else this._playAttackAnim('pl');
     const ok = await this.engine.attack(atkIdx);
+    if (anim) {
+      const afterOpp = this.gs.player2.active;
+      const afterOppId = afterOpp?.cardId ?? null;
+      // 受击：HP 下降且未换人 → 闪烁 + 血条过渡（transition 由 CSS 处理）
+      if (afterOpp && beforeOppHp != null && afterOpp.hp < beforeOppHp && afterOppId === beforeOppId) {
+        this._animateHit('opp');
+        await this._sleep(560);
+      }
+      // 换人/击倒补位：登场缩放动画（先起始态再换图，避免旧图闪现）
+      if (afterOppId !== beforeOppId) {
+        if (!afterOpp) this._animateExit('opp');
+        else this._animateEnter('opp', () => this._renderMon(afterOpp, 'opp'));
+        await this._sleep(650);
+      }
+      this._renderScene();
+    }
     // attack() itself advances the turn and triggers UI callbacks. Do not reopen the action panel here.
     if (!ok) this._refresh();
   }
@@ -1002,39 +1036,66 @@ export class PTCGBattleApp {
     const hpText = $(`#${prefix}-hp-text`);
     const energyEl = $(`#${prefix}-energy`);
     const spriteEl = $(`#${prefix === 'pl' ? 'player' : 'opp'}-sprite`);
+    const statusEl = $(`#${prefix}-status`);
+    const tagsEl = $(`#${prefix}-tags`);
 
-    if (!mon) {
-      nameEl.textContent = '???';
-      hpBar.style.width = '0%';
-      hpText.textContent = '';
-      energyEl.innerHTML = '';
-      spriteEl.innerHTML = '';
-      return;
+    const reset = () => {
+      if (nameEl) nameEl.textContent = '???';
+      if (hpBar) { hpBar.style.width = '0%'; hpBar.className = 'hp-bar-fill'; }
+      if (hpText) hpText.textContent = '';
+      if (energyEl) energyEl.innerHTML = '';
+      if (spriteEl) spriteEl.innerHTML = '';
+      if (statusEl) { statusEl.style.display = 'none'; statusEl.textContent = ''; }
+      if (tagsEl) tagsEl.innerHTML = '';
+    };
+    if (!mon) { reset(); return; }
+
+    if (nameEl) nameEl.textContent = mon.name;
+    const pct = Math.max(0, Math.min(100, mon.hp / mon.maxHp * 100));
+    if (hpBar) {
+      hpBar.style.width = pct + '%';
+      hpBar.className = 'hp-bar-fill' + (pct <= 20 ? ' red' : pct <= 50 ? ' yellow' : '');
     }
-    nameEl.textContent = mon.name;
-    const pct = Math.max(0, mon.hp / mon.maxHp * 100);
-    hpBar.style.width = pct + '%';
-    hpBar.className = 'hp-bar-fill' + (pct <= 20 ? ' red' : pct <= 50 ? ' yellow' : '');
-    hpText.textContent = `${mon.hp}/${mon.maxHp}`;
-    energyEl.innerHTML = (mon.energy || []).map(e => `<span class="energy ${this._eleClass(e)}" title="${energyLabel(e)}"></span>`).join('');
-    // Show status icons
-    if (mon.status) {
-      const statusIcons = mon.status.split(',').map(s => {
-        const map = { poison:'毒', burn:'炎', sleep:'眠', paralysis:'痹', confusion:'乱' };
-        return `<span class="status-icon ${s}">${map[s]||s}</span>`;
-      }).join('');
-      energyEl.innerHTML += statusIcons;
+    if (hpText) hpText.textContent = `${mon.hp}/${mon.maxHp}`;
+
+    // 规则标记（替代 pmBattle 的等级位）：规则盒 + 进化阶段
+    if (tagsEl) {
+      const tags = [];
+      if (mon.isEx) tags.push('ex');
+      if (mon.isRadiant) tags.push('光辉');
+      const rb = String(mon.ruleBox || '');
+      for (const k of ['VMAX', 'VSTAR', 'V', 'GX']) if (rb.includes(k) && !tags.includes(k)) tags.push(k);
+      const stage = String(mon.stage || '');
+      if (stage && stage !== '基础') tags.push(stage);
+      tagsEl.innerHTML = tags.map(t => `<span class="rule-tag${/阶/.test(t) ? ' stage' : ''}">${t}</span>`).join('');
     }
 
-    const info = this.resolver.getInfo(mon.cardId);
-    const src = pokemonSpriteSrc(info.number);
-    if (src) {
-      spriteEl.innerHTML = pokemonSpriteImgHtml(info.number, mon.name);
-    } else {
-      spriteEl.innerHTML = `<div style="font-size:10px;color:#486848">${mon.name[0]}</div>`;
+    // 异常状态标签（pmBattle 风格：名字旁的标签）
+    const statusMap = { poison: '毒', burn: '炎', sleep: '眠', paralysis: '痹', confusion: '乱' };
+    const statuses = String(mon.status || '').split(',').filter(Boolean);
+    if (statusEl) {
+      statusEl.style.display = statuses.length ? 'inline-block' : 'none';
+      statusEl.textContent = statuses.map(s => statusMap[s] || s).join(' ');
+      statusEl.className = 'status-tag' + (statuses[0] ? ' ' + statuses[0] : '');
+    }
+
+    // 附着能量 + 宝可梦道具
+    if (energyEl) {
+      const icons = (mon.energy || []).map(e => `<span class="energy ${this._eleClass(e)}" title="${energyLabel(e)}"></span>`).join('');
+      const tool = mon.tool ? `<span class="energy" style="background:#ffd964" title="${(mon.tool && (mon.tool.name || mon.tool.cardId)) || '宝可梦道具'}"></span>` : '';
+      energyEl.innerHTML = icons + tool;
+    }
+
+    // 立绘（在线优先 + 本地/正面回退；我方用背面形象）
+    if (spriteEl) {
+      const info = this.resolver.getInfo(mon.cardId);
+      if (info && info.number) {
+        spriteEl.innerHTML = pokemonSpriteImgHtml(info.number, mon.name, { preferOnline: true, back: prefix === 'pl' });
+      } else {
+        spriteEl.innerHTML = `<div class="placeholder">${mon.name}</div>`;
+      }
     }
   }
-
   _updateMainMenu() {
     const phase = this.gs.phase;
     const isP = this.gs.currentPlayer === this.gs.player1;
@@ -1073,23 +1134,91 @@ export class PTCGBattleApp {
   }
 
   _showMessage(msg) {
-    $('#msg-text').textContent = msg;
+    const textEl = $('#msg-text');
+    if (textEl) textEl.textContent = msg;
+    this._appendBattleLog(msg);
     this._showPanel('panel-message');
     setTimeout(() => this._showPanel('panel-main'), 1200);
+  }
+
+  // 战斗日志浮层（左上，保留最近 6 行，pmBattle 风格）
+  _appendBattleLog(line) {
+    const box = $('#battle-log');
+    if (!box || !line) return;
+    const div = document.createElement('div');
+    div.className = 'log-line';
+    div.textContent = line;
+    box.appendChild(div);
+    while (box.children.length > 6) box.removeChild(box.firstChild);
+    box.scrollTop = box.scrollHeight;
   }
 
   _openOverlay(id) { $(`#${id}`).classList.add('active'); }
   _closeOverlay(id) { $(`#${id}`).classList.remove('active'); }
 
-  _playAttackAnim() {
-    const sp = $('#player-sprite');
-    sp.classList.add('anim-attack');
-    setTimeout(() => {
-      sp.classList.remove('anim-attack');
-      const osp = $('#opp-sprite');
-      osp.classList.add('anim-hit');
-      setTimeout(() => osp.classList.remove('anim-hit'), 600);
-    }, 600);
+  // === 动画工具（真实浏览器启用；Node 测试环境无 document.body 时自动跳过） ===
+  _animEnabled() {
+    if (typeof globalThis !== 'undefined' && globalThis.PTCG_ANIM === 'off') return false;
+    return typeof document !== 'undefined' && !!document.body;
+  }
+
+  _sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  _spriteEl(prefix) { return $(`#${prefix === 'pl' ? 'player' : 'opp'}-sprite`); }
+
+  _pulseClass(el, cls, ms, keep = false) {
+    if (!el || !el.classList) return;
+    el.classList.remove('anim-attack', 'anim-hit', 'anim-enter', 'anim-exit');
+    void el.offsetWidth;
+    el.classList.add(cls);
+    if (keep || cls === 'anim-exit') return;
+    setTimeout(() => el.classList.remove(cls), ms);
+  }
+
+  // 攻击：攻方前冲 → 对方受击闪烁（pmBattle 节奏）
+  _playAttackAnim(prefix = 'pl') {
+    const atkEl = this._spriteEl(prefix);
+    const defEl = this._spriteEl(prefix === 'pl' ? 'opp' : 'pl');
+    if (atkEl) {
+      atkEl.classList.remove('anim-attack', 'anim-hit', 'anim-enter', 'anim-exit');
+      void atkEl.offsetWidth;
+      atkEl.classList.add('anim-attack');
+      setTimeout(() => atkEl.classList.remove('anim-attack'), 500);
+    }
+    if (defEl) setTimeout(() => this._pulseClass(defEl, 'anim-hit', 600), 420);
+  }
+
+  async _playAttackAnimAsync(prefix = 'pl') {
+    this._playAttackAnim(prefix);
+    await this._sleep(700);
+  }
+
+  _animateHit(prefix) { this._pulseClass(this._spriteEl(prefix), 'anim-hit', 600); }
+
+  // 登场：先把立绘缩到 0（隐藏旧图）→ 回调内换图 → 恢复
+  _animateEnter(prefix, onSwap) {
+    const el = this._spriteEl(prefix);
+    if (!el) { if (onSwap) onSwap(); return; }
+    el.classList.remove('anim-attack', 'anim-hit', 'anim-enter', 'anim-exit');
+    el.classList.add('anim-enter');
+    void el.offsetWidth;
+    if (onSwap) onSwap();
+    setTimeout(() => el.classList.remove('anim-enter'), 520);
+  }
+
+  // 退场：缩到 0 并保持终态（由下次 enter/渲染清除）
+  _animateExit(prefix) { this._pulseClass(this._spriteEl(prefix), 'anim-exit', 500, true); }
+
+  _cardArtEnabled() {
+    if (typeof globalThis !== 'undefined' && globalThis.PTCG_SHOW_CARD_ART === false) return false;
+    return SHOW_CARD_ART;
+  }
+
+  _elementLabel(element) {
+    const map = { grass: '草', fire: '火', water: '水', lightning: '雷', electric: '雷',
+      psychic: '超', fighting: '斗', dark: '恶', metal: '钢', dragon: '龙', fairy: '妖', colorless: '无' };
+    const key = String(element ?? '').toLowerCase();
+    return map[key] || (element ? String(element) : '无');
   }
 
   _eleClass(energy) {
@@ -1097,10 +1226,10 @@ export class PTCGBattleApp {
   }
 
   _fitScreen() {
+    // 竖屏单屏自适应：不再做 480x320 等比缩放，交给 CSS（max-width + 100dvh）
     const screen = $('#screen');
-    const vw = window.innerWidth, vh = window.innerHeight;
-    const scale = Math.min(vw / 480, vh / 320);
-    screen.style.transform = `scale(${scale})`;
+    if (!screen) return;
+    screen.style.transform = '';
   }
 }
 
