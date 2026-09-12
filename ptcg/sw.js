@@ -1,5 +1,5 @@
 // PTCG Service Worker
-var CACHE_NAME = 'ptcg-cache-v27';
+var CACHE_NAME = 'ptcg-cache-v28';
 
 var URLS = [
   '/ptcg/','/ptcg/index.html',
@@ -26,12 +26,22 @@ var URLS = [
 ];
 var PRECACHE = new Set(URLS);
 
+// HTML / JS / CSS 需要“改动即时生效”，走网络优先（离线回退缓存）
+function isNetworkFirst(pathname) {
+  return pathname === '/ptcg/' ||
+         pathname.endsWith('.html') ||
+         pathname.startsWith('/ptcg/js/') ||
+         pathname.startsWith('/ptcg/css/');
+}
+
 // Install: precache one by one (避免 addAll 一个失败全体失败)
+// cache: 'reload' 强制绕过 HTTP 缓存，否则 max-age 内会预缓存到旧文件
 self.addEventListener('install', function(e) {
   e.waitUntil(
     caches.open(CACHE_NAME).then(function(cache) {
       return Promise.all(URLS.map(function(url) {
-        return cache.add(url).catch(function() { /* 单个失败不影响其他 */ });
+        return cache.add(new Request(url, { cache: 'reload' }))
+          .catch(function() { /* 单个失败不影响其他 */ });
       }));
     }).then(function() { return self.skipWaiting(); })
   );
@@ -57,11 +67,29 @@ self.addEventListener('fetch', function(e) {
   // 图片：直接放行，SW 不拦截
   if (/\.(png|webp|jpg|jpeg|gif|svg)(\?|$)/i.test(u.pathname)) return;
 
-  // 静态资源：缓存优先
+  // HTML / JS / CSS：网络优先，保证改动即时生效（no-cache 绕过 max-age 陈旧响应）
+  if (isNetworkFirst(u.pathname)) {
+    e.respondWith(
+      fetch(e.request, { cache: 'no-cache' }).then(function(r) {
+        if (r && r.ok) {
+          var copy = r.clone();
+          caches.open(CACHE_NAME).then(function(c) {
+            c.put(e.request, copy);
+          });
+        }
+        return r;
+      }).catch(function() {
+        return caches.match(e.request).then(function(cached) {
+          return cached || caches.match('/ptcg/index.html');
+        });
+      })
+    );
+    return;
+  }
+
+  // 数据等预缓存资源：缓存优先 + 后台更新
   if (PRECACHE.has(u.pathname) ||
-      u.pathname.startsWith('/ptcg/data_fast/') ||
-      u.pathname.startsWith('/ptcg/js/') ||
-      u.pathname.startsWith('/ptcg/css/')) {
+      u.pathname.startsWith('/ptcg/data_fast/')) {
     e.respondWith(
       caches.match(e.request).then(function(cached) {
         var net = fetch(e.request).then(function(r) {
