@@ -284,7 +284,7 @@
 
 /* 试抽视图：固定 7 列；前 7 张（起手）、接着 6 张（奖赏）各占一行，第 14 张起为牌库剩余
    行列间距统一 8px（牌库剩余各行 = 横向间距，排得很近）；
-   起手/奖赏的分隔靠第 7、13 张的 margin-bottom 撑开（8 + 8 = 16px） */
+   起手/奖赏的分隔靠第 7、13 张的 margin-bottom 撑开（8 + 24 = 32px） */
 .card-grid.draw-test {
     grid-template-columns: repeat(7, 1fr);
     gap: 8px;
@@ -293,10 +293,10 @@
     align-items: start;
 }
 
-/* 起手 → 奖赏、奖赏 → 牌库剩余：额外拉开一行的距离，与牌库内部的紧凑行距形成区分 */
+/* 起手 → 奖赏、奖赏 → 牌库剩余：空档放大到牌库行距的 2 倍以上（8 + 24 = 32px） */
 .card-grid.draw-test > .card:nth-child(7),
 .card-grid.draw-test > .card:nth-child(13) {
-    margin-bottom: 8px;
+    margin-bottom: 24px;
 }
 
 /* 卡片高度严格按宽高比：抵消各响应式断点的 min-height，
@@ -317,7 +317,7 @@
 
     .card-grid.draw-test > .card:nth-child(7),
     .card-grid.draw-test > .card:nth-child(13) {
-        margin-bottom: 4px;
+        margin-bottom: 12px;
     }
 }
 
