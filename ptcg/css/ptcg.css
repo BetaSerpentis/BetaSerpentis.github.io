@@ -299,6 +299,12 @@
     margin-bottom: 8px;
 }
 
+/* 卡片高度严格按宽高比：抵消各响应式断点的 min-height，
+   否则窄屏下容器会被撑得比卡图高，多出的空白会吃掉行距（缩 gap 看不出效果） */
+.card-grid.draw-test > .card {
+    min-height: 0;
+}
+
 /* 第 14 张（牌库剩余首张）另起一行，与同行其他卡顶部对齐 */
 .card-grid.draw-test > .card:nth-child(14) {
     grid-column-start: 1;
