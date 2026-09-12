@@ -2,51 +2,67 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
   <title>PTCG Battle</title>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div id="screen">
-    <!-- 战斗场景 -->
+    <!-- ================= 战斗场景（单屏，pmBattle 布局） ================= -->
     <div id="battle-scene">
+      <!-- 战斗日志（左上浮层） -->
+      <div id="battle-log"></div>
+
+      <!-- 对方信息（右上：名字 / 规则标记 / HP） -->
       <div class="info-box opponent-info" id="opponent-info">
-        <div class="info-name" id="opp-name">???</div>
-        <div class="hp-row">
-          <span class="hp-label">HP</span>
-          <div class="hp-bar-bg"><div class="hp-bar-fill" id="opp-hp-bar"></div></div>
+        <div class="info-top">
+          <span class="status-tag" id="opp-status" style="display:none"></span>
+          <span class="info-name" id="opp-name">???</span>
+          <span class="info-tags" id="opp-tags"></span>
+        </div>
+        <div class="hp-bar">
+          <div class="hp-bar-fill" id="opp-hp-bar"></div>
           <span class="hp-text" id="opp-hp-text"></span>
         </div>
         <div class="energy-icons" id="opp-energy"></div>
       </div>
 
+      <!-- 对方宝可梦立绘（血条正下方） -->
       <div class="sprite-slot opponent-sprite">
+        <img class="platform" src="assets/platform.png" alt="">
         <div class="sprite-img" id="opp-sprite"></div>
-        <div class="sprite-shadow"></div>
       </div>
 
+      <!-- 我方宝可梦立绘（血条正上方） -->
       <div class="sprite-slot player-sprite">
+        <img class="platform" src="assets/platform.png" alt="">
         <div class="sprite-img large" id="player-sprite"></div>
-        <div class="sprite-shadow large"></div>
       </div>
 
+      <!-- 我方信息（左下） -->
       <div class="info-box player-info" id="player-info">
-        <div class="info-name" id="pl-name">???</div>
-        <div class="hp-row">
-          <span class="hp-label">HP</span>
-          <div class="hp-bar-bg"><div class="hp-bar-fill" id="pl-hp-bar"></div></div>
+        <div class="info-top">
+          <span class="status-tag" id="pl-status" style="display:none"></span>
+          <span class="info-name" id="pl-name">???</span>
+          <span class="info-tags" id="pl-tags"></span>
+        </div>
+        <div class="hp-bar">
+          <div class="hp-bar-fill" id="pl-hp-bar"></div>
           <span class="hp-text" id="pl-hp-text"></span>
         </div>
         <div class="energy-icons" id="pl-energy"></div>
       </div>
+
+      <!-- 隐藏的旧字段（兼容 CardView 等遗留引用，不显示） -->
+      <span id="phase-display" hidden></span>
+      <span id="current-player-display" hidden></span>
     </div>
 
-    <!-- 底部对话框 -->
+    <!-- ================= 操作区（右下浮动，pmBattle 单屏） ================= -->
     <div id="dialog-area">
       <div class="dialog-panel active" id="panel-main">
         <div class="dialog-text" id="main-text">加载中...</div>
-        <div class="dialog-menu menu-2x2" id="main-menu">
+        <div class="dialog-menu menu-list" id="main-menu">
           <div class="menu-item" data-action="fight">战 斗</div>
           <div class="menu-item" data-action="cards">卡 牌</div>
           <div class="menu-item" data-action="pokemon">宝可梦</div>
@@ -69,7 +85,7 @@
       </div>
     </div>
 
-    <!-- 卡牌背包 -->
+    <!-- ================= 卡牌背包（换皮：深色半透卡片网格） ================= -->
     <div class="overlay-screen" id="screen-cards">
       <div class="overlay-header">
         <span class="page-arrow left" id="cards-prev">◀</span>
@@ -95,7 +111,7 @@
       </div>
     </div>
 
-    <!-- 宝可梦队伍 -->
+    <!-- ================= 宝可梦队伍（换皮：立绘列表） ================= -->
     <div class="overlay-screen" id="screen-pokemon">
       <div class="overlay-header">
         <span class="page-arrow left" id="poke-prev">◀</span>
@@ -110,7 +126,7 @@
       </div>
     </div>
 
-    <!-- 卡组选择 -->
+    <!-- ================= 卡组选择（换皮） ================= -->
     <div class="overlay-screen" id="screen-deck-select">
       <div class="overlay-header">
         <span class="page-title">选择卡组</span>
