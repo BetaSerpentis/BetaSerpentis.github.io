@@ -282,14 +282,21 @@
     box-sizing: border-box;
 }
 
-/* 试抽视图：固定 7 列；前 7 张（起手）、接着 6 张（奖赏）各占一行，第 14 张起为牌库剩余 */
+/* 试抽视图：固定 7 列；前 7 张（起手）、接着 6 张（奖赏）各占一行，第 14 张起为牌库剩余
+   行列间距统一 8px（牌库剩余各行 = 横向间距，排得很近）；
+   起手/奖赏的分隔靠第 7、13 张的 margin-bottom 撑开（8 + 8 = 16px） */
 .card-grid.draw-test {
     grid-template-columns: repeat(7, 1fr);
     gap: 8px;
-    row-gap: 16px;
     align-content: start;
-    /* 卡片保持自身宽高比，避免调整行距（负 margin）时被拉伸变形 */
+    /* 卡片保持自身宽高比，避免用 margin 调整行距时被拉伸变形 */
     align-items: start;
+}
+
+/* 起手 → 奖赏、奖赏 → 牌库剩余：额外拉开一行的距离，与牌库内部的紧凑行距形成区分 */
+.card-grid.draw-test > .card:nth-child(7),
+.card-grid.draw-test > .card:nth-child(13) {
+    margin-bottom: 8px;
 }
 
 /* 第 14 张（牌库剩余首张）另起一行，与同行其他卡顶部对齐 */
@@ -297,20 +304,14 @@
     grid-column-start: 1;
 }
 
-/* 牌库剩余区域行距更紧凑（16 - 10 = 6px），与手牌/奖赏的 16px 行距区分 */
-.card-grid.draw-test > .card:nth-child(n+14) {
-    margin-bottom: -10px;
-}
-
 @media (max-width: 480px) {
     .card-grid.draw-test {
         gap: 4px;
-        row-gap: 10px;
     }
 
-    /* 移动端牌库剩余行距净 4px */
-    .card-grid.draw-test > .card:nth-child(n+14) {
-        margin-bottom: -6px;
+    .card-grid.draw-test > .card:nth-child(7),
+    .card-grid.draw-test > .card:nth-child(13) {
+        margin-bottom: 4px;
     }
 }
 

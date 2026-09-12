@@ -529,8 +529,19 @@ export class CardGrid {
     }
 
     // 试抽视图开关：开启后卡片不再显示其在卡组中的数量
+    // 同时改为一次性渲染（试抽最多 60 张），避免分批插入 load-more-trigger 造成行距断层
     setDrawTestView(active) {
         this.isDrawTestView = !!active;
+
+        if (this.isDrawTestView) {
+            if (this._batchSizeBeforeDrawTest === undefined) {
+                this._batchSizeBeforeDrawTest = this.batchSize;
+            }
+            this.batchSize = 999;
+        } else if (this._batchSizeBeforeDrawTest !== undefined) {
+            this.batchSize = this._batchSizeBeforeDrawTest;
+            this._batchSizeBeforeDrawTest = undefined;
+        }
     }
 
     showLoading() {
