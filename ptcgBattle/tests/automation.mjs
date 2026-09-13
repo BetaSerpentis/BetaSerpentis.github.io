@@ -1521,37 +1521,29 @@ await test('巢穴球：解析出的基础筛选可匹配resolver牌库并打开
   assert.equal(gs.log.some(msg => msg.includes('放置了 1 只宝可梦')), true);
 });
 
-await test('UI选卡器：效果pick-cards确认后恢复手牌卡牌界面且日志不重复', async () => {
-  const gs = new GameState();
+await test('操作区选卡：多选确认与取消都回传正确索引', () => {
   const app = Object.create(PTCGBattleApp.prototype);
-  app.gs = gs;
-  app._cardMode = 'hand';
-  app._cardPage = 0;
-  app._selectedCardIdx = 1;
-  app._selectedCardIndices = new Set([0]);
-  app._cardLog = ['旧日志'];
-  app._cardScreenReturnStack = [];
-  app._renderScene = () => {};
-  app._renderCardLog = () => {};
-  app._getCardPages = PTCGBattleApp.prototype._getCardPages;
-  app._openOverlay = () => { cardsOpen = true; };
-  app._closeOverlay = () => { cardsOpen = false; };
-  app._renderCardList = () => {};
-  let cardsOpen = true;
-  globalThis.document = { querySelector: sel => sel === '#screen-cards' ? { classList:{ contains: () => cardsOpen } } : null };
+  const resolved = [];
+  app.gs = { resolvePick: (i) => resolved.push(i) };
+  app._refresh = () => {};
+  app._showPanel = () => {};
+  let captured = null;
+  app._showListView = (items) => { captured = items; };
 
-  app._handlePick({ cards:['支援者A'], count:1, options:{ source:'peek' } });
-  app._selectedCardIndices = new Set([0]);
-  app._cardLog.push('抽了 1 张卡');
-  await app._useSelectedCard();
+  // 多选：选 A、B 后确定 → [0,1]
+  app._showPickCards({ cards: ['A', 'B', 'C'], count: 2, options: { allowFewer: true } });
+  assert.ok(captured && captured.length >= 2, '应渲染候选列表');
+  captured.find(x => x.label === 'A').onSelect();
+  captured.find(x => x.label === 'B').onSelect();
+  captured.find(x => String(x.label).startsWith('确定')).onSelect();
+  assert.deepEqual(resolved[0], [0, 1]);
 
-  assert.equal(cardsOpen, true);
-  assert.equal(app._cardMode, 'hand');
-  assert.equal(app._cardPage, 0);
-  assert.equal(app._cardLog.filter(msg => msg === '旧日志').length, 1);
-  assert.equal(app._cardLog.filter(msg => msg === '抽了 1 张卡').length, 1);
-  assert.deepEqual(app._cardLog, ['旧日志', '抽了 1 张卡']);
+  // 单选 + 可空：取消 → []
+  app._showPickCards({ cards: ['A'], count: 1, options: { allowEmpty: true } });
+  captured.find(x => x.label === '取消选择').onSelect();
+  assert.deepEqual(resolved[1], []);
 });
+
 
 await test('UI选卡器标题：最多与精确选择标题反映min/max', () => {
   assert.equal(cardPickerTitleFor({ cards:['A','B','C'], count:3, options:{ allowEmpty:true, allowFewer:true } }), '选择最多3张卡');
@@ -1591,39 +1583,6 @@ await test('UI选卡器：pick-cards按替换后的选择顺序返回', async ()
   await app._useSelectedCard();
 
   assert.deepEqual(resolved, [2, 0]);
-});
-
-await test('UI选卡器：效果pick-cards取消后恢复手牌日志且不重复', async () => {
-  const gs = new GameState();
-  const app = Object.create(PTCGBattleApp.prototype);
-  app.gs = gs;
-  app._cardMode = 'hand';
-  app._cardPage = 0;
-  app._selectedCardIdx = 1;
-  app._selectedCardIndices = new Set([0]);
-  app._cardLog = ['旧日志'];
-  app._cardScreenReturnStack = [];
-  app._renderScene = () => {};
-  app._renderCardLog = () => {};
-  app._getCardPages = PTCGBattleApp.prototype._getCardPages;
-  app._openOverlay = () => { cardsOpen = true; };
-  app._closeOverlay = () => { cardsOpen = false; };
-  app._renderCardList = () => {};
-  let cardsOpen = true;
-  let resolved = null;
-  gs.resolvePick = selected => { resolved = selected; };
-  globalThis.document = { querySelector: sel => sel === '#screen-cards' ? { classList:{ contains: () => cardsOpen } } : null };
-
-  app._handlePick({ cards:['支援者A'], count:1, options:{ source:'peek' } });
-  app._cardLog.push('未选择卡牌');
-  app._closeCardScreen();
-
-  assert.deepEqual(resolved, []);
-  assert.equal(cardsOpen, true);
-  assert.equal(app._cardMode, 'hand');
-  assert.equal(app._cardLog.filter(msg => msg === '旧日志').length, 1);
-  assert.equal(app._cardLog.filter(msg => msg === '未选择卡牌').length, 1);
-  assert.deepEqual(app._cardLog, ['旧日志', '未选择卡牌']);
 });
 
 await test('peek_and_keep：选中卡入手，剩余查看卡洗回牌库', async () => {

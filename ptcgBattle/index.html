@@ -25,6 +25,7 @@
           <span class="hp-text" id="opp-hp-text"></span>
         </div>
         <div class="energy-icons" id="opp-energy"></div>
+        <div class="info-stats" id="opp-stats"></div>
       </div>
 
       <!-- 对方宝可梦立绘（血条正下方） -->
@@ -51,9 +52,10 @@
           <span class="hp-text" id="pl-hp-text"></span>
         </div>
         <div class="energy-icons" id="pl-energy"></div>
+        <div class="info-stats" id="pl-stats"></div>
       </div>
 
-      <!-- 隐藏的旧字段（兼容 CardView 等遗留引用，不显示） -->
+      <!-- 隐藏字段（兼容遗留引用，不显示） -->
       <span id="phase-display" hidden></span>
       <span id="current-player-display" hidden></span>
     </div>
@@ -76,6 +78,10 @@
         <div class="dialog-menu menu-list" id="fight-menu"></div>
       </div>
 
+      <div class="dialog-panel" id="panel-list">
+        <div class="dialog-menu menu-list" id="list-menu"></div>
+      </div>
+
       <div class="dialog-panel" id="panel-message">
         <div class="dialog-text full" id="msg-text"></div>
       </div>
@@ -83,47 +89,6 @@
       <div class="dialog-panel" id="panel-target">
         <div class="dialog-text" id="target-text">选择目标宝可梦</div>
         <div class="dialog-menu menu-list" id="target-menu"></div>
-      </div>
-    </div>
-
-    <!-- ================= 卡牌背包（换皮：深色半透卡片网格） ================= -->
-    <div class="overlay-screen" id="screen-cards">
-      <div class="overlay-header">
-        <span class="page-arrow left" id="cards-prev">◀</span>
-        <span class="page-title" id="cards-title">我方手牌</span>
-        <span class="page-indicator" id="cards-page">1/8</span>
-        <span class="page-arrow right" id="cards-next">▶</span>
-      </div>
-      <div class="cards-body">
-        <div class="card-preview">
-          <div class="card-thumb" id="card-thumb"></div>
-          <div class="card-desc">
-            <div class="card-desc-name" id="card-desc-name"></div>
-            <div class="card-desc-text" id="card-desc-text"></div>
-            <div class="card-desc-log" id="card-desc-log"></div>
-          </div>
-        </div>
-        <div class="card-list" id="card-list"></div>
-      </div>
-      <div class="overlay-footer">
-        <span class="footer-btn" id="cards-use">使用</span>
-        <span class="footer-btn" id="cards-confirm-setup" hidden>确认布置</span>
-        <span class="footer-btn right" id="cards-back">← 返回</span>
-      </div>
-    </div>
-
-    <!-- ================= 宝可梦队伍（换皮：立绘列表） ================= -->
-    <div class="overlay-screen" id="screen-pokemon">
-      <div class="overlay-header">
-        <span class="page-arrow left" id="poke-prev">◀</span>
-        <span class="page-title" id="poke-title">我方宝可梦</span>
-        <span class="page-indicator" id="poke-page">1/2</span>
-        <span class="page-arrow right" id="poke-next">▶</span>
-      </div>
-      <div class="pokemon-body" id="pokemon-body"></div>
-      <div class="overlay-footer">
-        <span class="footer-btn" id="poke-swap">交换</span>
-        <span class="footer-btn right" id="poke-back">← 返回</span>
       </div>
     </div>
 
