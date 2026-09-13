@@ -112,3 +112,29 @@
 - P6-4 目标与选卡统一：_handlePick 与 _handlePokemonPick 改为渲染操作区列表（宝可梦目标 / 卡牌候选分页 / 撤退能量），保留 pokemonPicker* 契约与 cb 语义
 - P6-5 移除全屏界面与死代码：#screen-cards、#screen-pokemon、pencil.*、js/ui/BattleField.js（Canvas）、js/ui/CardView.js；同步更新 automation 中依赖 open/close screen-cards 的断言；补操作区路径测试
 - P6-6 规则完整性回归：按核对表逐项手动走查（开局 mulligan、每回合限次、进化限制、备战上限、撤退支付、搜索分页、攻击结束回合、胜负判定）
+
+---
+
+## 实施进度（2026-09-13，按确认口径：动作子菜单 / 滚动列表 / 暂不提供详情 / 删除全屏界面）
+
+### 已完成（Step A + Step B1）
+
+- **操作区列表系统**（`main.js` 新增）
+  - `_showListView(items,{onBack})`：统一滚动列表渲染（名称 + 元信息两行，选中/禁用态，返回项）
+  - `_showHandList()`：手牌滚动列表（卡名 + 类型标签/HP/属性/特性）
+  - `_showCardActions(idx)`：卡牌动作子菜单（放置到战斗区/备战区、进化、附着能量、装备道具、使用物品/支援者/竞技场、使用特性）
+  - `_showPokemonList()` / `_showOpponentList()` / `_showPokeActions(slot)`：宝可梦列表与动作子菜单（进化、附能量、装备道具、使用特性、撤退）
+  - `_pickPokemonFor()`：进化/附能/装备的目标选择列表
+  - `_showBenchForRetreat()` + `_retreatTo()`：撤退与撤退能量支付（复用 `waitForPick`）
+  - `_showPickCards(pick)` / `_showPickPokemon(pick)`：效果选卡/选目标（滚动 + 多选 + 确定/取消），保留 `waitForPick`/`resolvePick` 契约
+- **主菜单与选择入口切换**：`cards` → 手牌列表；`pokemon` → 宝可梦列表；`_handlePick`/`_handlePokemonPick` → 操作区列表
+- **样式**：`.dialog-menu { max-height:46vh; overflow-y:auto }` 滚动列表；列表项两行（`.mv-name`/`.mv-meta`）
+- **删除全屏界面**：移除 `#screen-cards`、`#screen-pokemon` DOM 与相关 CSS；清理 `_bindAll` 中对应事件绑定；`_openOverlay/_closeOverlay` 改为空值安全
+- **删除死代码文件**：`js/ui/BattleField.js`、`js/ui/CardView.js`、`js/ui/CardPicker.js`、`js/ui/DeckSelector.js`、`pencil.html`、`pencil.js`、`pencil.css`
+- **测试**：删除 2 个旧全屏选卡器测试，新增「操作区选卡：多选确认与取消都回传正确索引」；全套 272 项通过
+
+### 待办
+
+- **Step B2**：清理 `main.js` 中标注 `[DEPRECATED]` 的旧全屏界面方法（约 700 行）连同其历史测试（`_renderCardList`/`_useSelectedCard`/`_openCardScreen` 等，测试引用约 30 处）
+- **真机走查**：手牌/宝可梦/动作子菜单/效果选卡/撤退支付在 iPhone 尺寸下的滚动与点击体验
+- 可选：操作区列表项的"当前上下文"轻量提示（用户已要求不显示提示文本，暂不做）
