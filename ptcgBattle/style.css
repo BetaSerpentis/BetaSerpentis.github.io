@@ -362,8 +362,8 @@ body {
   padding-right: 2px;
 }
 /* 列表项：名称 + 元信息两行 */
-.menu-item .mv-name { display: block; }
-.menu-item .mv-meta { display: block; font-size: 10px; color: #9fb4ff; margin-top: 1px; }
+.menu-item .mv-name { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.menu-item .mv-meta { flex: 0 0 auto; max-width: 58%; font-size: 11px; color: #9fb4ff; margin-top: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .menu-list { width: 100%; }
 .menu-2x2 { width: 100%; }
 
@@ -371,16 +371,17 @@ body {
   background: rgba(20, 25, 45, .55);
   border: 1px solid rgba(90, 108, 200, .55);
   border-radius: 6px;
-  padding: 7px 9px;
+  padding: 5px 9px;
   cursor: pointer;
   font-size: 13px;
   color: #fff;
   transition: all .12s;
   backdrop-filter: blur(2px);
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  line-height: 1.35;
 }
 .menu-item:hover { background: rgba(53, 67, 122, .7); border-color: #5a6cff; }
 .menu-item:active { transform: scale(.97); }
@@ -389,7 +390,7 @@ body {
 .menu-item.selected::before { content: '▶'; margin-right: 5px; }
 .menu-item.back-item { color: #b9c2d8; font-size: 12px; }
 .menu-item .mv-name { font-weight: bold; }
-.menu-item .mv-meta { display: block; font-size: 10px; color: #9fb4ff; margin-top: 1px; }
+.menu-item .mv-meta { flex: 0 0 auto; max-width: 58%; font-size: 11px; color: #9fb4ff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ================= 全屏覆盖（深色半透，pmBattle 风） ================= */
 .overlay-screen {
