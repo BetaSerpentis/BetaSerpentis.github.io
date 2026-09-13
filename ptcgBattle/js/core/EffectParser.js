@@ -97,6 +97,16 @@ function trainerPrerequisite(kind, raw) { return { kind, raw }; }
 function countParams(n, optional=false) { const c=+n; return { count:c, maxCount:c, minCount:optional?0:c, allowFewer:!!optional, allowEmpty:!!optional }; }
 function keepParams(n, optional=false) { const c=+n; return { keep:c, maxCount:c, minCount:optional?0:c, allowFewer:!!optional, allowEmpty:!!optional }; }
 function optionalText(text) { return /最多|合计最多|任意数量|任意选择最多|可将|若希望/.test(text); }
+// 清洗 peek 兜底捕获到的 filter 文本（去掉“在给对手看过后”等连接语与尾部“卡”字）
+function cleanPeekFilter(raw) {
+  const t = String(raw || '')
+    .replace(/^[，,]?/, '')
+    .replace(/^在给对手看过后[，,]?/, '')
+    .replace(/[，,。]+$/, '')
+    .replace(/卡$/, '')
+    .trim();
+  return t || undefined;
+}
 function withCount(base, n, optional=false) { return { ...base, ...countParams(n, optional) }; }
 function withKeep(base, n, optional=false) { return { ...base, ...keepParams(n, optional) }; }
 function discardCostParams(text) {
@@ -301,12 +311,12 @@ const RULES = [
   { re: /从(?:自己的)?牌库选择1张(.+?)(?:卡)?[,，]在给对手看过后加入手牌/, act:'search_deck_to_hand', p:m=>({count:1,filter:m[1].replace(/["“”]/g,'').trim()}) },
 
   // ===== 看牌库上方选牌 =====
-  { re: new RegExp(`查看(?:自己的)?牌库上方(\\d+)张卡[，,]?从其中选择(.+?)合计最多(\\d+)张[，,]?在给对手看过后加入手牌${PEEK_REMAINDER}`), act:'peek_and_keep', p:m=>peekParams(m,withKeep({peek:+m[1],filter:m[2].trim()},m[3],true)) },
-  { re: new RegExp(`查看(?:自己的)?牌库上方(\\d+)张卡[，,]?从其中选择(\\d+)张(.+?)(?:卡)?[，,]?在给对手看过后加入手牌${PEEK_REMAINDER}`), act:'peek_and_keep', p:m=>peekParams(m,withKeep({peek:+m[1],filter:m[3].trim()},m[2],false)) },
-  { re: new RegExp(`查看(?:自己的)?牌库上方(\\d+)张[。.]可将其中的(\\d+)张(.+?)(?:卡)?[，,]?在给对手看过后加入手牌${PEEK_REMAINDER}`), act:'peek_and_keep', p:m=>peekParams(m,withKeep({peek:+m[1],filter:m[3].trim(),keepOrder:true},m[2],true)) },
-  { re: new RegExp(`查看(?:自己的)?牌库上方(\\d+)张卡[。.]选择(?:其中)?(?:最多)?(\\d+)张(.+?)(?:卡)?[,，]在给对手看过后加入手牌${PEEK_REMAINDER}`), act:'peek_and_keep', p:m=>peekParams(m,withKeep({peek:+m[1],filter:m[3].trim()},m[2],optionalText(m[0]))) },
-  { re: new RegExp(`查看(?:自己的)?牌库上方(\\d+)张卡[。.]选择(?:其中)?(?:最多)?(\\d+)张.*?加入手牌${PEEK_REMAINDER}`), act:'peek_and_keep', p:m=>peekParams(m,withKeep({peek:+m[1]},m[2],optionalText(m[0]))) },
-  { re: new RegExp(`查看(?:自己的)?牌库上方(\\d+)张卡[,，]选择(?:其中)?(?:最多)?(\\d+)张.*?加入手牌${PEEK_REMAINDER}`), act:'peek_and_keep', p:m=>peekParams(m,withKeep({peek:+m[1]},m[2],optionalText(m[0]))) },
+  { re: new RegExp(`查看(?:自己的)?牌库上方(\\d+)张卡[，,]?从其中选择(.+?)合计最多(\\d+)张[，,]?在给对手看过后[，,]?加入手牌${PEEK_REMAINDER}`), act:'peek_and_keep', p:m=>peekParams(m,withKeep({peek:+m[1],filter:m[2].trim()},m[3],true)) },
+  { re: new RegExp(`查看(?:自己的)?牌库上方(\\d+)张卡[，,]?从其中选择(\\d+)张(.+?)(?:卡)?[，,]?在给对手看过后[，,]?加入手牌${PEEK_REMAINDER}`), act:'peek_and_keep', p:m=>peekParams(m,withKeep({peek:+m[1],filter:m[3].trim()},m[2],false)) },
+  { re: new RegExp(`查看(?:自己的)?牌库上方(\\d+)张[。.]可将其中的(\\d+)张(.+?)(?:卡)?[，,]?在给对手看过后[，,]?加入手牌${PEEK_REMAINDER}`), act:'peek_and_keep', p:m=>peekParams(m,withKeep({peek:+m[1],filter:m[3].trim(),keepOrder:true},m[2],true)) },
+  { re: new RegExp(`查看(?:自己的)?牌库上方(\\d+)张卡[。.]选择(?:其中)?(?:最多)?(\\d+)张(.+?)(?:卡)?[,，]在给对手看过后[，,]?加入手牌${PEEK_REMAINDER}`), act:'peek_and_keep', p:m=>peekParams(m,withKeep({peek:+m[1],filter:m[3].trim()},m[2],optionalText(m[0]))) },
+  { re: new RegExp(`查看(?:自己的)?牌库上方(\\d+)张卡[。.]选择(?:其中)?(?:最多)?(\\d+)张(.*?)[，,]?加入手牌${PEEK_REMAINDER}`), act:'peek_and_keep', p:m=>peekParams(m,withKeep({peek:+m[1],filter:cleanPeekFilter(m[3])},m[2],optionalText(m[0]))) },
+  { re: new RegExp(`查看(?:自己的)?牌库上方(\\d+)张卡[,，]选择(?:其中)?(?:最多)?(\\d+)张(.*?)[，,]?加入手牌${PEEK_REMAINDER}`), act:'peek_and_keep', p:m=>peekParams(m,withKeep({peek:+m[1],filter:cleanPeekFilter(m[3])},m[2],optionalText(m[0]))) },
   { re: /查看(?:自己的)?牌库上方(\d+)张卡[,，]选择/, act:'peek_and_keep', p:m=>({peek:+m[1],keep:1}) },
 
   // ===== 抽卡 =====

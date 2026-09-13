@@ -2245,6 +2245,52 @@ await test('确认布置：对手手牌/牌库没有基础宝可梦时返回fals
   assert.equal(gs.log.length < 20, true);
 });
 
+await test('开局重新抽牌：玩家无基础宝可梦重抽后对手额外抽 1 张', () => {
+  const gs = new GameState();
+  const pl = gs.player1, opp = gs.player2;
+  gs.cardResolver = fakeResolver({
+    basicA: { info:{ name:'基础A', number:null }, card:{ cardType:'pokemon', name:'基础A', stage:'基础', hp:60 } },
+    itemA:  { info:{ name:'物品A', number:null }, card:{ cardType:'trainer', trainerType:'item', name:'物品A' } },
+    energyA:{ info:{ name:'基本【草】能量', number:null }, card:{ cardType:'energy', name:'基本【草】能量' } },
+  });
+  pl.hand = ['itemA', 'energyA'];
+  pl.deck = ['basicA', 'itemA', 'energyA', 'basicA', 'itemA', 'energyA', 'basicA', 'itemA', 'energyA', 'basicA'];
+  opp.hand = ['x1', 'x2'];
+  opp.deck = ['y1', 'y2', 'y3', 'y4'];
+  assert.equal(gs.hasBasicInHand(pl), false);
+
+  const engine = makeEngine(gs);
+  const oppBefore = opp.hand.length;
+  const count = engine.mulliganPlayer(pl);
+
+  assert.equal(count, 1);
+  assert.equal(pl.hand.length, 7, '重抽后手牌应为 7 张');
+  assert.equal(pl.deck.includes('energyA'), true, '旧手牌应洗回牌库（仍可在牌库中找到）');
+  assert.equal(opp.hand.length, oppBefore + 1, '对手应额外抽 1 张');
+  assert.equal(gs.mulliganCount.player1, 1);
+});
+
+await test('开局重新抽牌：对手 mulligan 时玩家获得等量补抽', () => {
+  const gs = new GameState();
+  const pl = gs.player1, opp = gs.player2;
+  gs.cardResolver = fakeResolver({
+    basicA: { info:{ name:'基础A', number:null }, card:{ cardType:'pokemon', name:'基础A', stage:'基础', hp:60 } },
+    itemA:  { info:{ name:'物品A', number:null }, card:{ cardType:'trainer', trainerType:'item', name:'物品A' } },
+  });
+  opp.hand = ['itemA', 'itemA'];
+  opp.deck = ['itemA', 'itemA', 'itemA', 'itemA', 'basicA', 'itemA', 'basicA', 'itemA', 'itemA', 'basicA'];
+  pl.deck = Array.from({ length: 20 }, () => 'itemA');
+  const plBefore = pl.hand.length;
+
+  const engine = new BattleEngine(gs, gs.cardResolver, { onLog: () => {}, onPhaseChange: () => {}, onFieldUpdate: () => {} });
+  const ok = engine._autoSetupWithMulligan(opp);
+  assert.equal(ok, true, '对手应能完成自动布置');
+  const mulligans = gs.mulliganCount.player2;
+  assert.ok(mulligans >= 1, '对手应至少重新抽牌 1 次');
+  assert.equal(pl.hand.length, plBefore + mulligans, '玩家应按对手重抽次数获得补抽');
+});
+
+
 await test('Task H setup UI：开始对战自动打开初始布置手牌界面并暴露确认按钮', () => {
   const app = Object.create(PTCGBattleApp.prototype);
   const calls = [];

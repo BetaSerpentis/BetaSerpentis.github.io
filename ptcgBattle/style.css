@@ -306,7 +306,9 @@ body {
 }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; } }
 
-/* ================= 操作区（右下浮动，无底板） ================= */
+/* ================= 操作区（右下浮动，无底板；只显示按钮） ================= */
+/* 提示/状态文本统一走左上信息栏，操作区仅保留按钮 */
+#main-text, #fight-text, #target-text, #msg-text { display: none; }
 #dialog-area {
   position: absolute;
   bottom: 14px; right: 6px;

@@ -151,7 +151,11 @@ export class BattleEngine {
 
   confirmSetup() {
     const p1 = this.gs.player1, p2 = this.gs.player2;
-    if (!p1.active) { this.cb.onLog?.('请先放置战斗宝可梦'); return false; }
+    if (!p1.active) {
+      if (!this.gs.hasBasicInHand(p1)) this.cb.onLog?.('手牌没有基础宝可梦：请先重新抽牌');
+      else this.cb.onLog?.('请先放置战斗宝可梦');
+      return false;
+    }
     if (!p2.active && !this._autoSetupWithMulligan(p2)) {
       this.cb.onLog?.('对手无法完成布置：请重新开始或更换对手卡组');
       this.cb.onPhaseChange?.(this.gs.phase);
@@ -184,6 +188,18 @@ export class BattleEngine {
     return [...player.hand, ...player.deck].some(cid => this._isBasicPokemon(this.resolver?.getCard(cid)));
   }
 
+  // 玩家重新抽起始手牌：每发生一次，对手额外抽 1 张（规则补偿，奖赏卡已放置完毕）
+  mulliganPlayer(pl = this.gs.player1) {
+    const count = this.gs.mulliganHand(pl);
+    const opp = this.gs.getOpponent(pl);
+    if (opp) {
+      opp.draw(1);
+      this.gs.addLog(`${opp.name} 因对手重新抽牌，额外抽 1 张卡`);
+    }
+    this.cb.onFieldUpdate?.();
+    return count;
+  }
+
   _redealOpeningHand(player) {
     player.deck = this.gs._shuffle([...player.deck, ...player.hand]);
     player.hand = [];
@@ -201,7 +217,17 @@ export class BattleEngine {
     for (let attempt = 1; attempt <= MAX_OPPONENT_MULLIGANS; attempt++) {
       this._redealOpeningHand(player);
       this.cb.onLog?.(`对手重新抽起始手牌（第${attempt}次）`);
-      if (this._findBasicPokemonInHand(player) >= 0) return this._autoSetup(player);
+      if (this._findBasicPokemonInHand(player) >= 0) {
+        // 规则补偿：对手每重新抽一次，另一方额外抽 1 张
+        const me = this.gs.getOpponent(player);
+        if (me) {
+          me.draw(attempt);
+          this.gs.addLog(`${me.name} 因对手重新抽牌，额外抽 ${attempt} 张卡`);
+        }
+        this.gs.mulliganCount = this.gs.mulliganCount || { player1: 0, player2: 0 };
+        this.gs.mulliganCount[player === this.gs.player1 ? 'player1' : 'player2'] += attempt;
+        return this._autoSetup(player);
+      }
     }
 
     this.cb.onLog?.('对手重新抽起始手牌次数过多，仍未找到基础宝可梦');

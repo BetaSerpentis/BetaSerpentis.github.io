@@ -125,6 +125,7 @@ export class PTCGBattleApp {
         this._syncPlayerMainPanel();
       }
     });
+    this.gs.onLog = m => this._appendBattleLog(m);
     this.gs._onPendingPick = pick => this._handlePick(pick);
     this.gs._onPendingPokemonPick = pick => this._handlePokemonPick(pick);
     this._bindAll();
@@ -199,8 +200,15 @@ export class PTCGBattleApp {
     $('#fight-menu').addEventListener('click', e => {
       const item = e.target.closest('.menu-item');
       if (!item) return;
-      if (item.classList.contains('back-item')) { this._showPanel('panel-main'); return; }
-      if (item.classList.contains('disabled')) return;
+      if (item.classList.contains('back-item')) {
+        if (this.gs.phase === PHASE.BATTLE) this.gs.setPhase(PHASE.MAIN); // 返回主要阶段，不消耗回合
+        this._showPanel('panel-main');
+        return;
+      }
+      if (item.classList.contains('disabled')) {
+        this._appendBattleLog('能量不足，无法使用该招式');
+        return;
+      }
       this._doAttack(parseInt(item.dataset.idx));
     });
     // Target menu (legacy, kept for backward compat but prefer pokemon screen)
@@ -240,21 +248,34 @@ export class PTCGBattleApp {
           const ok = this.engine.advancePhase();
           if (ok === false) this._showSetupFailureStatus();
         } else if (phase === PHASE.BATTLE || phase === PHASE.MAIN) {
-          if (phase === PHASE.MAIN) this.engine.advancePhase();
+          // 规则：攻击不是独立阶段，而是在主要阶段内随时进行。
+          // 进入“战斗视图”只切换 phase 用于招式校验，可随时返回且不消耗回合。
+          if (phase === PHASE.MAIN) this.gs.setPhase(PHASE.BATTLE);
           this._showFightPanel();
         }
         break;
       case 'cards':
+        if (phase === PHASE.BATTLE) this.gs.setPhase(PHASE.MAIN);
         this._openCardScreen('hand');
         break;
       case 'pokemon':
+        if (phase === PHASE.BATTLE) this.gs.setPhase(PHASE.MAIN);
         this._openPokeScreen('view');
+        break;
+      case 'mulligan':
+        if (phase === PHASE.SETUP && !this.gs.hasBasicInHand(this.gs.player1)) {
+          this.engine.mulliganPlayer(this.gs.player1);
+          this._selectedCardIdx = -1;
+          this._renderScene();
+          this._refresh();
+        }
         break;
       case 'end':
         if (phase === PHASE.SETUP) {
           const ok = this.engine.advancePhase();
           if (ok === false) this._showSetupFailureStatus();
-        } else {
+        } else if (phase === PHASE.MAIN || phase === PHASE.BATTLE) {
+          if (phase === PHASE.BATTLE) this.gs.setPhase(PHASE.MAIN); // 先退出战斗视图再结束回合
           this.engine.finishTurn();
         }
         break;
@@ -638,7 +659,7 @@ export class PTCGBattleApp {
     }
 
     // Cards that resolve immediately — stay in card screen
-    if (ct === 'pokemon' && (phase === PHASE.SETUP || phase === PHASE.MAIN)) {
+    if (ct === 'pokemon' && (phase === PHASE.SETUP || phase === PHASE.MAIN || phase === PHASE.BATTLE)) {
       if (!pl.active) {
         const ok = this.engine.placeActivePokemon(idx, cd);
         this._cardLog.push(ok ? `${cd.name} 放置到战斗区` : (this.gs.log[this.gs.log.length - 1] || '无法放置到战斗区'));
@@ -876,7 +897,11 @@ export class PTCGBattleApp {
     const menu = $('#fight-menu');
     menu.innerHTML = '';
     const elem = this._elementLabel(mon.element);
-    (mon.attacks || []).forEach((atk, i) => {
+    const attacks = mon.attacks || [];
+    const usableCount = attacks.filter((_, i) => this.gs.checkEnergy(mon, i)).length;
+    if (!attacks.length) this._appendBattleLog(`${mon.name} 没有可使用的招式`);
+    else if (!usableCount) this._appendBattleLog(`${mon.name} 能量不足，无法使用招式（可返回）`);
+    attacks.forEach((atk, i) => {
       const canUse = this.gs.checkEnergy(mon, i);
       const item = document.createElement('div');
       item.className = 'menu-item' + (!canUse ? ' disabled' : '') + (i === 0 ? ' selected' : '');
@@ -897,7 +922,9 @@ export class PTCGBattleApp {
 
   async _doAttack(atkIdx) {
     const mon = this.gs.player1.active;
-    if (!mon?.attacks?.[atkIdx] || !this.gs.checkEnergy(mon, atkIdx)) return;
+    if (!mon?.attacks?.[atkIdx]) return;
+    if (!this.gs.checkEnergy(mon, atkIdx)) { this._appendBattleLog('能量不足，无法使用该招式'); return; }
+    if (this.gs.phase === PHASE.MAIN) this.gs.setPhase(PHASE.BATTLE); // 攻击需要 BATTLE 校验
     const anim = this._animEnabled();
     const beforeOppId = this.gs.player2.active?.cardId ?? null;
     const beforeOppHp = this.gs.player2.active?.hp ?? null;
@@ -1106,8 +1133,15 @@ export class PTCGBattleApp {
     items[0].textContent = phase === PHASE.SETUP ? '确认布置' : '战 斗';
     items[1].classList.toggle('disabled', false);
     items[2].classList.toggle('disabled', false);
+    // 起手无基础宝可梦：提供“重新抽牌”（每重抽一次对手额外抽 1 张）
+    const mulliganItem = [...items].find(item => item.dataset.action === 'mulligan');
+    if (mulliganItem) {
+      const needMulligan = phase === PHASE.SETUP && isP && !this.gs.hasBasicInHand(this.gs.player1);
+      mulliganItem.hidden = !needMulligan;
+      mulliganItem.classList.toggle('disabled', !needMulligan);
+    }
     const endItem = [...items].find(item => item.dataset.action === 'end') || items[3];
-    endItem.classList.toggle('disabled', over || !isP);
+    endItem.classList.toggle('disabled', over || !isP || (phase !== PHASE.MAIN && phase !== PHASE.BATTLE && phase !== PHASE.SETUP));
     endItem.textContent = phase === PHASE.SETUP ? '确认布置' : '结 束';
 
     if (over) {
@@ -1137,6 +1171,10 @@ export class PTCGBattleApp {
     const textEl = $('#msg-text');
     if (textEl) textEl.textContent = msg;
     this._appendBattleLog(msg);
+    // 正在选择招式/目标时不打断（提示统一走左上信息栏）
+    const activePanel = document.querySelector('.dialog-panel.active');
+    const isChoosing = !!activePanel && (activePanel.id === 'panel-fight' || activePanel.id === 'panel-target');
+    if (isChoosing) return;
     this._showPanel('panel-message');
     setTimeout(() => this._showPanel('panel-main'), 1200);
   }
@@ -1145,6 +1183,8 @@ export class PTCGBattleApp {
   _appendBattleLog(line) {
     const box = $('#battle-log');
     if (!box || !line) return;
+    if (this._lastLogLine === line) return; // 去重（引擎回调与 GameState 日志可能同源）
+    this._lastLogLine = line;
     const div = document.createElement('div');
     div.className = 'log-line';
     div.textContent = line;

@@ -38,7 +38,7 @@ export class GameState {
     this.player1.prizes=this.player1.deck.splice(-6,6);this.player2.prizes=this.player2.deck.splice(-6,6);
     this.player1.draw(7);this.player2.draw(7);
     this.turn=0;this.phase=PHASE.SETUP;this.winner=null;this.log=[];this.currentPlayer=this.player1;this.temporaryAbilityLocks=[];
-    this.firstPlayer=null;this.firstPlayerFirstTurnInProgress=false;this.knockoutHistory=[];
+    this.firstPlayer=null;this.firstPlayerFirstTurnInProgress=false;this.knockoutHistory=[];this.mulliganCount={player1:0,player2:0};
     this.addLog('请放置1只基础宝可梦到战斗区');}
 
   setPhase(p){this.phase=p;}
@@ -625,10 +625,34 @@ export class GameState {
     if(pl.bench.length>0){pl.active=pl.bench.shift();this.addLog(`${pl.name} 换上 ${pl.active.name}`);this.recomputePassives();}
     else{this.winner=opp;this.phase=PHASE.GAME_OVER;this.addLog(`${opp.name} 胜利！`);}}
 
+  // 起手是否有基础宝可梦（用于开局重新抽牌判定）
+  hasBasicInHand(pl){
+    return (pl?.hand||[]).some(cid=>{
+      const cd=this.cardResolver?.getCard?.(cid);
+      if(!cd||cd.cardType!=='pokemon')return false;
+      const stage=String(cd.stage||'');
+      return !cd.evolvesFrom&&(!stage||stage==='基础');
+    });
+  }
+
+  // 重新抽起始手牌：展示手牌 → 洗回牌库 → 重抽 7 张（并计数）
+  mulliganHand(pl){
+    this.mulliganCount=this.mulliganCount||{player1:0,player2:0};
+    const key=pl===this.player1?'player1':'player2';
+    this.mulliganCount[key]++;
+    pl.deck=this._shuffle([...pl.deck,...pl.hand]);
+    pl.hand=[];
+    pl.draw(7);
+    this.addLog(`${pl.name} 没有基础宝可梦，重新抽起始手牌（第${this.mulliganCount[key]}次）`);
+    return this.mulliganCount[key];
+  }
+
   addLog(msg){
     if(!Array.isArray(this.log))this.log=[];
     this.log.push(msg);
     if(this.log.length>MAX_LOG_ENTRIES)this.log.splice(0,this.log.length-MAX_LOG_ENTRIES);
+    // 桥接 UI：玩家/对手的卡牌使用与场上变化写入左上信息栏
+    try { this.onLog?.(msg); } catch (e) { /* UI 回调异常不影响对局 */ }
   }
   _shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 }
