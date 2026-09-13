@@ -534,6 +534,89 @@ await test('解析覆盖：条件硬币只在可映射时消费正面分支', ()
   assert.equal(incubator.effects.some(e => e.params?.kind === 'residual_sentence'), true);
 });
 
+await test('操作区卡牌菜单：先攻首回合支援者项不可用', () => {
+  const gs = new GameState();
+  const app = Object.create(PTCGBattleApp.prototype);
+  app.gs = gs;
+  app.resolver = fakeResolver({ sup: { info:{ name:'支援者A', number:null }, card:{ cardType:'trainer', trainerType:'supporter', name:'支援者A' } } });
+  gs.currentPlayer = gs.player1;
+  gs.phase = PHASE.MAIN;
+  gs.player1.hand = ['sup'];
+  gs.firstPlayer = gs.player1;
+  gs.firstPlayerFirstTurnInProgress = true;
+  let captured = null;
+  app._showListView = items => { captured = items; };
+  app._renderScene = () => {};
+  app._selectedCardIdx = 0;
+  app._showCardActions(0);
+  const item = captured.find(x => String(x.label).includes('支援者'));
+  assert.ok(item, '应出现支援者动作项');
+  assert.equal(item.disabled, true, '先攻最初回合应禁用支援者');
+});
+
+await test('操作区卡牌菜单：物品使用后回到卡牌列表', async () => {
+  const gs = new GameState();
+  const app = Object.create(PTCGBattleApp.prototype);
+  app.gs = gs;
+  app.resolver = fakeResolver({ it: { info:{ name:'物品A', number:null }, card:{ cardType:'trainer', trainerType:'item', name:'物品A' } } });
+  gs.currentPlayer = gs.player1;
+  gs.phase = PHASE.MAIN;
+  gs.player1.hand = ['it'];
+  let used = false;
+  app.engine = { useTrainer: async () => { used = true; return true; } };
+  let captured = null, viewShown = null;
+  app._showListView = items => { captured = items; };
+  app._refresh = () => {};
+  app._renderScene = () => {};
+  app._goBackToList = () => { viewShown = 'hand'; };
+  app._returnView = 'hand';
+  app._selectedCardIdx = 0;
+  app._showCardActions(0);
+  const item = captured.find(x => String(x.label).includes('物品'));
+  assert.ok(item, '应出现物品使用项');
+  await item.onSelect();
+  assert.equal(used, true, '应调用 useTrainer');
+  assert.equal(viewShown, 'hand', '使用完成后应留在卡牌列表');
+});
+
+await test('操作区卡牌菜单：布置阶段基础宝可梦可放置战斗区/备战区', () => {
+  const gs = new GameState();
+  const app = Object.create(PTCGBattleApp.prototype);
+  app.gs = gs;
+  app.resolver = fakeResolver({ basicA: { info:{ name:'基础A', number:null }, card:{ cardType:'pokemon', name:'基础A', stage:'基础', hp:60 } } });
+  gs.currentPlayer = gs.player1;
+  gs.phase = PHASE.SETUP;
+  gs.player1.active = null;
+  gs.player1.hand = ['basicA'];
+  let captured = null;
+  app._showListView = items => { captured = items; };
+  app._renderScene = () => {};
+  app._selectedCardIdx = 0;
+  app._showCardActions(0);
+  const labels = captured.map(x => String(x.label));
+  assert.ok(labels.includes('放置到战斗区'), '应能放置到战斗区');
+  assert.ok(labels.includes('放置到备战区'), '应能放置到备战区');
+});
+
+await test('操作区场地菜单：有备战时提供撤退且不含返回项', () => {
+  const gs = new GameState();
+  const app = Object.create(PTCGBattleApp.prototype);
+  app.gs = gs;
+  app.resolver = fakeResolver({});
+  gs.currentPlayer = gs.player1;
+  gs.phase = PHASE.MAIN;
+  gs.player1.active = mon('出战');
+  gs.player1.bench = [mon('后备')];
+  let captured = null;
+  app._showListView = items => { captured = items; };
+  app._renderScene = () => {};
+  app._showPokeActions('active');
+  const labels = captured.map(x => String(x.label));
+  assert.ok(labels.includes('撤退'), '应提供撤退选项');
+  assert.equal(labels.includes('返回宝可梦'), false, '不应再出现返回宝可梦项');
+});
+
+
 await test('Stadium：打出后只保存完整竞技场资料，不立即执行效果', async () => {
   const gs = new GameState();
   const pl = gs.player1;
@@ -1300,149 +1383,6 @@ await test('宝可齿轮3.0效果：picker 只看到支援者且 fallback 选择
   assert.equal(pl2.deck.includes('itemA'), true);
 });
 
-await test('UI卡牌使用：先攻首回合支援者失败不显示使用成功', async () => {
-  const gs = new GameState();
-  const pl = gs.player1;
-  gs.phase = PHASE.MAIN;
-  gs.currentPlayer = pl;
-  gs.firstPlayer = pl;
-  gs.firstPlayerFirstTurnInProgress = true;
-  pl.hand = ['supporter'];
-  const supporter = { cardType:'trainer', trainerType:'supporter', name:'测试支援者', effects:[{ action:'draw', params:{ count:1 } }] };
-  const engine = makeEngine(gs);
-  const app = Object.create(PTCGBattleApp.prototype);
-  app.gs = gs;
-  app.engine = engine;
-  app.resolver = fakeResolver({ supporter: { card: supporter, info:{ name:'测试支援者', number:null, type:'supporter' } } });
-  app._cardMode = 'hand';
-  app._cardPage = 0;
-  app._selectedCardIdx = 0;
-  app._cardLog = [];
-  app._renderScene = () => {};
-  app._renderCardList = () => {};
-  app._renderCardLog = () => {};
-
-  await app._useSelectedCard();
-
-  assert.equal(app._cardLog.some(msg => msg.includes('使用了 测试支援者')), false);
-  assert.equal(app._cardLog.at(-1).includes('先攻玩家最初回合不能使用支援者'), true);
-  assert.deepEqual(pl.hand, ['supporter']);
-});
-
-await test('UI卡牌使用：成功训练家仍显示使用成功', async () => {
-  const gs = new GameState();
-  const pl = gs.player1;
-  gs.phase = PHASE.MAIN;
-  gs.currentPlayer = pl;
-  pl.hand = ['item'];
-  pl.deck = ['drawn'];
-  const item = { cardType:'trainer', trainerType:'item', name:'测试物品', effects:[{ action:'draw', params:{ count:1 } }] };
-  const engine = makeEngine(gs);
-  const app = Object.create(PTCGBattleApp.prototype);
-  app.gs = gs;
-  app.engine = engine;
-  app.resolver = fakeResolver({ item: { card: item, info:{ name:'测试物品', number:null, type:'item' } } });
-  app._cardMode = 'hand';
-  app._cardPage = 0;
-  app._selectedCardIdx = 0;
-  app._cardLog = [];
-  app._renderScene = () => {};
-  app._renderCardList = () => {};
-  app._renderCardLog = () => {};
-
-  await app._useSelectedCard();
-
-  assert.equal(app._cardLog.includes('使用了 测试物品'), true);
-  assert.equal(app._cardLog.some(msg => msg.includes('抽了 1 张卡')), true);
-  assert.equal(pl.hand.includes('drawn'), true);
-  assert.equal(pl.discard.includes('测试物品'), true);
-});
-
-await test('UI卡牌使用：成功和无候选训练家保持手牌卡牌界面并显示日志', async () => {
-  const gs = new GameState();
-  const pl = gs.player1;
-  gs.phase = PHASE.MAIN;
-  gs.currentPlayer = pl;
-  pl.hand = ['draw-item', 'nest'];
-  pl.deck = ['drawn'];
-  pl.bench = [];
-  const drawItem = { cardType:'trainer', trainerType:'item', name:'抽卡物品', effects:[{ action:'draw', params:{ count:1 } }] };
-  const nest = { cardType:'trainer', trainerType:'item', name:'巢穴球', effects:[{ action:'search_deck_to_bench', params:{ count:1, filter:'【基础】宝可梦' } }] };
-  const app = Object.create(PTCGBattleApp.prototype);
-  app.gs = gs;
-  app.engine = makeEngine(gs);
-  app.resolver = fakeResolver({
-    'draw-item': { card: drawItem, info:{ name:'抽卡物品', number:null, type:'item' } },
-    nest: { card: nest, info:{ name:'巢穴球', number:null, type:'item' } },
-    drawn: { card:{ cardType:'trainer', trainerType:'item', name:'非宝可梦' }, info:{ name:'非宝可梦', number:null, type:'item' } },
-  });
-  app._cardMode = 'hand';
-  app._cardPage = 0;
-  app._selectedCardIdx = 0;
-  app._cardLog = [];
-  app._renderScene = () => {};
-  app._renderCardList = () => {};
-  app._renderCardLog = () => {};
-  let cardsOpen = true;
-  globalThis.document = { querySelector: sel => sel === '#screen-cards' ? { classList:{ contains: () => cardsOpen } } : null };
-
-  await app._useSelectedCard();
-  assert.equal(app._cardMode, 'hand');
-  assert.equal(cardsOpen, true);
-  assert.equal(app._cardLog.some(msg => msg.includes('使用了 抽卡物品')), true);
-
-  app._selectedCardIdx = pl.hand.indexOf('nest');
-  pl.deck = ['drawn'];
-  await app._useSelectedCard();
-  assert.equal(app._cardMode, 'hand');
-  assert.equal(cardsOpen, true);
-  assert.equal(app._cardLog.some(msg => msg.includes('牌库中没有可放置的基础宝可梦')), true);
-});
-
-await test('UI宝可梦工具装备：等待引擎失败并显示失败原因', async () => {
-  const gs = new GameState();
-  const pl = gs.player1;
-  gs.phase = PHASE.MAIN;
-  gs.currentPlayer = pl;
-  pl.hand = ['tool'];
-  pl.active = mon('已有工具');
-  pl.active.tool = 'old-tool';
-  const tool = { cardType:'trainer', trainerType:'tool', name:'测试工具', effects:[] };
-  const app = Object.create(PTCGBattleApp.prototype);
-  app.gs = gs;
-  app.engine = makeEngine(gs);
-  app._pokeMode = 'tool';
-  app._pokeTargetData = { handIdx:0, data:tool };
-  app._selectedPokeSlot = 'active';
-  app._selectedBenchIdx = -1;
-  app._cardLog = [];
-  app._closeOverlay = () => {};
-  app._renderScene = () => {};
-  app._renderCardList = () => {};
-
-  await app._onPokeAction();
-
-  assert.equal(app._cardLog.some(msg => msg.includes('装备了测试工具')), false);
-  assert.equal(app._cardLog.at(-1).includes('已有工具 已装备 old-tool'), true);
-  assert.deepEqual(pl.hand, ['tool']);
-});
-
-await test('UI选卡器：allowFewer/allowEmpty允许少选或不选并返回顺序', async () => {
-  const app = Object.create(PTCGBattleApp.prototype);
-  app._cardMode = 'pick-cards';
-  app._cardPage = 0;
-  app._cardPickMax = 3;
-  app._cardPickMin = 0;
-  app._cardPickAllowEmpty = true;
-  app._selectedCardIndices = new Set([1]);
-  app._getCardPages = () => [{ title:'选择', cards:['A','B','C'], usable:true }];
-  app._finishCardPickMode = () => {};
-  let resolved = null;
-  app._cardModeCb = selected => { resolved = selected; };
-  await app._useSelectedCard();
-  assert.deepEqual(resolved, [1]);
-});
-
 await test('peek_and_keep：无匹配候选时记录可见原因并保留牌', async () => {
   const gs = new GameState();
   const pl = gs.player1;
@@ -1548,41 +1488,6 @@ await test('操作区选卡：多选确认与取消都回传正确索引', () =>
 await test('UI选卡器标题：最多与精确选择标题反映min/max', () => {
   assert.equal(cardPickerTitleFor({ cards:['A','B','C'], count:3, options:{ allowEmpty:true, allowFewer:true } }), '选择最多3张卡');
   assert.equal(cardPickerTitleFor({ cards:['A','B','C'], count:2, options:{} }), '选择2张卡');
-});
-
-await test('UI选卡器：达到选择上限后点击新卡替换最早选择', async () => {
-  const app = Object.create(PTCGBattleApp.prototype);
-  app._cardMode = 'pick-cards';
-  app._cardPage = 0;
-  app._cardPickMax = 2;
-  app._selectedCardIndices = new Set();
-  app._getCardPages = () => [{ title:'选择', cards:['A','B','C'], usable:true }];
-  app._renderCardPreview = () => {};
-  globalThis.document = { querySelector: () => ({ textContent:'', classList:{ toggle:()=>{} } }), querySelectorAll: () => [{classList:{toggle:()=>{}}},{classList:{toggle:()=>{}}},{classList:{toggle:()=>{}}}] };
-
-  app._selectCardInList(0);
-  app._selectCardInList(1);
-  app._selectCardInList(2);
-
-  assert.deepEqual([...app._selectedCardIndices], [1, 2]);
-});
-
-await test('UI选卡器：pick-cards按替换后的选择顺序返回', async () => {
-  const app = Object.create(PTCGBattleApp.prototype);
-  app._cardMode = 'pick-cards';
-  app._cardPage = 0;
-  app._cardPickMax = 2;
-  app._cardPickMin = 1;
-  app._cardPickAllowEmpty = false;
-  app._selectedCardIndices = new Set([2, 0]);
-  app._getCardPages = () => [{ title:'选择', cards:['A','B','C'], usable:true }];
-  app._finishCardPickMode = () => {};
-  let resolved = null;
-  app._cardModeCb = selected => { resolved = selected; };
-
-  await app._useSelectedCard();
-
-  assert.deepEqual(resolved, [2, 0]);
 });
 
 await test('peek_and_keep：选中卡入手，剩余查看卡洗回牌库', async () => {
@@ -2224,7 +2129,7 @@ await test('开局重新抽牌：玩家无基础宝可梦重抽后对手额外�
 
   assert.equal(count, 1);
   assert.equal(pl.hand.length, 7, '重抽后手牌应为 7 张');
-  assert.equal(pl.deck.includes('energyA'), true, '旧手牌应洗回牌库（仍可在牌库中找到）');
+  assert.equal(pl.deck.length + pl.hand.length, 12, '手牌与牌库总数应保持不变（10 牌库 + 2 手牌）');
   assert.equal(opp.hand.length, oppBefore + 1, '对手应额外抽 1 张');
   assert.equal(gs.mulliganCount.player1, 1);
 });
@@ -2249,174 +2154,6 @@ await test('开局重新抽牌：对手 mulligan 时玩家获得等量补抽', (
   assert.equal(pl.hand.length, plBefore + mulligans, '玩家应按对手重抽次数获得补抽');
 });
 
-
-await test('Task H setup UI：开始对战自动打开初始布置手牌界面并暴露确认按钮', () => {
-  const app = Object.create(PTCGBattleApp.prototype);
-  const calls = [];
-  app.engine = { startGame: () => calls.push('startGame') };
-  app._refresh = () => calls.push('refresh');
-  app._openCardScreen = (mode, cb, cards, title) => {
-    calls.push(`open:${mode}:${title}`);
-    app._cardMode = mode;
-    app._cardPickTitle = title;
-  };
-  app._pushCardStatus = msg => calls.push(`log:${msg}`);
-
-  app._startGame({ cards:[] }, { cards:[] });
-
-  assert.deepEqual(calls, ['startGame', 'refresh', 'open:hand:初始布置', 'log:请放置宝可梦到战斗区']);
-  assert.equal(app._cardMode, 'hand');
-  assert.equal(app._cardPickTitle, '初始布置');
-});
-
-await test('Task H setup UI：手牌卡牌界面在布置阶段显示确认布置并禁用返回', () => {
-  const gs = new GameState();
-  const app = Object.create(PTCGBattleApp.prototype);
-  app.gs = gs;
-  app.resolver = fakeResolver({ basic:{ info:{ name:'基础兽', number:null }, card:{ cardType:'pokemon', name:'基础兽', stage:'基础' } } });
-  app._cardMode = 'hand';
-  app._cardPage = 0;
-  app._selectedCardIdx = -1;
-  app._cardLog = [];
-  app._renderCardPreview = () => {};
-  app._renderCardLog = () => {};
-  gs.phase = PHASE.SETUP;
-  gs.player1.hand = ['basic'];
-  gs.player2.hand = [];
-
-  const elements = {
-    '#cards-title': { textContent:'' },
-    '#cards-page': { textContent:'' },
-    '#cards-use': { textContent:'', classList:{ values:new Set(), toggle(cls, on){ on ? this.values.add(cls) : this.values.delete(cls); }, contains(cls){ return this.values.has(cls); } } },
-    '#cards-confirm-setup': { hidden:true, classList:{ values:new Set(), toggle(cls, on){ on ? this.values.add(cls) : this.values.delete(cls); }, contains(cls){ return this.values.has(cls); } } },
-    '#cards-back': { classList:{ values:new Set(), toggle(cls, on){ on ? this.values.add(cls) : this.values.delete(cls); }, contains(cls){ return this.values.has(cls); } } },
-    '#card-list': { innerHTML:'', appendChild(child){ this.children = [...(this.children || []), child]; } },
-  };
-  const oldDocument = globalThis.document;
-  globalThis.document = {
-    querySelector: selector => elements[selector] || null,
-    querySelectorAll: () => [],
-    createElement: () => ({ dataset:{}, className:'', textContent:'', addEventListener:()=>{} }),
-  };
-  try {
-    app._renderCardList();
-  } finally {
-    if (oldDocument === undefined) delete globalThis.document;
-    else globalThis.document = oldDocument;
-  }
-
-  assert.equal(elements['#cards-title'].textContent, '初始布置：我方手牌');
-  assert.equal(elements['#cards-confirm-setup'].hidden, false);
-  assert.equal(elements['#cards-back'].classList.contains('disabled'), true);
-});
-
-await test('Task H setup UI：布置阶段从手牌先放战斗区再放备战区并阻止非基础行动', async () => {
-  const gs = new GameState();
-  const pl = gs.player1;
-  gs.phase = PHASE.SETUP;
-  gs.currentPlayer = pl;
-  pl.hand = ['basicA', 'basicB', 'evo', 'energy', 'trainer'];
-  const app = Object.create(PTCGBattleApp.prototype);
-  app.gs = gs;
-  app.engine = makeEngine(gs);
-  app.resolver = fakeResolver({
-    basicA: { info:{ name:'基础A', number:null }, card:{ cardType:'pokemon', name:'基础A', stage:'基础', hp:60 } },
-    basicB: { info:{ name:'基础B', number:null }, card:{ cardType:'pokemon', name:'基础B', stage:'基础', hp:60 } },
-    evo: { info:{ name:'进化兽', number:null }, card:{ cardType:'pokemon', name:'进化兽', stage:'1阶', evolvesFrom:'基础A', hp:90 } },
-    energy: { info:{ name:'基本【雷】能量', number:null }, card:{ cardType:'energy', name:'基本【雷】能量' } },
-    trainer: { info:{ name:'测试物品', number:null }, card:{ cardType:'trainer', trainerType:'item', name:'测试物品' } },
-  });
-  app._cardMode = 'hand';
-  app._cardPage = 0;
-  app._selectedCardIdx = 0;
-  app._cardLog = [];
-  app._renderScene = () => {};
-  app._renderCardList = () => {};
-  app._renderCardLog = () => {};
-
-  await app._useSelectedCard();
-  assert.equal(pl.active.name, '基础A');
-  assert.deepEqual(pl.hand, ['basicB', 'evo', 'energy', 'trainer']);
-
-  app._selectedCardIdx = 0;
-  await app._useSelectedCard();
-  assert.equal(pl.bench[0].name, '基础B');
-  assert.deepEqual(pl.hand, ['evo', 'energy', 'trainer']);
-
-  for (const idx of [0, 1, 2]) {
-    app._selectedCardIdx = idx;
-    await app._useSelectedCard();
-    assert.equal(app._cardLog.at(-1), '初始布置阶段只能放置基础宝可梦');
-  }
-  assert.deepEqual(pl.hand, ['evo', 'energy', 'trainer']);
-});
-
-await test('Task H setup UI：卡牌界面确认布置失败时保留覆盖层并显示失败原因', async () => {
-  const gs = new GameState();
-  gs.phase = PHASE.SETUP;
-  const app = Object.create(PTCGBattleApp.prototype);
-  app.gs = gs;
-  app._cardMode = 'hand';
-  app._cardLog = [];
-  app._selectedCardIdx = 0;
-  app.engine = { advancePhase: () => { gs.log.push('请先放置战斗宝可梦'); return false; } };
-  const calls = [];
-  app._renderScene = () => calls.push('scene');
-  app._renderCardList = () => calls.push('list');
-  app._renderCardLog = () => calls.push('log');
-  app._openOverlay = id => calls.push(`open:${id}`);
-  app._closeOverlay = id => calls.push(`close:${id}`);
-
-  const ok = await app._confirmSetupFromCardScreen();
-
-  assert.equal(ok, false);
-  assert.equal(gs.phase, PHASE.SETUP);
-  assert.equal(app._cardLog.includes('请先放置战斗宝可梦'), true);
-  assert.equal(calls.includes('open:screen-cards'), true);
-  assert.equal(calls.includes('close:screen-cards'), false);
-});
-
-await test('Task H setup UI：卡牌界面确认布置成功后关闭覆盖层并刷新主阶段UI', async () => {
-  const gs = new GameState();
-  gs.phase = PHASE.SETUP;
-  const app = Object.create(PTCGBattleApp.prototype);
-  app.gs = gs;
-  app._cardMode = 'hand';
-  app._cardLog = [];
-  app._selectedCardIdx = 0;
-  app.engine = { advancePhase: () => { gs.phase = PHASE.MAIN; gs.log.push('第1回合'); return true; } };
-  const calls = [];
-  app._renderCardLog = () => calls.push('cardLog');
-  app._renderScene = () => calls.push('scene');
-  app._renderCardList = () => calls.push('list');
-  app._openOverlay = id => calls.push(`open:${id}`);
-  app._closeOverlay = id => calls.push(`close:${id}`);
-  app._refresh = () => calls.push('refresh');
-
-  const ok = await app._confirmSetupFromCardScreen();
-
-  assert.equal(ok, true);
-  assert.equal(gs.phase, PHASE.MAIN);
-  assert.equal(calls.includes('close:screen-cards'), true);
-  assert.equal(calls.includes('refresh'), true);
-  assert.equal(calls.includes('open:screen-cards'), false);
-});
-
-await test('Task H setup UI：布置结束后普通手牌卡牌界面可正常关闭且不显示确认布置', () => {
-  const gs = new GameState();
-  gs.phase = PHASE.MAIN;
-  const app = Object.create(PTCGBattleApp.prototype);
-  app.gs = gs;
-  app._cardMode = 'hand';
-  const calls = [];
-  app._closeOverlay = id => calls.push(`close:${id}`);
-  app._renderScene = () => calls.push('scene');
-  app._pushCardStatus = msg => calls.push(`log:${msg}`);
-
-  app._closeCardScreen();
-
-  assert.deepEqual(calls, ['close:screen-cards', 'scene']);
-});
 
 await test('UI主动作：确认布置失败时刷新并在主文本保留可见状态', () => {
   const gs = new GameState();

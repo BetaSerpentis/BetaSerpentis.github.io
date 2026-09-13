@@ -98,6 +98,8 @@ export class PTCGBattleApp {
     this._selectedCardIdx = -1;
     // Card mode: 'hand'(default), 'search-deck', 'search-discard', 'prize'
     this._cardMode = 'hand';
+    // 动作完成后返回的列表视图：'hand' | 'pokemon' | null(主菜单)
+    this._returnView = null;
     // Callback to invoke after card screen closes (for search/prize picks)
     this._cardModeCb = null;
     this._cardPickCards = null;
@@ -111,7 +113,6 @@ export class PTCGBattleApp {
     this._pokeTargetData = null; // {handIdx, data} for energy/evolve/tool
     // Log buffer for card screen messages
     this._cardLog = [];
-    this._cardScreenReturnStack = [];
     this.init();
   }
 
@@ -173,19 +174,15 @@ export class PTCGBattleApp {
   _startGame(pDeck, oDeck) {
     this.engine.startGame(expandDeck(pDeck), expandDeck(oDeck));
     this._refresh();
-    this._openSetupCardScreen('请放置宝可梦到战斗区');
+    // 初始布置：直接在操作区显示手牌列表（点卡→放置战斗区/备战区），列表底部提供“确认布置”
+    this._returnView = 'hand';
+    this._showHandList();
   }
 
   // === Engine Log → context-aware routing ===
   _onEngineLog(msg) {
-    // If card screen is open, log goes there; otherwise to main message
-    if ($('#screen-cards')?.classList?.contains('active')) {
-      this._cardLog.push(msg);
-      this._renderCardLog();
-    } else {
-      this._lastMainStatus = msg;
-      this._showMessage(msg);
-    }
+    this._lastMainStatus = msg;
+    this._showMessage(msg);
   }
 
   // === Bind Events ===
@@ -210,13 +207,6 @@ export class PTCGBattleApp {
         return;
       }
       this._doAttack(parseInt(item.dataset.idx));
-    });
-    // Target menu (legacy, kept for backward compat but prefer pokemon screen)
-    $('#target-menu').addEventListener('click', e => {
-      const item = e.target.closest('.menu-item');
-      if (!item) return;
-      if (item.classList.contains('back-item')) { this._pokeMode = 'view'; this._showPanel('panel-main'); return; }
-      this._resolveTarget(item.dataset.slot);
     });
   }
 
@@ -267,615 +257,6 @@ export class PTCGBattleApp {
   }
 
   // ============================================================
-  //  [DEPRECATED] 旧全屏卡牌界面（DOM 已删除；仅遗留方法，plan: Step B2 清理）
-  //  现役交互：_showHandList/_showCardActions/_showPokemonList/_showPokeActions/
-  //            _showPickCards/_showPickPokemon/_showListView
-  // ============================================================
-
-  /**
-   * Open card screen in a given mode.
-   * @param {'hand'|'search-deck'|'search-discard'|'prize'} mode
-   * @param {Function} cb - callback with selected card IDs when in search/prize mode
-   */
-  _openCardScreen(mode = 'hand', cb = null, cards = null, title = null, options = {}) {
-    this._cardMode = mode;
-    this._cardModeCb = cb;
-    this._cardPickCards = cards;
-    this._cardPickTitle = title;
-    this._cardPage = mode === 'pick-cards' ? 0 : (mode === 'hand' ? 0 : this._cardPageForMode(mode));
-    this._selectedCardIdx = -1;
-    this._selectedCardIndices = new Set();
-    this._cardPickMax = Number.isFinite(cb?.max) ? cb.max : null;
-    this._cardPickMin = Number.isFinite(cb?.min) ? cb.min : 1;
-    this._cardPickAllowEmpty = !!cb?.allowEmpty;
-    this._cardPickAllowFewer = !!cb?.allowFewer;
-    if (!options.preserveLog) this._cardLog = [];
-    this._openOverlay('screen-cards');
-    this._renderCardList();
-  }
-
-  _captureCardScreenState() {
-    return {
-      mode: this._cardMode,
-      page: this._cardPage,
-      selectedIdx: this._selectedCardIdx,
-      log: [...(this._cardLog || [])],
-    };
-  }
-
-  _restoreCardScreenState(state) {
-    if (!state) return false;
-    const savedLog = Array.isArray(state.log) ? state.log : [];
-    const currentLog = Array.isArray(this._cardLog) ? this._cardLog : [];
-    const appendedLog = currentLog.slice(savedLog.length);
-    this._cardMode = state.mode || 'hand';
-    this._cardModeCb = null;
-    this._cardPickCards = null;
-    this._cardPickTitle = null;
-    this._cardPickMax = null;
-    this._cardPickMin = 1;
-    this._cardPickAllowEmpty = false;
-    this._cardPickAllowFewer = false;
-    this._cardPage = Number.isInteger(state.page) ? state.page : 0;
-    this._selectedCardIdx = Number.isInteger(state.selectedIdx) ? state.selectedIdx : -1;
-    this._selectedCardIndices = new Set();
-    this._cardLog = [...savedLog, ...appendedLog];
-    this._openOverlay('screen-cards');
-    this._renderScene();
-    this._renderCardList();
-    return true;
-  }
-
-  _openSetupCardScreen(initialMessage = null) {
-    this._openCardScreen('hand', null, null, '初始布置');
-    if (initialMessage) this._pushCardStatus(initialMessage);
-  }
-
-  _isSetupHandCardScreen() {
-    return this.gs.phase === PHASE.SETUP && this._cardMode === 'hand';
-  }
-
-  _isCardScreenActive() {
-    return $('#screen-cards')?.classList?.contains('active');
-  }
-
-  _finishCardPickMode(closeOverlay = true) {
-    const restoreState = this._cardScreenReturnStack?.pop?.();
-    if (restoreState) return this._restoreCardScreenState(restoreState);
-    if (closeOverlay) this._closeOverlay('screen-cards');
-    this._renderScene();
-    return false;
-  }
-
-  _cardPageForMode(mode) {
-    const pageMap = { 'search-deck': 2, 'search-discard': 1, 'prize': 3 };
-    return pageMap[mode] ?? 0;
-  }
-
-  _closeCardScreen() {
-    if (this._isSetupHandCardScreen()) {
-      this._pushCardStatus('请先完成初始布置');
-      return;
-    }
-    if (this._cardMode === 'pick-cards' && this._cardModeCb) {
-      const cb = this._cardModeCb;
-      this._cardModeCb = null;
-      cb([]);
-      this._finishCardPickMode(true);
-      return;
-    }
-    if (this._cardMode === 'pick-cards' && this._finishCardPickMode(true)) return;
-    this._closeOverlay('screen-cards');
-    this._renderScene();
-  }
-
-  _getCardPages() {
-    const p1 = this.gs.player1, p2 = this.gs.player2;
-    if (this._cardMode === 'pick-cards') {
-      return [{ title: this._cardPickTitle || '选择卡牌', cards: this._cardPickCards || [], usable: true }];
-    }
-    const isSearch = ['search-deck', 'search-discard', 'prize'].includes(this._cardMode);
-    const stadium = this.gs.getActiveStadium?.();
-    return [
-      { title: '我方手牌', cards: p1.hand, usable: this._cardMode === 'hand' && (this.gs.phase === PHASE.SETUP || this.gs.phase === PHASE.MAIN) },
-      { title: '我方弃牌区', cards: p1.discard, usable: this._cardMode === 'hand' || isSearch },
-      { title: '竞技场', cards: stadium ? [stadium.cardId || stadium.name] : [], usable: this._cardMode === 'hand' && !!stadium, stadium:true, stadiumState:stadium },
-      { title: '我方卡组', cards: p1.deck, usable: isSearch, hidden: !isSearch },
-      { title: '我方奖赏卡', cards: p1.prizes, usable: this._cardMode === 'prize', hidden: this._cardMode !== 'prize' },
-      { title: '对方手牌', cards: p2.hand, usable: false, hidden: true },
-      { title: '对方弃牌区', cards: p2.discard, usable: false },
-      { title: '对方卡组', cards: p2.deck, usable: false, hidden: true },
-      { title: '对方奖赏卡', cards: p2.prizes, usable: false, hidden: true },
-    ];
-  }
-
-  _changeCardPage(dir) {
-    const pages = this._getCardPages();
-    this._cardPage = (this._cardPage + dir + pages.length) % pages.length;
-    this._selectedCardIdx = -1;
-    this._renderCardList();
-  }
-
-  _renderCardList() {
-    const pages = this._getCardPages();
-    const page = pages[this._cardPage];
-    const setupHand = this._isSetupHandCardScreen();
-    $('#cards-title').textContent = this._cardPickTitle || (setupHand && this._cardPage === 0 ? '初始布置：我方手牌' : page.title);
-    $('#cards-page').textContent = `${this._cardPage + 1}/${pages.length}`;
-    $('#cards-use').classList.toggle('disabled', !page.usable);
-    const confirmSetupBtn = $('#cards-confirm-setup');
-    if (confirmSetupBtn) {
-      confirmSetupBtn.hidden = !setupHand;
-      confirmSetupBtn.classList.toggle('disabled', !setupHand);
-    }
-    $('#cards-back').classList.toggle('disabled', setupHand);
-    // Update use button label based on mode
-    if (this._cardMode === 'hand') {
-      const idx = this._selectedCardIdx;
-      const page = pages[this._cardPage];
-      if (idx >= 0 && page.cards[idx]) {
-        const cd = this.resolver.getCard(page.cards[idx]);
-        $('#cards-use').textContent = page.stadium ? '使用场地效果' : this._useLabel(cd);
-      } else {
-        $('#cards-use').textContent = '使用';
-      }
-    } else if (['search-deck', 'search-discard', 'prize', 'pick-cards'].includes(this._cardMode)) {
-      const count = this._selectedCardIndices?.size || 0;
-      $('#cards-use').textContent = this._cardMode === 'pick-cards' && this._cardPickMax !== 1 ? `选择(${count}/${this._cardPickMax ?? count})` : '选择';
-    }
-
-    const list = $('#card-list');
-    list.innerHTML = '';
-    if (page.hidden) {
-      list.innerHTML = `<div class="bench-empty">${page.cards.length} 张 (不可查看)</div>`;
-      this._renderCardPreview(null);
-      return;
-    }
-    page.cards.forEach((cid, i) => {
-      const info = page.stadiumState?.card && page.stadium ? { name: page.stadiumState.name } : this.resolver.getInfo(cid);
-      const item = document.createElement('div');
-      const isSelected = this._cardMode === 'pick-cards' ? this._selectedCardIndices.has(i) : i === this._selectedCardIdx;
-      item.className = 'card-list-item' + (isSelected ? ' selected' : '');
-      item.dataset.idx = i;
-      item.textContent = info.name || cid;
-      if (this._cardArtEnabled() && typeof item.insertAdjacentHTML === 'function') {
-        item.insertAdjacentHTML('afterbegin', cardThumbImgHtml(cid, info.name || ''));
-      }
-      list.appendChild(item);
-    });
-    if (page.cards.length === 0) {
-      list.innerHTML = '<div class="bench-empty">空</div>';
-    }
-    this._renderCardPreview(this._selectedCardIdx >= 0 ? page.cards[this._selectedCardIdx] : (page.cards[0] || null));
-    this._renderCardLog();
-  }
-
-  _useLabel(cd) {
-    if (!cd) return '使用';
-    const ct = cd.cardType;
-    if (ct === 'pokemon') {
-      if (cd.ability?.active && ['hand','discard'].includes(cd.ability.zone)) return '特性';
-      return cd.evolvesFrom ? '进化' : '放置';
-    }
-    if (ct === 'energy' || ct === 'specialEnergy') return '附着';
-    if (ct === 'trainer') {
-      if (cd.trainerType === 'tool') return '装备';
-      if (cd.trainerType === 'stadium') return '打出';
-      return '使用';
-    }
-    return '使用';
-  }
-
-  _selectCardInList(idx) {
-    this._selectedCardIdx = idx;
-    const pages = this._getCardPages();
-    const page = pages[this._cardPage];
-    if (this._cardMode === 'pick-cards') {
-      if (this._selectedCardIndices.has(idx)) this._selectedCardIndices.delete(idx);
-      else {
-        if (this._cardPickMax != null && this._selectedCardIndices.size >= this._cardPickMax) {
-          const oldest = this._selectedCardIndices.values().next().value;
-          this._selectedCardIndices.delete(oldest);
-        }
-        this._selectedCardIndices.add(idx);
-      }
-      $$('.card-list-item').forEach((el, i) => el.classList.toggle('selected', this._selectedCardIndices.has(i)));
-      if (page.cards[idx]) this._renderCardPreview(page.cards[idx]);
-      $('#cards-use').textContent = this._cardPickMax !== 1 ? `选择(${this._selectedCardIndices.size}/${this._cardPickMax ?? this._selectedCardIndices.size})` : '选择';
-      return;
-    }
-    $$('.card-list-item').forEach((el, i) => el.classList.toggle('selected', i === idx));
-    if (page.cards[idx]) this._renderCardPreview(page.cards[idx]);
-    if (this._cardMode === 'hand') {
-      const cd = page.cards[idx] ? this.resolver.getCard(page.cards[idx]) : null;
-      $('#cards-use').textContent = page.stadium ? '使用场地效果' : this._useLabel(cd);
-    }
-  }
-
-  _renderCardPreview(cid) {
-    const thumb = $('#card-thumb');
-    const nameEl = $('#card-desc-name');
-    const textEl = $('#card-desc-text');
-    if (!cid) { thumb.innerHTML = ''; nameEl.textContent = ''; textEl.textContent = ''; return; }
-    const stadium = this._getCardPages?.()[this._cardPage]?.stadiumState || null;
-    const info = stadium && (stadium.cardId === cid || stadium.name === cid) ? { name:stadium.name, number:null } : this.resolver.getInfo(cid);
-    const cd = stadium && (stadium.cardId === cid || stadium.name === cid) ? stadium.card : this.resolver.getCard(cid);
-      const art = this._cardArtEnabled() ? cardFullImgHtml(cid, info.name || '') : '';
-      if (art) {
-        thumb.innerHTML = `${art}<div class="card-art-fallback" hidden>${info.name || ''}</div>`;
-      } else {
-        const src = pokemonSpriteSrc(info.number);
-        thumb.innerHTML = src ? pokemonSpriteImgHtml(info.number, info.name, { preferOnline: true }) : `<div style="font-size:16px;color:#4878a8">${info.name?.[0] || '?'}</div>`;
-      }
-    nameEl.textContent = info.name || '';
-    let desc = '';
-    if (cd) {
-      if (cd.cardType === 'pokemon') {
-        desc = `HP ${cd.hp || ''} ${cd.evolvesFrom ? `(由${cd.evolvesFrom}进化)` : '[基础]'}`;
-        if (cd.attacks?.length) desc += '\n' + cd.attacks.map(a => `${a.name} ${a.damage || ''}`).join(' / ');
-      } else if (cd.cardType === 'trainer') {
-        desc = `[${cd.trainerType}] ${cd.effectText || ''}`;
-      } else {
-        desc = cd.effectText || cd.name || '';
-      }
-    }
-    textEl.textContent = desc;
-  }
-
-  _renderCardLog() {
-    // Show recent log in card-desc-text area (append below preview)
-    const logEl = $('#card-desc-log');
-    if (!logEl) return;
-    if (this._cardLog.length === 0) { logEl.textContent = ''; return; }
-    logEl.textContent = this._cardLog.slice(-5).join('\n');
-  }
-
-  _latestLogOr(fallback) {
-    return this.gs?.log?.at?.(-1) || fallback;
-  }
-
-  _pushCardStatus(msg) {
-    this._cardLog.push(msg);
-    this._renderCardLog();
-  }
-
-  _setupBlockedCardMessage() {
-    return '初始布置阶段只能放置基础宝可梦';
-  }
-
-  async _confirmSetupFromCardScreen() {
-    if (!this._isSetupHandCardScreen()) return false;
-    const logStart = Array.isArray(this.gs?.log) ? this.gs.log.length : 0;
-    const ok = this.engine.advancePhase();
-    this._appendNewGameLogsToCardLog(logStart);
-    this._selectedCardIdx = -1;
-    if (ok === false || this.gs.phase === PHASE.SETUP) {
-      if (this._cardLog.length === 0) this._pushCardStatus(this._latestLogOr('请先放置战斗宝可梦'));
-      this._renderScene();
-      this._renderCardList();
-      this._openOverlay('screen-cards');
-      return false;
-    }
-    this._closeOverlay('screen-cards');
-    this._refresh();
-    return true;
-  }
-
-  _appendNewGameLogsToCardLog(startIndex) {
-    const logs = Array.isArray(this.gs?.log) ? this.gs.log.slice(Math.max(0, startIndex || 0)) : [];
-    for (const msg of logs) {
-      if (!this._cardLog.includes(msg)) this._cardLog.push(msg);
-    }
-    this._renderCardLog();
-  }
-
-  async _useSelectedCard() {
-    const pages = this._getCardPages();
-    const page = pages[this._cardPage];
-
-    // Search/prize mode: pick card and return via callback
-    if (['search-deck', 'search-discard', 'prize', 'pick-cards'].includes(this._cardMode)) {
-      let selected = [];
-      if (this._cardMode === 'pick-cards') {
-        selected = [...this._selectedCardIndices];
-        if (selected.length < (this._cardPickMin || 0)) return;
-        if (this._cardPickMax != null && selected.length > this._cardPickMax) return;
-      } else {
-        if (this._selectedCardIdx < 0 || !page.cards[this._selectedCardIdx]) return;
-        selected = [this._selectedCardIdx];
-      }
-      const cb = this._cardModeCb;
-      this._cardModeCb = null;
-      if (cb) cb(selected);
-      this._finishCardPickMode(true);
-      return;
-    }
-
-    if (page.stadium) {
-      if (this._selectedCardIdx < 0 || !page.cards[this._selectedCardIdx]) return;
-      const logStart = Array.isArray(this.gs?.log) ? this.gs.log.length : 0;
-      const ok = await this.engine.activateStadium(this.gs.player1);
-      this._appendNewGameLogsToCardLog(logStart);
-      if (!ok && this._cardLog.length === 0) this._cardLog.push(this._latestLogOr('无法使用场地效果'));
-      this._selectedCardIdx = -1;
-      this._renderScene();
-      this._renderCardList();
-      return;
-    }
-
-    // Hand/discard mode: use the card or zone ability
-    if (![0,1].includes(this._cardPage) || this._selectedCardIdx < 0) return;
-    const pl = this.gs.player1;
-    const idx = this._selectedCardIdx;
-    const zone = this._cardPage === 1 ? 'discard' : 'hand';
-    const cid = zone === 'discard' ? pl.discard[idx] : pl.hand[idx];
-    const cd = this.resolver.getCard(cid);
-    if (!cd) return;
-    const ct = cd.cardType;
-    const phase = this.gs.phase;
-
-    if (ct === 'pokemon' && cd.ability?.active && cd.ability.zone === zone) {
-      if (phase === PHASE.SETUP) { this._pushCardStatus(this._setupBlockedCardMessage()); return; }
-      const ok = await this.engine.useAbility(cd, cd.ability, { player: pl, zone });
-      this._cardLog.push(ok ? `使用了特性 ${cd.ability.name}` : '无法使用特性');
-      this._selectedCardIdx = -1;
-      this._renderScene();
-      this._renderCardList();
-      return;
-    }
-    if (zone !== 'hand') { this._cardLog.push('只能查看弃牌区'); this._renderCardLog(); return; }
-
-    // Cards that need a pokemon target → open pokemon screen
-    if (phase === PHASE.SETUP && !(ct === 'pokemon' && !cd.evolvesFrom)) {
-      this._pushCardStatus(this._setupBlockedCardMessage());
-      return;
-    }
-    if (ct === 'energy' || ct === 'specialEnergy') {
-      if (pl.energyAttached) { this._cardLog.push('已附着过能量'); this._renderCardLog(); return; }
-      this._openPokeScreen('energy', { handIdx: idx, data: cd });
-      return;
-    }
-    if (ct === 'pokemon' && cd.evolvesFrom) {
-      this._openPokeScreen('evolve', { handIdx: idx, data: cd });
-      return;
-    }
-    if (ct === 'trainer' && cd.trainerType === 'tool') {
-      this._openPokeScreen('tool', { handIdx: idx, data: cd });
-      return;
-    }
-
-    // Cards that resolve immediately — stay in card screen
-    if (ct === 'pokemon' && (phase === PHASE.SETUP || phase === PHASE.MAIN || phase === PHASE.BATTLE)) {
-      if (!pl.active) {
-        const ok = this.engine.placeActivePokemon(idx, cd);
-        this._cardLog.push(ok ? `${cd.name} 放置到战斗区` : (this.gs.log[this.gs.log.length - 1] || '无法放置到战斗区'));
-      } else if (pl.bench.length < 5) {
-        const ok = this.engine.placeBenchPokemon(idx, cd);
-        this._cardLog.push(ok ? `${cd.name} 放置到备战区` : (this.gs.log[this.gs.log.length - 1] || '无法放置到备战区'));
-      } else {
-        this._cardLog.push('备战区已满');
-      }
-    } else if (ct === 'trainer') {
-      const logStart = Array.isArray(this.gs?.log) ? this.gs.log.length : 0;
-      const ok = await this.engine.useTrainer(idx, cd);
-      this._appendNewGameLogsToCardLog(logStart);
-      if (ok) this._cardLog.push(`使用了 ${cd.name}`);
-      else if (this._cardLog.length === 0) this._cardLog.push(this._latestLogOr('无法使用训练家卡'));
-    }
-    // Stay in card screen, refresh
-    this._selectedCardIdx = -1;
-    this._renderScene();
-    this._renderCardList();
-  }
-
-  // ============================================================
-  //  [DEPRECATED] 旧全屏宝可梦界面（DOM 已删除；仅遗留方法，plan: Step B2 清理）
-  // ============================================================
-
-  /**
-   * Open pokemon screen in a given mode.
-   * @param {'view'|'energy'|'evolve'|'tool'|'swap'} mode
-   * @param {Object} targetData - {handIdx, data} for energy/evolve/tool modes
-   */
-  _openPokeScreen(mode = 'view', targetData = null) {
-    this._pokeMode = mode;
-    this._pokeTargetData = targetData;
-    this._pokePage = 0;
-    this._selectedBenchIdx = -1;
-    this._selectedPokeSlot = null;
-    this._openOverlay('screen-pokemon');
-    this._renderPokemonScreen();
-  }
-
-  _closePokeScreen() {
-    if (this._pendingPokemonResolve) {
-      const resolve = this._pendingPokemonResolve;
-      this._pendingPokemonResolve = null;
-      resolve(null);
-      return;
-    }
-    this._pokeMode = 'view';
-    this._pokeTargetData = null;
-    this._closeOverlay('screen-pokemon');
-    this._renderScene();
-  }
-
-  _changePokePage(dir) {
-    this._pokePage = (this._pokePage + dir + 2) % 2;
-    this._selectedBenchIdx = -1;
-    this._renderPokemonScreen();
-  }
-
-  _renderPokemonScreen() {
-    const pl = this._pokePage === 0 ? this.gs.player1 : this.gs.player2;
-    const isMySide = this._pokePage === 0;
-    const modeLabels = {
-      'view': '查看', 'energy': '选择附着目标', 'evolve': '选择进化目标',
-      'tool': '选择装备目标', 'swap': '选择换上场', 'effect-switch': '选择换上场', 'effect-target': '选择目标'
-    };
-    $('#poke-title').textContent = pokemonPickerTitleFor(isMySide, this._pokeTargetData?.options || {}, this._pokeMode === 'effect-switch' || this._pokeMode === 'effect-target');
-    $('#poke-page').textContent = `${this._pokePage + 1}/2`;
-
-    // Only normal hand targeting is restricted to own side; effect picks use their pending options.
-    const canTarget = isMySide && ['energy', 'evolve', 'tool'].includes(this._pokeMode);
-    const isEffectPick = this._pokeMode === 'effect-switch' || this._pokeMode === 'effect-target';
-    const effectPickOptions = isEffectPick ? (this._pokeTargetData?.options || {}) : null;
-    const allowActivePick = canTarget || (isMySide && this._pokeMode === 'view');
-    const allowBenchPick = isEffectPick ? false : true;
-    const selectedSlot = this._selectedPokeSlot || (this._selectedBenchIdx >= 0 ? `bench-${this._selectedBenchIdx}` : null);
-    const hasValidEffectPick = isEffectPick && pokemonPickerConfirmEnabled(selectedSlot, effectPickOptions);
-    const hasLegalEffectTarget = !isEffectPick || pokemonPickerHasLegalTarget(pl, effectPickOptions);
-    const canSwap = isMySide && (this._pokeMode === 'swap' || this._pokeMode === 'view');
-    const showAction = canTarget || canSwap || isEffectPick;
-    const selectedMon = this._getSelectedPokeMon(pl);
-    const canUseAbility = isMySide && this._pokeMode === 'view' && selectedMon?.ability?.active;
-    const actionLabel = canUseAbility ? '特性' : ({ 'energy': '附着', 'evolve': '进化', 'tool': '装备', 'swap': '交换', 'view': '交换', 'effect-switch': '确认' }[this._pokeMode] || '确认');
-    $('#poke-swap').textContent = (showAction || canUseAbility) ? actionLabel : '交换';
-    $('#poke-swap').classList.toggle('disabled', !(showAction || canUseAbility) || (isEffectPick ? !hasValidEffectPick : (canTarget ? !this._selectedPokeSlot : (canUseAbility ? false : this._selectedBenchIdx < 0))));
-
-    const body = $('#pokemon-body');
-    body.innerHTML = '';
-
-    // Active pokemon
-    const activeDiv = document.createElement('div');
-    activeDiv.className = 'pokemon-active';
-    if (pl.active) {
-      const info = this.resolver.getInfo(pl.active.cardId);
-      const src = pokemonSpriteSrc(info.number);
-      const activeSlotClass = isEffectPick
-        ? pokemonPickerSlotClass('active', effectPickOptions, this._selectedPokeSlot)
-        : { allowed: allowActivePick, className: `${allowActivePick ? ' selectable' : ''}${this._selectedPokeSlot === 'active' ? ' selected' : ''}` };
-      activeDiv.innerHTML = `
-        <div class="pokemon-active-sprite${activeSlotClass.className}" data-slot="active">${src ? pokemonSpriteImgHtml(info.number, pl.active.name, { preferOnline: true, back: true }) : ''}</div>
-        <div class="pokemon-active-name">${pl.active.name}</div>
-        <div class="pokemon-active-hp">HP ${pl.active.hp}/${pl.active.maxHp}</div>
-        <div class="energy-icons">${(pl.active.energy || []).map(e => `<span class="energy ${this._eleClass(e)}" title="${energyLabel(e)}"></span>`).join('')}</div>
-        <div class="pokemon-active-tag">${pl.active.ability?.active ? `特性:${pl.active.ability.name}` : '出战中'}</div>`;
-      if (activeSlotClass.allowed) {
-        const spriteEl = activeDiv.querySelector('.pokemon-active-sprite');
-        spriteEl.addEventListener('click', () => { this._selectedBenchIdx = -1; this._selectedPokeSlot = 'active'; this._renderPokemonScreen(); });
-      }
-    } else {
-      activeDiv.innerHTML = '<div class="bench-empty">无出战宝可梦</div>';
-    }
-    body.appendChild(activeDiv);
-
-    // Mode hint
-    if (showAction) {
-      const hint = document.createElement('div');
-      hint.className = 'poke-mode-hint';
-      hint.textContent = isEffectPick && !hasLegalEffectTarget ? `${modeLabels[this._pokeMode]}：无可选目标` : modeLabels[this._pokeMode];
-      body.appendChild(hint);
-    }
-
-    // Bench
-    const benchDiv = document.createElement('div');
-    benchDiv.className = 'pokemon-bench';
-    for (let i = 0; i < 5; i++) {
-      const mon = pl.bench[i];
-      const slot = document.createElement('div');
-      const slotName = `bench-${i}`;
-      const benchSlotClass = isEffectPick
-        ? pokemonPickerSlotClass(slotName, effectPickOptions, selectedSlot)
-        : { allowed: allowBenchPick, className: `${i === this._selectedBenchIdx ? ' selected' : ''}${allowBenchPick ? '' : ' disabled'}` };
-      slot.className = 'bench-slot' + (mon ? '' : ' empty') + (mon ? benchSlotClass.className : '');
-      if (mon) {
-        const info = this.resolver.getInfo(mon.cardId);
-        const src = pokemonSpriteSrc(info.number);
-        slot.innerHTML = `
-          <div class="bench-sprite">${src ? pokemonSpriteImgHtml(info.number, mon.name, { preferOnline: true, back: true }) : ''}</div>
-          <div><div class="bench-name">${mon.name}</div><div class="bench-hp">HP ${mon.hp}/${mon.maxHp}</div></div>`;
-        if (benchSlotClass.allowed) {
-          slot.addEventListener('click', () => { this._selectedBenchIdx = i; this._selectedPokeSlot = slotName; this._renderPokemonScreen(); });
-        }
-      } else {
-        slot.innerHTML = '<div class="bench-empty">空位</div>';
-      }
-      benchDiv.appendChild(slot);
-    }
-    body.appendChild(benchDiv);
-  }
-
-  async _onPokeAction() {
-    const mode = this._pokeMode;
-    if (mode === 'effect-switch' || mode === 'effect-target') {
-      const slot = this._selectedPokeSlot || (this._selectedBenchIdx >= 0 ? `bench-${this._selectedBenchIdx}` : null);
-      const options = this._pokeTargetData?.options || {};
-      if (!pokemonPickerSlotAllowed(slot, options)) return;
-      if (this._pendingPokemonResolve) this._pendingPokemonResolve(slot);
-      return;
-    }
-    if (mode === 'view') {
-      const mon = this._getSelectedPokeMon(this.gs.player1);
-      if (mon?.ability?.active) {
-        const ok = await this.engine.useAbility(mon, mon.ability, { player: this.gs.player1, zone: this.gs.inferAbilityZone?.(this.gs.player1, mon) || 'field' });
-        this._showMessage(ok ? `使用了特性 ${mon.ability.name}` : '无法使用特性');
-        this._renderPokemonScreen();
-        return;
-      }
-      this._swapPokemon();
-      return;
-    }
-    if (mode === 'swap') {
-      this._swapPokemon();
-      return;
-    }
-    // energy / evolve / tool — resolve target then return to card screen
-    const slot = this._selectedPokeSlot || (this._selectedBenchIdx >= 0 ? `bench-${this._selectedBenchIdx}` : null);
-    const tm = this._pokeTargetData;
-    if (!tm || !slot) return;
-
-    if (mode === 'energy') {
-      const ok = await this.engine.attachEnergy(tm.handIdx, tm.data, slot);
-      this._cardLog.push(ok ? `为${slot === 'active' ? '出战' : '备战'}宝可梦附着了${tm.data.name}` : '附着失败');
-      // Execute special energy effects on attach
-      if (ok && tm.data.effects?.length) {
-        try { await executeEffects(this.gs, this.gs.player1, tm.data.effects); } catch(e) { this._cardLog.push(`能量效果: ${e.message}`); }
-      }
-    } else if (mode === 'evolve') {
-      const ok = this.engine.evolvePokemon(tm.handIdx, tm.data, slot);
-      this._cardLog.push(ok ? `进化成功！` : '无法进化');
-    } else if (mode === 'tool') {
-      const ok = await this.engine.useTrainer(tm.handIdx, tm.data, slot);
-      this._cardLog.push(ok ? `装备了${tm.data.name}` : this._latestLogOr('装备失败'));
-    }
-
-    // Return to card screen (not main)
-    this._pokeMode = 'view';
-    this._pokeTargetData = null;
-    this._closeOverlay('screen-pokemon');
-    this._selectedCardIdx = -1;
-    this._renderScene();
-    this._renderCardList();
-  }
-
-  _getSelectedPokeMon(pl) {
-    if (this._selectedPokeSlot === 'active') return pl.active;
-    if (this._selectedBenchIdx >= 0) return pl.bench[this._selectedBenchIdx];
-    return null;
-  }
-
-  async _swapPokemon() {
-    if (this._pokePage !== 0 || this._selectedBenchIdx < 0) return;
-    const pl = this.gs.player1;
-    const benchIndex = this._selectedBenchIdx;
-    if (!pl.bench[benchIndex]) return;
-    const cost = this.gs.effectiveRetreatCost ? this.gs.effectiveRetreatCost(pl.active) : (pl.active?.retreatCostOverride ?? pl.active?.retreatCost ?? 1);
-    if (cost > 0 && (pl.active.energy || []).length > 0) {
-      if (!this.gs._canPayRetreatCost(pl.active, cost)) { this._showMessage('撤退能量不足'); return; }
-      const picked = await this.gs.waitForPick((pl.active.energy || []).map(energyLabel), (pl.active.energy || []).length, { source:'retreat-energy', cost, allowEmpty:true });
-      if (!picked || picked.length === 0) { this._showMessage('已取消撤退'); return; }
-      if (!this.gs._canSelectedEnergyPayRetreat(pl.active, cost, picked)) { this._showMessage('选择的能量不足'); return; }
-      const ok = this.gs.retreat(pl, benchIndex, picked);
-      if (!ok) { this._showMessage(this.gs.log[this.gs.log.length - 1] || '无法撤退'); return; }
-    } else {
-      const ok = this.gs.retreat(pl, benchIndex);
-      if (!ok) { this._showMessage(this.gs.log[this.gs.log.length - 1] || '无法撤退'); return; }
-    }
-    this._closeOverlay('screen-pokemon');
-    this._refresh();
-  }
-
   // === Fight Panel ===
   _showFightPanel() {
     const mon = this.gs.player1.active;
@@ -938,69 +319,9 @@ export class PTCGBattleApp {
   }
 
   // === Target Panel (legacy, kept for compatibility) ===
-  _showTargetPanel(text) {
-    const menu = $('#target-menu');
-    menu.innerHTML = '';
-    const pl = this.gs.player1;
-    if (pl.active) {
-      const item = document.createElement('div');
-      item.className = 'menu-item selected';
-      item.dataset.slot = 'active';
-      item.textContent = `${pl.active.name} (出战)`;
-      menu.appendChild(item);
-    }
-    pl.bench.forEach((mon, i) => {
-      const item = document.createElement('div');
-      item.className = 'menu-item';
-      item.dataset.slot = 'bench-' + i;
-      item.textContent = `${mon.name} (备战)`;
-      menu.appendChild(item);
-    });
-    const back = document.createElement('div');
-    back.className = 'menu-item back-item';
-    back.textContent = '← 返回';
-    menu.appendChild(back);
-    $('#target-text').textContent = text;
-    this._showPanel('panel-target');
-  }
-
-  _resolveTarget(slot) {
-    if (!this._pokeTargetData) return;
-    const mode = this._pokeMode;
-    const tm = this._pokeTargetData;
-    this._pokeMode = 'view';
-    this._pokeTargetData = null;
-    if (mode === 'energy') this.engine.attachEnergy(tm.handIdx, tm.data, slot);
-    else if (mode === 'evolve') this.engine.evolvePokemon(tm.handIdx, tm.data, slot);
-    else if (mode === 'tool') this.engine.useTrainer(tm.handIdx, tm.data, slot);
-    this._showPanel('panel-main');
-    this._refresh();
-  }
-
-  // === Pick Handler (for effects that need card selection) ===
   _handlePick(pick) {
     // 去全屏界面：候选卡在右下操作区滚动列表中选择
     this._showPickCards(pick);
-  }
-
-  _handlePickLegacy(pick) {
-    const isRetreat = pick.options?.source === 'retreat-energy';
-    const title = cardPickerTitleFor(pick);
-    const wasCardScreenOpen = !!$('#screen-cards')?.classList?.contains('active') && this._cardMode !== 'pick-cards';
-    if (wasCardScreenOpen) {
-      if (!Array.isArray(this._cardScreenReturnStack)) this._cardScreenReturnStack = [];
-      this._cardScreenReturnStack.push(this._captureCardScreenState());
-    }
-    const cb = (selectedIdx) => {
-      this.gs.resolvePick(selectedIdx);
-      if (!wasCardScreenOpen) this._refresh();
-    };
-    const bounds = derivePickBounds(pick);
-    cb.max = bounds.max;
-    cb.min = bounds.min;
-    cb.allowEmpty = bounds.allowEmpty;
-    cb.allowFewer = bounds.allowFewer;
-    this._openCardScreen('pick-cards', cb, pick.cards || [], title, { preserveLog: wasCardScreenOpen });
   }
 
   _handlePokemonPick(pick) {
@@ -1008,25 +329,6 @@ export class PTCGBattleApp {
     this._showPickPokemon(pick);
   }
 
-  _handlePokemonPickLegacy(pick) {
-    // Use the pokemon-screen template to pick an effect target or replacement pokemon
-    const oldMode = this._pokeMode;
-    this._pokeMode = pick.options?.mode === 'switch' ? 'effect-switch' : 'effect-target';
-    this._pokeTargetData = { pendingPokemonPick: true, options: pick.options || {} };
-    this._pokePage = pick.player === this.gs.player2 ? 1 : 0;
-    this._selectedBenchIdx = -1;
-    this._selectedPokeSlot = null;
-    this._openOverlay('screen-pokemon');
-    this._renderPokemonScreen();
-    this._pendingPokemonResolve = (slot) => {
-      this._pendingPokemonResolve = null;
-      this.gs.resolvePokemonPick(slot);
-      this._pokeMode = oldMode || 'view';
-      this._pokeTargetData = null;
-      this._closeOverlay('screen-pokemon');
-      this._refresh();
-    };
-  }
 
   // === Rendering ===
   _showSetupFailureStatus() {
@@ -1044,7 +346,9 @@ export class PTCGBattleApp {
 
   _syncPlayerMainPanel() {
     if (this.gs.phase !== PHASE.MAIN || this.gs.currentPlayer !== this.gs.player1) return;
-    if ($('#screen-cards')?.classList.contains('active') || $('#screen-pokemon')?.classList.contains('active')) return;
+    // 正在操作区列表（手牌/场地/动作子菜单/选卡）中浏览时不打断
+    const active = document.querySelector('.dialog-panel.active');
+    if (active && active.id === 'panel-list') return;
     this._showPanel('panel-main');
   }
 
@@ -1177,6 +481,7 @@ export class PTCGBattleApp {
 
   // 手牌列表（滚动）：点击进入卡牌动作子菜单
   _showHandList() {
+    this._returnView = 'hand';
     const pl = this.gs.player1;
     const hand = pl?.hand || [];
     const items = hand.map((cid, idx) => {
@@ -1188,6 +493,18 @@ export class PTCGBattleApp {
       };
     });
     if (!items.length) items.push({ label: '（手牌为空）', disabled: true });
+    if (this.gs.phase === PHASE.SETUP) {
+      const hasBasic = this.gs.hasBasicInHand ? this.gs.hasBasicInHand(pl) : true;
+      items.push({
+        label: '确认布置',
+        meta: hasBasic ? '' : '手牌没有基础宝可梦，请先重新抽牌',
+        onSelect: () => {
+          const ok = this.engine.advancePhase();
+          if (ok === false) this._showSetupFailureStatus();
+          else this._refresh();
+        },
+      });
+    }
     items.push({ label: '查看弃牌区', meta: `${pl.discard?.length || 0} 张`, onSelect: () => this._showDiscardList() });
     this._showListView(items, { onBack: () => { this._refresh(); this._showPanel('panel-main'); } });
   }
@@ -1229,8 +546,10 @@ export class PTCGBattleApp {
     }
     if (cd.cardType === 'trainer' && cd.trainerType !== 'tool') {
       const label = cd.trainerType === 'supporter' ? '使用支援者' : cd.trainerType === 'stadium' ? '打出竞技场' : '使用物品';
-      const disabled = cd.trainerType === 'supporter' && !!pl.supporterUsed;
-      items.push({ label, meta: disabled ? '本回合已使用过支援者' : '', disabled, onSelect: async () => { await this.engine.useTrainer(idx, cd); done(); } });
+      // 与引擎一致的合法性判定：先攻最初回合禁支援者、每回合 1 张支援者、使用前提等
+      const check = this.gs.canUseTrainer ? this.gs.canUseTrainer(pl, cd, null) : { ok: true };
+      const reason = check.ok ? '' : (this.gs._trainerLegalityMessage?.(check) || '当前不可用');
+      items.push({ label, meta: reason, disabled: !check.ok, onSelect: async () => { await this.engine.useTrainer(idx, cd); done(); } });
     }
     if (cd.ability?.active && ['hand', 'discard'].includes(cd.ability.zone)) {
       const zone = cd.ability.zone;
@@ -1242,6 +561,7 @@ export class PTCGBattleApp {
 
   // 宝可梦列表（出战 + 备战）
   _showPokemonList() {
+    this._returnView = 'pokemon';
     const pl = this.gs.player1;
     const items = [];
     const push = (slot, mon, tag) => {
@@ -1321,7 +641,6 @@ export class PTCGBattleApp {
     if (slot === 'active' && (pl.bench || []).some(Boolean)) {
       items.push({ label: '撤退', meta: '选择换上的备战宝可梦', onSelect: () => this._showBenchForRetreat() });
     }
-    items.push({ label: '返回宝可梦', onSelect: () => this._showPokemonList() });
     this._showListView(items, { onBack: () => this._showPokemonList() });
   }
 
@@ -1402,7 +721,7 @@ export class PTCGBattleApp {
     const finish = (indices) => {
       this.gs.resolvePick(indices);
       this._refresh();
-      this._showPanel('panel-main');
+      this._goBackToList();
     };
     const render = () => {
       const items = cards.map((label, i) => ({
@@ -1434,7 +753,7 @@ export class PTCGBattleApp {
     const finish = (slot) => {
       this.gs.resolvePokemonPick(slot);
       this._refresh();
-      this._showPanel('panel-main');
+      this._goBackToList();
     };
     const items = [];
     const push = (slot, mon, tag) => {
@@ -1448,11 +767,17 @@ export class PTCGBattleApp {
     this._showListView(items, { onBack: () => finish(null) });
   }
 
-  // 动作完成后回到主菜单（有待选集时保持列表）
+  // 动作完成后回到来源页签（卡牌→手牌列表；场地→场地列表），便于连续操作
+  _goBackToList() {
+    if (this._returnView === 'hand') this._showHandList();
+    else if (this._returnView === 'pokemon') this._showPokemonList();
+    else this._showPanel('panel-main');
+  }
+
   _afterAction() {
     if (this.gs.pendingPick || this.gs.pendingPokemonPick) return; // 等待玩家继续选择
     this._refresh();
-    this._syncPlayerMainPanel();
+    this._goBackToList();
   }
 
   _updateMainMenu() {
