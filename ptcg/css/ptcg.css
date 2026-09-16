@@ -1,3 +1,30 @@
+/* ================= 安全区（刘海 / home 指示条）间距 =================
+   统一入口：所有需要避让安全区的地方都用下面两个变量。
+
+   为什么需要这层封装：
+   iOS PWA（display-mode: standalone）配合
+   apple-mobile-web-app-status-bar-style = black-translucent 时，
+   页面内容会从屏幕最顶端开始（背景得以铺满刘海区，这是我们要的），
+   但 iOS 在该模式下会把 env(safe-area-inset-*) 报为 0（已知行为），
+   于是 max(15px, env(safe-area-inset-top, 0px)) 退化成 15px，
+   固定在顶部的搜索栏就钻进了刘海。
+   => PWA 模式下改用状态栏/指示条的常见高度兜底。 */
+
+:root {
+    --ptcg-safe-top: env(safe-area-inset-top, 0px);
+    --ptcg-safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@media (display-mode: standalone) {
+    :root {
+        /* 47px 对应 iPhone 刘海机型（12/13/14/15/16 非 Pro）的状态栏高度；
+           灵动岛机型约 59px，若觉得贴得太紧可上调该值。 */
+        --ptcg-safe-top: max(env(safe-area-inset-top, 0px), 47px);
+        /* 34px 对应底部 home 指示条高度。 */
+        --ptcg-safe-bottom: max(env(safe-area-inset-bottom, 0px), 34px);
+    }
+}
+
 /* 搜索头部 - 固定在顶部 */
 .search-header {
     position: sticky;
@@ -13,7 +40,7 @@
     max-width: 1200px;
     margin: 0 auto;
     box-sizing: border-box;
-    padding-top: max(15px, env(safe-area-inset-top, 0px));
+    padding-top: max(15px, var(--ptcg-safe-top));
 }
 
 /* 搜索容器 */
@@ -627,7 +654,7 @@
         width: 100%;
         z-index: 1001;
         padding: 12px 15px 0 15px;
-        padding-top: max(12px, env(safe-area-inset-top, 0px));
+        padding-top: max(12px, var(--ptcg-safe-top));
     }
     
     /* 内容区域给固定的卡组页签留空间 */
@@ -679,9 +706,10 @@
         border-radius: 16px;
     }
 
-    /* 手机端搜索栏调整 */
+    /* 手机端搜索栏调整（同样要避让安全区，PWA 下 env() 为 0 时靠变量兜底） */
     .search-header {
         padding: 10px 12px 0 12px;
+        padding-top: max(10px, var(--ptcg-safe-top));
     }
     
     .content-wrapper {
@@ -1073,7 +1101,7 @@
 
 .fab-container {
     position: fixed;
-    bottom: max(20px, env(safe-area-inset-bottom, 0px));
+    bottom: max(20px, var(--ptcg-safe-bottom));
     left: 20px;
     z-index: 1000;
 }
@@ -2316,7 +2344,7 @@ input, textarea, .search-input, [contenteditable="true"] {
     }
     .ai-chat-input-area {
         padding: 10px 12px;
-        padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
+        padding-bottom: max(10px, var(--ptcg-safe-bottom));
     }
     .api-key-modal-content {
         padding: 24px;
