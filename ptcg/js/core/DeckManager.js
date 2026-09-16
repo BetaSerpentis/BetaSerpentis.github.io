@@ -453,6 +453,16 @@ export class DeckManager {
     }
 
     // 清理精简格式的卡组数据
+    // PTCG 规则：同名牌最多 4 张，但「基本能量」不限数量。
+    // 导入/清理卡组时按类型决定上限，避免把基本能量错误截断到 4 张导致卡组不满 60。
+    _maxQuantityFor(cardId) {
+        try {
+            const info = this.getCardDetails(cardId);
+            if (info && info.type === '基本能量') return 99;
+        } catch (e) { /* 查不到类型时按默认 4 处理 */ }
+        return 4;
+    }
+
     cleanMinimizedDeckData(deck) {
         try {
             const cleanedDeck = {
@@ -468,7 +478,7 @@ export class DeckManager {
                     if (card.id && typeof card.quantity === 'number' && card.quantity > 0) {
                         cleanedDeck.cards.push({
                             id: card.id.toString(),
-                            quantity: Math.min(card.quantity, 4)
+                            quantity: Math.min(card.quantity, this._maxQuantityFor(card.id))
                         });
                     }
                 });
@@ -504,7 +514,7 @@ export class DeckManager {
                                 id: card.id.toString(),
                                 name: cardDetails.name || '未知卡牌',
                                 image: cardDetails.image || '',
-                                quantity: Math.min(card.quantity, 4)
+                                quantity: Math.min(card.quantity, cardDetails.type === '基本能量' ? 99 : 4)
                             });
                         }
                     }

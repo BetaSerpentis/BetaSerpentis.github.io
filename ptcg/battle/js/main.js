@@ -3,7 +3,8 @@ import { GameState, PHASE } from './core/GameState.js';
 import { BattleEngine } from './core/BattleEngine.js';
 import { CardResolver } from './core/CardResolver.js';
 import { executeEffects } from './core/EffectExecutor.js';
-import { TEST_DECKS, expandDeck } from './data/decks.js';
+import { expandDeck } from './data/decks.js';
+import { DeckSource } from './core/DeckSource.js';
 import { pokemonSpriteImgHtml, pokemonSpriteSrc, cardThumbImgHtml, cardFullImgHtml } from './ui/SpriteUtils.js';
 
 // 卡面显示开关（true=卡图缩略图；后续可切 false 只保留名字与标签）
@@ -130,26 +131,59 @@ export class PTCGBattleApp {
     this.gs._onPendingPick = pick => this._handlePick(pick);
     this.gs._onPendingPokemonPick = pick => this._handlePokemonPick(pick);
     this._bindAll();
+    this._bindHostReturn();
     this._fitScreen();
     window.addEventListener('resize', () => this._fitScreen());
     this._showDeckSelect();
   }
 
+  // SPA 宿主模式：提供「返回卡牌库」入口（独立来源/无宿主时不显示）
+  _bindHostReturn() {
+    const btn = document.getElementById('deck-back');
+    if (!btn) return;
+    if (!window.__PTCG_BATTLE_HOST__) { btn.hidden = true; return; }
+    btn.hidden = false;
+    btn.addEventListener('click', () => {
+      if (typeof window.__ptcgReturnToLibrary === 'function') window.__ptcgReturnToLibrary();
+    });
+  }
+
   // === Deck Selection ===
+  // 卡组来源：读取同源 ptcg 卡牌库（localStorage 'ptcg_decks'）中的卡组；
+  // 玩家与对手共用同一份可用列表，各选一套。不可用时回退内置卡组。
   _showDeckSelect() {
     const body = $('#deck-select-body');
+    this._deckResult = new DeckSource(this.resolver).load();
+    this._decks = this._deckResult.decks;
     this._playerDeck = 0;
-    this._oppDeck = 1;
+    this._oppDeck = this._decks.length > 1 ? 1 : 0;
     this._renderDeckSelect(body);
     $('#screen-deck-select').classList.add('active');
     $('#deck-start').addEventListener('click', () => {
       $('#screen-deck-select').classList.remove('active');
-      this._startGame(TEST_DECKS[this._playerDeck], TEST_DECKS[this._oppDeck]);
+      this._startGame(this._decks[this._playerDeck], this._decks[this._oppDeck]);
     });
+  }
+
+  /** 卡组来源提示文本（供卡组选择页与宿主显示） */
+  deckSourceHint() {
+    if (!this._deckResult) return '';
+    const sourceText = this._deckResult.source === 'ptcg'
+      ? `卡组来自卡牌库（共 ${this._decks ? this._decks.length : 0} 套可用）`
+      : '卡组来自内置（卡牌库中未找到可用卡组）';
+    const warnings = this._deckResult.warnings || [];
+    return warnings.length ? `${sourceText}｜${warnings.slice(0, 2).join('；')}` : sourceText;
   }
 
   _renderDeckSelect(body) {
     body.innerHTML = '';
+
+    // 来源与异常提示行
+    const hint = document.createElement('div');
+    hint.className = 'deck-source-hint';
+    hint.textContent = this.deckSourceHint();
+    body.appendChild(hint);
+
     const cols = [
       { title: '你的卡组', key: '_playerDeck' },
       { title: '对手卡组', key: '_oppDeck' }
@@ -158,12 +192,13 @@ export class PTCGBattleApp {
       const div = document.createElement('div');
       div.className = 'deck-column';
       div.innerHTML = `<div class="deck-column-title">${col.title}</div>`;
-      TEST_DECKS.forEach((deck, i) => {
+      this._decks.forEach((deck, i) => {
         const opt = document.createElement('div');
         opt.className = 'deck-option' + (this[col.key] === i ? ' selected' : '');
         const info = this.resolver.getInfo(deck.coverCardId);
         const imgSrc = pokemonSpriteSrc(info.number);
-        opt.innerHTML = `${imgSrc ? pokemonSpriteImgHtml(info.number, info.name, { preferOnline: true }) : ''}<span>${deck.name}</span>`;
+        const count = deck.totalCount ? ` (${deck.totalCount}张)` : '';
+        opt.innerHTML = `${imgSrc ? pokemonSpriteImgHtml(info.number, info.name, { preferOnline: true }) : ''}<span>${deck.name}${count}</span>`;
         opt.addEventListener('click', () => { this[col.key] = i; this._renderDeckSelect(body); });
         div.appendChild(opt);
       });
@@ -930,6 +965,51 @@ export class PTCGBattleApp {
   }
 }
 
+// === 挂载入口（SPA 嵌入 / 独立页共用）===
+
+let _battleAppInstance = null;
+
+/** 挂载战斗应用（单例：重复调用只初始化一次，切页保留对战状态与 resize 监听） */
+export function mountBattleApp() {
+  if (_battleAppInstance) return _battleAppInstance;
+  const root = document.getElementById('battle-app');
+  if (!root) {
+    console.warn('[Battle] 未找到 #battle-app 容器，无法挂载');
+    return null;
+  }
+  _battleAppInstance = new PTCGBattleApp();
+  return _battleAppInstance;
+}
+
+export function getBattleApp() {
+  return _battleAppInstance;
+}
+
+/** 显示战斗视图（仅切换 class，不重新加载页面、不丢对战状态） */
+export function showBattleApp() {
+  const root = document.getElementById('battle-app');
+  if (!root) return null;
+  const app = mountBattleApp();
+  root.classList.add('active');
+  document.body.classList.add('ptcg-battle-active');
+  app?._fitScreen?.();
+  return app;
+}
+
+/** 隐藏战斗视图（回到卡牌库） */
+export function hideBattleApp() {
+  const root = document.getElementById('battle-app');
+  if (root) root.classList.remove('active');
+  document.body.classList.remove('ptcg-battle-active');
+}
+
+// 兜底：页面存在 #battle-app 时自动展示战斗视图。
+// SPA 宿主会先设 window.__PTCG_BATTLE_HOST__ = true 再显式调用 showBattleApp()。
 if (typeof document !== 'undefined') {
-  document.addEventListener('DOMContentLoaded', () => new PTCGBattleApp());
+  const autoMount = () => {
+    if (!document.getElementById('battle-app')) return;
+    showBattleApp();
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', autoMount);
+  else autoMount();
 }
