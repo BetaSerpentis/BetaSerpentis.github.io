@@ -172,7 +172,7 @@ footer {
 
 @supports (padding-top: env(safe-area-inset-top)) {
     body {
-        padding-top: env(safe-area-inset-top);
-        padding-bottom: env(safe-area-inset-bottom);
+        padding-top: var(--ptcg-safe-top);
+        padding-bottom: var(--ptcg-safe-bottom);
     }
 }
