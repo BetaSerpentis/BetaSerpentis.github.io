@@ -49,3 +49,10 @@ body.ptcg-battle-active .container,
 body.ptcg-battle-active footer {
     visibility: hidden;
 }
+
+/* 战斗视图激活时隐藏卡牌库的浮动操作按钮（FAB）及其遮罩：
+   它是卡牌库的功能入口，战斗页无意义，且 z-index:1000 会在视觉上干扰底部留空。 */
+body.ptcg-battle-active .fab-container,
+body.ptcg-battle-active .fab-backdrop {
+    display: none;
+}
