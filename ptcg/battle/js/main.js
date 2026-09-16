@@ -987,18 +987,13 @@ export function getBattleApp() {
 
 /** 显示战斗视图（仅切换 class，不重新加载页面、不丢对战状态） */
 let _hostScrollY = 0;
-let _hostThemeColor = null;
 
 export function showBattleApp() {
   const root = document.getElementById('battle-app');
   if (!root) return null;
   // 记住宿主滚动位置：body 在战斗期间 overflow:hidden 会重置它
   try { _hostScrollY = window.scrollY || 0; } catch (e) { _hostScrollY = 0; }
-  // Safari 工具栏/状态栏配色跟随场地：宿主 theme-color 是 #000000，战斗期间改为草原色
-  try {
-    const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) { _hostThemeColor = meta.getAttribute('content'); meta.setAttribute('content', '#6bb043'); }
-  } catch (e) { /* ignore */ }
+  // 注：宿主已不再声明 theme-color（否则 Safari 会用固定色渲染状态栏区域，遮挡场地背景），因此这里不需要切换。
   const app = mountBattleApp();
   root.classList.add('active');
   document.body.classList.add('ptcg-battle-active');
@@ -1015,11 +1010,7 @@ export function hideBattleApp() {
   document.documentElement.classList.remove('ptcg-battle-active');
   // 恢复宿主滚动位置（切页前用户看到的位置）
   try { window.scrollTo(0, _hostScrollY); } catch (e) { /* ignore */ }
-  // 还原宿主 theme-color
-  try {
-    const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta && _hostThemeColor !== null) meta.setAttribute('content', _hostThemeColor);
-  } catch (e) { /* ignore */ }
+
 }
 
 // 兜底：页面存在 #battle-app 时自动展示战斗视图。

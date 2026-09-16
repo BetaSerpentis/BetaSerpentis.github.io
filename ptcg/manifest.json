@@ -5,7 +5,7 @@
   "scope": "/ptcg/", 
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "theme_color": "#0d0d0f",
   "orientation": "portrait",
   "icons": [
     {

@@ -8,8 +8,12 @@
     <link rel="stylesheet" href="css/battle-host.css">
     <link rel="stylesheet" href="battle/style.css">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#000000">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- 注意：这里刻意不声明 theme-color 与 
+         apple-mobile-web-app-status-bar-style。
+         black-translucent 会让 iOS 把状态栏（刘海）区域填成黑色，
+         且 Safari 优先用 theme-color(#000000) 渲染浏览器 UI，
+         导致页面背景无法透到刘海区（原 ptcgBattle 独立页没有这两个 meta，
+         所以刘海正常显示场地色）。移除后 Safari 回退为「跟随页面背景」。 -->
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <meta name="apple-mobile-web-app-orientations" content="portrait">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
