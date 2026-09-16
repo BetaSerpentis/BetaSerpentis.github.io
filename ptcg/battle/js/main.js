@@ -986,9 +986,13 @@ export function getBattleApp() {
 }
 
 /** 显示战斗视图（仅切换 class，不重新加载页面、不丢对战状态） */
+let _hostScrollY = 0;
+
 export function showBattleApp() {
   const root = document.getElementById('battle-app');
   if (!root) return null;
+  // 记住宿主滚动位置：body 在战斗期间 overflow:hidden 会重置它
+  try { _hostScrollY = window.scrollY || 0; } catch (e) { _hostScrollY = 0; }
   const app = mountBattleApp();
   root.classList.add('active');
   document.body.classList.add('ptcg-battle-active');
@@ -1001,6 +1005,8 @@ export function hideBattleApp() {
   const root = document.getElementById('battle-app');
   if (root) root.classList.remove('active');
   document.body.classList.remove('ptcg-battle-active');
+  // 恢复宿主滚动位置（切页前用户看到的位置）
+  try { window.scrollTo(0, _hostScrollY); } catch (e) { /* ignore */ }
 }
 
 // 兜底：页面存在 #battle-app 时自动展示战斗视图。

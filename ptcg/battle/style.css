@@ -10,6 +10,8 @@
   --hp-red: #ff3b30;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  /* 顶部/底部统一留空：取两者较大值，保证刘海区与下方留空视觉对称 */
+  --safe-gap: max(var(--safe-top), var(--safe-bottom));
   /* 场地草原渐变（与 pmBattle 同源） */
   --field-bg:
     radial-gradient(ellipse 34% 12% at 24% 48%, rgba(255, 253, 175, .26) 0%, transparent 72%),
@@ -32,13 +34,19 @@
 
 /* 本文件全部规则限定在 #battle-app 作用域内（原 * / html,body / body 全局规则已改造），
    以便作为 ptcg 卡牌库的嵌入式视图共存，不污染宿主布局与滚动。 */
-#battle-app,
-#battle-app * { margin: 0; padding: 0; box-sizing: border-box; }
+/* 注意：必须用 :where() 把优先级降为 0 ——
+   若写成 '#battle-app *'（优先级 1,0,0），会压过 .overlay-screen / .overlay-header 等
+   所有类选择器上的 padding/margin，导致战斗页内边距与按钮尺寸全部失效。 */
+:where(#battle-app, #battle-app *) { margin: 0; padding: 0; box-sizing: border-box; }
 
 #battle-app [hidden] { display: none !important; }
 
-/* 战斗视图激活时锁住宿主页面滚动 */
-body.ptcg-battle-active { overflow: hidden; }
+/* 战斗视图激活时：锁住宿主滚动，并给宿主也铺上场地背景 ——
+   #battle-app 为 fixed 覆盖层，在部分 iOS 场景（动态视口/刘海区）可能露出宿主底色，此处兜底。 */
+body.ptcg-battle-active {
+  overflow: hidden;
+  background: var(--field-bg);
+}
 
 #battle-app {
   position: fixed;
@@ -50,7 +58,8 @@ body.ptcg-battle-active { overflow: hidden; }
   color: var(--text);
   background: var(--field-bg);
   overflow: hidden;
-  z-index: 1000;
+  /* 必须高于宿主 .search-header 的 z-index:1001，否则会被固定在顶部的搜索栏压住 */
+  z-index: 1200;
 }
 
 #battle-app.active { display: block; }
@@ -62,8 +71,8 @@ body.ptcg-battle-active { overflow: hidden; }
   height: 100dvh;
   max-height: 960px;
   margin: 0 auto;
-  padding-top: calc(var(--safe-top) + 10px);
-  padding-bottom: calc(var(--safe-bottom) + 10px);
+  /* 注意：本层子元素均为 absolute，包含块是其 padding box，
+     故 safe-area 留空必须加在各元素自身（见 --safe-gap 用法）。 */
   overflow: hidden;
   background: var(--field-bg);
 }
@@ -85,8 +94,8 @@ body.ptcg-battle-active { overflow: hidden; }
   border: none;
   min-width: 0;
 }
-.info-box.opponent-info { top: 14px; right: 6px; }
-.info-box.player-info { bottom: 14px; left: 6px; }
+.info-box.opponent-info { top: calc(var(--safe-gap) + 14px); right: 6px; }
+.info-box.player-info { bottom: calc(var(--safe-gap) + 14px); left: 6px; }
 
 .info-top {
   display: flex;
@@ -218,8 +227,8 @@ body.ptcg-battle-active { overflow: hidden; }
   width: 50%;
   z-index: 2;
 }
-.sprite-slot.opponent-sprite { top: 76px; right: 0; }
-.sprite-slot.player-sprite { bottom: 76px; left: 0; }
+.sprite-slot.opponent-sprite { top: calc(var(--safe-gap) + 76px); right: 0; }
+.sprite-slot.player-sprite { bottom: calc(var(--safe-gap) + 76px); left: 0; }
 
 .platform {
   position: absolute;
@@ -300,7 +309,7 @@ body.ptcg-battle-active { overflow: hidden; }
 /* ================= 战斗日志（左上浮层，pmBattle 风） ================= */
 #battle-log {
   position: absolute;
-  top: 14px; left: 6px;
+  top: calc(var(--safe-gap) + 14px); left: 6px;
   width: 44%;
   z-index: 4;
   pointer-events: none;
@@ -325,7 +334,7 @@ body.ptcg-battle-active { overflow: hidden; }
 #main-text, #fight-text, #target-text, #msg-text { display: none; }
 #dialog-area {
   position: absolute;
-  bottom: 14px; right: 6px;
+  bottom: calc(var(--safe-gap) + 14px); right: 6px;
   width: 46%;
   z-index: 10;
   background: none;
@@ -402,6 +411,9 @@ body.ptcg-battle-active { overflow: hidden; }
   display: none;
   position: absolute;
   inset: 0;
+  /* 全屏覆盖层同样要避开刘海/底部横条（其包含块是 #screen 的 padding box） */
+  padding-top: var(--safe-gap);
+  padding-bottom: var(--safe-gap);
   background: rgba(10, 14, 28, .92);
   backdrop-filter: blur(4px);
   flex-direction: column;
