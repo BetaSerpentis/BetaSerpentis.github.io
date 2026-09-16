@@ -30,25 +30,30 @@
       #6bb043 55%, #5da838 100%);
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+/* 本文件全部规则限定在 #battle-app 作用域内（原 * / html,body / body 全局规则已改造），
+   以便作为 ptcg 卡牌库的嵌入式视图共存，不污染宿主布局与滚动。 */
+#battle-app,
+#battle-app * { margin: 0; padding: 0; box-sizing: border-box; }
 
-[hidden] { display: none !important; }
+#battle-app [hidden] { display: none !important; }
 
-html, body {
-  height: 100%;
-  overflow: hidden;
-  overscroll-behavior: none;
-}
+/* 战斗视图激活时锁住宿主页面滚动 */
+body.ptcg-battle-active { overflow: hidden; }
 
-body {
+#battle-app {
   position: fixed;
-  top: 0; left: 0; right: 0;
+  inset: 0;
+  display: none;
   height: 100dvh;
   width: 100%;
   font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
   color: var(--text);
   background: var(--field-bg);
+  overflow: hidden;
+  z-index: 1000;
 }
+
+#battle-app.active { display: block; }
 
 #screen {
   position: relative;
@@ -444,7 +449,7 @@ body {
 
 /* ================= 卡组选择 ================= */
 .deck-select-body {
-  flex: 1; display: flex; gap: 12px;
+  flex: 1; display: flex; flex-wrap: wrap; gap: 12px;
   padding: 12px; overflow: hidden;
 }
 .deck-column {
@@ -452,6 +457,11 @@ body {
   overflow-y: auto;
 }
 .deck-column-title { font-size: 13px; color: #9fd8ff; text-align: center; margin-bottom: 4px; font-weight: bold; }
+/* 卡组来源与异常提示（独占一行） */
+.deck-source-hint {
+  flex: 0 0 100%; text-align: center; color: #9aa4b2;
+  font-size: 11px; line-height: 1.5; padding: 2px 4px 6px;
+}
 .deck-option {
   display: flex; align-items: center; gap: 10px;
   padding: 8px; 

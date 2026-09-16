@@ -29,6 +29,36 @@ class PTCGApp {
     }
     
     // main.js - 确保 ImageLoader 正确初始化
+    // 进入 ptcgBattle 战斗视图（嵌入式：动态加载模块 + 切换 #battle-app 的 .active，不刷新页面）
+    _initBattleEntry() {
+        const btn = document.getElementById('open-battle-btn');
+        const battleRoot = document.getElementById('battle-app');
+        if (!btn || !battleRoot) return;
+
+        // 供 battle 侧「返回卡牌库」按钮回调
+        window.__ptcgReturnToLibrary = () => {
+            if (this._battleModule) this._battleModule.hideBattleApp();
+        };
+
+        btn.addEventListener('click', async () => {
+            window.__PTCG_BATTLE_HOST__ = true;
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = '战斗模块加载中…';
+            try {
+                if (!this._battleModule) {
+                    this._battleModule = await import('../battle/js/main.js');
+                }
+                this._battleModule.showBattleApp();
+            } catch (e) {
+                console.error('[Battle] 加载战斗模块失败:', e);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        });
+    }
+
     async init() {
         try {
             // 初始化核心服务
@@ -53,6 +83,9 @@ class PTCGApp {
             // 初始化卡组管理器
             this.deckManager = new DeckManager(this.storageService, this.cardManager);
             this.deckManager.init();
+
+            // 战斗视图入口（ptcgBattle 已并入 /ptcg/battle/）
+            this._initBattleEntry();
             
             // 初始化 AI 服务（需要在 deckManager 之后）
             this.apiKeyManager = new ApiKeyManager(this.storageService);

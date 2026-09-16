@@ -1,6 +1,6 @@
-// ptcgBattle/tests/automation.mjs
+// ptcg/battle/tests/automation.mjs
 // 自动化测试：覆盖核心规则/效果、代表性卡牌文本、以及全卡牌效果解析覆盖率报告。
-// 用法：node ptcgBattle/tests/automation.mjs
+// 用法：node ptcg/battle/tests/automation.mjs
 
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -13,10 +13,13 @@ import { BattleEngine } from '../js/core/BattleEngine.js';
 import { CardResolver } from '../js/core/CardResolver.js';
 import { PTCGBattleApp, cardPickerTitleFor, energyElementClass, energyLabel, pokemonPickerConfirmEnabled, pokemonPickerHasLegalTarget, pokemonPickerSlotAllowed, pokemonPickerSlotClass, pokemonPickerTitleFor } from '../js/main.js';
 import { pokemonSpriteImgHtml, pokemonSpriteSrc } from '../js/ui/SpriteUtils.js';
+import { DeckSource, PTCG_DECKS_STORAGE_KEY } from '../js/core/DeckSource.js';
+import { TEST_DECKS } from '../js/data/decks.js';
+import { AI_STORAGE_KEYS, getAiApiKey, hasAiApiKey, getAiSettings, describeAiStatus, onAiKeyChange } from '../js/core/AiSettings.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA_DIR = path.resolve(__dirname, '../../ptcg/data/battle');
-const ID_MAPPING_PATH = path.resolve(__dirname, '../../ptcg/tools/id_mapping.json');
+const DATA_DIR = path.resolve(__dirname, '../../data/battle');
+const ID_MAPPING_PATH = path.resolve(__dirname, '../../tools/id_mapping.json');
 
 // Parser coverage guardrails（2026-08 简中数据迁移后重新基线）：
 // 旧数据为繁中措辞，解析覆盖率 4631/7208 (64%)。迁移到 tcg.mik.moe 简中数据后，
@@ -234,6 +237,183 @@ function buildAbilityFromRaw(raw) {
 // ============================================================
 //  1) 代表性真实卡牌文本解析测试
 // ============================================================
+
+// ===== 卡组来源（DeckSource）：读取同源 ptcg 卡牌库 localStorage =====
+
+function fakeDeckStorage(value) {
+  const store = new Map();
+  if (value !== undefined) {
+    store.set('ptcg_decks', typeof value === 'string' ? value : JSON.stringify(value));
+  }
+  return {
+    getItem: k => (store.has(k) ? store.get(k) : null),
+    setItem: (k, v) => store.set(k, String(v)),
+    removeItem: k => store.delete(k),
+  };
+}
+
+const deckSourceCards = {
+  B1: { card: { cardType: 'pokemon', stage: '基础', name: '妙蛙种子' }, info: { name: '妙蛙种子', number: 1, type: 'pokemon' } },
+  P1: { card: { cardType: 'pokemon', stage: '2阶进化', name: '妙蛙花' }, info: { name: '妙蛙花', number: 3, type: 'pokemon' } },
+  T1: { card: { cardType: 'trainer', trainerType: 'item', name: '巢穴球' }, info: { name: '巢穴球', number: null, type: 'item' } },
+};
+
+await test('DeckSource：无 localStorage 时回退内置卡组', () => {
+  const result = new DeckSource(fakeResolver(deckSourceCards), { storage: null }).load();
+  assert.equal(result.source, 'builtin');
+  assert.equal(result.decks.length, TEST_DECKS.length);
+  assert.ok(result.warnings.some(w => w.includes('localStorage')));
+});
+
+await test('DeckSource：卡牌库为空时回退内置卡组', () => {
+  const result = new DeckSource(fakeResolver(deckSourceCards), { storage: fakeDeckStorage([]) }).load();
+  assert.equal(result.source, 'builtin');
+  assert.equal(result.decks.length, TEST_DECKS.length);
+  assert.ok(result.warnings.some(w => w.includes('尚未在卡牌库中创建卡组')));
+});
+
+await test('DeckSource：读取卡牌库卡组并归一化重算 totalCount', () => {
+  const stored = [{
+    id: '1769875572212', name: '我的喷火龙', coverCardId: 'B1',
+    cards: [{ id: 'B1', quantity: 4 }, { id: 'T1', quantity: 56 }],
+    totalCount: 999,
+  }];
+  const result = new DeckSource(fakeResolver(deckSourceCards), { storage: fakeDeckStorage(stored) }).load();
+  assert.equal(result.source, 'ptcg');
+  assert.equal(result.decks.length, 1);
+  assert.equal(result.decks[0].name, '我的喷火龙');
+  assert.equal(result.decks[0].coverCardId, 'B1');
+  assert.equal(result.decks[0].totalCount, 60);
+  assert.deepEqual(result.decks[0].cards, [{ id: 'B1', quantity: 4 }, { id: 'T1', quantity: 56 }]);
+});
+
+await test('DeckSource：玩家与对手共用同一份卡组列表', () => {
+  const stored = [
+    { id: 'a', name: '卡组A', cards: [{ id: 'B1', quantity: 4 }, { id: 'T1', quantity: 56 }] },
+    { id: 'b', name: '卡组B', cards: [{ id: 'B1', quantity: 2 }, { id: 'T1', quantity: 58 }] },
+  ];
+  const result = new DeckSource(fakeResolver(deckSourceCards), { storage: fakeDeckStorage(stored) }).load();
+  assert.equal(result.source, 'ptcg');
+  assert.equal(result.decks.length, 2);
+  assert.deepEqual(result.decks.map(d => d.name), ['卡组A', '卡组B']);
+});
+
+await test('DeckSource：缺少基础宝可梦的卡组被跳过', () => {
+  const stored = [
+    { id: 'a', name: '无基础宝可梦', cards: [{ id: 'P1', quantity: 4 }, { id: 'T1', quantity: 56 }] },
+    { id: 'b', name: '可用卡组', cards: [{ id: 'B1', quantity: 4 }, { id: 'T1', quantity: 56 }] },
+  ];
+  const result = new DeckSource(fakeResolver(deckSourceCards), { storage: fakeDeckStorage(stored) }).load();
+  assert.equal(result.source, 'ptcg');
+  assert.equal(result.decks.length, 1);
+  assert.equal(result.decks[0].name, '可用卡组');
+  assert.ok(result.warnings.some(w => w.includes('没有基础宝可梦')));
+});
+
+await test('DeckSource：全部卡组不可用时回退内置卡组', () => {
+  const stored = [
+    { id: 'a', name: '空卡组', cards: [] },
+    { id: 'b', name: '无宝可梦', cards: [{ id: 'T1', quantity: 4 }] },
+  ];
+  const result = new DeckSource(fakeResolver(deckSourceCards), { storage: fakeDeckStorage(stored) }).load();
+  assert.equal(result.source, 'builtin');
+  assert.ok(result.warnings.some(w => w.includes('均不可用')));
+});
+
+await test('DeckSource：数据损坏或结构非法时回退内置卡组', () => {
+  const broken = new DeckSource(fakeResolver(deckSourceCards), { storage: fakeDeckStorage('{不是 JSON') }).load();
+  assert.equal(broken.source, 'builtin');
+  assert.ok(broken.warnings.some(w => w.includes('读取 ptcg 卡组失败')));
+  const notArray = new DeckSource(fakeResolver(deckSourceCards), { storage: fakeDeckStorage({ decks: [] }) }).load();
+  assert.equal(notArray.source, 'builtin');
+});
+
+await test('DeckSource：过滤非法卡牌项（缺 id / 数量非正整数）', () => {
+  const stored = [{
+    id: 'a', name: '含脏数据',
+    cards: [{ id: 'B1', quantity: 4 }, { quantity: 2 }, { id: 'T1', quantity: 0 }, { id: 'T1', quantity: -3 }, { id: 'T1', quantity: 6 }],
+  }];
+  const result = new DeckSource(fakeResolver(deckSourceCards), { storage: fakeDeckStorage(stored) }).load();
+  assert.equal(result.decks[0].totalCount, 10);
+  assert.deepEqual(result.decks[0].cards, [{ id: 'B1', quantity: 4 }, { id: 'T1', quantity: 6 }]);
+});
+
+await test('DeckSource：非 60 张卡组可用但给出张数提示', () => {
+  const stored = [{ id: 'a', name: '半成品', cards: [{ id: 'B1', quantity: 4 }, { id: 'T1', quantity: 16 }] }];
+  const result = new DeckSource(fakeResolver(deckSourceCards), { storage: fakeDeckStorage(stored) }).load();
+  assert.equal(result.source, 'ptcg');
+  assert.equal(result.decks[0].totalCount, 20);
+  assert.ok(result.warnings.some(w => w.includes('标准为 60 张')));
+});
+
+await test('DeckSource：resolver 不可用时不做基础宝可梦判定（不误杀卡组）', () => {
+  const stored = [{ id: 'a', name: '未知卡组', cards: [{ id: 'X1', quantity: 60 }] }];
+  const result = new DeckSource(null, { storage: fakeDeckStorage(stored) }).load();
+  assert.equal(result.source, 'ptcg');
+  assert.equal(result.decks.length, 1);
+  assert.equal(new DeckSource(null, { storage: null }).countBasicPokemon(result.decks[0]), -1);
+});
+
+// ===== 跨项目契约：storage key 必须与 ptcg 侧 constants.js 一致 =====
+// 这些 key 是 ptcg 与 ptcgBattle 之间的隐式数据契约，任一侧改名都会静默破坏共享，
+// 因此用测试锁定，避免漂移。
+
+const PTCG_CONSTANTS_PATH = path.resolve(__dirname, '../../js/utils/constants.js');
+
+await test('契约：卡组 storage key 与 ptcg constants.js 一致', () => {
+  const text = fs.readFileSync(PTCG_CONSTANTS_PATH, 'utf8');
+  assert.ok(text.includes(`'${PTCG_DECKS_STORAGE_KEY}'`), `ptcg constants.js 缺少 key: ${PTCG_DECKS_STORAGE_KEY}`);
+});
+
+await test('契约：AI storage key 与 ptcg constants.js 一致', () => {
+  const text = fs.readFileSync(PTCG_CONSTANTS_PATH, 'utf8');
+  for (const key of Object.values(AI_STORAGE_KEYS)) {
+    assert.ok(text.includes(`'${key}'`), `ptcg constants.js 缺少 key: ${key}`);
+  }
+});
+
+// ===== AI 配置共用（同源 localStorage）=====
+
+await test('AiSettings：读取共用 localStorage 中的 API Key 与设置', () => {
+  const original = globalThis.localStorage;
+  const store = new Map();
+  globalThis.localStorage = {
+    getItem: k => (store.has(k) ? store.get(k) : null),
+    setItem: (k, v) => store.set(k, String(v)),
+    removeItem: k => store.delete(k),
+  };
+  try {
+    assert.equal(getAiApiKey(), null);
+    assert.equal(hasAiApiKey(), false);
+    assert.equal(describeAiStatus().configured, false);
+
+    store.set(AI_STORAGE_KEYS.API_KEY, '  sk-test-123  ');
+    assert.equal(getAiApiKey(), 'sk-test-123');
+    assert.equal(hasAiApiKey(), true);
+    assert.equal(describeAiStatus().configured, true);
+
+    store.set(AI_STORAGE_KEYS.SETTINGS, JSON.stringify({ model: 'deepseek-chat' }));
+    assert.deepEqual(getAiSettings({ model: 'default', temperature: 0.7 }), { model: 'deepseek-chat', temperature: 0.7 });
+
+    store.set(AI_STORAGE_KEYS.SETTINGS, '{坏 JSON');
+    assert.deepEqual(getAiSettings({ model: 'default' }), { model: 'default' });
+
+    store.set(AI_STORAGE_KEYS.API_KEY, '   ');
+    assert.equal(hasAiApiKey(), false);
+
+    globalThis.localStorage = null;
+    assert.equal(getAiApiKey(), null);
+    assert.deepEqual(getAiSettings({ a: 1 }), { a: 1 });
+  } finally {
+    globalThis.localStorage = original;
+  }
+});
+
+await test('AiSettings：onAiKeyChange 在无 window 环境下安全返回 no-op', () => {
+  const off = onAiKeyChange(() => {});
+  assert.equal(typeof off, 'function');
+  off();
+});
 
 await test('宝可齿轮3.0解析为 peek_and_keep top7 选1支援者', () => {
   const parsed = parseEffect('查看自己的牌库上方7张卡。选择其中1张支援者卡，在给对手看过后加入手牌。将剩余卡放回牌库并重洗。');
@@ -2250,11 +2430,11 @@ await test('引擎放置返回真实失败，后续附能路径仍可写日志',
 });
 
 await test('精灵图工具：编号生成稳定URL并提供onerror隐藏回退', () => {
-  assert.equal(pokemonSpriteSrc('719'), '../ddp/images/719.png');
-  assert.equal(pokemonSpriteSrc('774'), '../ddp/images/774.png');
+  assert.equal(pokemonSpriteSrc('719'), '/ddp/images/719.png');
+  assert.equal(pokemonSpriteSrc('774'), '/ddp/images/774.png');
   assert.equal(pokemonSpriteSrc(null), '');
   const html = pokemonSpriteImgHtml('719', '蒂安希');
-  assert.equal(html.includes('src="../ddp/images/719.png"'), true);
+  assert.equal(html.includes('src="/ddp/images/719.png"'), true);
   assert.equal(html.includes('onerror='), true);
   assert.equal(html.includes('sprite-missing'), true);
 });

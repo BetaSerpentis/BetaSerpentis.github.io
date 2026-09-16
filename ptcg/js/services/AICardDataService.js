@@ -288,32 +288,10 @@ export class AICardDataService {
     return map[cardType] || null;
   }
 
-  async _loadJsonCache(cardType) {
-    const filename = this._getJsonFileForType(cardType);
-    if (!filename) return;
-    if (this._jsonLoading.has(cardType)) return this._jsonLoading.get(cardType);
-
-    const promise = (async () => {
-      try {
-        const resp = await fetch(`data/${filename}`);
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        const jsonData = await resp.json();
-        if (!Array.isArray(jsonData)) return;
-        for (const card of jsonData) {
-          const ids = card['卡牌ID'];
-          if (!ids || !Array.isArray(ids)) continue;
-          for (const id of ids) {
-            if (id && !this._jsonCache.has(id)) this._jsonCache.set(id, card);
-          }
-        }
-      } catch (e) {
-        console.warn(`[AI Data] Failed to load ${filename}:`, e.message);
-      }
-    })();
-
-    this._jsonLoading.set(cardType, promise);
-    return promise;
-  }
+  // 已停用：ptcg/data/*.json 为旧「数字 ID」体系（10669 个 ID），
+  // 与现行 set-code ID 体系（data_fast / data/battle，12346 个 ID）交集为 0。
+  // 继续加载会污染 AI 检索（可能返回不存在的数字 ID）并额外加载约 4.7MB，故停用。
+  async _loadJsonCache(cardType) { return; }
 
   async ensureLoaded() {
     if (this._loaded) return;
@@ -325,7 +303,7 @@ export class AICardDataService {
 
     await Promise.all(tasks);
     this._loaded = true;
-    console.log('[AI Data] Ready — TSV:', this._tsvIndex.size, 'cards, JSON:', this._jsonCache.size, 'cards');
+    console.log('[AI Data] Ready — TSV:', this._tsvIndex.size, 'cards');
   }
 
   /** 获取指定 ID 的完整数据（TSV 优先，JSON 回退，过滤退环境） */

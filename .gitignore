@@ -42,3 +42,6 @@ ptcg/test-ai-save.mjs
 
 # pmBattle 构建脚本源码（非产物）
 !pmBattle/build/
+
+# pi engineering-suite cache (large third-party clones)
+.pi/cache/

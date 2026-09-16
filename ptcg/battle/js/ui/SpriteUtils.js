@@ -2,12 +2,12 @@
 //
 // 资源策略（与 UI-MIGRATION-PLAN.md 对齐）：
 //   1) 在线优先（PokeAPI sprites，与 pmBattle 同源）
-//   2) 本地回退（../ddp/images/NNN.png，离线可用）
+//   2) 本地回退（/ddp/images/NNN.png，离线可用）
 //   3) 再失败 → 隐藏 img 并给容器加 .sprite-missing（显示文字占位）
 // 未来改为「纯本地资源运行」时：把本地目录补齐后，把 SPRITE_PREFER_ONLINE 置 false，
 // 或把 onlineSpr teBase 指向本地目录（sprite/），调用方无需改动。
 
-export const SPRITE_BASE = '../ddp/images/';
+export const SPRITE_BASE = '/ddp/images/';
 export const SPRITE_ONLINE_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
 export const SPRITE_IMG_ONERROR = "this.style.display='none';this.parentElement&&this.parentElement.classList.add('sprite-missing')";
 
@@ -16,7 +16,7 @@ export let SPRITE_PREFER_ONLINE = true;
 
 export function setSpritePreferOnline(v) { SPRITE_PREFER_ONLINE = !!v; }
 
-/** 本地精灵图（ddp/images/NNN.png）——历史行为保持不变 */
+/** 本地精灵图（/ddp/images/NNN.png）——历史行为保持不变 */
 export function pokemonSpriteSrc(number, base = SPRITE_BASE) {
   const parsed = parseInt(number, 10);
   if (!Number.isFinite(parsed)) return '';
@@ -85,11 +85,11 @@ export function pokemonSpriteImgHtml(number, alt = '', opts = {}) {
 
 // ============================================================
 //  卡图（真实卡面 webp，来自 ptcg/images）
-//  规则：set-code ID（如 CSV6C-099）→ images/CSV6C/099.webp 与 .thumb.webp
-//        旧数字 ID（如 4521）      → images/hk00004521.webp
+//  规则：set-code ID（如 CSV6C-099）→ /ptcg/images/CSV6C/099.webp 与 .thumb.webp
+//        旧数字 ID（如 4521）      → /ptcg/images/hk00004521.webp
 //  体积较大，一律使用缩略图；详情页才用大图。
 // ============================================================
-export const CARD_IMAGE_BASE = '../ptcg/images/';
+export const CARD_IMAGE_BASE = '/ptcg/images/';
 
 export function cardImagePaths(cardId, base = CARD_IMAGE_BASE) {
   const str = String(cardId ?? '');

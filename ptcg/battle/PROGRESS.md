@@ -1,5 +1,50 @@
 # ptcgBattle 开发进度
 
+## 并入 ptcg（2026-09-16）
+
+ptcgBattle 已整体并入 ptcg，不再是独立项目：
+
+- **路径**：`ptcgBattle/` → `ptcg/battle/`（`git mv`，保留重命名历史）
+- **入口**：唯一入口为 ptcg 首页（`/ptcg/`）的「⚔ 进入对战」按钮；原独立页已删除
+- **切换方式**：同页切换 `#battle-app` 的 `.active` class —— SPA 嵌入，不刷新页面、不丢对战状态
+  - ptcg 侧：`ptcg/js/main.js` → `_initBattleEntry()` 动态 `import('../battle/js/main.js')` 后调用 `showBattleApp()`
+  - battle 侧：`ptcg/battle/js/main.js` 导出 `mountBattleApp()` / `showBattleApp()` / `hideBattleApp()`（单例）
+  - 返回卡牌库：卡组选择页「← 返回卡牌库」→ `window.__ptcgReturnToLibrary`
+- **样式隔离**：`style.css` 的 `*` / `html, body` / `body` 三条全局规则已作用域化为
+  `#battle-app, #battle-app *` / `body.ptcg-battle-active` / `#battle-app`。
+  实测两边 CSS 顶层选择器 47 × 118 **交集为空**、DOM id **交集为空**、ptcg 未使用 CSS 变量（battle 的 `:root` 变量无冲突）
+- **资源路径**：`CardResolver` 数据目录改为 `new URL('../../../data/battle/', import.meta.url)`（与页面 URL 解耦）；
+  `SpriteUtils` 的 `SPRITE_BASE = '/ddp/images/'`、`CARD_IMAGE_BASE = '/ptcg/images/'`（站点绝对路径，两种页面 URL 都正确）；
+  脚踏台 `src="/ptcg/battle/assets/platform.png"`
+- **卡组来源**：不再内置，`js/core/DeckSource.js` 读 ptcg 卡牌库的 localStorage（key `ptcg_decks`）；
+  **玩家与对手共用同一份可用列表**，各选一套；不可用时回退内置卡组
+- **AI 配置**：`js/core/AiSettings.js` 读取 ptcg 已配置的 `ptcg_ai_api_key`（供后续 AI 模拟对战复用，只读不写）
+- **SW**：沿用远端 v30 策略（html/js/css 网络优先），`/ptcg/battle/` 资源走网络，无需额外改动
+
+### 数据层去冗余
+
+- 卡牌数据本就同源（`ptcg/data/battle/*.json` 由 `build-battle-data.py` 从 CN-Sync 生成，与 `data_fast/*.tsv` 同源），ptcgBattle 未持有副本
+- 真正的冗余在 ptcg 内部：`ptcg/data/*.json`（**旧数字 ID** 体系，10669 个 ID）与 `ptcg/data/battle/*.json`（**set-code ID** 体系，12346 个 ID）**交集为 0**
+- 处置：停用 `AICardDataService._loadJsonCache()`（原为回退加载，会污染 AI 检索并多加载 4.7MB），并删除 7 个旧 JSON（4.7 MB）
+- 效果：AI 数据源日志由 `Ready — TSV: N cards, JSON: 10669 cards` 变为 `Ready — TSV: 12346 cards`，单一 set-code ID 体系
+- 另清理：`convert.js` + `data_txt/`（1.1 MB，旧繁中数据转换链路，已被 `ptcg/tools/build-battle-data.py` 取代）
+
+### 顺带修复
+
+- `ptcg/js/core/DeckManager.js`：导入/清理卡组时的 `Math.min(card.quantity, 4)` 会**误截断基本能量**。
+  新增 `_maxQuantityFor()`：基本能量不限（99），其他类型仍限 4；类型查不到时保守按 4。
+
+### 跨项目契约（测试锁定）
+
+| key | 定义处 | 用途 |
+|---|---|---|
+| `ptcg_decks` | `ptcg/js/utils/constants.js` → `STORAGE_KEYS.DECKS` | 卡组共享 |
+| `ptcg_ai_api_key` | `STORAGE_KEYS.AI_API_KEY` | AI Key 共享 |
+| `ptcg_ai_settings` | `STORAGE_KEYS.AI_SETTINGS` | AI 设置共享 |
+| `ptcg_ai_chat_history` | `STORAGE_KEYS.AI_CHAT_HISTORY` | AI 历史（预留） |
+
+---
+
 ## 数据同步（2026-08 重要变更）
 
 ptcgBattle 卡牌数据已从旧繁中数字 ID 数据迁移到与 ptcg 完全同源的简中 set-code ID 数据：
@@ -31,24 +76,32 @@ ptcgBattle 卡牌数据已从旧繁中数字 ID 数据迁移到与 ptcg 完全�
 
 ## 文件结构
 ```
-ptcgBattle/
-├── index.html              # 主界面（Canvas场地 + 4按钮 + 日志）
-├── style.css               # FRLG像素风界面 + 弹窗样式
+ptcg/battle/                # 已并入 ptcg（原 ptcgBattle/，2026-09-16；入口由 ptcg 首页进入）
+├── style.css               # 竖屏单屏战斗界面样式（已作用域化到 #battle-app，可嵌入式共存）
+├── assets/platform.png     # 脚踏台贴图
 ├── PROGRESS.md             # 本文件
+├── MERGE-NOTES.md          # 并入 ptcg 的评估与实施记录
+├── UI-MIGRATION-PLAN.md    # 战斗 UI 对标 pmBattle 的移植方案
+├── UI-OPERATION-PLAN.md    # 操作区收敛方案
+├── ROADMAP.md / mockup.md  # 覆盖推进路线图 / 早期设计稿
+├── tests/automation.mjs    # 自动化测试（284 项，含解析覆盖率报告）
 └── js/
-    ├── main.js             # 主入口 + UI流程
+    ├── main.js             # 主入口 + UI流程（导出 mountBattleApp / showBattleApp / hideBattleApp）
     ├── core/
-    │   ├── GameState.js    # 状态管理（能量/进化/训练家/选择等待）
-    │   ├── BattleEngine.js # 回合/攻击/能力引擎 + AI
-    │   ├── CardResolver.js # 卡牌ID→全量数据编译
-    │   ├── EffectParser.js # 效果文本→指令
-    │   └── EffectExecutor.js # 异步指令执行 + 目标/卡牌/能量选择
+    │   ├── GameState.js      # 状态管理（能量/进化/训练家/选择等待）
+    │   ├── BattleEngine.js   # 回合/攻击/能力引擎 + AI
+    │   ├── CardResolver.js   # 卡牌ID→全量数据编译（数据目录由 import.meta.url 推导）
+    │   ├── EffectParser.js   # 效果文本→指令
+    │   ├── EffectExecutor.js # 异步指令执行 + 目标/卡牌/能量选择
+    │   ├── DeckSource.js     # 卡组来源（读 ptcg 卡牌库 localStorage，玩家与对手共用列表）
+    │   └── AiSettings.js     # 与 ptcg 共用的 AI 配置（API Key / 设置）
     ├── ui/
-    │   ├── BattleField.js  # Canvas渲染 + 点击检测
-    │   ├── CardView.js     # 卡牌列表/卡牌DOM
-    │   └── CardPicker.js   # 选卡弹窗
+    │   └── SpriteUtils.js    # 立绘/卡图路径与回退链
     └── data/
-        └── decks.js        # 测试卡组
+        └── decks.js          # 内置卡组（卡牌库不可用时的回退）
+
+> 注：原 `index.html` 已删除 —— 战斗视图现内嵌在 `ptcg/index.html` 的 `<div id="battle-app">` 内，
+> 由 ptcg 首页的「⚔ 进入对战」按钮切换显示（同一页面内切 class，不重新加载）。
 ```
 
 ## 已完成

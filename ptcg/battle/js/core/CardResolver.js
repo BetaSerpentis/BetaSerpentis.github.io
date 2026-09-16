@@ -1,14 +1,19 @@
 // js/core/CardResolver.js
 import { parseEffect } from './EffectParser.js';
 
+// 数据目录基于本模块 URL 推导（而非页面 URL / 部署路径）：
+//   本文件位于 /ptcg/battle/js/core/ → '../../../data/battle/' 指向 /ptcg/data/battle/
+// 这样页面为 /ptcg/（SPA 嵌入卡牌库）或 /ptcg/battle/ 时都能正确解析。
+const DATA_BASE = new URL('../../../data/battle/', import.meta.url);
+
 const DATA_FILES = [
-  { path: '../ptcg/data/battle/pokemon-cards.json',     nameField: '宝可梦名字', numberField: '编号', type: 'pokemon' },
-  { path: '../ptcg/data/battle/Item-cards.json',          nameField: '卡牌名字', numberField: null, type: 'item' },
-  { path: '../ptcg/data/battle/Supporter-cards.json',     nameField: '卡牌名字', numberField: null, type: 'supporter' },
-  { path: '../ptcg/data/battle/Stadium-cards.json',       nameField: '卡牌名字', numberField: null, type: 'stadium' },
-  { path: '../ptcg/data/battle/PokemonTool-cards.json',   nameField: '卡牌名字', numberField: null, type: 'tool' },
-  { path: '../ptcg/data/battle/BasicEnergy-cards.json',   nameField: '卡牌名字', numberField: null, type: 'energy' },
-  { path: '../ptcg/data/battle/SpecialEnergy-cards.json', nameField: '卡牌名字', numberField: null, type: 'specialEnergy' },
+  { file: 'pokemon-cards.json',     nameField: '宝可梦名字', numberField: '编号', type: 'pokemon' },
+  { file: 'Item-cards.json',          nameField: '卡牌名字', numberField: null, type: 'item' },
+  { file: 'Supporter-cards.json',     nameField: '卡牌名字', numberField: null, type: 'supporter' },
+  { file: 'Stadium-cards.json',       nameField: '卡牌名字', numberField: null, type: 'stadium' },
+  { file: 'PokemonTool-cards.json',   nameField: '卡牌名字', numberField: null, type: 'tool' },
+  { file: 'BasicEnergy-cards.json',   nameField: '卡牌名字', numberField: null, type: 'energy' },
+  { file: 'SpecialEnergy-cards.json', nameField: '卡牌名字', numberField: null, type: 'specialEnergy' },
 ];
 
 const ELEM = { '草':'grass','火':'fire','水':'water','雷':'lightning','斗':'fighting',
@@ -38,7 +43,7 @@ export class CardResolver {
 
     for (const f of DATA_FILES) {
       try {
-        const r = await fetch(f.path); if (!r.ok) continue;
+        const r = await fetch(new URL(f.file, DATA_BASE)); if (!r.ok) continue;
         const cards = await r.json();
         for (const raw of cards) {
           const ids = raw['卡牌ID']||[];
@@ -48,7 +53,7 @@ export class CardResolver {
           }
           for (const id of ids) { if (!this.raw[id]) this.raw[id]={...raw,_t:f.type}; }
         }
-      } catch(e){ console.warn('[CR] skip',f.path); }
+      } catch(e){ console.warn('[CR] skip',f.file); }
     }
     this.loaded = true;
     if (!skipBuild) try{ localStorage.setItem(CACHE_KEY,JSON.stringify([...this.map])); }catch(e){}

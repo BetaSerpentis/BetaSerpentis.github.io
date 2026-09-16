@@ -1,0 +1,29 @@
+/* css/battle-host.css — 嵌入式 ptcgBattle 战斗视图的宿主样式
+   仅包含「入口按钮」等由 ptcg 侧提供的外壳样式；
+   战斗视图自身的样式全部在 battle/style.css，且已限定在 #battle-app 作用域内。 */
+
+/* 卡牌库页面上的「进入对战」入口 */
+.battle-entry {
+    max-width: 1200px;
+    margin: 0 auto 10px;
+    padding: 0 12px;
+}
+
+.battle-entry-btn {
+    width: 100%;
+    padding: 11px 14px;
+    border: 0;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #b3382c, #e0523f);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: .5px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.battle-entry-btn:active {
+    transform: scale(.995);
+    filter: brightness(.95);
+}
