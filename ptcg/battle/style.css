@@ -43,14 +43,24 @@
    html 的背景会铺满整个 canvas（含刘海区与底部横条区），
    而 #battle-app 用 fixed + 100dvh 在 iOS 上可能覆盖不到顶部安全区，
    导致刘海区露出宿主底色（黑）。class 由 main.js 在切页时添加/移除。 */
-html.ptcg-battle-active { background: var(--field-bg); }
+/* 战斗期间 html 只做兜底：锁定 height:100% 让它的 box 等于视口高度。
+   若不加高度限制，根元素 box = 文档高度（含卡库容器），
+   而根元素的渐变是按其 box 绘制的，会被拉伸（天空占比从 19% 膨胀到 ~28%）。 */
+html.ptcg-battle-active {
+  height: 100%;
+  /* 纯色兜底：与场地上方的天空色一致。
+     这里必须用纯色而不是渐变 —— 根元素的渐变按其 box 绘制，
+     而 box 高度受文档影响会被拉伸（曾导致天空占比 19% → 28%）。 */
+  background: #4a90d9;
+}
 html.ptcg-battle-active,
 html.ptcg-battle-active body { overflow: hidden; }
 
-/* 关键：宿主 body 自带 background:#0d0d0f，其 box 覆盖整个视口，
-   会盖住 html 上的场地背景（表现为画面仍全黑）。清空 body 背景，
-   让 html 的场地渐变透出来（单一背景源，无渐变接缝）。 */
-html.ptcg-battle-active body { background: transparent; }
+html.ptcg-battle-active body {
+  /* 覆盖刘海状态栏与底部横条区域：宿主深色底必须清掉，
+     这里用与场地上方同色的天空色，保证与 #battle-app 的渐变顶部无缝衔接。 */
+  background: #4a90d9;
+}
 
 #battle-app [hidden] { display: none !important; }
 
@@ -69,7 +79,9 @@ body.ptcg-battle-active {
   width: 100%;
   font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
   color: var(--text);
-  background: transparent;  /* 背景由 html.ptcg-battle-active 提供 */
+  /* 主背景：box 即视口（inset:0 拉伸），渐变比例正确；
+     html 的同色背景作为刘海/底边的兜底。 */
+  background: var(--field-bg);
   overflow: hidden;
   /* 必须高于宿主 .search-header 的 z-index:1001，否则会被固定在顶部的搜索栏压住 */
   z-index: 1200;
