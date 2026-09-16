@@ -39,24 +39,37 @@
    所有类选择器上的 padding/margin，导致战斗页内边距与按钮尺寸全部失效。 */
 :where(#battle-app, #battle-app *) { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* 战斗期间场地背景由 html 提供：
+   html 的背景会铺满整个 canvas（含刘海区与底部横条区），
+   而 #battle-app 用 fixed + 100dvh 在 iOS 上可能覆盖不到顶部安全区，
+   导致刘海区露出宿主底色（黑）。class 由 main.js 在切页时添加/移除。 */
+html.ptcg-battle-active { background: var(--field-bg); }
+html.ptcg-battle-active,
+html.ptcg-battle-active body { overflow: hidden; }
+
+/* 关键：宿主 body 自带 background:#0d0d0f，其 box 覆盖整个视口，
+   会盖住 html 上的场地背景（表现为画面仍全黑）。清空 body 背景，
+   让 html 的场地渐变透出来（单一背景源，无渐变接缝）。 */
+html.ptcg-battle-active body { background: transparent; }
+
 #battle-app [hidden] { display: none !important; }
 
 /* 战斗视图激活时：锁住宿主滚动，并给宿主也铺上场地背景 ——
    #battle-app 为 fixed 覆盖层，在部分 iOS 场景（动态视口/刘海区）可能露出宿主底色，此处兜底。 */
 body.ptcg-battle-active {
   overflow: hidden;
-  background: var(--field-bg);
+  /* 背景统一由 html.ptcg-battle-active 提供，这里不再重复铺，避免渐变叠加 */
 }
 
 #battle-app {
   position: fixed;
   inset: 0;
   display: none;
-  height: 100dvh;
+  /* 不设 height：由 inset:0 拉伸到布局视口，避免 iOS 下 100dvh 覆盖不到安全区 */
   width: 100%;
   font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
   color: var(--text);
-  background: var(--field-bg);
+  background: transparent;  /* 背景由 html.ptcg-battle-active 提供 */
   overflow: hidden;
   /* 必须高于宿主 .search-header 的 z-index:1001，否则会被固定在顶部的搜索栏压住 */
   z-index: 1200;
@@ -68,13 +81,13 @@ body.ptcg-battle-active {
   position: relative;
   width: 100%;
   max-width: 520px;
-  height: 100dvh;
+  height: 100%;
   max-height: 960px;
   margin: 0 auto;
   /* 注意：本层子元素均为 absolute，包含块是其 padding box，
      故 safe-area 留空必须加在各元素自身（见 --safe-gap 用法）。 */
   overflow: hidden;
-  background: var(--field-bg);
+  background: transparent;  /* 背景由 html.ptcg-battle-active 提供 */
 }
 
 /* ================= 战斗场景（单屏铺满） ================= */

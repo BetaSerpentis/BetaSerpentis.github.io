@@ -1002,6 +1002,7 @@ export function showBattleApp() {
   const app = mountBattleApp();
   root.classList.add('active');
   document.body.classList.add('ptcg-battle-active');
+  document.documentElement.classList.add('ptcg-battle-active');  // 让 html 铺场地背景（含刘海/底边安全区）
   app?._fitScreen?.();
   return app;
 }
@@ -1011,6 +1012,7 @@ export function hideBattleApp() {
   const root = document.getElementById('battle-app');
   if (root) root.classList.remove('active');
   document.body.classList.remove('ptcg-battle-active');
+  document.documentElement.classList.remove('ptcg-battle-active');
   // 恢复宿主滚动位置（切页前用户看到的位置）
   try { window.scrollTo(0, _hostScrollY); } catch (e) { /* ignore */ }
   // 还原宿主 theme-color
