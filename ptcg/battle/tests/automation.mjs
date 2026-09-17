@@ -889,6 +889,10 @@ await test('Stadium：替换丢弃旧场地一次并清除旧激活状态', asyn
 
   assert.equal(await engine.useTrainer(0, a), true);
   gs.markStadiumUsed(pl, gs.getActiveStadium());
+  // 规则：每回合只能打出 1 张竞技场 → 同一回合再打出第二张应被拒绝
+  assert.equal(gs.canUseTrainer(pl, b).ok, false);
+  // 模拟进入下一回合后再打出第二张，验证替换与旧激活状态清除
+  pl.stadiumPlayedThisTurn = false;
   assert.equal(await engine.useTrainer(0, b), true);
 
   assert.equal(gs.getActiveStadium().name, '场地B');
@@ -4699,6 +4703,8 @@ await test('训练家使用限制：支援者一回合一次，竞技场替换�
   assert.equal(ok, true);
   assert.equal(pl.stadium.name, '竞技场A');
   pl.hand.unshift('stadium2');
+  // 规则：每回合只能打出 1 张竞技场 → 模拟进入下一回合
+  pl.stadiumPlayedThisTurn = false;
   ok = await engine.useTrainer(0, { cardType:'trainer', trainerType:'stadium', name:'竞技场B', effects:[] });
   assert.equal(ok, true);
   assert.equal(pl.stadium.name, '竞技场B');
