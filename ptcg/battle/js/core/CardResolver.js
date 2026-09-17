@@ -130,7 +130,16 @@ export class CardResolver {
       effectText, effects:parsed.effects, unparsed:parsed.unparsed }; }
 
   _energyProvidesMeta(name,text,type){
-    if(type!=='specialEnergy') return [{types:[ELEM[name.match(/【(.+?)】/)?.[1]]||'colorless'],count:1}];
+    // 基本能量：名字可能是「基本【火】能量」或「基本火能量」，两种都要能识别出属性。
+    // 旧实现只认【X】格式，导致「基本火能量」被判成 colorless，
+    // 于是需要【火】费用的招式（如光辉喷火龙「炎爆」）永远凑不齐能量。
+    if(type!=='specialEnergy'){
+      let el=null;
+      const m=name.match(/【(.+?)】/);
+      if(m) el=ELEM[m[1]]||null;
+      if(!el){ for(const [cn,key] of Object.entries(ELEM)){ if(name.includes(cn)){ el=key; break; } } }
+      return [{types:[el||'colorless'],count:1}];
+    }
     const provides=[];
     if(/提供(\d+)个所有属性/.test(text)||/视为提供(\d+)个所有属性/.test(text)||/被视作(\d+)个所有属性/.test(text)||/被视为(\d+)个所有属性/.test(text)){
       const count=parseInt((text.match(/(?:提供|视为提供|被视作|被视为)(\d+)个所有属性/)||[])[1]||'1');
