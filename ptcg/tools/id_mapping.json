@@ -1168,31 +1168,31 @@
     "method": "name_mark_attr"
   },
   "12023": {
-    "new_key": "SVP-001",
-    "method": "name_mark"
+    "new_key": "MP-001",
+    "method": "name_mark_rarity"
   },
   "10891": {
-    "new_key": "SVP-001",
-    "method": "name_mark"
+    "new_key": "MP-001",
+    "method": "name_mark_rarity"
   },
   "12388": {
-    "new_key": "SVP-001",
-    "method": "name_mark"
+    "new_key": "MP-001",
+    "method": "name_mark_rarity"
   },
   "12404": {
-    "new_key": "SVP-001",
-    "method": "name_mark"
+    "new_key": "MP-001",
+    "method": "name_mark_rarity"
   },
   "3189": {
-    "new_key": "CSM2aC-054",
+    "new_key": "30thC-160",
     "method": "name_mark_attr"
   },
   "6301": {
-    "new_key": "CSM2aC-054",
+    "new_key": "30thC-160",
     "method": "name_mark_attr"
   },
   "12392": {
-    "new_key": "CSM2aC-054",
+    "new_key": "30thC-160",
     "method": "name_mark_attr"
   },
   "8833": {
@@ -2336,12 +2336,12 @@
     "method": "name_mark"
   },
   "12153": {
-    "new_key": "CSV9C-129",
-    "method": "name_mark"
+    "new_key": "CBB6C-0101",
+    "method": "name_mark_attr"
   },
   "12365": {
-    "new_key": "CSV9C-129",
-    "method": "name_mark"
+    "new_key": "CBB6C-0101",
+    "method": "name_mark_attr"
   },
   "3386": {
     "new_key": "CSM2bC-082",
@@ -2380,8 +2380,8 @@
     "method": "name_mark_attr"
   },
   "4922": {
-    "new_key": "CSM1bC-077",
-    "method": "name_first"
+    "new_key": "30thC-075",
+    "method": "name_legal"
   },
   "5098": {
     "new_key": "CSM1bC-077",
@@ -2508,16 +2508,16 @@
     "method": "name_mark"
   },
   "11500": {
-    "new_key": "CSV8C-163",
-    "method": "name_mark"
+    "new_key": "CBB6C-0201",
+    "method": "name_mark_attr"
   },
   "11772": {
-    "new_key": "CSV8C-163",
-    "method": "name_mark"
+    "new_key": "CBB6C-0201",
+    "method": "name_mark_attr"
   },
   "12700": {
-    "new_key": "CSV8C-163",
-    "method": "name_mark"
+    "new_key": "CBB6C-0201",
+    "method": "name_mark_attr"
   },
   "3454": {
     "new_key": "CSM2bC-120",
@@ -4021,11 +4021,11 @@
   },
   "10844": {
     "new_key": "SVP-214",
-    "method": "exact_name"
+    "method": "name_mark"
   },
   "11071": {
     "new_key": "SVP-214",
-    "method": "exact_name"
+    "method": "name_mark"
   },
   "2399": {
     "new_key": "CS4DaC-253",
@@ -4428,16 +4428,16 @@
     "method": "name_mark_attr"
   },
   "11927": {
-    "new_key": "CSV9C-001",
+    "new_key": "CBB6C-0301",
     "method": "name_mark_attr"
   },
   "12326": {
-    "new_key": "CSV9C-001",
+    "new_key": "CBB6C-0301",
     "method": "name_mark_attr"
   },
   "4774": {
-    "new_key": "CSFC-003",
-    "method": "name_first"
+    "new_key": "30thC-002",
+    "method": "name_legal"
   },
   "4995": {
     "new_key": "CSM1bC-005",
@@ -4916,7 +4916,7 @@
     "method": "name_mark"
   },
   "4631": {
-    "new_key": "CSV10C-171",
+    "new_key": "30thDC-024",
     "method": "name_legal"
   },
   "3255": {
@@ -5576,8 +5576,8 @@
     "method": "name_mark"
   },
   "7211": {
-    "new_key": "151C-129",
-    "method": "name_legal"
+    "new_key": "30thC-165",
+    "method": "name_mark"
   },
   "8995": {
     "new_key": "151C-129",
@@ -6952,16 +6952,16 @@
     "method": "name_mark_attr_rarity"
   },
   "40": {
-    "new_key": "CS5.1C-019",
-    "method": "name_mark_attr_rarity"
+    "new_key": "30thC-163",
+    "method": "name_mark_attr"
   },
   "8009": {
-    "new_key": "CS5.1C-019",
-    "method": "name_mark_attr_rarity"
+    "new_key": "30thC-163",
+    "method": "name_mark_attr"
   },
   "12395": {
-    "new_key": "CS5.1C-019",
-    "method": "name_mark_attr_rarity"
+    "new_key": "30thC-163",
+    "method": "name_mark_attr"
   },
   "4996": {
     "new_key": "CSM1bC-007",
@@ -7184,7 +7184,7 @@
     "method": "name_mark"
   },
   "4837": {
-    "new_key": "CSV8C-004",
+    "new_key": "CBB6C-0401",
     "method": "name_legal"
   },
   "941": {
@@ -7196,12 +7196,12 @@
     "method": "name_mark"
   },
   "11793": {
-    "new_key": "CSV8C-004",
-    "method": "name_mark"
+    "new_key": "CBB6C-0401",
+    "method": "name_mark_attr"
   },
   "11894": {
-    "new_key": "CSV8C-004",
-    "method": "name_mark"
+    "new_key": "CBB6C-0401",
+    "method": "name_mark_attr"
   },
   "4999": {
     "new_key": "CS5aC-071",
@@ -7450,6 +7450,10 @@
   "10698": {
     "new_key": "CSVE2C-062",
     "method": "name_mark_attr_rarity"
+  },
+  "3777": {
+    "new_key": "30thC-096",
+    "method": "exact_name"
   },
   "3439": {
     "new_key": "CSM2cC-079",
@@ -9580,8 +9584,8 @@
     "method": "name_mark"
   },
   "1318": {
-    "new_key": "CS2bC-028",
-    "method": "name_mark"
+    "new_key": "30thC-162",
+    "method": "name_mark_attr"
   },
   "5624": {
     "new_key": "CSM1DC-085",
@@ -10740,11 +10744,11 @@
     "method": "exact_name"
   },
   "5141": {
-    "new_key": "CSV3C-102",
+    "new_key": "CBB6C-0501",
     "method": "name_legal"
   },
   "5889": {
-    "new_key": "CSV3C-102",
+    "new_key": "CBB6C-0501",
     "method": "name_legal"
   },
   "4472": {
@@ -10768,12 +10772,12 @@
     "method": "name_mark"
   },
   "12158": {
-    "new_key": "CSV9C-156",
-    "method": "name_mark"
+    "new_key": "CBB6C-0501",
+    "method": "name_mark_attr"
   },
   "12366": {
-    "new_key": "CSV9C-156",
-    "method": "name_mark"
+    "new_key": "CBB6C-0501",
+    "method": "name_mark_attr"
   },
   "5142": {
     "new_key": "CSV3C-103",
@@ -11228,12 +11232,12 @@
     "method": "name_mark"
   },
   "11358": {
-    "new_key": "CSV8C-139",
-    "method": "name_mark"
+    "new_key": "CBB6C-0601",
+    "method": "name_mark_attr"
   },
   "11432": {
-    "new_key": "CSV8C-139",
-    "method": "name_mark"
+    "new_key": "CBB6C-0601",
+    "method": "name_mark_attr"
   },
   "4748": {
     "new_key": "CSM1DC-170",
@@ -11280,7 +11284,7 @@
     "method": "exact_name"
   },
   "5072": {
-    "new_key": "CS6bC-036",
+    "new_key": "CBB6C-0701",
     "method": "name_legal"
   },
   "3404": {
@@ -11304,19 +11308,19 @@
     "method": "name_mark"
   },
   "11844": {
-    "new_key": "CSV7C-116",
+    "new_key": "CBB6C-0701",
     "method": "name_mark_attr"
   },
   "11902": {
-    "new_key": "CSV7C-116",
+    "new_key": "CBB6C-0701",
     "method": "name_mark_attr"
   },
   "10905": {
-    "new_key": "CSV7C-116",
+    "new_key": "CBB6C-0701",
     "method": "name_mark_attr"
   },
   "12216": {
-    "new_key": "CSV7C-116",
+    "new_key": "CBB6C-0701",
     "method": "name_mark_attr"
   },
   "5073": {
@@ -11461,11 +11465,11 @@
   },
   "11288": {
     "new_key": "CSV8C-005",
-    "method": "exact_name"
+    "method": "name_mark"
   },
   "11289": {
     "new_key": "CSV8C-006",
-    "method": "exact_name"
+    "method": "name_mark"
   },
   "2794": {
     "new_key": "CS1DC-009",
@@ -11484,12 +11488,12 @@
     "method": "name_mark"
   },
   "11852": {
-    "new_key": "CSV9C-113",
-    "method": "name_mark"
+    "new_key": "CBB6C-0801",
+    "method": "name_mark_attr"
   },
   "11903": {
-    "new_key": "CSV9C-113",
-    "method": "name_mark"
+    "new_key": "CBB6C-0801",
+    "method": "name_mark_attr"
   },
   "11853": {
     "new_key": "CSV9C-114",
@@ -12344,12 +12348,12 @@
     "method": "name_mark"
   },
   "11794": {
-    "new_key": "CSV9C-002",
-    "method": "name_mark"
+    "new_key": "CBB6C-0901",
+    "method": "name_mark_attr"
   },
   "11895": {
-    "new_key": "CSV9C-002",
-    "method": "name_mark"
+    "new_key": "CBB6C-0901",
+    "method": "name_mark_attr"
   },
   "3627": {
     "new_key": "CSM2bC-019",
@@ -12508,12 +12512,12 @@
     "method": "name_mark"
   },
   "11932": {
-    "new_key": "CSV9C-022",
-    "method": "name_mark"
+    "new_key": "CBB6C-1001",
+    "method": "name_mark_attr"
   },
   "12328": {
-    "new_key": "CSV9C-022",
-    "method": "name_mark"
+    "new_key": "CBB6C-1001",
+    "method": "name_mark_attr"
   },
   "5964": {
     "new_key": "CS3.5C-020",
@@ -12532,28 +12536,28 @@
     "method": "exact_name"
   },
   "5147": {
-    "new_key": "CSVH5aC-002",
-    "method": "name_legal_rarity"
+    "new_key": "CBB6C-1101",
+    "method": "name_legal"
   },
   "5697": {
-    "new_key": "CSVH5aC-002",
-    "method": "name_legal_rarity"
+    "new_key": "CBB6C-1101",
+    "method": "name_legal"
   },
   "5698": {
-    "new_key": "CSVH5aC-002",
-    "method": "name_legal_rarity"
+    "new_key": "CBB6C-1101",
+    "method": "name_legal"
   },
   "993": {
     "new_key": "CS3bC-099",
     "method": "name_mark"
   },
   "12162": {
-    "new_key": "CSVH5aC-002",
-    "method": "name_mark_attr_rarity"
+    "new_key": "CBB6C-1101",
+    "method": "name_mark_attr"
   },
   "12367": {
-    "new_key": "CSVH5aC-002",
-    "method": "name_mark_attr_rarity"
+    "new_key": "CBB6C-1101",
+    "method": "name_mark_attr"
   },
   "12708": {
     "new_key": "SVP-278",
@@ -14516,7 +14520,7 @@
     "method": "name_mark"
   },
   "13106": {
-    "new_key": "CS5aC-054",
+    "new_key": "30thC-061",
     "method": "name_legal"
   },
   "5822": {
@@ -16520,15 +16524,15 @@
     "method": "name_mark_attr_rarity"
   },
   "5049": {
-    "new_key": "CS5aC-057",
+    "new_key": "CBB6C-1201",
     "method": "name_legal"
   },
   "4222": {
-    "new_key": "CS5aC-057",
+    "new_key": "CBB6C-1201",
     "method": "name_legal"
   },
   "4394": {
-    "new_key": "CS5aC-057",
+    "new_key": "CBB6C-1201",
     "method": "name_legal"
   },
   "7002": {
@@ -16536,12 +16540,12 @@
     "method": "name_mark"
   },
   "12125": {
-    "new_key": "CSV9C-083",
-    "method": "name_mark"
+    "new_key": "CBB6C-1201",
+    "method": "name_mark_attr"
   },
   "12363": {
-    "new_key": "CSV9C-083",
-    "method": "name_mark"
+    "new_key": "CBB6C-1201",
+    "method": "name_mark_attr"
   },
   "5050": {
     "new_key": "CS5aC-058",
@@ -17040,16 +17044,16 @@
     "method": "name_mark_attr_rarity"
   },
   "6235": {
-    "new_key": "CS6.1C-024",
-    "method": "name_mark_attr_rarity"
+    "new_key": "30thC-164",
+    "method": "name_mark_attr"
   },
   "8082": {
-    "new_key": "CS6.1C-024",
-    "method": "name_mark_attr_rarity"
+    "new_key": "30thC-164",
+    "method": "name_mark_attr"
   },
   "12396": {
-    "new_key": "CS6.1C-024",
-    "method": "name_mark_attr_rarity"
+    "new_key": "30thC-164",
+    "method": "name_mark_attr"
   },
   "4556": {
     "new_key": "CSM1aC-022",
@@ -17952,7 +17956,7 @@
     "method": "name_mark"
   },
   "3736": {
-    "new_key": "CSV5C-033",
+    "new_key": "30thC-070",
     "method": "name_legal"
   },
   "2858": {
@@ -18865,7 +18869,7 @@
   },
   "7068": {
     "new_key": "CS5.5C-038",
-    "method": "exact_name"
+    "method": "name_mark"
   },
   "13055": {
     "new_key": "CSV10C-145",
@@ -18884,7 +18888,7 @@
     "method": "name_mark_attr"
   },
   "5108": {
-    "new_key": "CSV9.5C-111",
+    "new_key": "30thDC-020",
     "method": "name_legal"
   },
   "2248": {
@@ -18921,7 +18925,7 @@
   },
   "7069": {
     "new_key": "CS5.5C-039",
-    "method": "exact_name"
+    "method": "name_mark"
   },
   "7100": {
     "new_key": "CS5.5C-057",
@@ -19076,12 +19080,12 @@
     "method": "name_mark"
   },
   "10829": {
-    "new_key": "CSV7C-098",
-    "method": "name_mark"
+    "new_key": "CBB6C-1301",
+    "method": "name_mark_attr"
   },
   "11058": {
-    "new_key": "CSV7C-098",
-    "method": "name_mark"
+    "new_key": "CBB6C-1301",
+    "method": "name_mark_attr"
   },
   "3680": {
     "new_key": "CSM2DC-070",
@@ -23512,12 +23516,12 @@
     "method": "name_mark"
   },
   "11815": {
-    "new_key": "CSV8C-059",
-    "method": "name_mark"
+    "new_key": "CBB6C-1401",
+    "method": "name_mark_attr"
   },
   "11898": {
-    "new_key": "CSV8C-059",
-    "method": "name_mark"
+    "new_key": "CBB6C-1401",
+    "method": "name_mark_attr"
   },
   "26": {
     "new_key": "CS4DaC-112",
@@ -23724,7 +23728,7 @@
     "method": "name_mark"
   },
   "4918": {
-    "new_key": "CBB3C-1201",
+    "new_key": "30thC-071",
     "method": "name_legal"
   },
   "5092": {
@@ -24080,12 +24084,12 @@
     "method": "name_mark"
   },
   "11929": {
-    "new_key": "CSV8C-018",
-    "method": "name_mark"
+    "new_key": "CBB6C-1501",
+    "method": "name_mark_attr"
   },
   "12327": {
-    "new_key": "CSV8C-018",
-    "method": "name_mark"
+    "new_key": "CBB6C-1501",
+    "method": "name_mark_attr"
   },
   "8628": {
     "new_key": "CSV3C-059",
@@ -24264,16 +24268,16 @@
     "method": "name_mark_attr"
   },
   "11504": {
-    "new_key": "CSV8C-171",
-    "method": "name_mark"
+    "new_key": "CBB6C-1601",
+    "method": "name_mark_attr"
   },
   "11773": {
-    "new_key": "CSV8C-171",
-    "method": "name_mark"
+    "new_key": "CBB6C-1601",
+    "method": "name_mark_attr"
   },
   "12723": {
-    "new_key": "CSV8C-171",
-    "method": "name_mark"
+    "new_key": "CBB6C-1601",
+    "method": "name_mark_attr"
   },
   "4801": {
     "new_key": "CSM1cC-115",
@@ -24708,7 +24712,7 @@
     "method": "name_mark_attr"
   },
   "4607": {
-    "new_key": "CSV5C-070",
+    "new_key": "30thDC-027",
     "method": "name_legal"
   },
   "9875": {
@@ -24900,12 +24904,12 @@
     "method": "name_mark_attr_rarity"
   },
   "11938": {
-    "new_key": "CSV9C-047",
-    "method": "name_mark"
+    "new_key": "CBB6C-1701",
+    "method": "name_mark_attr"
   },
   "12329": {
-    "new_key": "CSV9C-047",
-    "method": "name_mark"
+    "new_key": "CBB6C-1701",
+    "method": "name_mark_attr"
   },
   "4781": {
     "new_key": "CSM1DC-204",
@@ -25020,12 +25024,12 @@
     "method": "exact_name"
   },
   "4783": {
-    "new_key": "CSM1aC-103",
-    "method": "name_first"
+    "new_key": "30thC-089",
+    "method": "name_legal"
   },
   "4782": {
-    "new_key": "CSM1aC-103",
-    "method": "name_first"
+    "new_key": "30thC-089",
+    "method": "name_legal"
   },
   "3766": {
     "new_key": "CSM2aC-113",
@@ -25036,12 +25040,12 @@
     "method": "name_mark"
   },
   "4784": {
-    "new_key": "CSM1aC-104",
-    "method": "name_first"
+    "new_key": "30thC-090",
+    "method": "name_legal"
   },
   "4785": {
-    "new_key": "CSM1aC-104",
-    "method": "name_first"
+    "new_key": "30thC-090",
+    "method": "name_legal"
   },
   "3767": {
     "new_key": "CSM2aC-114",
@@ -25172,8 +25176,8 @@
     "method": "name_mark_attr"
   },
   "4547": {
-    "new_key": "SVP-222",
-    "method": "name_legal_rarity"
+    "new_key": "CBB6C-1801",
+    "method": "name_legal"
   },
   "5026": {
     "new_key": "CSM1DC-027",
@@ -25196,12 +25200,12 @@
     "method": "name_mark_attr_rarity"
   },
   "11457": {
-    "new_key": "SVP-222",
-    "method": "name_mark_attr_rarity"
+    "new_key": "CBB6C-1801",
+    "method": "name_mark_attr"
   },
   "11762": {
-    "new_key": "SVP-222",
-    "method": "name_mark_attr_rarity"
+    "new_key": "CBB6C-1801",
+    "method": "name_mark_attr"
   },
   "4548": {
     "new_key": "CSM2.1C-046",
@@ -25256,16 +25260,16 @@
     "method": "name_mark_attr"
   },
   "5059": {
-    "new_key": "CSDC-013",
-    "method": "name_first"
+    "new_key": "30thC-064",
+    "method": "name_legal"
   },
   "5643": {
-    "new_key": "CSDC-013",
-    "method": "name_first"
+    "new_key": "30thC-064",
+    "method": "name_legal"
   },
   "5826": {
-    "new_key": "CSDC-013",
-    "method": "name_first"
+    "new_key": "30thC-064",
+    "method": "name_legal"
   },
   "4416": {
     "new_key": "CSM2aC-082",
@@ -25308,8 +25312,8 @@
     "method": "name_mark"
   },
   "4753": {
-    "new_key": "CSDC-015",
-    "method": "name_first"
+    "new_key": "30thC-084",
+    "method": "name_legal"
   },
   "4446": {
     "new_key": "CSM2aC-104",
@@ -25332,12 +25336,12 @@
     "method": "exact_name"
   },
   "4754": {
-    "new_key": "CSMLC-004",
-    "method": "name_mark_attr_rarity"
+    "new_key": "30thC-158",
+    "method": "name_mark_attr"
   },
   "4941": {
-    "new_key": "CSMLC-004",
-    "method": "name_mark_attr_rarity"
+    "new_key": "30thC-158",
+    "method": "name_mark_attr"
   },
   "5669": {
     "new_key": "CSM1.5C-032",
@@ -25348,8 +25352,8 @@
     "method": "name_mark_attr"
   },
   "4740": {
-    "new_key": "CSDC-016",
-    "method": "name_first"
+    "new_key": "30thC-066",
+    "method": "name_legal"
   },
   "4418": {
     "new_key": "CSM2aC-084",
@@ -25384,7 +25388,7 @@
     "method": "name_mark_attr"
   },
   "4608": {
-    "new_key": "CSM1cC-064",
+    "new_key": "30thC-159",
     "method": "name_mark_attr"
   },
   "5027": {
@@ -27188,12 +27192,12 @@
     "method": "name_mark_attr"
   },
   "11972": {
-    "new_key": "CSV9C-149",
-    "method": "name_mark"
+    "new_key": "CBB6C-2001",
+    "method": "name_mark_attr"
   },
   "12335": {
-    "new_key": "CSV9C-149",
-    "method": "name_mark"
+    "new_key": "CBB6C-2001",
+    "method": "name_mark_attr"
   },
   "1743": {
     "new_key": "CS4DaC-041",
@@ -27228,12 +27232,12 @@
     "method": "name_mark"
   },
   "11973": {
-    "new_key": "CSV9C-150",
-    "method": "name_mark"
+    "new_key": "CBB6C-2101",
+    "method": "name_mark_attr"
   },
   "12336": {
-    "new_key": "CSV9C-150",
-    "method": "name_mark"
+    "new_key": "CBB6C-2101",
+    "method": "name_mark_attr"
   },
   "2218": {
     "new_key": "CS2DaC-005",
@@ -27732,12 +27736,12 @@
     "method": "name_mark"
   },
   "11958": {
-    "new_key": "CSV9C-107",
-    "method": "name_mark"
+    "new_key": "CBB6C-2201",
+    "method": "name_mark_attr"
   },
   "12333": {
-    "new_key": "CSV9C-107",
-    "method": "name_mark"
+    "new_key": "CBB6C-2201",
+    "method": "name_mark_attr"
   },
   "398": {
     "new_key": "CS1aC-103",
@@ -28764,15 +28768,15 @@
     "method": "name_mark_attr_rarity"
   },
   "11492": {
-    "new_key": "CSV8C-147",
+    "new_key": "CBB6C-2301",
     "method": "name_mark_attr"
   },
   "11770": {
-    "new_key": "CSV8C-147",
+    "new_key": "CBB6C-2301",
     "method": "name_mark_attr"
   },
   "12694": {
-    "new_key": "CSV8C-147",
+    "new_key": "CBB6C-2301",
     "method": "name_mark_attr"
   },
   "1389": {
@@ -29140,28 +29144,28 @@
     "method": "exact_name"
   },
   "2487": {
-    "new_key": "CS4.1C-022",
-    "method": "name_mark_attr_rarity"
+    "new_key": "30thC-161",
+    "method": "name_mark_attr"
   },
   "2750": {
-    "new_key": "CS4.1C-022",
-    "method": "name_mark_attr_rarity"
+    "new_key": "30thC-161",
+    "method": "name_mark_attr"
   },
   "6045": {
-    "new_key": "CS4.1C-022",
-    "method": "name_mark_attr_rarity"
+    "new_key": "30thC-161",
+    "method": "name_mark_attr"
   },
   "6137": {
-    "new_key": "CS4.1C-022",
-    "method": "name_mark_attr_rarity"
+    "new_key": "30thC-161",
+    "method": "name_mark_attr"
   },
   "6150": {
-    "new_key": "CS4.1C-022",
-    "method": "name_mark_attr_rarity"
+    "new_key": "30thC-161",
+    "method": "name_mark_attr"
   },
   "8138": {
-    "new_key": "CS4.1C-022",
-    "method": "name_mark_attr_rarity"
+    "new_key": "30thC-161",
+    "method": "name_mark_attr"
   },
   "2288": {
     "new_key": "CS4.1C-018",
@@ -32736,20 +32740,20 @@
     "method": "name_mark_attr_rarity"
   },
   "11296": {
-    "new_key": "CSV9.5C-012",
-    "method": "name_mark_attr_rarity"
+    "new_key": "CBB6C-2401",
+    "method": "name_mark_attr"
   },
   "11424": {
-    "new_key": "CSV9.5C-012",
-    "method": "name_mark_attr_rarity"
+    "new_key": "CBB6C-2401",
+    "method": "name_mark_attr"
   },
   "12430": {
-    "new_key": "CSV9.5C-012",
-    "method": "name_mark_attr_rarity"
+    "new_key": "CBB6C-2401",
+    "method": "name_mark_attr"
   },
   "12858": {
-    "new_key": "CSV9.5C-012",
-    "method": "name_mark_attr_rarity"
+    "new_key": "CBB6C-2401",
+    "method": "name_mark_attr"
   },
   "11802": {
     "new_key": "CSV9C-012",
@@ -32764,19 +32768,19 @@
     "method": "name_mark_attr_rarity"
   },
   "11125": {
-    "new_key": "CSV9.5C-019",
+    "new_key": "CBB6C-2501",
     "method": "name_mark_attr"
   },
   "11597": {
-    "new_key": "CSV9.5C-019",
+    "new_key": "CBB6C-2501",
     "method": "name_mark_attr"
   },
   "12438": {
-    "new_key": "CSV9.5C-019",
+    "new_key": "CBB6C-2501",
     "method": "name_mark_attr"
   },
   "12864": {
-    "new_key": "CSV9.5C-019",
+    "new_key": "CBB6C-2501",
     "method": "name_mark_attr"
   },
   "11298": {
@@ -32808,20 +32812,20 @@
     "method": "name_mark_attr"
   },
   "11348": {
-    "new_key": "CSVNC-022",
-    "method": "name_mark_attr_rarity"
+    "new_key": "CBB6C-2601",
+    "method": "name_mark_attr"
   },
   "11431": {
-    "new_key": "CSVNC-022",
-    "method": "name_mark_attr_rarity"
+    "new_key": "CBB6C-2601",
+    "method": "name_mark_attr"
   },
   "12511": {
-    "new_key": "CSVNC-022",
-    "method": "name_mark_attr_rarity"
+    "new_key": "CBB6C-2601",
+    "method": "name_mark_attr"
   },
   "12918": {
-    "new_key": "CSVNC-022",
-    "method": "name_mark_attr_rarity"
+    "new_key": "CBB6C-2601",
+    "method": "name_mark_attr"
   },
   "11487": {
     "new_key": "CSV8C-133",
@@ -32840,20 +32844,20 @@
     "method": "name_mark_attr"
   },
   "11339": {
-    "new_key": "CSVM2bC-002",
-    "method": "name_mark_attr_rarity"
+    "new_key": "CBB6C-2701",
+    "method": "name_mark_attr"
   },
   "11428": {
-    "new_key": "CSVM2bC-002",
-    "method": "name_mark_attr_rarity"
+    "new_key": "CBB6C-2701",
+    "method": "name_mark_attr"
   },
   "12496": {
-    "new_key": "CSVM2bC-002",
-    "method": "name_mark_attr_rarity"
+    "new_key": "CBB6C-2701",
+    "method": "name_mark_attr"
   },
   "12905": {
-    "new_key": "CSVM2bC-002",
-    "method": "name_mark_attr_rarity"
+    "new_key": "CBB6C-2701",
+    "method": "name_mark_attr"
   },
   "11488": {
     "new_key": "CSV8C-134",
@@ -32872,20 +32876,20 @@
     "method": "name_mark_attr"
   },
   "11340": {
-    "new_key": "CSVNC-020",
-    "method": "name_mark_attr_rarity"
+    "new_key": "CBB6C-2801",
+    "method": "name_mark_attr"
   },
   "11429": {
-    "new_key": "CSVNC-020",
-    "method": "name_mark_attr_rarity"
+    "new_key": "CBB6C-2801",
+    "method": "name_mark_attr"
   },
   "12497": {
-    "new_key": "CSVNC-020",
-    "method": "name_mark_attr_rarity"
+    "new_key": "CBB6C-2801",
+    "method": "name_mark_attr"
   },
   "12906": {
-    "new_key": "CSVNC-020",
-    "method": "name_mark_attr_rarity"
+    "new_key": "CBB6C-2801",
+    "method": "name_mark_attr"
   },
   "11489": {
     "new_key": "CSVM2aC-006",
@@ -33332,12 +33336,12 @@
     "method": "name_mark"
   },
   "13088": {
-    "new_key": "CSVH5aC-018",
-    "method": "name_mark_rarity"
+    "new_key": "30thDC-034",
+    "method": "name_mark"
   },
   "13190": {
-    "new_key": "CSVH5aC-018",
-    "method": "name_mark_rarity"
+    "new_key": "30thDC-034",
+    "method": "name_mark"
   },
   "10935": {
     "new_key": "CSVM2cC-024",
@@ -33884,83 +33888,83 @@
     "method": "name_mark"
   },
   "2260": {
-    "new_key": "CS2DaC-048",
+    "new_key": "30thDC-037",
     "method": "name_mark_rarity"
   },
   "5735": {
-    "new_key": "CS2DaC-048",
+    "new_key": "30thDC-037",
     "method": "name_mark_rarity"
   },
   "5917": {
-    "new_key": "CS2DaC-048",
+    "new_key": "30thDC-037",
     "method": "name_mark_rarity"
   },
   "6764": {
-    "new_key": "CS2DaC-048",
+    "new_key": "30thDC-037",
     "method": "name_mark_rarity"
   },
   "7563": {
-    "new_key": "CS2DaC-048",
+    "new_key": "30thDC-037",
     "method": "name_mark_rarity"
   },
   "7589": {
-    "new_key": "CS2DaC-048",
+    "new_key": "30thDC-037",
     "method": "name_mark_rarity"
   },
   "7720": {
-    "new_key": "CS2DaC-048",
+    "new_key": "30thDC-037",
     "method": "name_mark_rarity"
   },
   "7743": {
-    "new_key": "CS2DaC-048",
+    "new_key": "30thDC-037",
     "method": "name_mark_rarity"
   },
   "7765": {
-    "new_key": "CS2DaC-048",
+    "new_key": "30thDC-037",
     "method": "name_mark_rarity"
   },
   "8205": {
-    "new_key": "CS2DaC-048",
+    "new_key": "30thDC-037",
     "method": "name_mark_rarity"
   },
   "8466": {
-    "new_key": "CS2DaC-048",
+    "new_key": "30thDC-037",
     "method": "name_mark_rarity"
   },
   "8491": {
-    "new_key": "CS2DaC-048",
+    "new_key": "30thDC-037",
     "method": "name_mark_rarity"
   },
   "8516": {
-    "new_key": "CS2DaC-048",
+    "new_key": "30thDC-037",
     "method": "name_mark_rarity"
   },
   "8850": {
-    "new_key": "CS2DaC-048",
+    "new_key": "30thDC-037",
     "method": "name_mark_rarity"
   },
   "9352": {
-    "new_key": "CS2DaC-048",
+    "new_key": "30thDC-037",
     "method": "name_mark_rarity"
   },
   "10785": {
-    "new_key": "CS2DaC-048",
+    "new_key": "30thDC-037",
     "method": "name_mark_rarity"
   },
   "12258": {
-    "new_key": "CS2DaC-048",
+    "new_key": "30thDC-037",
     "method": "name_mark_rarity"
   },
   "12259": {
-    "new_key": "CS2DaC-048",
+    "new_key": "30thDC-037",
     "method": "name_mark_rarity"
   },
   "12260": {
-    "new_key": "CS2DaC-048",
+    "new_key": "30thDC-037",
     "method": "name_mark_rarity"
   },
   "12762": {
-    "new_key": "CS2DaC-048",
+    "new_key": "30thDC-037",
     "method": "name_mark_rarity"
   },
   "583": {
@@ -34708,175 +34712,175 @@
     "method": "name_mark_rarity"
   },
   "8658": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "name_mark_rarity"
   },
   "9684": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "name_mark_rarity"
   },
   "9822": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "name_mark_rarity"
   },
   "9844": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "name_mark_rarity"
   },
   "10295": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "name_mark_rarity"
   },
   "10961": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "name_mark_rarity"
   },
   "11009": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "name_mark_rarity"
   },
   "11643": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "name_mark_rarity"
   },
   "11664": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "name_mark_rarity"
   },
   "11687": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "name_mark_rarity"
   },
   "11709": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "name_mark_rarity"
   },
   "11729": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "name_mark_rarity"
   },
   "11749": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "name_mark_rarity"
   },
   "12062": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "name_mark_rarity"
   },
   "12278": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "name_mark_rarity"
   },
   "12418": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "name_mark_rarity"
   },
   "12780": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "name_mark_rarity"
   },
   "13142": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "name_mark_rarity"
   },
   "13166": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "name_mark_rarity"
   },
   "1587": {
-    "new_key": "CS1DC-200",
-    "method": "parenthesis_mark"
+    "new_key": "30thDC-039",
+    "method": "parenthesis_mark_rarity"
   },
   "1708": {
-    "new_key": "CS1DC-200",
-    "method": "parenthesis_mark"
+    "new_key": "30thDC-039",
+    "method": "parenthesis_mark_rarity"
   },
   "1865": {
-    "new_key": "CS1DC-200",
-    "method": "parenthesis_mark"
+    "new_key": "30thDC-039",
+    "method": "parenthesis_mark_rarity"
   },
   "2263": {
-    "new_key": "CS1DC-200",
-    "method": "parenthesis_mark"
+    "new_key": "30thDC-039",
+    "method": "parenthesis_mark_rarity"
   },
   "2526": {
-    "new_key": "CS1DC-200",
-    "method": "parenthesis_mark"
+    "new_key": "30thDC-039",
+    "method": "parenthesis_mark_rarity"
   },
   "2930": {
-    "new_key": "CS1DC-200",
-    "method": "parenthesis_mark"
+    "new_key": "30thDC-039",
+    "method": "parenthesis_mark_rarity"
   },
   "3096": {
-    "new_key": "CS1DC-200",
-    "method": "parenthesis_mark"
+    "new_key": "30thDC-039",
+    "method": "parenthesis_mark_rarity"
   },
   "6147": {
-    "new_key": "CS1DC-200",
-    "method": "parenthesis_mark"
+    "new_key": "30thDC-039",
+    "method": "parenthesis_mark_rarity"
   },
   "8162": {
-    "new_key": "CS1DC-200",
-    "method": "parenthesis_mark"
+    "new_key": "30thDC-039",
+    "method": "parenthesis_mark_rarity"
   },
   "6248": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "parenthesis_mark_rarity"
   },
   "6276": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "parenthesis_mark_rarity"
   },
   "6772": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "parenthesis_mark_rarity"
   },
   "6878": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "parenthesis_mark_rarity"
   },
   "6900": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "parenthesis_mark_rarity"
   },
   "7454": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "parenthesis_mark_rarity"
   },
   "7474": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "parenthesis_mark_rarity"
   },
   "7592": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "parenthesis_mark_rarity"
   },
   "7723": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "parenthesis_mark_rarity"
   },
   "8116": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "parenthesis_mark_rarity"
   },
   "8209": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "parenthesis_mark_rarity"
   },
   "8292": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "parenthesis_mark_rarity"
   },
   "8585": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "parenthesis_mark_rarity"
   },
   "6086": {
-    "new_key": "CS1DC-200",
-    "method": "parenthesis_mark"
+    "new_key": "30thDC-039",
+    "method": "parenthesis_mark_rarity"
   },
   "9360": {
-    "new_key": "CS1DC-200",
+    "new_key": "30thDC-039",
     "method": "parenthesis_mark_rarity"
   },
   "10109": {
@@ -36184,12 +36188,12 @@
     "method": "name_first_rarity"
   },
   "13090": {
-    "new_key": "CSVM2bC-025",
-    "method": "name_mark_rarity"
+    "new_key": "30thDC-038",
+    "method": "name_mark"
   },
   "13192": {
-    "new_key": "CSVM2bC-025",
-    "method": "name_mark_rarity"
+    "new_key": "30thDC-038",
+    "method": "name_mark"
   },
   "3473": {
     "new_key": "CSM2DC-301",
@@ -36664,315 +36668,315 @@
     "method": "fuzzy_effect"
   },
   "1579": {
-    "new_key": "CS1DC-180",
+    "new_key": "30thDC-033",
     "method": "name_mark_rarity"
   },
   "1693": {
-    "new_key": "CS1DC-180",
+    "new_key": "30thDC-033",
     "method": "name_mark_rarity"
   },
   "1853": {
-    "new_key": "CS1DC-180",
+    "new_key": "30thDC-033",
     "method": "name_mark_rarity"
   },
   "2016": {
-    "new_key": "CS1DC-180",
+    "new_key": "30thDC-033",
     "method": "name_mark_rarity"
   },
   "2256": {
-    "new_key": "CS1DC-180",
+    "new_key": "30thDC-033",
     "method": "name_mark_rarity"
   },
   "2440": {
-    "new_key": "CS1DC-180",
+    "new_key": "30thDC-033",
     "method": "name_mark_rarity"
   },
   "3091": {
-    "new_key": "CS1DC-180",
+    "new_key": "30thDC-033",
     "method": "name_mark_rarity"
   },
   "3980": {
-    "new_key": "CS1DC-180",
+    "new_key": "30thDC-033",
     "method": "name_mark_rarity"
   },
   "4308": {
-    "new_key": "CS1DC-180",
+    "new_key": "30thDC-033",
     "method": "name_mark_rarity"
   },
   "4973": {
-    "new_key": "CS1DC-180",
+    "new_key": "30thDC-033",
     "method": "name_mark_rarity"
   },
   "5908": {
-    "new_key": "CS1DC-180",
+    "new_key": "30thDC-033",
     "method": "name_mark_rarity"
   },
   "6744": {
-    "new_key": "CS1DC-180",
+    "new_key": "30thDC-033",
     "method": "name_mark_rarity"
   },
   "7586": {
-    "new_key": "CS1DC-180",
+    "new_key": "30thDC-033",
     "method": "name_mark_rarity"
   },
   "7718": {
-    "new_key": "CS1DC-180",
+    "new_key": "30thDC-033",
     "method": "name_mark_rarity"
   },
   "7740": {
-    "new_key": "CS1DC-180",
+    "new_key": "30thDC-033",
     "method": "name_mark_rarity"
   },
   "7762": {
-    "new_key": "CS1DC-180",
+    "new_key": "30thDC-033",
     "method": "name_mark_rarity"
   },
   "8490": {
-    "new_key": "CS1DC-180",
+    "new_key": "30thDC-033",
     "method": "name_mark_rarity"
   },
   "8514": {
-    "new_key": "CS1DC-180",
+    "new_key": "30thDC-033",
     "method": "name_mark_rarity"
   },
   "8849": {
-    "new_key": "CS1DC-180",
+    "new_key": "30thDC-033",
     "method": "name_mark_rarity"
   },
   "9345": {
-    "new_key": "CS1DC-180",
+    "new_key": "30thDC-033",
     "method": "name_mark_rarity"
   },
   "11174": {
-    "new_key": "CS1DC-180",
+    "new_key": "30thDC-033",
     "method": "name_mark_rarity"
   },
   "12249": {
-    "new_key": "CS1DC-180",
+    "new_key": "30thDC-033",
     "method": "name_mark_rarity"
   },
   "12250": {
-    "new_key": "CS1DC-180",
+    "new_key": "30thDC-033",
     "method": "name_mark_rarity"
   },
   "12251": {
-    "new_key": "CS1DC-180",
+    "new_key": "30thDC-033",
     "method": "name_mark_rarity"
   },
   "12745": {
-    "new_key": "CS1DC-180",
+    "new_key": "30thDC-033",
     "method": "name_mark_rarity"
   },
   "1135": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "1578": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "1692": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "1852": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "2015": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "2255": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "2439": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "3090": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "3979": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "4307": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "4972": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "5907": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "6143": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "6269": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "6743": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "6872": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "6895": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "7445": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "7464": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "7561": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "7585": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "7717": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "7739": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "7761": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "8202": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "8464": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "8489": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "8513": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "8535": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "8558": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "8848": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "9344": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "9673": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "9818": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "9839": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "9899": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "10953": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "11001": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "11026": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "11173": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "11637": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "11658": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "11683": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "11705": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "11744": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "12048": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "12245": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "12246": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "12247": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "12248": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "12744": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "13137": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "13161": {
-    "new_key": "CBB3C-1903",
+    "new_key": "30thDC-032",
     "method": "name_mark_rarity"
   },
   "4981": {
@@ -37644,59 +37648,59 @@
     "method": "name_mark_rarity"
   },
   "1571": {
-    "new_key": "CS1DC-169",
+    "new_key": "30thDC-029",
     "method": "name_mark_rarity"
   },
   "2006": {
-    "new_key": "CS1DC-169",
+    "new_key": "30thDC-029",
     "method": "name_mark_rarity"
   },
   "2253": {
-    "new_key": "CS1DC-169",
+    "new_key": "30thDC-029",
     "method": "name_mark_rarity"
   },
   "3085": {
-    "new_key": "CS1DC-169",
+    "new_key": "30thDC-029",
     "method": "name_mark_rarity"
   },
   "3973": {
-    "new_key": "CS1DC-169",
+    "new_key": "30thDC-029",
     "method": "name_mark_rarity"
   },
   "4806": {
-    "new_key": "CS1DC-169",
+    "new_key": "30thDC-029",
     "method": "name_mark_rarity"
   },
   "4966": {
-    "new_key": "CS1DC-169",
+    "new_key": "30thDC-029",
     "method": "name_mark_rarity"
   },
   "5897": {
-    "new_key": "CS1DC-169",
+    "new_key": "30thDC-029",
     "method": "name_mark_rarity"
   },
   "6738": {
-    "new_key": "CS1DC-169",
+    "new_key": "30thDC-029",
     "method": "name_mark_rarity"
   },
   "7714": {
-    "new_key": "CS1DC-169",
+    "new_key": "30thDC-029",
     "method": "name_mark_rarity"
   },
   "8509": {
-    "new_key": "CS1DC-169",
+    "new_key": "30thDC-029",
     "method": "name_mark_rarity"
   },
   "9338": {
-    "new_key": "CS1DC-169",
+    "new_key": "30thDC-029",
     "method": "name_mark_rarity"
   },
   "12239": {
-    "new_key": "CS1DC-169",
+    "new_key": "30thDC-029",
     "method": "name_mark_rarity"
   },
   "12739": {
-    "new_key": "CS1DC-169",
+    "new_key": "30thDC-029",
     "method": "name_mark_rarity"
   },
   "5905": {
@@ -37724,175 +37728,175 @@
     "method": "name_mark_rarity"
   },
   "3485": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "3976": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "4303": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "4649": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "4970": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "5902": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "6240": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "6266": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "6361": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "6741": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "6871": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "6893": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "7444": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "7463": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "7584": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "7716": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "7738": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "7760": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "8093": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "8201": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "8440": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "8461": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "8487": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "8511": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "8555": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "8846": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "9341": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "9669": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "9815": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "9837": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "10275": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "10952": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "11000": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "11634": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "11656": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "11681": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "11703": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "11724": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "11743": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "12044": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "12742": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "13135": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "13159": {
-    "new_key": "CBB1C-1703",
+    "new_key": "30thDC-030",
     "method": "name_mark_rarity"
   },
   "11172": {
@@ -38832,59 +38836,59 @@
     "method": "name_mark"
   },
   "1569": {
-    "new_key": "CS1DC-167",
+    "new_key": "30thDC-028",
     "method": "name_mark_rarity"
   },
   "2252": {
-    "new_key": "CS1DC-167",
+    "new_key": "30thDC-028",
     "method": "name_mark_rarity"
   },
   "3083": {
-    "new_key": "CS1DC-167",
+    "new_key": "30thDC-028",
     "method": "name_mark_rarity"
   },
   "3972": {
-    "new_key": "CS1DC-167",
+    "new_key": "30thDC-028",
     "method": "name_mark_rarity"
   },
   "4299": {
-    "new_key": "CS1DC-167",
+    "new_key": "30thDC-028",
     "method": "name_mark_rarity"
   },
   "4965": {
-    "new_key": "CS1DC-167",
+    "new_key": "30thDC-028",
     "method": "name_mark_rarity"
   },
   "6736": {
-    "new_key": "CS1DC-167",
+    "new_key": "30thDC-028",
     "method": "name_mark_rarity"
   },
   "7582": {
-    "new_key": "CS1DC-167",
+    "new_key": "30thDC-028",
     "method": "name_mark_rarity"
   },
   "7757": {
-    "new_key": "CS1DC-167",
+    "new_key": "30thDC-028",
     "method": "name_mark_rarity"
   },
   "8485": {
-    "new_key": "CS1DC-167",
+    "new_key": "30thDC-028",
     "method": "name_mark_rarity"
   },
   "9337": {
-    "new_key": "CS1DC-167",
+    "new_key": "30thDC-028",
     "method": "name_mark_rarity"
   },
   "12237": {
-    "new_key": "CS1DC-167",
+    "new_key": "30thDC-028",
     "method": "name_mark_rarity"
   },
   "12238": {
-    "new_key": "CS1DC-167",
+    "new_key": "30thDC-028",
     "method": "name_mark_rarity"
   },
   "12738": {
-    "new_key": "CS1DC-167",
+    "new_key": "30thDC-028",
     "method": "name_mark_rarity"
   },
   "4514": {
@@ -40840,575 +40844,575 @@
     "method": "exact_name"
   },
   "2296": {
-    "new_key": "CBB1C-1801",
+    "new_key": "30thC-GRA",
     "method": "energy_strip"
   },
   "2304": {
-    "new_key": "CBB1C-1801",
+    "new_key": "30thC-GRA",
     "method": "energy_strip"
   },
   "6781": {
-    "new_key": "CBB1C-1801",
+    "new_key": "30thC-GRA",
     "method": "energy_strip"
   },
   "7262": {
-    "new_key": "CBB1C-1801",
+    "new_key": "30thC-GRA",
     "method": "energy_strip"
   },
   "8495": {
-    "new_key": "CBB1C-1801",
+    "new_key": "30thC-GRA",
     "method": "energy_strip"
   },
   "8537": {
-    "new_key": "CBB1C-1801",
+    "new_key": "30thC-GRA",
     "method": "energy_strip"
   },
   "8561": {
-    "new_key": "CBB1C-1801",
+    "new_key": "30thC-GRA",
     "method": "energy_strip"
   },
   "9362": {
-    "new_key": "CBB1C-1801",
+    "new_key": "30thC-GRA",
     "method": "energy_strip"
   },
   "9691": {
-    "new_key": "CBB1C-1801",
+    "new_key": "30thC-GRA",
     "method": "energy_strip"
   },
   "11667": {
-    "new_key": "CBB1C-1801",
+    "new_key": "30thC-GRA",
     "method": "energy_strip"
   },
   "12069": {
-    "new_key": "CBB1C-1801",
+    "new_key": "30thC-GRA",
     "method": "energy_strip"
   },
   "12279": {
-    "new_key": "CBB1C-1801",
+    "new_key": "30thC-GRA",
     "method": "energy_strip"
   },
   "12280": {
-    "new_key": "CBB1C-1801",
+    "new_key": "30thC-GRA",
     "method": "energy_strip"
   },
   "12281": {
-    "new_key": "CBB1C-1801",
+    "new_key": "30thC-GRA",
     "method": "energy_strip"
   },
   "12282": {
-    "new_key": "CBB1C-1801",
+    "new_key": "30thC-GRA",
     "method": "energy_strip"
   },
   "12283": {
-    "new_key": "CBB1C-1801",
+    "new_key": "30thC-GRA",
     "method": "energy_strip"
   },
   "12284": {
-    "new_key": "CBB1C-1801",
+    "new_key": "30thC-GRA",
     "method": "energy_strip"
   },
   "12285": {
-    "new_key": "CBB1C-1801",
+    "new_key": "30thC-GRA",
     "method": "energy_strip"
   },
   "12286": {
-    "new_key": "CBB1C-1801",
+    "new_key": "30thC-GRA",
     "method": "energy_strip"
   },
   "12784": {
-    "new_key": "CBB1C-1801",
+    "new_key": "30thC-GRA",
     "method": "energy_strip"
   },
   "2300": {
-    "new_key": "CBB2C-1102",
+    "new_key": "30thC-PSY",
     "method": "energy_strip"
   },
   "6785": {
-    "new_key": "CBB2C-1102",
+    "new_key": "30thC-PSY",
     "method": "energy_strip"
   },
   "7266": {
-    "new_key": "CBB2C-1102",
+    "new_key": "30thC-PSY",
     "method": "energy_strip"
   },
   "8521": {
-    "new_key": "CBB2C-1102",
+    "new_key": "30thC-PSY",
     "method": "energy_strip"
   },
   "8541": {
-    "new_key": "CBB2C-1102",
+    "new_key": "30thC-PSY",
     "method": "energy_strip"
   },
   "8565": {
-    "new_key": "CBB2C-1102",
+    "new_key": "30thC-PSY",
     "method": "energy_strip"
   },
   "9366": {
-    "new_key": "CBB2C-1102",
+    "new_key": "30thC-PSY",
     "method": "energy_strip"
   },
   "9695": {
-    "new_key": "CBB2C-1102",
+    "new_key": "30thC-PSY",
     "method": "energy_strip"
   },
   "9845": {
-    "new_key": "CBB2C-1102",
+    "new_key": "30thC-PSY",
     "method": "energy_strip"
   },
   "11011": {
-    "new_key": "CBB2C-1102",
+    "new_key": "30thC-PSY",
     "method": "energy_strip"
   },
   "11690": {
-    "new_key": "CBB2C-1102",
+    "new_key": "30thC-PSY",
     "method": "energy_strip"
   },
   "12073": {
-    "new_key": "CBB2C-1102",
+    "new_key": "30thC-PSY",
     "method": "energy_strip"
   },
   "12316": {
-    "new_key": "CBB2C-1102",
+    "new_key": "30thC-PSY",
     "method": "energy_strip"
   },
   "12317": {
-    "new_key": "CBB2C-1102",
+    "new_key": "30thC-PSY",
     "method": "energy_strip"
   },
   "12318": {
-    "new_key": "CBB2C-1102",
+    "new_key": "30thC-PSY",
     "method": "energy_strip"
   },
   "12319": {
-    "new_key": "CBB2C-1102",
+    "new_key": "30thC-PSY",
     "method": "energy_strip"
   },
   "12320": {
-    "new_key": "CBB2C-1102",
+    "new_key": "30thC-PSY",
     "method": "energy_strip"
   },
   "12321": {
-    "new_key": "CBB2C-1102",
+    "new_key": "30thC-PSY",
     "method": "energy_strip"
   },
   "12322": {
-    "new_key": "CBB2C-1102",
+    "new_key": "30thC-PSY",
     "method": "energy_strip"
   },
   "12323": {
-    "new_key": "CBB2C-1102",
+    "new_key": "30thC-PSY",
     "method": "energy_strip"
   },
   "12324": {
-    "new_key": "CBB2C-1102",
+    "new_key": "30thC-PSY",
     "method": "energy_strip"
   },
   "12788": {
-    "new_key": "CBB2C-1102",
+    "new_key": "30thC-PSY",
     "method": "energy_strip"
   },
   "13145": {
-    "new_key": "CBB2C-1102",
+    "new_key": "30thC-PSY",
     "method": "energy_strip"
   },
   "2301": {
-    "new_key": "CBB3C-2001",
+    "new_key": "30thC-FIG",
     "method": "energy_strip"
   },
   "2306": {
-    "new_key": "CBB3C-2001",
+    "new_key": "30thC-FIG",
     "method": "energy_strip"
   },
   "6786": {
-    "new_key": "CBB3C-2001",
+    "new_key": "30thC-FIG",
     "method": "energy_strip"
   },
   "6880": {
-    "new_key": "CBB3C-2001",
+    "new_key": "30thC-FIG",
     "method": "energy_strip"
   },
   "7267": {
-    "new_key": "CBB3C-2001",
+    "new_key": "30thC-FIG",
     "method": "energy_strip"
   },
   "8496": {
-    "new_key": "CBB3C-2001",
+    "new_key": "30thC-FIG",
     "method": "energy_strip"
   },
   "8542": {
-    "new_key": "CBB3C-2001",
+    "new_key": "30thC-FIG",
     "method": "energy_strip"
   },
   "8566": {
-    "new_key": "CBB3C-2001",
+    "new_key": "30thC-FIG",
     "method": "energy_strip"
   },
   "9367": {
-    "new_key": "CBB3C-2001",
+    "new_key": "30thC-FIG",
     "method": "energy_strip"
   },
   "9696": {
-    "new_key": "CBB3C-2001",
+    "new_key": "30thC-FIG",
     "method": "energy_strip"
   },
   "10963": {
-    "new_key": "CBB3C-2001",
+    "new_key": "30thC-FIG",
     "method": "energy_strip"
   },
   "11710": {
-    "new_key": "CBB3C-2001",
+    "new_key": "30thC-FIG",
     "method": "energy_strip"
   },
   "12074": {
-    "new_key": "CBB3C-2001",
+    "new_key": "30thC-FIG",
     "method": "energy_strip"
   },
   "12325": {
-    "new_key": "CBB3C-2001",
+    "new_key": "30thC-FIG",
     "method": "energy_strip"
   },
   "12789": {
-    "new_key": "CBB3C-2001",
+    "new_key": "30thC-FIG",
     "method": "energy_strip"
   },
   "2302": {
-    "new_key": "CBB2C-1103",
+    "new_key": "30thC-DAR",
     "method": "energy_strip"
   },
   "2307": {
-    "new_key": "CBB2C-1103",
+    "new_key": "30thC-DAR",
     "method": "energy_strip"
   },
   "6787": {
-    "new_key": "CBB2C-1103",
+    "new_key": "30thC-DAR",
     "method": "energy_strip"
   },
   "6901": {
-    "new_key": "CBB2C-1103",
+    "new_key": "30thC-DAR",
     "method": "energy_strip"
   },
   "7268": {
-    "new_key": "CBB2C-1103",
+    "new_key": "30thC-DAR",
     "method": "energy_strip"
   },
   "8543": {
-    "new_key": "CBB2C-1103",
+    "new_key": "30thC-DAR",
     "method": "energy_strip"
   },
   "8567": {
-    "new_key": "CBB2C-1103",
+    "new_key": "30thC-DAR",
     "method": "energy_strip"
   },
   "9368": {
-    "new_key": "CBB2C-1103",
+    "new_key": "30thC-DAR",
     "method": "energy_strip"
   },
   "9697": {
-    "new_key": "CBB2C-1103",
+    "new_key": "30thC-DAR",
     "method": "energy_strip"
   },
   "12075": {
-    "new_key": "CBB2C-1103",
+    "new_key": "30thC-DAR",
     "method": "energy_strip"
   },
   "12314": {
-    "new_key": "CBB2C-1103",
+    "new_key": "30thC-DAR",
     "method": "energy_strip"
   },
   "12790": {
-    "new_key": "CBB2C-1103",
+    "new_key": "30thC-DAR",
     "method": "energy_strip"
   },
   "13169": {
-    "new_key": "CBB2C-1103",
+    "new_key": "30thC-DAR",
     "method": "energy_strip"
   },
   "2303": {
-    "new_key": "CBB3C-2002",
+    "new_key": "30thC-MET",
     "method": "energy_strip"
   },
   "6120": {
-    "new_key": "CBB3C-2002",
+    "new_key": "30thC-MET",
     "method": "energy_strip"
   },
   "6788": {
-    "new_key": "CBB3C-2002",
+    "new_key": "30thC-MET",
     "method": "energy_strip"
   },
   "7269": {
-    "new_key": "CBB3C-2002",
+    "new_key": "30thC-MET",
     "method": "energy_strip"
   },
   "8544": {
-    "new_key": "CBB3C-2002",
+    "new_key": "30thC-MET",
     "method": "energy_strip"
   },
   "8568": {
-    "new_key": "CBB3C-2002",
+    "new_key": "30thC-MET",
     "method": "energy_strip"
   },
   "9369": {
-    "new_key": "CBB3C-2002",
+    "new_key": "30thC-MET",
     "method": "energy_strip"
   },
   "9698": {
-    "new_key": "CBB3C-2002",
+    "new_key": "30thC-MET",
     "method": "energy_strip"
   },
   "11751": {
-    "new_key": "CBB3C-2002",
+    "new_key": "30thC-MET",
     "method": "energy_strip"
   },
   "12076": {
-    "new_key": "CBB3C-2002",
+    "new_key": "30thC-MET",
     "method": "energy_strip"
   },
   "12315": {
-    "new_key": "CBB3C-2002",
+    "new_key": "30thC-MET",
     "method": "energy_strip"
   },
   "12791": {
-    "new_key": "CBB3C-2002",
+    "new_key": "30thC-MET",
     "method": "energy_strip"
   },
   "13146": {
-    "new_key": "CBB3C-2002",
+    "new_key": "30thC-MET",
     "method": "energy_strip"
   },
   "2297": {
-    "new_key": "CBB1C-1802",
+    "new_key": "30thC-FIR",
     "method": "energy_strip"
   },
   "2305": {
-    "new_key": "CBB1C-1802",
+    "new_key": "30thC-FIR",
     "method": "energy_strip"
   },
   "6782": {
-    "new_key": "CBB1C-1802",
+    "new_key": "30thC-FIR",
     "method": "energy_strip"
   },
   "7263": {
-    "new_key": "CBB1C-1802",
+    "new_key": "30thC-FIR",
     "method": "energy_strip"
   },
   "8212": {
-    "new_key": "CBB1C-1802",
+    "new_key": "30thC-FIR",
     "method": "energy_strip"
   },
   "8470": {
-    "new_key": "CBB1C-1802",
+    "new_key": "30thC-FIR",
     "method": "energy_strip"
   },
   "8538": {
-    "new_key": "CBB1C-1802",
+    "new_key": "30thC-FIR",
     "method": "energy_strip"
   },
   "8562": {
-    "new_key": "CBB1C-1802",
+    "new_key": "30thC-FIR",
     "method": "energy_strip"
   },
   "9363": {
-    "new_key": "CBB1C-1802",
+    "new_key": "30thC-FIR",
     "method": "energy_strip"
   },
   "9692": {
-    "new_key": "CBB1C-1802",
+    "new_key": "30thC-FIR",
     "method": "energy_strip"
   },
   "9824": {
-    "new_key": "CBB1C-1802",
+    "new_key": "30thC-FIR",
     "method": "energy_strip"
   },
   "10962": {
-    "new_key": "CBB1C-1802",
+    "new_key": "30thC-FIR",
     "method": "energy_strip"
   },
   "11644": {
-    "new_key": "CBB1C-1802",
+    "new_key": "30thC-FIR",
     "method": "energy_strip"
   },
   "12070": {
-    "new_key": "CBB1C-1802",
+    "new_key": "30thC-FIR",
     "method": "energy_strip"
   },
   "12287": {
-    "new_key": "CBB1C-1802",
+    "new_key": "30thC-FIR",
     "method": "energy_strip"
   },
   "12288": {
-    "new_key": "CBB1C-1802",
+    "new_key": "30thC-FIR",
     "method": "energy_strip"
   },
   "12289": {
-    "new_key": "CBB1C-1802",
+    "new_key": "30thC-FIR",
     "method": "energy_strip"
   },
   "12290": {
-    "new_key": "CBB1C-1802",
+    "new_key": "30thC-FIR",
     "method": "energy_strip"
   },
   "12291": {
-    "new_key": "CBB1C-1802",
+    "new_key": "30thC-FIR",
     "method": "energy_strip"
   },
   "12292": {
-    "new_key": "CBB1C-1802",
+    "new_key": "30thC-FIR",
     "method": "energy_strip"
   },
   "12293": {
-    "new_key": "CBB1C-1802",
+    "new_key": "30thC-FIR",
     "method": "energy_strip"
   },
   "12785": {
-    "new_key": "CBB1C-1802",
+    "new_key": "30thC-FIR",
     "method": "energy_strip"
   },
   "2299": {
-    "new_key": "CBB2C-1101",
+    "new_key": "30thC-LIG",
     "method": "energy_strip"
   },
   "2309": {
-    "new_key": "CBB2C-1101",
+    "new_key": "30thC-LIG",
     "method": "energy_strip"
   },
   "6784": {
-    "new_key": "CBB2C-1101",
+    "new_key": "30thC-LIG",
     "method": "energy_strip"
   },
   "7265": {
-    "new_key": "CBB2C-1101",
+    "new_key": "30thC-LIG",
     "method": "energy_strip"
   },
   "7593": {
-    "new_key": "CBB2C-1101",
+    "new_key": "30thC-LIG",
     "method": "energy_strip"
   },
   "8213": {
-    "new_key": "CBB2C-1101",
+    "new_key": "30thC-LIG",
     "method": "energy_strip"
   },
   "8471": {
-    "new_key": "CBB2C-1101",
+    "new_key": "30thC-LIG",
     "method": "energy_strip"
   },
   "8540": {
-    "new_key": "CBB2C-1101",
+    "new_key": "30thC-LIG",
     "method": "energy_strip"
   },
   "8564": {
-    "new_key": "CBB2C-1101",
+    "new_key": "30thC-LIG",
     "method": "energy_strip"
   },
   "8854": {
-    "new_key": "CBB2C-1101",
+    "new_key": "30thC-LIG",
     "method": "energy_strip"
   },
   "9365": {
-    "new_key": "CBB2C-1101",
+    "new_key": "30thC-LIG",
     "method": "energy_strip"
   },
   "9694": {
-    "new_key": "CBB2C-1101",
+    "new_key": "30thC-LIG",
     "method": "energy_strip"
   },
   "11010": {
-    "new_key": "CBB2C-1101",
+    "new_key": "30thC-LIG",
     "method": "energy_strip"
   },
   "11732": {
-    "new_key": "CBB2C-1101",
+    "new_key": "30thC-LIG",
     "method": "energy_strip"
   },
   "12072": {
-    "new_key": "CBB2C-1101",
+    "new_key": "30thC-LIG",
     "method": "energy_strip"
   },
   "12295": {
-    "new_key": "CBB2C-1101",
+    "new_key": "30thC-LIG",
     "method": "energy_strip"
   },
   "12296": {
-    "new_key": "CBB2C-1101",
+    "new_key": "30thC-LIG",
     "method": "energy_strip"
   },
   "12297": {
-    "new_key": "CBB2C-1101",
+    "new_key": "30thC-LIG",
     "method": "energy_strip"
   },
   "12298": {
-    "new_key": "CBB2C-1101",
+    "new_key": "30thC-LIG",
     "method": "energy_strip"
   },
   "12299": {
-    "new_key": "CBB2C-1101",
+    "new_key": "30thC-LIG",
     "method": "energy_strip"
   },
   "12300": {
-    "new_key": "CBB2C-1101",
+    "new_key": "30thC-LIG",
     "method": "energy_strip"
   },
   "12301": {
-    "new_key": "CBB2C-1101",
+    "new_key": "30thC-LIG",
     "method": "energy_strip"
   },
   "12302": {
-    "new_key": "CBB2C-1101",
+    "new_key": "30thC-LIG",
     "method": "energy_strip"
   },
   "12303": {
-    "new_key": "CBB2C-1101",
+    "new_key": "30thC-LIG",
     "method": "energy_strip"
   },
   "12787": {
-    "new_key": "CBB2C-1101",
+    "new_key": "30thC-LIG",
     "method": "energy_strip"
   },
   "2298": {
-    "new_key": "CBB1C-1803",
+    "new_key": "30thC-WAT",
     "method": "energy_strip"
   },
   "2308": {
-    "new_key": "CBB1C-1803",
+    "new_key": "30thC-WAT",
     "method": "energy_strip"
   },
   "6783": {
-    "new_key": "CBB1C-1803",
+    "new_key": "30thC-WAT",
     "method": "energy_strip"
   },
   "7264": {
-    "new_key": "CBB1C-1803",
+    "new_key": "30thC-WAT",
     "method": "energy_strip"
   },
   "8520": {
-    "new_key": "CBB1C-1803",
+    "new_key": "30thC-WAT",
     "method": "energy_strip"
   },
   "8539": {
-    "new_key": "CBB1C-1803",
+    "new_key": "30thC-WAT",
     "method": "energy_strip"
   },
   "8563": {
-    "new_key": "CBB1C-1803",
+    "new_key": "30thC-WAT",
     "method": "energy_strip"
   },
   "9364": {
-    "new_key": "CBB1C-1803",
+    "new_key": "30thC-WAT",
     "method": "energy_strip"
   },
   "9693": {
-    "new_key": "CBB1C-1803",
+    "new_key": "30thC-WAT",
     "method": "energy_strip"
   },
   "12071": {
-    "new_key": "CBB1C-1803",
+    "new_key": "30thC-WAT",
     "method": "energy_strip"
   },
   "12294": {
-    "new_key": "CBB1C-1803",
+    "new_key": "30thC-WAT",
     "method": "energy_strip"
   },
   "12786": {
-    "new_key": "CBB1C-1803",
+    "new_key": "30thC-WAT",
     "method": "energy_strip"
   },
   "6121": {
