@@ -83,6 +83,58 @@ export function pokemonSpriteImgHtml(number, alt = '', opts = {}) {
   return `<img src="${escapeAttr(src)}" data-fb="${escapeAttr(rest.join('|'))}" alt="${escapeAttr(alt)}" onerror="window.__spriteFallback&&window.__spriteFallback(this)">`;
 }
 
+
+// ============================================================
+//  立绘底部透明留白测量（需求：让宝可梦的脚真正踩在脚踏台上）
+//  不同宝可梦 PNG 的底部留白差异很大（实测 8%~23%+，鱼形/云朵形更大），
+//  用统一的负 margin 无法兼顾，这里按图片实际内容底边计算补偿量。
+//  说明：用离屏 Image + crossOrigin 读取像素，跨域失败时返回 0（回退到 CSS 默认值）。
+// ============================================================
+const _spriteTrimCache = new Map();
+
+export function spriteBottomPadRatio(url) {
+  if (!url) return Promise.resolve(0);
+  if (_spriteTrimCache.has(url)) return _spriteTrimCache.get(url);
+  const task = new Promise(resolve => {
+    try {
+      const i = new Image();
+      i.crossOrigin = 'anonymous';
+      i.onload = () => {
+        try {
+          const c = document.createElement('canvas');
+          c.width = i.naturalWidth; c.height = i.naturalHeight;
+          const g = c.getContext('2d');
+          g.drawImage(i, 0, 0);
+          const d = g.getImageData(0, 0, c.width, c.height).data;
+          let bottom = -1;
+          for (let y = c.height - 1; y >= 0 && bottom < 0; y--) {
+            for (let x = 0; x < c.width; x++) {
+              if (d[(y * c.width + x) * 4 + 3] > 8) { bottom = y; break; }
+            }
+          }
+          resolve(bottom < 0 ? 0 : (c.height - 1 - bottom) / c.height);
+        } catch (e) { resolve(0); }
+      };
+      i.onerror = () => resolve(0);
+      i.src = url;
+    } catch (e) { resolve(0); }
+  });
+  _spriteTrimCache.set(url, task);
+  return task;
+}
+
+// 把立绘的底部留白裁掉：按显示高度换算成负 margin
+export function applySpriteBottomTrim(img) {
+  if (!img || !img.src) return;
+  spriteBottomPadRatio(img.src).then(ratio => {
+    if (!ratio || ratio <= 0.01) return;
+    const shown = img.getBoundingClientRect().height || img.naturalHeight || 0;
+    if (!shown) return;
+    // 留一点余量（乘 0.9），避免把贴地的宝可梦压进台子里
+    img.style.marginBottom = `${-Math.round(ratio * shown * 0.9)}px`;
+  }).catch(() => { /* ignore */ });
+}
+
 // ============================================================
 //  卡图（真实卡面 webp，来自 ptcg/images）
 //  规则：set-code ID（如 CSV6C-099）→ /ptcg/images/CSV6C/099.webp 与 .thumb.webp

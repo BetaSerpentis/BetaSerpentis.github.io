@@ -5,7 +5,7 @@ import { CardResolver } from './core/CardResolver.js';
 import { executeEffects } from './core/EffectExecutor.js';
 import { expandDeck } from './data/decks.js';
 import { DeckSource } from './core/DeckSource.js';
-import { pokemonSpriteImgHtml, pokemonSpriteSrc, cardThumbImgHtml, cardFullImgHtml } from './ui/SpriteUtils.js';
+import { pokemonSpriteImgHtml, pokemonSpriteSrc, cardThumbImgHtml, cardFullImgHtml, applySpriteBottomTrim } from './ui/SpriteUtils.js';
 
 // 卡面显示开关（true=卡图缩略图；后续可切 false 只保留名字与标签）
 const SHOW_CARD_ART = true;
@@ -303,7 +303,7 @@ export class PTCGBattleApp {
         },
       },
       { label: '结束对战', meta: '认输并结束本局', onSelect: () => this._concede() },
-      { label: '返回', onSelect: () => { this._refresh(); this._showPanel('panel-main'); } },
+      // 需求：不再需要额外的「返回」（列表底部已有默认返回按钮）
     ];
     this._showListView(items, { onBack: () => { this._refresh(); this._showPanel('panel-main'); } });
   }
@@ -313,7 +313,8 @@ export class PTCGBattleApp {
     this.gs.winner = this.gs.player2;
     this.gs.setPhase(PHASE.GAME_OVER);
     this._appendBattleLog('你认输了，对手获胜');
-    this._refresh();
+    // 需求：结束对战直接回到开局选卡组的界面（而不是停在战斗界面）
+    this._showDeckSelect();
   }
 
   // === Fight Panel ===
@@ -491,6 +492,12 @@ export class PTCGBattleApp {
       } else {
         spriteEl.innerHTML = `<div class="placeholder">${mon.name}</div>`;
       }
+      // 需求：裁掉立绘底部的透明留白，让脚踩在脚踏台上
+      const trimImg = spriteEl.querySelector('img');
+      if (trimImg) {
+        trimImg.addEventListener('load', () => applySpriteBottomTrim(trimImg), { once: true });
+        if (trimImg.complete) applySpriteBottomTrim(trimImg);
+      }
     }
   }
   // ============================================================
@@ -578,7 +585,9 @@ export class PTCGBattleApp {
         };
       });
       if (!items.length) items.push({ label: '（手牌为空）', disabled: true });
-      if (!hasBasic) {
+      // 需求：只有起手真的没有基础宝可梦、且还没放置过出战宝可梦时，才提供重新抽牌。
+      // （原来只要手牌里没有基础宝可梦就亮，导致把基础宝可梦全部放上场后也会出现该按钮）
+      if (!hasBasic && !pl.active) {
         items.push({
           label: '重新抽牌', meta: '手牌没有基础宝可梦（对手补抽 1 张）',
           onSelect: () => {
@@ -776,13 +785,15 @@ export class PTCGBattleApp {
     this._returnView = 'pokemon';
     const pl = this.gs.player1;
     const items = [];
+    // 需求：只留名字 + 「当前hp/总hp·能量」，去掉（出战）/（备战N）等占位提示
     const push = (slot, mon, tag) => {
       if (!mon) return;
-      // 需求：只保留「当前hp/总hp·能量」（能量按附着顺序用属性单字排列，无能量不显示）
       const enText = this._energyShortText(mon);
+      const usable = this._pokeHasActions(slot, mon);
       items.push({
-        label: `${mon.name}${tag ? `（${tag}）` : ''}`,
+        label: mon.name,
         meta: enText ? `${mon.hp}/${mon.maxHp}·${enText}` : `${mon.hp}/${mon.maxHp}`,
+        disabled: !usable,
         onSelect: () => this._showPokeActions(slot),
       });
     };
@@ -807,12 +818,45 @@ export class PTCGBattleApp {
     this._showListView(items, { onBack: () => { this._refresh(); this._showPanel('panel-main'); } });
   }
 
+  // 该宝可梦当前是否有任何可执行操作（需求：没有任何可做的就置灰，不给点进空菜单）
+  _pokeHasActions(slot, mon) {
+    const pl = this.gs.player1;
+    if (!mon) return false;
+    const hand = pl?.hand || [];
+    const find = pred => hand.some(cid => { const c = this.resolver.getCard(cid); return c && pred(c); });
+    // 进化
+    if (find(c => c.cardType === 'pokemon' && c.evolvesFrom === mon.name)) return true;
+    // 附着能量（每回合 1 次）
+    if (!pl.energyAttached && find(c => c.cardType === 'energy' || c.cardType === 'specialEnergy')) return true;
+    // 装备道具
+    if (!mon.tool && find(c => c.cardType === 'trainer' && c.trainerType === 'tool')) return true;
+    // 主动特性（可用即可点）
+    if (mon.ability) {
+      const zone = this.gs.inferAbilityZone?.(pl, mon) || 'field';
+      const chk = this.gs.canUseAbility ? this.gs.canUseAbility(pl, mon, mon.ability, zone) : { ok: false };
+      if (chk.ok) return true;
+    }
+    // 撤退（仅出战位且可支付）
+    if (slot === 'active' && (pl.bench || []).some(Boolean) && !pl.retreatUsed && !mon.cannotRetreat) {
+      const cost = this.gs.effectiveRetreatCost ? this.gs.effectiveRetreatCost(mon) : (mon.retreatCost ?? 1);
+      const canPay = this.gs._canPayRetreatCost ? this.gs._canPayRetreatCost(mon, cost) : true;
+      if (canPay) return true;
+    }
+    return false;
+  }
+
   _showOpponentList() {
     const opp = this.gs.player2;
     const items = [];
+    // 需求：对方场地同样只留名字 + 当前hp/总hp·能量
     const push = (mon, tag) => {
       if (!mon) return;
-      items.push({ label: `${mon.name}${tag ? `（${tag}）` : ''}`, meta: `HP ${mon.hp}/${mon.maxHp}${mon.status ? ` · ${mon.status}` : ''} · 能量 ${(mon.energy || []).length}`, disabled: true });
+      const enText = this._energyShortText(mon);
+      items.push({
+        label: mon.name,
+        meta: enText ? `${mon.hp}/${mon.maxHp}·${enText}` : `${mon.hp}/${mon.maxHp}`,
+        disabled: true,
+      });
     };
     push(opp.active, '出战');
     (opp.bench || []).forEach((mon, i) => push(mon, `备战${i + 1}`));
@@ -921,7 +965,8 @@ export class PTCGBattleApp {
     push('active', pl.active, '出战');
     (pl.bench || []).forEach((mon, i) => push(`bench-${i}`, mon, `备战${i + 1}`));
     if (!items.length) items.push({ label: '（无可选目标）', disabled: true });
-    this._showListView(items, { onBack: () => this._showCardActions(handIdx) });
+    // 需求：点返回直接回到【卡牌】手牌列表（不再回到动作子菜单）
+    this._showListView(items, { onBack: () => this._showHandList() });
   }
 
   // 撤退：选择换上的备战宝可梦
