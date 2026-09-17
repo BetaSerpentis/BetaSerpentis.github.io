@@ -299,6 +299,9 @@ const RULES = [
   // ===== 搜牌库放备战区 =====
   { re: /(?:可)?从(?:自己的)?牌库(?:选择|抽出)最多(\d+)张HP为[「"]?(\d+)[」"]?以下的.*?基础.*?宝可梦(?:卡)?[,，]\s*放置于备战区/, act:'search_deck_to_bench', p:m=>withCount({filter:`HP为${m[2]}以下的【基础】宝可梦`, maxHp:+m[2]},m[1],true) },
   { re: /可从(?:自己的)?牌库选择1张【基础】宝可梦卡[（(]["“]?拥有规则的宝可梦["”]?除外[）)][，,]?放置于备战区/, act:'search_deck_to_bench', p:m=>withCount({filter:'【基础】宝可梦卡（"拥有规则的宝可梦"除外）'},1,true) },
+  // 深钵镇等：带「双方玩家，每次在自己的回合有1次机会」前缀的同款效果
+  // （原规则要求「宝可梦卡」，实际卡文是「宝可梦」，差一字导致整句落到 residual_sentence，竞技场发动后无效果）
+  { re: /双方玩家[，,]?每次在自己的回合有1次机会[，,]?可从自己的牌库选择1张【基础】宝可梦/, act:'search_deck_to_bench', p:()=>withCount({filter:'【基础】宝可梦'},1,false) },
   { re: /从(?:自己的)?牌库(?:选择|抽出)最多(\d+)张.*?基础.*?宝可梦(?:卡)?[,，]\s*放置于备战区/, act:'search_deck_to_bench', p:m=>withCount({filter:'【基础】宝可梦'},m[1],true) },
   { re: /从(?:自己的)?牌库(?:选择|抽出)(\d+)张.*?基础.*?宝可梦(?:卡)?[,，]\s*放置于备战区/, act:'search_deck_to_bench', p:m=>withCount({filter:'【基础】宝可梦'},m[1],false) },
   { re: /从(?:自己的)?牌库选择最多(\d+)张(.+?)宝可梦(?:卡)?[,，]放置于备战区/, act:'search_deck_to_bench', p:m=>withCount({filter:m[2]},m[1],true) },
@@ -616,6 +619,11 @@ const RULES = [
   { re: /(?:选择|将)自己场上宝可梦身上附着的1个基本能量[，,]?转附于自己其他宝可梦身上/, act:'move_energy', p:()=>({source:'self',dest:'bench',count:1}) },
   { re: /选择附于自己场上宝可梦身上的任意数量的能量[，,]?以任意方式转附于自己的宝可梦身上/, act:'move_energy', p:()=>({source:'self',dest:'bench',count:'all'}) },
   // --- 伤害指示物转放 ---
+  // 愿增猿「亢奋脑力」等：选择自己场上（任意）宝可梦身上最多 N 个伤害指示物转放到对手场上
+  { re: /选择自己场上1只宝可梦身上放置的最多(\d+)个伤害指示物[，,]?转放置?于对手场上1只宝可梦身上/, act:'damage_place', p:m=>({target:'opponent_field',count:+m[1],source:'own_field'}) },
+  // 「若这只宝可梦身上附着了【X】能量」类发动条件（原来落到 residual_sentence，导致条件不生效）
+  { re: /若这只宝可梦身上附着了【(.+?)】能量/, act:'usage_condition', p:m=>({kind:'requires_attached_energy',type:ELEM[m[1]]||m[1]}) },
+
   { re: /选择放置于自己战斗宝可梦身上的最多(\d+)个伤害指示物[，,]?转放置于对手的战斗宝可梦身上/, act:'damage_place', p:m=>({target:'opponent_active',count:+m[1],source:'self_active'}) },
   // --- 备战区放置伤害指示物 ---
   { re: /给对手的1只备战宝可梦身上[，,]?放置(\d+)个伤害指示物/, act:'damage_place', p:m=>({target:'opponent_bench',count:+m[1]}) },

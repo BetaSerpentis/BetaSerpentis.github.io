@@ -260,7 +260,11 @@ body.ptcg-battle-active {
 .sprite-slot .sprite-img { height: 100%; }
 .sprite-slot .sprite-img img { max-height: 100%; }
 .sprite-slot.opponent-sprite { top: calc(var(--safe-gap) + 118px); right: 0; }
-.sprite-slot.player-sprite { bottom: calc(var(--safe-gap) + 118px); left: 0; }
+.sprite-slot.player-sprite {
+  /* 需求：脚踏台会侵入下方血条的名字区域，整体再上移 30px（118 → 148）。
+     立绘随之整体上移，与台面的相对关系不变（脚仍踩在台面上）。 */
+  bottom: calc(var(--safe-gap) + 148px); left: 0;
+}
 
 .platform {
   position: absolute;

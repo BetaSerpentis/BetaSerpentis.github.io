@@ -8,7 +8,7 @@ const TYPE_EN = Object.fromEntries(Object.entries(TYPE_CN).map(([k,v])=>[v,k]));
 
 export class PlayerState {
   constructor(name){this.name=name;this.deck=[];this.hand=[];this.discard=[];this.prizes=[];this.active=null;this.bench=[];
-    this.stadium=null;this.supporterUsed=false;this.energyAttached=false;this.retreatUsed=false;this.abilityUsedThisTurn={};this.stadiumUsedThisTurn={};this.turnAttackModifiers=[];}
+    this.stadium=null;this.supporterUsed=false;this.energyAttached=false;this.retreatUsed=false;this.stadiumPlayedThisTurn=false;this.abilityUsedThisTurn={};this.stadiumUsedThisTurn={};this.turnAttackModifiers=[];}
   draw(n=1){const d=[];for(let i=n;i>0&&this.deck.length;i--){const c=this.deck.pop();this.hand.push(c);d.push(c);}return d;}
 }
 
@@ -68,7 +68,7 @@ export class GameState {
     }
     this.emitTriggerEvent('checkup',{});
     if(this.firstPlayerFirstTurnInProgress&&this.currentPlayer===this.firstPlayer)this.firstPlayerFirstTurnInProgress=false;
-    this.currentPlayer.supporterUsed=false;this.currentPlayer.energyAttached=false;this.currentPlayer.retreatUsed=false;this.currentPlayer.abilityUsedThisTurn={};this.currentPlayer.stadiumUsedThisTurn={};this.currentPlayer.turnAttackModifiers=[];
+    this.currentPlayer.supporterUsed=false;this.currentPlayer.energyAttached=false;this.currentPlayer.retreatUsed=false;this.currentPlayer.stadiumPlayedThisTurn=false;this.currentPlayer.abilityUsedThisTurn={};this.currentPlayer.stadiumUsedThisTurn={};this.currentPlayer.turnAttackModifiers=[];
     this.currentPlayer.playRestrictions=null;
     this.temporaryAbilityLocks=(this.temporaryAbilityLocks||[]).filter(lock=>lock.expires!=='turn'&&lock.owner!==this.currentPlayer);
     for(const mon of[this.currentPlayer.active,...this.currentPlayer.bench]){if(mon){mon.placedThisTurn=false;mon.evolvedThisTurn=false;}}
@@ -241,7 +241,9 @@ export class GameState {
     if(tt==='item'&&pl.playRestrictions?.item){return {ok:false,reason:'play_restriction_item',message:'受到招式效果，下回合无法从手牌使出物品卡'};}
     const hasFirstPlayerFirstTurnSupporterException=(cd.effects||[]).some(e=>e.action==='trainer_prerequisite'&&e.params?.kind==='first_player_first_turn_supporter_exception');
     if(tt==='supporter'&&pl===this.firstPlayer&&this.firstPlayerFirstTurnInProgress&&!hasFirstPlayerFirstTurnSupporterException)return {ok:false,reason:'first_player_first_turn_supporter',message:'先攻玩家最初回合不能使用支援者卡'};
-    if(tt==='supporter'&&pl.supporterUsed)return {ok:false,reason:'supporter_used',message:'已用过支援者卡'};
+    if(tt==='supporter'&&pl.supporterUsed)return {ok:false,reason:'supporter_used',message:'已用过支援者卡'};
+    // 规则：每回合只能打出 1 张竞技场（原来没有限制，可以连放两张覆盖前一张）
+    if(tt==='stadium'&&pl.stadiumPlayedThisTurn)return {ok:false,reason:'stadium_played',message:'这个回合已经打出过竞技场'};
     if(tt==='tool'){
       const t=targetSlot==='active'?pl.active:(targetSlot?.startsWith('bench-')?pl.bench[parseInt(targetSlot.replace('bench-',''))]:null);
       if(!t)return {ok:false,reason:'missing_tool_target',message:'请选择目标宝可梦'};
@@ -285,6 +287,7 @@ export class GameState {
     if(tt==='supporter')pl.supporterUsed=true;
     if(tt==='stadium'){
       this.setActiveStadium(pl,hi,cd);
+      pl.stadiumPlayedThisTurn=true;
       this.recomputePassives();
       return true;
     }
@@ -374,22 +377,35 @@ export class GameState {
       if(!this.getPokemonInPlay(pl).includes(source))return {ok:false,reason:'invalid_source',ability:ab,zone:srcZone};
       if(this.isAbilityDisabled(source))return {ok:false,reason:'ability_disabled',ability:ab,zone:srcZone};
       if(source.abilityUsed)return {ok:false,reason:'already_used',ability:ab,zone:srcZone};
-      const usageFailure=this._abilityUsageFailure(pl,ab);
+      const usageFailure=this._abilityUsageFailure(pl,ab,source);
       if(usageFailure)return {ok:false,reason:usageFailure.reason,ability:ab,zone:srcZone,message:usageFailure.message};
     }else{
       const key=this._abilityUseKey(source,ab,srcZone);
       if(pl.abilityUsedThisTurn?.[key])return {ok:false,reason:'already_used',ability:ab,zone:srcZone};
-      const usageFailure=this._abilityUsageFailure(pl,ab);
+      const usageFailure=this._abilityUsageFailure(pl,ab,source);
       if(usageFailure)return {ok:false,reason:usageFailure.reason,ability:ab,zone:srcZone,message:usageFailure.message};
     }
     return {ok:true,ability:ab,zone:srcZone};}
 
-  _abilityUsageFailure(pl,ability){
+  _abilityUsageFailure(pl,ability,source=null){
     for(const eff of ability?.effects||[]){
       if(eff.action!=='usage_condition')continue;
       const p=eff.params||{};
       if(p.kind==='own_pokemon_knocked_out_last_opponent_turn'&&!this.wasOwnPokemonKnockedOutLastOpponentTurn(pl))return {reason:'usage_condition',message:'使用前提未满足：上个对手的回合自己的宝可梦需被击倒'};
       if(p.kind==='ability_name_once_per_turn'&&pl.abilityUsedThisTurn?.[`ability-name:${p.abilityName||ability.name}`])return {reason:'already_used',message:'这个名字的特性本回合已使用'};
+      // 需求：像愿增猿「亢奋脑力」这种「若这只宝可梦身上附着了【恶】能量」的发动条件，未满足时应判定为不可用（按钮置灰），而不是点了才提示
+      if(p.kind==='requires_attached_energy'){
+        const want=this._normalizeType(p.type||'colorless');
+        const energy=(source&&source.energy)||[];
+        const ok=energy.some(e=>{
+          const types=(this._energyProvides(e,null)||[]).flat().map(t=>this._normalizeType(t));
+          return types.includes(want)||types.includes('any')||(want==='colorless'&&types.length>0);
+        });
+        if(!ok){
+          const zh=({grass:'草',fire:'火',water:'水',lightning:'雷',psychic:'超',fighting:'斗',dark:'恶',metal:'钢',dragon:'龙',fairy:'妖',colorless:'无'})[want]||p.type||'';
+          return {reason:'usage_condition',message:`发动条件未满足：需要附着【${zh}】能量`};
+        }
+      }
     }
     return null;}
   markAbilityUsed(pl,source,ability,zone){const z=this.normalizeAbilityZone(zone||this.inferAbilityZone(pl,source)||ability?.zone||'field');
