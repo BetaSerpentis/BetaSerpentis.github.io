@@ -251,7 +251,14 @@ body.ptcg-battle-active {
   position: absolute;
   width: 50%;
   z-index: 2;
+  /* 需求：固定立绘槽高度。原来槽高由立绘图片决定（min-height 96px → 有图时 128/156px），
+     而脚踏台是 bottom:0 定位，导致「选宝可梦之前台子在血条上方、选完之后降下来」。
+     固定高度后台子位置恒定。 */
+  height: 156px;
 }
+.sprite-slot.opponent-sprite { height: 128px; }
+.sprite-slot .sprite-img { height: 100%; }
+.sprite-slot .sprite-img img { max-height: 100%; }
 .sprite-slot.opponent-sprite { top: calc(var(--safe-gap) + 118px); right: 0; }
 .sprite-slot.player-sprite { bottom: calc(var(--safe-gap) + 118px); left: 0; }
 
@@ -287,8 +294,10 @@ body.ptcg-battle-active {
   image-rendering: pixelated;
   filter: drop-shadow(3px 3px 4px rgba(0,0,0,.4));
   will-change: transform, opacity;
-  /* 需求：抵消立绘 PNG 底部的透明留白，让可见的脚更贴近脚踏台台面 */
-  margin-bottom: -6px;
+  /* 需求：抵消立绘 PNG 底部的透明留白。
+     实测 PokeAPI 立绘底部透明留白占 8%~23%（96px 图约 8~22px，缩放到 150px 后约 12~34px），
+     取 -16px 作为统一补偿，让「可见的脚」更贴近脚踏台台面。 */
+  margin-bottom: -16px;
 }
 .sprite-slot.opponent-sprite .sprite-img img { max-height: 128px; }
 .sprite-slot.player-sprite .sprite-img img { max-height: 156px; }

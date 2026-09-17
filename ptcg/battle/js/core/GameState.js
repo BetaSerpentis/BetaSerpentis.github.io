@@ -171,7 +171,24 @@ export class GameState {
   isExPokemon(mon){const card=this.getCardForMon(mon);return !!(card?.isEx||mon?.isEx||/(?:宝可梦)?【?ex】?|\bex\b/i.test(`${card?.name||''} ${mon?.name||''} ${card?.ruleBox||''} ${mon?.ruleBox||''} ${card?.ruleText||''} ${mon?.ruleText||''}`));}
   isRadiantPokemonCard(card){return !!(card?.isRadiant||/光辉宝可梦|^光辉/.test(`${card?.name||''} ${card?.ruleBox||''} ${card?.ruleText||''}`));}
   hasRuleBoxPokemonCard(card){return !!(card?.hasRuleBox||card?.isEx||card?.isRadiant||/(?:宝可梦)?(?:ex|EX|GX|V|VMAX|VSTAR|BREAK)\b|拥有规则的宝可梦|规则宝可梦|光辉宝可梦|太晶/.test(`${card?.name||''} ${card?.ruleBox||''} ${card?.ruleText||''} ${card?.rule2Text||''}`));}
-  effectiveRetreatCost(mon){let cost=mon?.retreatCostOverride??mon?.retreatCost??1;const tool=mon?.tool;if(tool&&(String(tool.cardId||'')==='9024'||tool.name==='大气球')){if(this.isStage2Pokemon(mon))cost=0;}if(this._hasPassive(mon,'retreat_cost_zero'))cost=0;for(const {params:p} of this._passiveEffectsFor(mon,'retreat_cost_reduce'))cost-=(p.amount||0);cost+=(mon?.retreatCostIncrease||0);return Math.max(0,cost||0);}
+  effectiveRetreatCost(mon){
+    let cost=mon?.retreatCostOverride??mon?.retreatCost??1;
+    const tool=mon?.tool;
+    // 道具效果（通用）：撤退费减少 / 全部消除（如「紧急滑板」减少1个）
+    if(tool&&Array.isArray(tool.effects)){
+      for(const e of tool.effects){
+        if(e.action==='retreat_cost_reduce')cost-=(e.params?.amount||0);
+        else if(e.action==='retreat_cost_zero')cost=0;
+      }
+    }else if(tool&&(String(tool.cardId||'')==='9024'||tool.name==='大气球')){
+      // 兼容旧数据（道具对象里没有 effects 时的历史存档/卡组）
+      if(this.isStage2Pokemon(mon))cost=0;
+    }
+    if(this._hasPassive(mon,'retreat_cost_zero'))cost=0;
+    for(const {params:p} of this._passiveEffectsFor(mon,'retreat_cost_reduce'))cost-=(p.amount||0);
+    cost+=(mon?.retreatCostIncrease||0);
+    return Math.max(0,cost||0);
+  }
   _discardEnergyForRetreat(mon,count,pl,selectedIndices=null){
     if(count<=0)return true;
     if(selectedIndices){
@@ -211,7 +228,10 @@ export class GameState {
 
   _toolLabel(tool){return (tool&&typeof tool==='object')?(tool.name||tool.cardId||'宝可梦道具'):tool;}
   _toolCardValue(tool){return (tool&&typeof tool==='object')?(tool.cardId||tool.name||tool):tool;}
-  _makeToolState(cardId,cd){return {cardId,name:cd?.name||String(cardId)};}
+  // 保留道具的 effects —— effectiveRetreatCost 等需要按「道具效果」通用判定
+  // （原实现只存 cardId/name，导致紧急滑板「撤退费-1」这类效果无法生效，
+  //   只能靠硬编码卡名，覆盖不了新卡）
+  _makeToolState(cardId,cd){return {cardId,name:cd?.name||String(cardId),effects:cd?.effects||null,specialRules:cd?.specialRules||null};}
 
   canUseTrainer(pl, cd, targetSlot=null){
     if(!cd||cd.cardType!=='trainer')return {ok:false,reason:'not_trainer',message:'不是训练家卡'};

@@ -4671,7 +4671,10 @@ await test('宝可梦道具装备：保存精确手牌id且日志与已有道具
 
   const ok = await engine.useTrainer(0, { cardType:'trainer', trainerType:'tool', name:'力量头带', effects:[] }, 'active');
   assert.equal(ok, true);
-  assert.deepEqual(pl.active.tool, { cardId:'tool-print-A', name:'力量头带' });
+  // tool 现在额外保留 effects/specialRules（供撤退费等按道具效果通用判定），
+  // 因此这里改为断言关键字段，避免新增字段导致脆弱失败。
+  assert.equal(pl.active.tool.cardId, 'tool-print-A');
+  assert.equal(pl.active.tool.name, '力量头带');
   assert.equal(gs.log.some(msg => msg.includes('装备了「力量头带」')), true);
   const check = gs.canUseTrainer(pl, { cardType:'trainer', trainerType:'tool', name:'第二工具' }, 'active');
   assert.equal(check.ok, false);
@@ -4703,7 +4706,8 @@ await test('训练家使用限制：支援者一回合一次，竞技场替换�
   pl.hand.unshift('toolCard');
   ok = await engine.useTrainer(0, { cardType:'trainer', trainerType:'tool', name:'道具A', effects:[] }, 'active');
   assert.equal(ok, true);
-  assert.deepEqual(pl.active.tool, { cardId:'toolCard', name:'道具A' });
+  assert.equal(pl.active.tool.cardId, 'toolCard');
+  assert.equal(pl.active.tool.name, '道具A');
 });
 
 await test('超群眼镜：真实本地文本仅作为道具附加且无额外效果', async () => {
@@ -4719,7 +4723,8 @@ await test('超群眼镜：真实本地文本仅作为道具附加且无额外�
   assert.equal(ok, true);
   assert.deepEqual(pl.hand, []);
   assert.deepEqual(pl.discard, []);
-  assert.deepEqual(pl.active.tool, { cardId:'7035', name:'超群眼镜' });
+  assert.equal(pl.active.tool.cardId, '7035');
+  assert.equal(pl.active.tool.name, '超群眼镜');
   assert.equal(pl.active.hp, pl.active.maxHp);
 
   pl.hand = ['7035b'];
@@ -4727,7 +4732,8 @@ await test('超群眼镜：真实本地文本仅作为道具附加且无额外�
   assert.equal(second, false);
   assert.deepEqual(pl.hand, ['7035b']);
   assert.deepEqual(pl.discard, []);
-  assert.deepEqual(pl.active.tool, { cardId:'7035', name:'超群眼镜' });
+  assert.equal(pl.active.tool.cardId, '7035');
+  assert.equal(pl.active.tool.name, '超群眼镜');
 });
 
 await test('奖赏卡：击倒后拿奖赏，拿完判胜', () => {
@@ -4823,7 +4829,8 @@ await test('幸存锻炼器：仅满HP出战宝可梦受直接招式致命伤害
   globalThis.setTimeout = () => 0;
   try { await makeEngine(nonLethal).attack(); } finally { globalThis.setTimeout = realSetTimeout; }
   assert.equal(nonLethal.player2.active.hp, 30);
-  assert.deepEqual(nonLethal.player2.active.tool, { cardId:'11176', name:'幸存锻炼器' });
+  assert.equal(nonLethal.player2.active.tool.cardId, '11176');
+  assert.equal(nonLethal.player2.active.tool.name, '幸存锻炼器');
   assert.deepEqual(nonLethal.player2.discard, []);
 });
 
