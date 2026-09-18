@@ -5841,6 +5841,59 @@ await test('伤害指示物不会把 HP 压成负数', () => {
   });
 });
 
+await test('赤松：牌库取属性互不相同的基本能量，1 张入手牌、剩余附着', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  gs.cardResolver = fakeResolver({
+    'e-fire': { card: { cardType: 'energy', name: '基本火能量' }, info: { name: '基本火能量', type: 'energy' } },
+    'e-water': { card: { cardType: 'energy', name: '基本水能量' }, info: { name: '基本水能量', type: 'energy' } },
+  });
+  pl.deck = ['e-fire', 'e-fire', 'e-fire', 'e-water', 'e-water'];
+  pl.hand = [];
+  pl.active = mon('出战');
+  pl.bench = [];
+  const eff = parseEffect('选择自己牌库中，属性各不相同的基本能量最多2张，在给对手看过之后，将其中1张加入手牌，将剩余的能量附着于自己的宝可梦身上。并重洗牌库。').effects;
+  assert.equal(eff[0].action, 'search_deck_energy_split');
+  assert.equal(eff[0].params.count, 2);
+  assert.equal(eff[0].params.toHand, 1);
+  await executeEffects(gs, pl, eff);
+  // 不能把两张都塞进手牌
+  assert.equal(pl.hand.length, 1, `手牌应只有 1 张，实际 ${JSON.stringify(pl.hand)}`);
+  // 剩余那张必须附着到己方宝可梦身上
+  assert.equal(pl.active.energy.length, 1, '剩余能量应附着 1 张');
+  // 两张能量的属性必须不同（手牌里存的是卡牌 ID，需要经 resolver 取名字）
+  const handName = String(gs.cardResolver.getCard(pl.hand[0])?.name || '');
+  const attachedName = String(pl.active.energy[0]?.name || pl.active.energy[0]?.cardId || '');
+  const elemOf = s => ['火', '水', '草', '雷', '超', '斗', '恶', '钢', '妖'].find(e => s.includes(e)) || '';
+  assert.ok(elemOf(handName), `手牌能量应能识别属性: ${handName}`);
+  assert.notEqual(elemOf(handName), elemOf(attachedName), `两张能量属性不应相同: ${handName} / ${attachedName}`);
+  assert.equal(pl.deck.length, 3, '牌库应减少 2 张');
+});
+
+await test('赤松：牌库只有单一属性时最多只能取 1 张', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  gs.cardResolver = fakeResolver({
+    'e-fire': { card: { cardType: 'energy', name: '基本火能量' }, info: { name: '基本火能量', type: 'energy' } },
+  });
+  pl.deck = ['e-fire', 'e-fire', 'e-fire'];
+  pl.hand = [];
+  pl.active = mon('出战');
+  pl.bench = [];
+  const eff = parseEffect('选择自己牌库中，属性各不相同的基本能量最多2张，在给对手看过之后，将其中1张加入手牌，将剩余的能量附着于自己的宝可梦身上。并重洗牌库。').effects;
+  await executeEffects(gs, pl, eff);
+  assert.equal(pl.hand.length, 1, '同属性不可重复选取，最多 1 张入手牌');
+  assert.equal(pl.active.energy.length, 0, '没有剩余能量可附着');
+  assert.equal(pl.deck.length, 2, '牌库只应减少 1 张');
+});
+
+await test('提示面板不会在 1.2 秒后把用户打开的页签顶回主菜单', async () => {
+  // _showMessage 原实现无条件 setTimeout(() => _showPanel('panel-main'))，
+  // 回合开始的引擎日志会让刚打开的【卡牌】页签被弹回。
+  const src = fs.readFileSync(path.join(__dirname, '..', 'js', 'main.js'), 'utf8');
+  assert.ok(/now\.id === 'panel-message'/.test(src), '定时器应只在仍处于 panel-message 时才收回');
+});
+
 // ============================================================
 //  3) 全卡牌数据解析覆盖率报告（不要求100%，用于持续发现未覆盖文本）
 // ============================================================

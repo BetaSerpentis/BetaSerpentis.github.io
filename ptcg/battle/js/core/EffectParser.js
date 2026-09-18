@@ -1363,9 +1363,8 @@ const RULES = [
   { re: /查看自己的牌库上方(\d+)张卡。将其中1张支援者，在给对手看过后，加入手牌/, act:'peek_and_keep', p:m=>({peek:+m[1],keep:1,filter:'支援者'}) },
   // 赤松（CSV9.5C-183/249）等：选择牌库中属性各不相同的基本能量最多 N 张，
   // 给对手看过后其中 1 张加入手牌、剩余附着于己方宝可梦，并重洗牌库。
-  // 简化实现：先按「牌库中最多 N 张基本能量加入手牌」处理（剩余能量的自动附着留待后续细化），
-  // 关键是不再落到 residual_sentence 导致整张卡不可用。
-  { re: /从(?:自己的)?牌库选择[，,]?属性各不相同的基本能量最多(\d+)张/, act:'search_deck_to_hand', p:m=>withCount({filter:'基本能量'},+m[1],true) },
+  // 交给专用动作：属性必须互不相同，且不能把全部能量都塞进手牌（原实现两件事都做错了）。
+  { re: /从(?:自己的)?牌库选择[，,]?属性各不相同的基本能量最多(\d+)张/, act:'search_deck_energy_split', p:m=>({ count:+m[1], filter:'基本能量', distinctTypes:true, toHand:1 }) },
   { re: /若为正面，则将对手的战斗宝可梦，以及放置于其身上的所有卡牌，丢到弃牌区/, act:'usage_condition', p:m=>trainerPrerequisite('discard_opp_active_with_cards', m[0]) },
   { re: /这个招式，只有在后攻玩家的最初回合才可使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('first_turn', m[0]) },
   { re: /从自己的牌库选择任意卡牌最多(\d+)张，加入手牌/, act:'search_deck_to_hand', p:m=>withCount({filter:null},m[1],true) },
