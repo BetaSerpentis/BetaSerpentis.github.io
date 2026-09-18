@@ -244,9 +244,15 @@ export class GameState {
     if(tt==='item'&&pl.playRestrictions?.item){return {ok:false,reason:'play_restriction_item',message:'受到招式效果，下回合无法从手牌使出物品卡'};}
     const hasFirstPlayerFirstTurnSupporterException=(cd.effects||[]).some(e=>e.action==='trainer_prerequisite'&&e.params?.kind==='first_player_first_turn_supporter_exception');
     if(tt==='supporter'&&pl===this.firstPlayer&&this.firstPlayerFirstTurnInProgress&&!hasFirstPlayerFirstTurnSupporterException)return {ok:false,reason:'first_player_first_turn_supporter',message:'先攻玩家最初回合不能使用支援者卡'};
-    if(tt==='supporter'&&pl.supporterUsed)return {ok:false,reason:'supporter_used',message:'已用过支援者卡'};
-    // 规则：每回合只能打出 1 张竞技场（原来没有限制，可以连放两张覆盖前一张）
+    if(tt==='supporter'&&pl.supporterUsed)return {ok:false,reason:'supporter_used',message:'已用过支援者卡'};
+
+    // 规则：每回合只能打出 1 张竞技场（原来没有限制，可以连放两张覆盖前一张）
+
     if(tt==='stadium'&&pl.stadiumPlayedThisTurn)return {ok:false,reason:'stadium_played',message:'这个回合已经打出过竞技场'};
+    if(tt==='stadium'){
+      const cur=this.getActiveStadium();
+      if(cur&&cd.name&&cur.name===cd.name)return {ok:false,reason:'stadium_same_name',message:`场上已有「${cd.name}」，同名的竞技场不能发动`};
+    }
     if(tt==='tool'){
       const t=targetSlot==='active'?pl.active:(targetSlot?.startsWith('bench-')?pl.bench[parseInt(targetSlot.replace('bench-',''))]:null);
       if(!t)return {ok:false,reason:'missing_tool_target',message:'请选择目标宝可梦'};

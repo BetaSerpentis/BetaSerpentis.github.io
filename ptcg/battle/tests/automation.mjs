@@ -797,6 +797,50 @@ await test('操作区场地菜单：有备战时提供撤退且不含返回项',
 });
 
 
+await test('竞技场：场上已有同名竞技场时不能再次发动', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  gs.currentPlayer = pl;
+  pl.hand = ['sa', 'sb', 'sc'];
+  const engine = makeEngine(gs);
+  const a = { cardType:'trainer', trainerType:'stadium', name:'场地A', effects:[] };
+  assert.equal(await engine.useTrainer(0, a), true);
+  pl.stadiumPlayedThisTurn = false; // 模拟进入下一回合
+  const same = { cardType:'trainer', trainerType:'stadium', name:'场地A', effects:[] };
+  assert.equal(gs.canUseTrainer(pl, same).ok, false, '同名竞技场应被拒绝');
+  assert.equal(await engine.useTrainer(0, same), false);
+  assert.equal(gs.getActiveStadium().name, '场地A');
+  // 不同名仍可正常替换
+  const other = { cardType:'trainer', trainerType:'stadium', name:'场地B', effects:[] };
+  assert.equal(await engine.useTrainer(0, other), true);
+  assert.equal(gs.getActiveStadium().name, '场地B');
+});
+
+await test('幸运头盔：装备时不抽卡，受击时抽 2 张', async () => {
+  const gs = new GameState();
+  const pl = gs.player1, opp = gs.player2;
+  gs.currentPlayer = pl;
+  gs.phase = PHASE.MAIN;
+  pl.active = mon('小火龙', 'c1');
+  opp.active = mon('杰尼龟', 's1', [{ name:'水枪', damage:20, cost:[] }]);
+  pl.deck = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6'];
+  pl.hand = ['helmet'];
+  const engine = makeEngine(gs);
+  const helmet = { cardType:'trainer', trainerType:'tool', name:'幸运头盔',
+    effects:[{ action:'trigger', params:{ event:'attacked_damage', effect:{ action:'draw', params:{ count:2 } } } }] };
+  assert.equal(await engine.useTrainer(0, helmet, 'active'), true);
+  assert.equal(pl.hand.length, 0, '装备时不应抽卡');
+  assert.ok(pl.active.tool, '应装备到出战宝可梦');
+
+  // 对手攻击我方出战 → 触发受击抽卡
+  gs.currentPlayer = opp;
+  gs.phase = PHASE.BATTLE;
+  await engine.attack(0);
+  await new Promise(r => setTimeout(r, 0));
+  assert.ok(pl.hand.length >= 2, `受击应抽 2 张（实际 ${pl.hand.length}）`);
+});
+
+
 await test('Stadium：打出后只保存完整竞技场资料，不立即执行效果', async () => {
   const gs = new GameState();
   const pl = gs.player1;
