@@ -132,6 +132,8 @@ class PTCGApp {
             this.cardBrowser.setSemanticSearch({
                 engine: new CardQueryEngine(),
                 parser: new SearchIntentParser(this.apiKeyManager),
+                // 用于「开启 AI 辅助但还没填 Key」时弹出输入框
+                apiKeyManager: this.apiKeyManager,
             });
             
             // 然后初始化 TabManager（修改：需要传入 cardBrowser）

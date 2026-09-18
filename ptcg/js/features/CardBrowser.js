@@ -32,6 +32,38 @@ export class CardBrowser {
     /** 注入语义搜索依赖（main.js 在创建后调用） */
     setSemanticSearch(deps) {
         this.semanticSearch = deps || null;
+        // 只注册一次：用户在弹窗里保存 Key 之后自动把开关点亮
+        const mgr = deps && deps.apiKeyManager;
+        if (mgr && typeof mgr.onKeyChange === 'function' && !this._apiKeyListenerBound) {
+            this._apiKeyListenerBound = true;
+            mgr.onKeyChange(key => {
+                if (key && this._pendingAiEnable) {
+                    this._pendingAiEnable = false;
+                    this._setAiEnabled(true);
+                    this.cardGrid.updateSearchInfo('API Key 已保存，AI 辅助已开启');
+                }
+                this._syncAiToggle();
+            });
+        }
+        this._syncAiToggle();
+    }
+
+    /** 是否已配置 API Key（没有的话 AI 辅助无法工作，需要先让用户输入） */
+    _hasApiKey() {
+        const mgr = this.semanticSearch && this.semanticSearch.apiKeyManager;
+        if (!mgr) return false;
+        try {
+            return typeof mgr.getApiKey === 'function' ? !!mgr.getApiKey() : false;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    _setAiEnabled(enabled) {
+        this.aiSearchEnabled = !!enabled;
+        try {
+            localStorage.setItem(this._AI_SEARCH_STORAGE_KEY, this.aiSearchEnabled ? '1' : '0');
+        } catch (e) { /* 忽略隐私模式等写入失败 */ }
         this._syncAiToggle();
     }
 
@@ -41,15 +73,19 @@ export class CardBrowser {
         } catch (e) {
             this.aiSearchEnabled = false;
         }
+        // 没有 Key 时开了也没用，先按关闭显示（Key 保存后由监听自动点亮）
+        if (this.aiSearchEnabled && this.semanticSearch && !this._hasApiKey()) {
+            this.aiSearchEnabled = false;
+        }
         this._syncAiToggle();
     }
 
     _syncAiToggle() {
         const btn = this.aiToggleButton;
         if (!btn) return;
-        btn.setAttribute('aria-pressed', this.aiSearchEnabled ? 'true' : 'false');
+        btn.setAttribute('aria-checked', this.aiSearchEnabled ? 'true' : 'false');
         const ready = !!this.semanticSearch;
-        btn.disabled = !ready;
+        btn.disabled = !ready || this._aiBusy;
         if (!ready) {
             btn.title = 'AI 辅助暂不可用（缺少组件）';
         } else if (this.aiSearchEnabled) {
@@ -60,14 +96,24 @@ export class CardBrowser {
     }
 
     _toggleAiSearch() {
-        this.aiSearchEnabled = !this.aiSearchEnabled;
-        try {
-            localStorage.setItem(this._AI_SEARCH_STORAGE_KEY, this.aiSearchEnabled ? '1' : '0');
-        } catch (e) { /* 忽略隐私模式等写入失败 */ }
-        this._syncAiToggle();
-        if (this.aiSearchEnabled && !this.semanticSearch) {
-            this.cardGrid.updateSearchInfo('AI 辅助需要先在设置里配置 AI API Key');
+        if (this.aiSearchEnabled) {
+            this._setAiEnabled(false);
+            return;
         }
+        // 开启前必须有 API Key；没有就弹出输入框，保存后由监听自动点亮
+        if (this.semanticSearch && !this._hasApiKey()) {
+            const mgr = this.semanticSearch.apiKeyManager;
+            if (mgr && typeof mgr.showSettingsModal === 'function') {
+                this._pendingAiEnable = true;
+                mgr.showSettingsModal();
+                this.cardGrid.updateSearchInfo('AI 辅助需要 API Key：请在弹出的窗口里填写，保存后会自动开启');
+                this._syncAiToggle();
+                return;
+            }
+            this.cardGrid.updateSearchInfo('AI 辅助需要先配置 API Key');
+            return;
+        }
+        this._setAiEnabled(true);
     }
 
     // 只绑定搜索相关事件；卡牌点击由 main.js 统一处理
@@ -206,9 +252,10 @@ export class CardBrowser {
 
     _setAiBusy(busy) {
         const btn = this.aiToggleButton;
+        this._aiBusy = !!busy;
         if (!btn) return;
-        btn.classList.toggle('busy', !!busy);
-        btn.disabled = busy || !this.semanticSearch;
+        btn.classList.toggle('busy', this._aiBusy);
+        btn.disabled = this._aiBusy || !this.semanticSearch;
     }
 
     /** 把条件对象翻译成可读文本（让用户能核对 AI 解析得对不对） */
