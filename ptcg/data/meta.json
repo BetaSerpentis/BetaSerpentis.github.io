@@ -1,7 +1,6 @@
 {
-  "format": "简中标准环境 F/G/H/I/J 标",
+  "format": "简中标准环境 G/H/I/J 标",
   "currentMarks": [
-    "F",
     "G",
     "H",
     "I",
@@ -12,11 +11,12 @@
     "B",
     "C",
     "D",
-    "E"
+    "E",
+    "F"
   ],
-  "description": "简中 PTCG 当前标准赛制为 F/G/H/I/J 标。数据来源：tcg.mik.moe（CN-Sync）",
+  "description": "简中 PTCG 当前标准赛制为 G/H/I/J 标（F 标已退环境）。数据来源：tcg.mik.moe（CN-Sync）",
   "markSeries": {
-    "F": "SV1-SV3",
+    "F": "SV1-SV3（已退环境）",
     "G": "SV4-SV5",
     "H": "SV6-SV7",
     "I": "SV8-SV9",
