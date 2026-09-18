@@ -40,11 +40,17 @@
     <div class="container">
         <div class="search-header">
             <div class="search-container">
-                <input type="text" class="search-input" id="search-input" placeholder="搜索卡牌名字、效果...">
-                <!-- AI 辅助搜索：开启后不再按关键词匹配，而是先把自然语言解析成结构化条件再本地筛选。
-                     条件与筛选全部在本地确定性执行，AI 只负责"翻译"。 -->
-                <button type="button" class="ai-search-toggle" id="ai-search-toggle"
-                        aria-pressed="false" title="AI 辅助：用自然语言描述条件（如「环境内需要1能就能使用招式的2阶进化宝可梦」）">AI 辅助</button>
+                <div class="search-input-wrap">
+                    <!-- AI 辅助搜索：开启后不再按关键词匹配，而是先把自然语言解析成结构化条件再本地筛选。
+                         条件与筛选全部在本地确定性执行，AI 只负责"翻译"。
+                         开关放在搜索框内部左侧，不占用搜索栏的横向空间。 -->
+                    <button type="button" class="ai-switch" id="ai-search-toggle" role="switch" aria-checked="false"
+                            aria-label="AI 辅助搜索"
+                            title="AI 辅助：用自然语言描述条件（如「环境内需要1能就能使用招式的2阶进化宝可梦」）">
+                        <span class="ai-switch-knob"></span>
+                    </button>
+                    <input type="text" class="search-input" id="search-input" placeholder="搜索卡牌名字、效果...">
+                </div>
                 <button class="search-button" id="search-button">搜索</button>
             </div>
         </div>
