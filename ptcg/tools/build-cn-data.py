@@ -1157,12 +1157,12 @@ def main():
         existing = {}
     meta = dict(existing)
     meta.update({
-        "format": "简中标准环境 F/G/H/I/J 标",
-        "currentMarks": ["F", "G", "H", "I", "J"],
-        "retiredMarks": ["A", "B", "C", "D", "E"],
-        "description": "简中 PTCG 当前标准赛制为 F/G/H/I/J 标。数据来源：tcg.mik.moe（CN-Sync）",
+        "format": "简中标准环境 G/H/I/J 标",
+        "currentMarks": ["G", "H", "I", "J"],
+        "retiredMarks": ["A", "B", "C", "D", "E", "F"],
+        "description": "简中 PTCG 当前标准赛制为 G/H/I/J 标（F 标已退环境）。数据来源：tcg.mik.moe（CN-Sync）",
         "markSeries": {
-            "F": "SV1-SV3", "G": "SV4-SV5", "H": "SV6-SV7", "I": "SV8-SV9", "J": "30th/SV10+"
+            "F": "SV1-SV3（已退环境）", "G": "SV4-SV5", "H": "SV6-SV7", "I": "SV8-SV9", "J": "30th/SV10+"
         },
     })
     # 仅在缺失 basicEnergy 时才生成（避免覆盖手工策展的当前环境基本能量列表）
