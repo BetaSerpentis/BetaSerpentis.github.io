@@ -5744,6 +5744,104 @@ await test('直接宝可梦道具搜索：无选择器 fallback 只拿工具卡�
 });
 
 // ============================================================
+//  2.9) 效果动作顺序 / 条件改写 / 伤害指示物转放（本轮修复的回归保护）
+// ============================================================
+
+await test('效果动作顺序按卡面文本排列（不再按规则表顺序）', () => {
+  // 「先洗手牌回牌库并重洗，然后抽 N 张」——旧实现按 RULES 表顺序输出，
+  // 会变成「先抽 N 张，再把含刚抽到的手牌洗回牌库」，效果完全相反。
+  const t = '将自己的手牌全部放回牌库并重洗牌库。然后，从牌库上方抽取6张卡牌。';
+  assert.equal(actions(t).join('>'), 'shuffle_hand_to_deck');
+
+  // 搜牌 + 重洗：重洗必须在搜牌之后
+  const t2 = '从自己牌库中，选择1张HP在「90」以下（包含「90」）的宝可梦，在给对手看过之后，加入手牌。并重洗牌库。';
+  const a2 = actions(t2);
+  assert.ok(a2.indexOf('search_deck_to_hand') < a2.indexOf('shuffle_deck'),
+    `重洗应在搜牌之后: ${a2.join('>')}`);
+});
+
+await test('莉莉艾的决心：条件改写合并进抽卡动作且抽数为 8', async () => {
+  const t = '将自己的手牌全部放回牌库并重洗牌库。然后，从牌库上方抽取6张卡牌。如果自己的剩余奖赏卡张数为6张的话，则抽取的张数变为8张。';
+  const eff = parseEffect(t).effects;
+  assert.equal(eff.length, 1, `应合并为 1 个动作: ${JSON.stringify(eff)}`);
+  assert.equal(eff[0].action, 'shuffle_hand_to_deck');
+  assert.equal(eff[0].params.draw_count, 6);
+  assert.equal(eff[0].params.ownPrizesExactly, 6);
+  assert.equal(eff[0].params.countThen, 8);
+  assert.equal(eff[0].params._pos, undefined, '_pos 不应泄漏到结果里');
+
+  const run = async prizeCount => {
+    const gs = new GameState();
+    const pl = gs.player1;
+    pl.deck = Array.from({ length: 40 }, (_, i) => 'd' + i);
+    pl.hand = ['h1', 'h2', 'h3', 'h4'];
+    pl.prizes = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6'].slice(0, prizeCount);
+    await executeEffects(gs, pl, eff);
+    return pl.hand.length;
+  };
+  assert.equal(await run(6), 8, '剩余奖赏卡 6 张时应抽 8 张');
+  assert.equal(await run(5), 6, '剩余奖赏卡不足 6 张时应抽 6 张');
+});
+
+await test('愿增猿「亢奋脑力」：无伤害指示物时判定不可用', () => {
+  const t = '如果这只宝可梦身上附着了【恶】能量的话，则在自己的回合可以使用1次。选择自己场上1只宝可梦身上放置的最多3个伤害指示物，转放于对手场上1只宝可梦身上。';
+  const eff = parseEffect(t).effects;
+  const mk = ({ hp, dark }) => {
+    const gs = new GameState();
+    const pl = gs.player1;
+    const y = { name:'愿增猿', cardId:'CSV8C-094', hp, maxHp:110, element:'psychic',
+      energy: dark ? [{ name:'基本恶能量', provides:[{ types:['dark'], count:1 }] }] : [],
+      attacks: [], tool: null, ability: { name:'亢奋脑力', active:true, zone:'field', effects: eff } };
+    pl.active = y; pl.bench = [];
+    gs.player2.active = { name:'对手', cardId:'o', hp:120, maxHp:120, element:'colorless', energy: [], attacks: [], tool: null };
+    return { gs, pl, y };
+  };
+  // 有恶能量但己方场上没有任何伤害指示物 -> 必须置灰
+  const c1 = mk({ hp: 110, dark: true });
+  const r1 = c1.gs.canUseAbility(c1.pl, c1.y, c1.y.ability, 'field');
+  assert.equal(r1.ok, false, '无伤害指示物时应不可用');
+  assert.match(String(r1.message || ''), /伤害指示物/);
+
+  // 有恶能量且有伤害指示物 -> 可用
+  const c2 = mk({ hp: 50, dark: true });
+  assert.equal(c2.gs.canUseAbility(c2.pl, c2.y, c2.y.ability, 'field').ok, true);
+
+  // 有伤害指示物但没恶能量 -> 不可用
+  const c3 = mk({ hp: 50, dark: false });
+  assert.equal(c3.gs.canUseAbility(c3.pl, c3.y, c3.y.ability, 'field').ok, false);
+});
+
+await test('愿增猿「亢奋脑力」：把 3 个伤害指示物从己方转放到对手身上', async () => {
+  const t = '如果这只宝可梦身上附着了【恶】能量的话，则在自己的回合可以使用1次。选择自己场上1只宝可梦身上放置的最多3个伤害指示物，转放于对手场上1只宝可梦身上。';
+  const eff = parseEffect(t).effects;
+  const gs = new GameState();
+  const pl = gs.player1;
+  pl.active = { name:'愿增猿', cardId:'CSV8C-094', hp:50, maxHp:110, element:'psychic',
+    energy: [{ name:'基本恶能量', provides:[{ types:['dark'], count:1 }] }],
+    attacks: [], tool: null, ability: { name:'亢奋脑力', active:true, zone:'field', effects: eff } };
+  pl.bench = [];
+  const opp = gs.player2;
+  opp.active = { name:'对手', cardId:'o', hp:120, maxHp:120, element:'colorless', energy: [], attacks: [], tool: null };
+  opp.bench = [];
+  await executeEffects(gs, pl, eff);
+  assert.equal(pl.active.hp, 80, `己方应移走 3 个指示物(30)：${pl.active.hp}`);
+  assert.equal(opp.active.hp, 90, `对手应受到 30 伤害：${opp.active.hp}`);
+});
+
+await test('伤害指示物不会把 HP 压成负数', () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  pl.active = { name:'A', cardId:'a', hp:30, maxHp:30, element:'colorless', energy: [], attacks: [], tool: null };
+  const opp = gs.player2;
+  opp.active = { name:'B', cardId:'b', hp:20, maxHp:20, element:'colorless', energy: [], attacks: [], tool: null };
+  // 直接走 damage_place 的固定目标分支
+  const eff = [{ action:'damage_place', params:{ target:'opponent_active', count:9 } }];
+  return executeEffects(gs, pl, eff).then(() => {
+    assert.ok(opp.active.hp >= 0, `HP 不应为负: ${opp.active.hp}`);
+  });
+});
+
+// ============================================================
 //  3) 全卡牌数据解析覆盖率报告（不要求100%，用于持续发现未覆盖文本）
 // ============================================================
 

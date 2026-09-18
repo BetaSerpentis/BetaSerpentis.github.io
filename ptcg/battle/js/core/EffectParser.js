@@ -295,6 +295,11 @@ const RULES = [
   { re: /双方玩家各将所有手牌放回牌库并重洗[。.]然后[，,]?(?:从牌库)?各抽出(\d+)张卡/, act:'shuffle_hand_to_deck', p:m=>({who:'both',draw_count:+m[1]}) },
   { re: /对手将(?:自己的)?手牌全部放回牌库并重洗[。.]然后[，,]?抽出(\d+)张卡/, act:'shuffle_hand_to_deck', p:m=>({who:'opponent',draw_count:+m[1]}) },
   { re: /将(?:自己的)?手牌全部放回牌库并重洗[。.]然后[，,]?从牌库抽出(\d+)张卡/, act:'shuffle_hand_to_deck', p:m=>({who:'self',draw_count:+m[1]}) },
+  // 「手牌全部放回牌库并且重洗牌库。然后，从牌库（上方）抽出/抽取 N 张卡」——
+  // 必须放在后面那些 draw / shuffle_deck 部件规则之前，否则文本会先被拆成
+  // 「抽N张」+「重洗」+「洗手牌」三步，而 shuffle_hand_to_deck 缺 draw_count 时会默认再抽 4 张，
+  // 结果完全错误（实例：「莉莉艾的决心」，原实现先抽6张再把含刚抽到的手牌洗回牌库）。
+  { re: /将(?:自己的|自己)?手牌全部放回牌库并(?:且)?重洗牌库。然后，从牌库(?:上方)?(?:抽出|抽取)(\d+)张卡(?:牌)?/, act:'shuffle_hand_to_deck', p:m=>({who:'self',draw_count:+m[1]}) },
 
   // ===== 搜牌库放备战区 =====
   { re: /(?:可)?从(?:自己的)?牌库(?:选择|抽出)最多(\d+)张HP为[「"]?(\d+)[」"]?以下的.*?基础.*?宝可梦(?:卡)?[,，]\s*放置于备战区/, act:'search_deck_to_bench', p:m=>withCount({filter:`HP为${m[2]}以下的【基础】宝可梦`, maxHp:+m[2]},m[1],true) },
@@ -329,6 +334,10 @@ const RULES = [
   { re: /从牌库抽出卡牌[，,]?直到自己的手牌变为(\d+)张(?:为止)?/, act:'draw_until', p:m=>({target:+m[1]}) },
   { re: /从(?:自己的)?牌库抽出(\d+)张卡/, act:'draw', p:m=>({count:+m[1]}) },
   { re: /从牌库抽出(\d+)张/, act:'draw', p:m=>({count:+m[1]}) },
+  // 条件改写句：数据里写成「基础动作。若……则张数变为N张」两句。
+  // 改写句本身不是独立动作，这里先记为 action_count_override，
+  // 再由 parseEffect 末尾合并到前一条同类动作的 params 上（例：「莉莉艾的决心」）。
+  { re: /若自己的剩余奖赏卡张数为(\d+)张[，,]?则抽出的张数变为(\d+)张/, act:'action_count_override', p:m=>({ targets:['shuffle_hand_to_deck','draw'], set:{ ownPrizesExactly:+m[1], countThen:+m[2] }, raw:m[0] }) },
 
   // ===== HP恢复 =====
   { re: /HP全部恢复/, act:'heal', p:()=>({amount:'full'}) },
@@ -1517,22 +1526,59 @@ export function parseEffect(text) {
   text = normalizeCn(norm(text));
   const effects = [];
   let remaining = text;
-  for (let pass = 0; pass < 8; pass++) {
+  // 记录每个命中片段在**原始文本**中的位置。
+  // 原实现按 RULES 表的顺序 push，导致动作顺序变成「规则表顺序」而不是卡面书写顺序，
+  // 对先后关系敏感的效果会彻底跑错。典型：「莉莉艾的决心」原文是
+  // 「先将手牌全部放回牌库并重洗。然后抽6张」，却解析成先抽6张再把（含刚抽到的）手牌洗回牌库。
+  // 这里在删除片段的同时维护 remaining 起点在原文中的绝对下标，最后按位置排序。
+  let front = 0; // remaining[0] 在原文中的绝对下标
+  for (let pass = 0; pass < 40; pass++) {
     let changed = false;
     for (const rule of RULES) {
       const m = remaining.match(rule.re);
       if (m) {
         const params = rule.p(m);
         if (params === null || params === undefined) continue; // 条件不满足，跳过此规则
-        effects.push({ action: rule.act, params });
-        remaining = remaining.replace(rule.re, '').replace(/^[,，。\s]+/, '').trim();
+        const idx = remaining.indexOf(m[0]);
+        effects.push({ action: rule.act, params, _pos: front + idx });
+        // 与旧行为完全一致地删除首个命中片段，再剥掉剩余文本的前导标点/空白
+        const next = remaining.slice(0, idx) + remaining.slice(idx + m[0].length);
+        const headRun = next.match(/^[,，。\s]+/);
+        const head = headRun ? headRun[0].length : 0;
+        // 注意：命中片段之前的文本仍留在 remaining 里，其绝对起点不变，
+        // 只有被剥掉的前导标点/空白会让起点右移，因此这里只能 += head。
+        front = front + head;
+        remaining = next.slice(head).trim();
         changed = true;
         break;
       }
     }
     if (!changed) break;
   }
-  return finalizeCoverage(effects, text, remaining);
+  // 按卡面文本顺序重排真实动作（finalizeCoverage 追加的残余元数据仍排在最后）
+  effects.sort((a, b) => a._pos - b._pos);
+  for (const e of effects) delete e._pos;
+  // 条件改写句合并：把 action_count_override 并入它前面最近的目标动作。
+  // 这样执行端只需在目标动作里读条件参数，不必处理“改写发生在动作之后”的时序问题。
+  const merged = [];
+  for (const e of effects) {
+    if (e.action === 'action_count_override') {
+      const tgts = (e.params && e.params.targets) || [];
+      let done = false;
+      for (let i = merged.length - 1; i >= 0; i--) {
+        if (tgts.includes(merged[i].action)) {
+          merged[i].params = { ...merged[i].params, ...(e.params.set || {}) };
+          done = true;
+          break;
+        }
+      }
+      if (!done) merged.push(e); // 找不到目标时保留原样，执行端会记为未实现而不是静默丢弃
+      continue;
+    }
+    merged.push(e);
+  }
+  const out = finalizeCoverage(merged, text, remaining);
+  return out;
 }
 
 // 完全无法命中任何规则的效果文本兜底：记录为 generic 元数据，保证全卡覆盖可统计。

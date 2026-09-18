@@ -560,7 +560,8 @@ function _emitTriggers(gs, event, payload = {}) {
 function _applyDamageToPokemon(gs, owner, mon, amount, logSuffix = '受到', options = {}) {
   if (!mon || !amount) return false;
   if (options.source === 'attack' && gs.isBenchProtectedFromOpponentAttack?.(owner, mon, 'damage')) { gs.addLog(`${mon.name} 防止了备战伤害`); return false; }
-  mon.hp -= amount;
+  // 伤害溢出时血量最低为 0，不出现负值
+  mon.hp = Math.max(0, mon.hp - amount);
   gs.addLog(`${mon.name} ${logSuffix} ${amount} 伤害`);
   if (mon.hp <= 0) _knockoutPokemon(gs, owner, mon);
   const attacker = options.attacker || gs.getOpponent?.(owner)?.active || null;
@@ -602,7 +603,14 @@ const EXECUTORS = {
   },
 
   // ===== 抽卡 =====
-  draw(gs, pl, p) { const n = p.count || 1; pl.draw(n); gs.addLog(`抽了 ${n} 张卡`); },
+  draw(gs, pl, p) {
+    // 条件改写：「莉莉艾的决心」——若自己的剩余奖赏卡为 6 张，则抽取张数由 6 变为 8。
+    const ownPrizes = pl.prizes ? pl.prizes.length : 0;
+    const boosted = p.ownPrizesExactly != null && ownPrizes === p.ownPrizesExactly;
+    const n = boosted ? (p.countThen ?? p.count ?? 1) : (p.count || 1);
+    pl.draw(n);
+    gs.addLog(boosted ? `抽了 ${n} 张卡（剩余奖赏卡 ${ownPrizes} 张）` : `抽了 ${n} 张卡`);
+  },
   draw_until(gs, pl, p) { const t = p.target || 6; while (pl.hand.length < t && pl.deck.length > 0) pl.draw(1); gs.addLog(`抽卡至 ${t} 张`); },
   // 相对抽卡：直到自己的手牌比对手多 delta 张
   draw_until_opp_hand_plus(gs, pl, p) { const opp = _opponent(gs, pl); const target = (opp.hand?.length || 0) + (p.delta || 1); while (pl.hand.length < target && pl.deck.length > 0) pl.draw(1); gs.addLog(`抽卡至比对手多 ${p.delta || 1} 张`); },
@@ -1039,6 +1047,30 @@ const EXECUTORS = {
     }
     if (target === 'opponent_all') {
       for (const mon of [opp.active, ...opp.bench]) _applyDamageToPokemon(gs, opp, mon, dmg);
+      return;
+    }
+    // 「转放伤害指示物」：从自己场上有指示物的宝可梦身上移走最多 count 个，
+    // 放到对手场上的一只宝可梦身上（愿增猿「亢奋脑力」等）。
+    // 注意：原实现没有分支处理 opponent_field，效果会静默什么都不做。
+    if (target === 'opponent_field' || target === 'opponent_any_field') {
+      const hasCounters = mon => !!mon && (mon.maxHp - mon.hp) > 0;
+      const srcSlot = await _pickPokemonTarget(gs, pl, pl, {
+        mode:'damage-remove', side:'self', allowActive:true, allowBench:true,
+        prompt:'选择要移走伤害指示物的己方宝可梦',
+        slotFilter: slot => hasCounters(_getMon(pl, slot)),
+      });
+      const srcMon = srcSlot ? _getMon(pl, srcSlot) : null;
+      if (!srcMon) { gs.addLog('己方场上没有可移走的伤害指示物'); return; }
+      const movable = Math.min(p.count || 1, srcMon.maxHp - srcMon.hp);
+      const dstSlot = await _pickPokemonTarget(gs, pl, opp, {
+        mode:'damage', side:'opponent', allowActive:true, allowBench:true,
+        prompt:'选择要转放伤害指示物的对手宝可梦',
+      });
+      const dstMon = dstSlot ? _getMon(opp, dstSlot) : null;
+      if (!dstMon) return;
+      srcMon.hp = Math.min(srcMon.maxHp, srcMon.hp + movable * 10);
+      _applyDamageToPokemon(gs, opp, dstMon, movable * 10);
+      gs.addLog(`将 ${srcMon.name} 身上的 ${movable} 个伤害指示物转放到 ${dstMon.name} 身上`);
     }
   },
 
@@ -1221,7 +1253,9 @@ const EXECUTORS = {
       gs.addLog(`双方手牌回牌库，自己抽 ${selfDraw} 张，对手抽 ${oppDraw} 张`);
       return;
     }
-    const dc = p.draw_count || 4;
+    const dc = (p.ownPrizesExactly != null && (pl.prizes ? pl.prizes.length : 0) === p.ownPrizesExactly)
+      ? (p.countThen ?? (p.draw_count || 4))
+      : (p.draw_count || 4);
     for (const pp of targets) pp.draw(dc);
     gs.addLog(`手牌回牌库，抽 ${dc} 张`);
   },
