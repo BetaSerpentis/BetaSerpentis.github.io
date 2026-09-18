@@ -6,7 +6,7 @@ export const SYSTEM_PROMPT = `你是一个 PTCG 简中环境（F/G/H/I/J 标）�
 ## 当前环境
 
 - **标准赛制**：**F/G/H/I/J 标**（A～E 标已退环境，不可使用）。
-  权威定义以 ptcg/data/meta.json 的 `currentMarks` / `retiredMarks` 为准，两者不一致时以数据为准。
+  权威定义以 ptcg/data/meta.json 的 currentMarks / retiredMarks 字段为准，两者不一致时以数据为准。
 - **F标**：SV1-SV3
 - **G标**：SV4-SV5（未来闪光/古代咆哮 等）
 - **H标**：SV6-SV7（变换的假面/黑炎支配者 等）
