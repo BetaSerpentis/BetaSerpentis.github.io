@@ -16,6 +16,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CardQueryEngine, REDUCTION_CAP } from '../js/core/CardQueryEngine.js';
 import { SearchIntentParser, sanitizeConditions, extractJson } from '../js/services/SearchIntentParser.js';
+import { CardManager } from '../js/core/CardManager.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PTCG = path.resolve(__dirname, '..');
@@ -197,6 +198,35 @@ await test('解析器无 API Key 时返回 null（调用方回退关键词搜索
   const p = new SearchIntentParser({ getApiKey: () => null, getSettings: () => ({}) });
   assert.equal(p.hasApiKey(), false);
   assert.equal(await p.parse('撤退能量为4的基础宝可梦'), null);
+});
+
+
+// ============================================================
+//  渲染契约：外部筛选结果必须映射回「带 image 的完整卡片对象」
+//  （曾经直接把 CardQueryEngine 的查询对象塞进 filteredCards，
+//    导致 CardGrid 取不到 card.image，整片卡图显示「加载失败」）
+// ============================================================
+
+await test('setExternalFilter：只输出当前已加载的完整卡片对象（含 image）', () => {
+  const cm = Object.create(CardManager.prototype);
+  cm.cards = [
+    { id: 'A-1', name: '甲', image: '/img/a.webp', quantity: 2 },
+    { id: 'A-2', name: '乙', image: '/img/b.webp', quantity: 0 },
+  ];
+  // 引擎结果只带查询字段，没有 image
+  const engineOut = engine.query({ types: ['宝可梦'], stage: 0, retreat: 4 }).slice(0, 3).map(c => ({ ...c }));
+  delete engineOut[0].image;
+  const out = cm.setExternalFilter([{ id: 'A-1', name: '甲', retreat: 4 }, { id: 'Z-9', name: '不在当前页签' }]);
+  assert.equal(out.length, 1);
+  assert.ok(out.every(c => typeof c.image === 'string' && c.image), '渲染对象必须带 image');
+  assert.ok(out.every(c => 'quantity' in c), '统计模式需要 quantity');
+  assert.equal(cm._lastExternalFilterMissing, 1, '映射不到的应计数并提示');
+});
+
+await test('引擎产出对象本身不含 image（所以必须经过 setExternalFilter 映射）', () => {
+  const one = engine.query({ types: ['宝可梦'], limit: 1 })[0];
+  assert.ok(one && one.id);
+  assert.equal(one.image, undefined, '引擎只产出查询字段，渲染字段由 CardManager 补');
 });
 
 console.log(`\n结果：${pass} 通过 / ${fail} 失败`);
