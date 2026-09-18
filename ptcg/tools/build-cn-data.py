@@ -135,6 +135,25 @@ def load_cn_sets():
     return sets
 
 # ── 旧 JSON → dex number 提取 ──
+# 全国图鉴号上限（第 9 世代为止共 1025 种）。
+# 注意：CN-Sync 的 yoren_code 多数情况是 P<图鉴号>，但存在个别例外，
+# 例如「化石盔」有记录写成 P1220（1220 > 1025，显然不是图鉴号），
+# 若不设上限就会写出越界的图鉴号，导致立绘取错图。超限时一律回退到名称查表。
+DEX_MAX = 1025
+
+# CN-Sync 里有少量卡名带尾随符号标记，例如「百变怪◇」「时拉比◇」「阿尔宙斯◇」
+# （实测 14 条 P 记录，多为幻兽/传说的宝可梦）。这类符号不属于名字本身，
+# 会导致按名字查图鉴号时匹配失败，故两侧都先做一次尾符号剥离。
+_DEX_NAME_TAIL_MARKS = "◇◆★☆♦♢△▲□■※×"
+
+
+def _strip_dex_name_marks(name):
+    """去掉名字末尾的装饰性符号（◇◆★☆♢△▲□■※× 等）。"""
+    s = name or ""
+    while s and s[-1] in _DEX_NAME_TAIL_MARKS:
+        s = s[:-1]
+    return s
+
 # 图鉴号回退时用于剥离的名字前缀（地区形态 / 持有者前缀）
 _DEX_NAME_PREFIXES = [
     "阿罗拉 ", "伽勒尔 ", "洗翠 ", "帕底亚 ", "太晶 ", "光辉",
@@ -159,7 +178,7 @@ def build_dex_from_sync(cards):
         if not m:
             continue
         num = int(m.group(1))
-        if not num:
+        if not num or num > DEX_MAX:
             continue
         name = c.get("card_name", "")
         attr = ATTR_CODES.get(c.get("energy_type", ""), "")
@@ -167,14 +186,34 @@ def build_dex_from_sync(cards):
         stage = stage_cn_of.get(c.get("stage", ""), "")
         dex_lookup[(name, attr, hp, stage)] = num
         name_only_dex.setdefault(name, num)
+        _clean = _strip_dex_name_marks(name)
+        if _clean and _clean != name:
+            name_only_dex.setdefault(_clean, num)
+            dex_lookup.setdefault((_clean, attr, hp, stage), num)
+        # 同种族不同形态（如「连击武道熊师」P892 / 「一击武道熊师」Y787）在 CN-Sync 里
+        # 只有一种形态带 P 记录。这里额外注册长度 >=4 的名字后缀，
+        # 使另一形态能按「共同后缀」回退到同一种族的图鉴号。
+        # 阈值取 4 是为了避开「伊布 / 太阳伊布 / 月亮伊布」这类 2~3 字尾部撞车。
+        base_name = _clean or name
+        for _i in range(1, len(base_name) - 3):
+            name_only_dex.setdefault(base_name[_i:], num)
         # CN-Sync 的 yoren_code 只对部分系列给 P<图鉴号>，且常绑在地区形态上
         # （例如「阿罗拉 穿山鼠」= P027，而普通「穿山鼠」= Y890）。
         # 这里把去掉地区/持有者前缀的基础名也注册进映射，供这类卡回退查表。
+        # 循环剥离（前缀可能叠加，如「光辉洗翠 大狃拉」= 光辉 + 洗翠 + 大狃拉）
         base = name
-        for _p in _DEX_NAME_PREFIXES:
-            if base.startswith(_p) and len(base) > len(_p):
-                name_only_dex.setdefault(base[len(_p):], num)
+        _guard = 0
+        while _guard < 4:
+            _guard += 1
+            _matched = None
+            for _p in _DEX_NAME_PREFIXES:
+                if base.startswith(_p) and len(base) > len(_p):
+                    _matched = _p
+                    break
+            if not _matched:
                 break
+            base = base[len(_matched):]
+            name_only_dex.setdefault(base, num)
     return dex_lookup, name_only_dex
 
 
@@ -588,7 +627,15 @@ def get_dex_for_cn(card, cn_key_to_dex, mapping, dex_lookup, name_only_dex):
         return str(cn_key_to_dex[ck])
 
     # 2. Lookup by name in old data (simplified name may match)
-    cn_name = card["card_name"]
+    #    名字先剥掉尾随装饰符号（如「百变怪◇」→「百变怪」），再走名称查表
+    cn_name = _strip_dex_name_marks(card["card_name"])
+    # 形态描述：CN-Sync 用空格分隔形态，如「飘浮泡泡 太阳的样子」（P351 记录为「飘浮泡泡」）。
+    # 图鉴号按种族计，故查表时先取空格前的部分。
+    # 注意：地区形态写成「伽勒尔 双弹瓦斯」「阿罗拉 穿山鼠」，空格属于地区前缀，
+    # 不能切（否则会切出「伽勒尔」这种无效名，实测会让丢失数从 75 涨到 269）。
+    _regions = ("阿罗拉 ", "伽勒尔 ", "洗翠 ", "帕底亚 ", "太晶 ")
+    if " " in cn_name and not cn_name.startswith(_regions):
+        cn_name = cn_name.split(" ")[0] or cn_name
     cn_attr = ATTR_CODES.get(card.get("energy_type", ""), "")
     cn_hp = card.get("hp", "")
     cn_stage_cn = {"Basic": "基础", "Stage 1": "1阶进化", "Stage 2": "2阶进化",
@@ -606,6 +653,21 @@ def get_dex_for_cn(card, cn_key_to_dex, mapping, dex_lookup, name_only_dex):
     if cn_name in name_only_dex:
         return str(name_only_dex[cn_name])
 
+    # 3.4 TAG TEAM（「A&B」）：图鉴号按第一只计（与原反查行为一致）。
+    #     否则「妙蛙花&藤藤蛇GX」会因最长后缀命中「藤藤蛇」而显示成另一只。
+    if '&' in cn_name:
+        _first = cn_name.split('&')[0].strip()
+        if _first not in name_only_dex:
+            for _s in ('VMAX', 'VSTAR', 'EX', 'GX', 'ex', 'V'):
+                if _first.endswith(_s) and len(_first) > len(_s):
+                    _first = _first[:-len(_s)]
+                    break
+        if _first in name_only_dex:
+            return str(name_only_dex[_first])
+        for _n in sorted(name_only_dex.keys(), key=len, reverse=True):
+            if len(_n) >= 2 and _first.endswith(_n):
+                return str(name_only_dex[_n])
+
     # 3.5 名称最长后缀匹配：处理「光辉X」「阿罗拉 X」「太晶X」「Xex」等前缀/后缀变体
     #     这些卡在 CN-Sync 里 yoren_code 不是 P<图鉴号>（例如光辉妙蛙花 = Y964），
     #     无法走 cn_key_to_dex，需要按名字回退到基础形态的图鉴号。
@@ -614,7 +676,7 @@ def get_dex_for_cn(card, cn_key_to_dex, mapping, dex_lookup, name_only_dex):
             return str(name_only_dex[_n])
 
     # 3.6 剥离规则后缀（ex / EX / V / VMAX / VSTAR / GX）后再查
-    for _s in ('VMAX', 'VSTAR', 'EX', 'GX', 'ex', 'V'):
+    for _s in ('V-UNION', 'VMAX', 'VSTAR', 'EX', 'GX', 'ex', 'V'):
         if cn_name.endswith(_s) and len(cn_name) > len(_s):
             _base = cn_name[:-len(_s)]
             if _base in name_only_dex:
@@ -736,7 +798,7 @@ def main():
     cn_key_to_dex = {}
     for c in cards:
         m = re.fullmatch(r"P0*(\d+)", str(c.get("yoren_code") or "").strip())
-        if m and int(m.group(1) or 0):
+        if m and 0 < int(m.group(1) or 0) <= DEX_MAX:
             cn_key_to_dex[c["card_key"]] = int(m.group(1))
     print(f"  cn_key_to_dex from yoren_code: {len(cn_key_to_dex)}")
     for oid, mm in mapping.items():
