@@ -154,6 +154,27 @@ def _strip_dex_name_marks(name):
         s = s[:-1]
     return s
 
+# CN-Sync 源数据缺失的种族兜底表：中文种族名 → 全国图鉴号。
+# 这些宝可梦在 CN-Sync 的 cards.tsv 里完全没有 P 前缀记录（只有卡牌级 Y 编号），
+# 因此无法从源数据取得图鉴号，只能按官方全国图鉴号补齐。
+# 数据来源：PokeAPI /pokemon-species/<id>（读取其 id 字段），
+# 并已用同一接口的 zh-hans 官方中文名逐一反向核对（9/9 一致）：
+#   903 大狃拉 Sneasler      169 叉字蝠 Crobat       497 君主蛇 Serperior
+#   652 布里卡隆 Chesnaught   484 帕路奇亚 Palkia      963 波普海豚 Finizen
+#   943 獒教父 Mabosstiff     658 甲贺忍蛙 Greninja    793 虚吾伊德 Nihilego
+# 注：用 setdefault 注册，若将来 CN-Sync 补上 P 记录，源数据优先、这里不会覆盖。
+_HARDCODED_CN_DEX = {
+    "波普海豚": 963,
+    "獒教父": 943,
+    "大狃拉": 903,
+    "君主蛇": 497,
+    "布里卡隆": 652,
+    "帕路奇亚": 484,
+    "叉字蝠": 169,
+    "甲贺忍蛙": 658,
+    "虚吾伊德": 793,
+}
+
 # 图鉴号回退时用于剥离的名字前缀（地区形态 / 持有者前缀）
 _DEX_NAME_PREFIXES = [
     "阿罗拉 ", "伽勒尔 ", "洗翠 ", "帕底亚 ", "太晶 ", "光辉",
@@ -221,6 +242,12 @@ def build_dex_from_sync(cards):
                 break
             base = base[len(_matched):]
             name_only_dex.setdefault(base, num)
+    # 源数据缺失种族：注册兜底编号（setdefault → 已有的 P 记录优先）
+    for _hn, _hd in _HARDCODED_CN_DEX.items():
+        name_only_dex.setdefault(_hn, _hd)
+    _added = sum(1 for _hn in _HARDCODED_CN_DEX if name_only_dex.get(_hn) == _HARDCODED_CN_DEX[_hn])
+    print(f"  [dex] 兜底表补充 {_added} 个 CN-Sync 缺失种族的图鉴号")
+
     if out_of_range:
         print(f"  [dex] 警告：{len(out_of_range)} 条 yoren_code 编号超出 1..{DEX_MAX}，"
               f"已忽略并改用名称回退（疑似源数据错误）：")
@@ -649,7 +676,12 @@ def get_dex_for_cn(card, cn_key_to_dex, mapping, dex_lookup, name_only_dex):
     # 注意：地区形态写成「伽勒尔 双弹瓦斯」「阿罗拉 穿山鼠」，空格属于地区前缀，
     # 不能切（否则会切出「伽勒尔」这种无效名，实测会让丢失数从 75 涨到 269）。
     _regions = ("阿罗拉 ", "伽勒尔 ", "洗翠 ", "帕底亚 ", "太晶 ")
-    if " " in cn_name and not cn_name.startswith(_regions):
+    # 地区词（不含空格），用于判断「空格前那一段」是否其实是地区前缀的一部分：
+    # 「光辉洗翠 大狃拉」的空格属于叠加前缀（光辉 + 洗翠），不能按形态描述切掉。
+    _region_words = ("阿罗拉", "伽勒尔", "洗翠", "帕底亚", "太晶")
+    _head = cn_name.split(" ")[0]
+    _head_is_region = any(_head.endswith(_w) for _w in _region_words)
+    if " " in cn_name and not cn_name.startswith(_regions) and not _head_is_region:
         cn_name = cn_name.split(" ")[0] or cn_name
     cn_attr = ATTR_CODES.get(card.get("energy_type", ""), "")
     cn_hp = card.get("hp", "")
@@ -691,7 +723,7 @@ def get_dex_for_cn(card, cn_key_to_dex, mapping, dex_lookup, name_only_dex):
             return str(name_only_dex[_n])
 
     # 3.6 剥离规则后缀（ex / EX / V / VMAX / VSTAR / GX）后再查
-    for _s in ('V-UNION', 'VMAX', 'VSTAR', 'EX', 'GX', 'ex', 'V'):
+    for _s in ('V-UNION', 'VMAX', 'VSTAR', 'BREAK', 'LV.X', 'EX', 'GX', 'ex', 'V'):
         if cn_name.endswith(_s) and len(cn_name) > len(_s):
             _base = cn_name[:-len(_s)]
             if _base in name_only_dex:
@@ -700,6 +732,21 @@ def get_dex_for_cn(card, cn_key_to_dex, mapping, dex_lookup, name_only_dex):
                 if len(_n) >= 2 and _base.endswith(_n):
                     return str(name_only_dex[_n])
             break
+
+    # 3.7 剥离结尾的 ASCII 标记后重试，并同时尝试「注册名是卡名前缀」的情况。
+    #     典型：「叉字蝠G」(G 标记)、「帕路奇亚LV.X」、「甲贺忍蛙BREAK」——
+    #     种族名在**前面**、标记在后面，而 3.5 的名称后缀匹配要求种族名在结尾，故匹配不到。
+    _marked = re.sub(r"[A-Za-z0-9.\-]+$", "", cn_name)
+    if _marked and _marked != cn_name:
+        if _marked in name_only_dex:
+            return str(name_only_dex[_marked])
+        for _n in sorted(name_only_dex.keys(), key=len, reverse=True):
+            if len(_n) >= 2 and (_marked.endswith(_n) or _marked.startswith(_n)):
+                return str(name_only_dex[_n])
+    # 卡名本身以某个注册名开头（标记在结尾但没被上面剥掉的情形）
+    for _n in sorted(name_only_dex.keys(), key=len, reverse=True):
+        if len(_n) >= 2 and cn_name.startswith(_n):
+            return str(name_only_dex[_n])
 
     # 4. Try name_en → look up in CN-Sync cards that DID get dex from mapping,
     #    then propagate by name_en
@@ -722,6 +769,10 @@ def get_dex_for_cn(card, cn_key_to_dex, mapping, dex_lookup, name_only_dex):
     # 7. Direct card_key → dex hardcoded fallback
     if ck in _HARDCODED_EN_DEX:
         return str(_HARDCODED_EN_DEX[ck])
+
+    # 8. CN-Sync 缺失种族的官方图鉴号兜底（见 _HARDCODED_CN_DEX）
+    if cn_name in _HARDCODED_CN_DEX:
+        return str(_HARDCODED_CN_DEX[cn_name])
 
     return ""
 
