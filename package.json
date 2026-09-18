@@ -5,6 +5,8 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "ptcg:build-data": "node ptcg/tools/generate-tsv-data.js",
+    "ptcg:build-effects": "node ptcg/tools/build-effect-index.mjs",
+    "ptcg:check-effects": "node ptcg/tools/build-effect-index.mjs --check",
     "test:ptcg-battle": "node ptcg/battle/tests/automation.mjs"
   },
   "dependencies": {
