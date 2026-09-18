@@ -145,7 +145,8 @@ async function _pickCardsFromZone(gs, actingPlayer, owner, zoneCards, count, opt
   const candidates = (zoneCards || []).map((card, index) => ({ card, index })).filter(item => !options.excludeIndices?.includes?.(item.index)).filter(item => _cardMatchesFilter(gs, item.card, filter));
   const limit = _selectionLimit(count, candidates.length, options);
   if (limit.max <= 0) {
-    if (options.failRequired && limit.min > 0 && !limit.allowEmpty && !limit.allowFewer && !options.optional) _requiredFailure(options.requiredAction || 'pick_cards', 'required_no_candidates');
+    // 规则：检索/查看类效果「没有合法候选」时视为空发（卡已发动但不拿卡），不算失败；
+    // 只有玩家在有候选的情况下取消/未选够（下方 required_pick_cancelled）才回滚。
     return [];
   }
   const shouldUsePicker = actingPlayer === gs.player1 && !options.auto && gs._onPendingPick;
@@ -655,7 +656,7 @@ const EXECUTORS = {
   // ===== 搜牌库加手 =====
   async search_deck_to_hand(gs, pl, p, eff, options) {
     if (pl.deck.length === 0) {
-      if (_effectIsRequired(eff, p, options)) _requiredFailure(eff?.action, 'required_empty_deck');
+      gs.addLog('牌库为空，没有可检索的卡'); // 检索类允许空发
       return;
     }
     const cards = [...pl.deck].reverse();
@@ -766,9 +767,9 @@ const EXECUTORS = {
 
   // ===== 搜牌库放备战 =====
   async search_deck_to_bench(gs, pl, p, eff, options) {
-    if (pl.deck.length === 0) { gs.addLog('牌库为空，无法搜索宝可梦'); if (_effectIsRequired(eff, p, options)) _requiredFailure(eff?.action, 'required_empty_deck'); return; }
+    if (pl.deck.length === 0) { gs.addLog('牌库为空，无法搜索宝可梦'); return; } // 检索类允许空发
     const openSlots = Math.max(0, 5 - pl.bench.length);
-    if (openSlots <= 0) { gs.addLog('备战区已满，无法放置宝可梦'); gs._shuffle(pl.deck); if (_effectIsRequired(eff, p, options)) _requiredFailure(eff?.action, 'required_no_bench_space'); return; }
+    if (openSlots <= 0) { gs.addLog('备战区已满，无法放置宝可梦'); gs._shuffle(pl.deck); return; } // 无位置可放也属空发
     const count = Math.min(p.count || 1, openSlots);
     const cards = [...pl.deck].reverse();
     const filter = card => _cardMatchesFilter(gs, card, { filter:p.filter || '宝可梦', maxHp:p.maxHp, nonRuleBox:p.nonRuleBox }) && _isBasicPokemonCard(gs, card);
@@ -815,7 +816,7 @@ const EXECUTORS = {
       const filterText = p.filter ? `符合${p.filter}条件的卡` : '符合条件的卡';
       gs.addLog(`查看了 ${peek} 张，没有${filterText}`);
     }
-    if (limit.max <= 0 && _effectIsRequired(eff, p, options)) _requiredFailure(eff?.action, 'required_no_candidates');
+    // 无候选 → 空发成功（如宝可装置3.0 牌库上方没有支援者时）
     if (limit.max > 0) {
       const shouldUsePicker = pl === gs.player1 && !p.auto && gs._onPendingPick;
       if (!shouldUsePicker) {

@@ -90,8 +90,11 @@ def rule2_text(card):
 
 
 def parse_cost(cost_str):
-    """'GGC' → ['草','草','无']"""
-    return [ATTR_CN.get(ch, "无") for ch in (cost_str or "")]
+    """'GGC' → ['草','草','无']；'0' 表示零消耗 → []（CN-Sync 中 0 = 无需能量）"""
+    s = (cost_str or "").strip()
+    if s in ("0", "-", "—", "无", "无消耗", "none", "None"):
+        return []
+    return [ATTR_CN.get(ch, "无") for ch in s if ch != "0"]
 
 
 def build_dex_lookup():

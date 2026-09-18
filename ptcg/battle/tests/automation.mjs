@@ -423,6 +423,50 @@ await test('宝可齿轮3.0解析为 peek_and_keep top7 选1支援者', () => {
   assert.equal(parsed.effects[0]?.params.filter, '支援者');
 });
 
+await test('宝可装置3.0：牌库上方没有支援者时仍算发动成功（空发）', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  gs.currentPlayer = pl;
+  pl.active = mon('出战');
+  pl.hand = ['device'];
+  pl.deck = ['i1', 'i2', 'i3', 'i4', 'i5', 'i6', 'i7', 'i8'];
+  gs.cardResolver = fakeResolver({
+    device: { info:{ name:'宝可装置3.0', number:null }, card:{ cardType:'trainer', trainerType:'item', name:'宝可装置3.0' } },
+    i1: { info:{ name:'物品1', number:null }, card:{ cardType:'trainer', trainerType:'item', name:'物品1' } },
+  });
+  gs._shuffle = deck => deck;
+  const engine = makeEngine(gs);
+  const device = { cardType:'trainer', trainerType:'item', name:'宝可装置3.0',
+    effects:[{ action:'peek_and_keep', params:{ peek:7, keep:1, filter:'支援者', maxCount:1, minCount:1, allowFewer:false, allowEmpty:false } }] };
+  const ok = await engine.useTrainer(0, device);
+  assert.equal(ok, true, '没有支援者也应算发动成功');
+  assert.deepEqual(pl.discard, ['宝可装置3.0'], '使用的卡应进入弃牌区');
+  assert.equal(pl.hand.length, 0, '空发不应拿到卡');
+});
+
+await test('皮宝宝「握握抽取」为 0 费：无能量也能攻击并抽到 7 张', async () => {
+  const gs = new GameState();
+  const pl = gs.player1, opp = gs.player2;
+  gs.currentPlayer = pl;
+  gs.phase = PHASE.BATTLE;
+  pl.active = mon('皮宝宝', 'cleffa', [{ name:'握握抽取', cost:[], damage:0, effects:[{ action:'draw_until', params:{ target:7 } }] }]);
+  opp.active = mon('对手');
+  pl.deck = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'];
+  assert.equal(gs.checkEnergy(pl.active, 0), true, '0 费招式不需要能量');
+  pl.energyAttached = true; // 避免无关限制
+  const engine = makeEngine(gs);
+  assert.equal(await engine.attack(0), true, '0 费招式应可攻击');
+  assert.equal(pl.hand.length, 7, '应抽到 7 张');
+});
+
+await test('数据：0 费招式不再被写成 ["无"]（皮宝宝）', () => {
+  const pokemon = loadJson('pokemon-cards.json');
+  const cleffa = pokemon.find(c => (c['卡牌ID'] || []).includes('CSV4C-044'));
+  assert.ok(cleffa, '应能找到皮宝宝');
+  assert.deepEqual(cleffa['技能1']['消耗'], [], '0 费招式的消耗应为空数组');
+});
+
+
 await test('manipulate_deck_top解析：只为明确牌库顶文本产出结构化窄参数', () => {
   const look = parseEffect('查看对手的牌库上方1张卡，回复原样。');
   assert.equal(look.unparsed, '', `look residual=${look.unparsed}`);
