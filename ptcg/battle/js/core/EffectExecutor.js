@@ -557,6 +557,23 @@ function _emitTriggers(gs, event, payload = {}) {
     }
   } finally { _emitDepth--; }
 }
+// 把牌库/弃牌区的能量卡包装成与 GameState.attachEnergy 一致的附着表示：
+// {cardId, name, provides, specialRules}。
+// 注意：本文件里另外几处 attach_energy_* 直接把卡牌原值 push 进 mon.energy，
+// 那样 _energyProvides 只能从名字猜属性；新代码统一走这里。
+function _energyStateFor(gs, card) {
+  const fromObject = card && typeof card === 'object';
+  let cd = fromObject ? card : null;
+  if (!fromObject && gs?.cardResolver?.getCard) { try { cd = gs.cardResolver.getCard(card) || null; } catch (e) { cd = null; } }
+  const name = cd?.name || (typeof card === 'string' ? card : String(card));
+  return {
+    cardId: fromObject ? (card.cardId || name) : card,
+    name,
+    provides: cd?.provides || null,
+    specialRules: cd?.specialRules || null,
+  };
+}
+
 function _applyDamageToPokemon(gs, owner, mon, amount, logSuffix = '受到', options = {}) {
   if (!mon || !amount) return false;
   if (options.source === 'attack' && gs.isBenchProtectedFromOpponentAttack?.(owner, mon, 'damage')) { gs.addLog(`${mon.name} 防止了备战伤害`); return false; }
@@ -657,6 +674,90 @@ const EXECUTORS = {
     gs._shuffle(pl.deck);
     pl.hand.push(...selectedCards);
     gs.addLog(`搜牌库拿了 ${selectedCards.length} 张`);
+  },
+
+  // 赤松（CSV9.5C-183/249）等：
+  // 「选择自己牌库中，属性各不相同的基本能量最多 N 张，给对手看过后其中 1 张加入手牌，
+  //   将剩余的能量附着于自己的宝可梦身上。并重洗牌库。」
+  // 关键点：① 属性必须互不相同（原实现允许连选两张同属性）
+  //         ② 只有 1 张进手牌，剩余必须附着（原实现把两张都塞进了手牌）
+  async search_deck_energy_split(gs, pl, p) {
+    const maxN = Math.max(1, p.count || 2);
+    const toHandN = Math.max(0, p.toHand ?? 1);
+    const filter = p.filter || '基本能量';
+    // 保留真实下标（reverse 只改展示顺序，方便按“牌库顶优先”选择）
+    const pool = pl.deck.map((card, index) => ({ card, index })).reverse();
+    const baseCands = pool.filter(it => _isEnergyCard(gs, it.card, filter));
+    if (!baseCands.length) { gs._shuffle(pl.deck); gs.addLog('牌库中没有可选择的基本能量'); return; }
+
+    // 用名字/属性推导能量属性，用于「属性各不相同」的去重
+    const typeOf = card => {
+      const meta = _resolveZoneCard(gs, card);
+      try {
+        const t = gs._energyProvides ? gs._energyProvides(meta.label, null) : null;
+        if (t && t.length && t[0] && t[0].length) return String(t[0][0]);
+      } catch (e) { /* ignore */ }
+      return String(meta.element || meta.label);
+    };
+
+    // 逐张选择：每选定一张就把同属性候选排除，从机制上杜绝重复属性
+    const picked = [];
+    const usedTypes = new Set();
+    for (let i = 0; i < maxN; i++) {
+      const cands = baseCands.filter(it => !picked.includes(it) && !usedTypes.has(typeOf(it.card)));
+      if (!cands.length) break;
+      const sel = await _pickCardsFromZone(gs, pl, pl, cands.map(c => c.card), 1, {
+        source: 'deck-energy-distinct',
+        prompt: i === 0 ? '选择牌库中的基本能量（属性各不相同）' : '选择另一种属性的基本能量（可跳过）',
+        allowFewer: true, allowEmpty: true, maxCount: 1, minCount: 0, optional: true,
+      });
+      if (!sel.length) break;
+      const chosen = cands[sel[0].index];
+      if (!chosen) break;
+      picked.push(chosen);
+      usedTypes.add(typeOf(chosen.card));
+    }
+    if (!picked.length) { gs._shuffle(pl.deck); gs.addLog('未选择任何能量'); return; }
+
+    // 从牌库取出（按下标倒序删，避免位移）
+    const chosenCards = [];
+    for (const it of [...picked].sort((a, b) => b.index - a.index)) {
+      if (it.index >= 0 && it.index < pl.deck.length) { pl.deck.splice(it.index, 1); chosenCards.push(it.card); }
+    }
+    gs._shuffle(pl.deck);
+
+    // 其中 toHandN 张加入手牌；选了多张时让玩家挑哪张入手，其余附着
+    let toHand = chosenCards.slice(0, Math.max(1, toHandN));
+    let rest = chosenCards.slice(Math.max(1, toHandN));
+    if (chosenCards.length > Math.max(1, toHandN)) {
+      const sel = await _pickCardsFromZone(gs, pl, pl, chosenCards, Math.max(1, toHandN), {
+        source: 'deck-energy-to-hand', prompt: '选择加入手牌的能量（其余附着于宝可梦）',
+        maxCount: Math.max(1, toHandN), minCount: Math.max(1, toHandN),
+      });
+      if (sel.length) {
+        const handIdx = new Set(sel.map(s => s.index));
+        toHand = chosenCards.filter((_, i) => handIdx.has(i));
+        rest = chosenCards.filter((_, i) => !handIdx.has(i));
+      }
+    }
+    pl.hand.push(...toHand);
+    gs.addLog(`从牌库给对手看过 ${chosenCards.length} 张基本能量，其中 ${toHand.length} 张加入手牌`);
+
+    // 剩余能量附着于己方宝可梦身上
+    if (rest.length) {
+      const slot = await _pickPokemonTarget(gs, pl, pl, {
+        mode: 'attach-energy', side: 'self', allowActive: true, allowBench: true,
+        prompt: '选择附着剩余能量的宝可梦',
+      });
+      const mon = _getMon(pl, slot);
+      if (mon) {
+        for (const card of rest) mon.energy.push(_energyStateFor(gs, card));
+        gs.addLog(`${mon.name} 身上附着了 ${rest.length} 张能量`);
+      } else {
+        pl.hand.push(...rest);
+        gs.addLog('没有可附着的宝可梦，剩余能量改为加入手牌');
+      }
+    }
   },
 
   // ===== 搜牌库放备战 =====

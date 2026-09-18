@@ -1150,7 +1150,13 @@ export class PTCGBattleApp {
     const isChoosing = !!activePanel && (activePanel.id === 'panel-fight' || activePanel.id === 'panel-target');
     if (isChoosing) return;
     this._showPanel('panel-message');
-    setTimeout(() => this._showPanel('panel-main'), 1200);
+    // 只在自己还停在提示面板时才收回。
+    // 原实现无条件切回 panel-main：回合开始时引擎日志会触发 _showMessage，
+    // 1.2 秒后把用户刚打开的【卡牌】页签顶掉，表现为“点进去又被弹回上一界面”。
+    setTimeout(() => {
+      const now = document.querySelector('.dialog-panel.active');
+      if (now && now.id === 'panel-message') this._showPanel('panel-main');
+    }, 1200);
   }
 
   // 战斗日志浮层（左上，保留最近 6 行，pmBattle 风格）
