@@ -15,6 +15,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CardQueryEngine, REDUCTION_CAP } from '../js/core/CardQueryEngine.js';
+import { SearchIntentParser, sanitizeConditions, extractJson } from '../js/services/SearchIntentParser.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PTCG = path.resolve(__dirname, '..');
@@ -137,6 +138,65 @@ await test('条件组合：类型 / 阶段 / HP / 属性', () => {
   const fire = engine.query({ types: ['宝可梦'], attr: '火', stage: 0 });
   assert.ok(fire.length > 0);
   assert.ok(fire.every(c => c.attr === '火'));
+});
+
+
+// ============================================================
+//  意图解析的安全边界：绝不信任模型输出（白名单校验）
+// ============================================================
+
+await test('sanitizeConditions：正常条件被保留', () => {
+  const c = sanitizeConditions({
+    types: ['宝可梦'], stage: 2, env: true,
+    retreat: { op: '>=', value: 2 }, attackCostExactly: 1, keyword: '咆哮',
+  });
+  assert.deepEqual(c, {
+    types: ['宝可梦'], stage: 2, env: true,
+    retreat: { op: '>=', value: 2 }, attackCostExactly: 1, keyword: '咆哮',
+  });
+});
+
+await test('sanitizeConditions：越界/非法字段被丢弃', () => {
+  const c = sanitizeConditions({
+    types: ['宝可梦', '不存在的类型'],
+    stage: 9,
+    env: 'yes',
+    retreat: { op: 'DROP TABLE', value: 3 },
+    hp: { op: '<=', value: 99999 },
+    attackCostExactly: 99,
+    attackCostAtMost: -1,
+    keyword: 'x'.repeat(100),
+    evil: 'rm -rf',
+  });
+  assert.deepEqual(c.types, ['宝可梦'], '非法类型应被过滤');
+  assert.equal(c.stage, undefined, '越界 stage 应被丢弃');
+  assert.equal(c.env, undefined, '非布尔 env 应被丢弃');
+  assert.deepEqual(c.retreat, { op: '=', value: 3 }, '非法 op 应回退为 =');
+  assert.equal(c.hp, undefined, '越界 hp 应被丢弃');
+  assert.equal(c.attackCostExactly, undefined, '越界 attackCostExactly 应被丢弃');
+  assert.equal(c.attackCostAtMost, undefined, '负数 attackCostAtMost 应被丢弃');
+  assert.equal(c.keyword.length, 40, 'keyword 应截断到 40 字');
+  assert.equal(c.evil, undefined, '未知字段不应出现');
+});
+
+await test('sanitizeConditions：非对象输入返回空条件', () => {
+  for (const bad of [null, undefined, 'text', 42, [], true]) {
+    assert.deepEqual(sanitizeConditions(bad), {});
+  }
+});
+
+await test('extractJson：能从 Markdown 代码块/夹带说明里抠出 JSON', () => {
+  assert.deepEqual(extractJson('{"a":1}'), { a: 1 });
+  assert.deepEqual(extractJson('```json' + String.fromCharCode(10) + '{"a":1}' + String.fromCharCode(10) + '```'), { a: 1 });
+  assert.deepEqual(extractJson('好的：' + String.fromCharCode(10) + '{"a":1}' + String.fromCharCode(10) + '完毕'), { a: 1 });
+  assert.equal(extractJson('没有 JSON'), null);
+  assert.equal(extractJson('{坏掉的'), null);
+});
+
+await test('解析器无 API Key 时返回 null（调用方回退关键词搜索）', async () => {
+  const p = new SearchIntentParser({ getApiKey: () => null, getSettings: () => ({}) });
+  assert.equal(p.hasApiKey(), false);
+  assert.equal(await p.parse('撤退能量为4的基础宝可梦'), null);
 });
 
 console.log(`\n结果：${pass} 通过 / ${fail} 失败`);

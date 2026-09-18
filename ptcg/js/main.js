@@ -1,5 +1,6 @@
 import { CardManager } from './core/CardManager.js';
 import { SearchEngine } from './core/SearchEngine.js';
+import { CardQueryEngine } from './core/CardQueryEngine.js';
 import { StorageService } from './core/StorageService.js';
 import { ImageLoader } from './core/ImageLoader.js';
 
@@ -17,6 +18,7 @@ import { DeckEditor } from './features/DeckEditor.js';
 import { ApiKeyManager } from './core/ApiKeyManager.js';
 import { AIChatService } from './services/AIChatService.js';
 import { AIChatPanel } from './features/AIChatPanel.js';
+import { SearchIntentParser } from './services/SearchIntentParser.js';
 
 import { ButtonManager } from './utils/ButtonManager.js';
 import { TouchManager } from './utils/TouchManager.js';
@@ -123,6 +125,14 @@ class PTCGApp {
                 this.statsManager,
                 this.searchEngine
             );
+
+            // AI 辅助搜索：引擎负责本地确定性筛选，解析器负责自然语言→条件。
+            // 引擎的数据是懒加载的（首次用 AI 搜索时才拉 data_fast/effects.tsv 等），
+            // 普通关键词搜索不受影响。
+            this.cardBrowser.setSemanticSearch({
+                engine: new CardQueryEngine(),
+                parser: new SearchIntentParser(this.apiKeyManager),
+            });
             
             // 然后初始化 TabManager（修改：需要传入 cardBrowser）
             this.tabManager = new TabManager(this.cardBrowser, this.cardManager);

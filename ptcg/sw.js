@@ -9,6 +9,9 @@ var URLS = [
   '/ptcg/js/core/StorageService.js','/ptcg/js/core/DeckManager.js',
   '/ptcg/js/core/ImageLoader.js','/ptcg/js/core/TsvCardDataLoader.js',
   '/ptcg/js/core/ApiKeyManager.js',
+  // AI 辅助搜索：本地查询引擎 + 意图解析器（预缓存以便离线也能用）
+  '/ptcg/js/core/CardQueryEngine.js',
+  '/ptcg/js/services/SearchIntentParser.js',
   '/ptcg/js/ui/CardGrid.js','/ptcg/js/ui/ModalView.js',
   '/ptcg/js/ui/TabManager.js','/ptcg/js/ui/StatsManager.js',
   '/ptcg/js/features/DeckEditor.js','/ptcg/js/features/CardBrowser.js',

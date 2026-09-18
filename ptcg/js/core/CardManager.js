@@ -203,6 +203,16 @@ export class CardManager {
         return this.filteredCards;
     }
 
+    // 把外部（结构化查询引擎）算好的结果落地为当前显示集合。
+    // 复用同一套 filteredCards/isShowingAllCards/hasActiveSearch 语义，
+    // 这样后续的世代/卡包筛选与渲染流程都不用改。
+    setExternalFilter(cards) {
+        this.filteredCards = Array.isArray(cards) ? [...cards] : [];
+        this.isShowingAllCards = false;
+        this.hasActiveSearch = true;
+        return this.filteredCards;
+    }
+
     // 修改：获取当前显示的卡牌，考虑搜索和世代筛选
     getDisplayCards() {
         if (!this.isShowingAllCards || this.hasActiveSearch) {

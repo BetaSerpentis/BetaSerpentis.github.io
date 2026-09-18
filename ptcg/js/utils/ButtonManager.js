@@ -84,12 +84,6 @@ export class ButtonManager {
     showBrowseMode() {
         this.menu.innerHTML = '';
 
-        if (this.aiChatPanel) {
-            this.menu.appendChild(this.createButton('AI分析', 'ai-button', () => {
-                this.aiChatPanel.toggle();
-            }));
-        }
-
         // 卡包筛选按钮
         if (this.setFilterManager) {
             this.menu.appendChild(this.createButton('卡包', 'setfilter-button', () => {
@@ -116,12 +110,6 @@ export class ButtonManager {
 
         // 进入卡组模式时重置卡包筛选
         if (this.setFilterManager) this.setFilterManager.reset();
-
-        if (this.aiChatPanel) {
-            this.menu.appendChild(this.createButton('AI分析', 'ai-button', () => {
-                this.aiChatPanel.toggle();
-            }));
-        }
 
         this.menu.appendChild(this.createButton('查卡', 'deck-search-button', () => {
             this.deckEditor.exitDeckMode();
