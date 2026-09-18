@@ -8,6 +8,7 @@
     "ptcg:build-effects": "node ptcg/tools/build-effect-index.mjs",
     "ptcg:check-effects": "node ptcg/tools/build-effect-index.mjs --check",
     "ptcg:check-syntax": "node --experimental-vm-modules ptcg/tools/check-module-syntax.mjs",
+    "test:ptcg-query": "node ptcg/tests/query-engine.test.mjs",
     "test:ptcg-battle": "node ptcg/battle/tests/automation.mjs"
   },
   "dependencies": {
