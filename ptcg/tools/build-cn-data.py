@@ -135,17 +135,63 @@ def load_cn_sets():
     return sets
 
 # ── 旧 JSON → dex number 提取 ──
+# 图鉴号回退时用于剥离的名字前缀（地区形态 / 持有者前缀）
+_DEX_NAME_PREFIXES = [
+    "阿罗拉 ", "伽勒尔 ", "洗翠 ", "帕底亚 ", "太晶 ", "光辉",
+    "火箭队的", "阿响的", "竹兰的", "派帕的", "玛俐的", "大吾的", "小霞的",
+    "莉佳的", "奇树的", "妮莫的", "博士的", "赫普的", "彼得的", "玛瓜的",
+]
+
+
+def build_dex_from_sync(cards):
+    """从 CN-Sync 的 yoren_code 提取图鉴号映射（首选来源）。
+
+    yoren_code 形如 "P001"（宝可梦 → 全国图鉴号 1）、"Y130"（训练家/能量等非宝可梦）。
+    这是同步源直接给出的权威图鉴号，比原来「按 (名字,属性,HP,阶段) 反查旧 JSON 的编号」
+    更可靠，也不再依赖 ptcg/data/pokemon-cards.json（该旧数字 ID 数据已清理）。
+    """
+    dex_lookup = {}
+    name_only_dex = {}
+    stage_cn_of = {"Basic": "基础", "Stage 1": "1阶进化", "Stage 2": "2阶进化",
+                   "VMAX": "V进化", "VSTAR": "VSTAR", "V-UNION": "其他"}
+    for c in cards:
+        m = re.fullmatch(r"P0*(\d+)", str(c.get("yoren_code") or "").strip())
+        if not m:
+            continue
+        num = int(m.group(1))
+        if not num:
+            continue
+        name = c.get("card_name", "")
+        attr = ATTR_CODES.get(c.get("energy_type", ""), "")
+        hp = c.get("hp", "")
+        stage = stage_cn_of.get(c.get("stage", ""), "")
+        dex_lookup[(name, attr, hp, stage)] = num
+        name_only_dex.setdefault(name, num)
+        # CN-Sync 的 yoren_code 只对部分系列给 P<图鉴号>，且常绑在地区形态上
+        # （例如「阿罗拉 穿山鼠」= P027，而普通「穿山鼠」= Y890）。
+        # 这里把去掉地区/持有者前缀的基础名也注册进映射，供这类卡回退查表。
+        base = name
+        for _p in _DEX_NAME_PREFIXES:
+            if base.startswith(_p) and len(base) > len(_p):
+                name_only_dex.setdefault(base[len(_p):], num)
+                break
+    return dex_lookup, name_only_dex
+
+
 def build_dex_from_old():
-    """从旧 JSON 提取 (繁中名, 属性, HP, 阶段) → 全国编号"""
+    """（回退来源）从旧 JSON 提取 (名, 属性, HP, 阶段) → 全国编号；文件不存在时返回空映射。"""
     old_dir = PTCG / "data"
     old_tags = [
         ("pokemon-cards.json", "宝可梦名字"),
     ]
-    dex_lookup = {}  # (name, attr_cn, hp, stage_cn) → dex_num (highest priority match)
-    name_only_dex = {}  # name → dex_num (fallback)
-
+    dex_lookup = {}
+    name_only_dex = {}
     for fname, name_f in old_tags:
-        with (old_dir / fname).open("r", encoding="utf-8") as f:
+        path = old_dir / fname
+        if not path.exists():
+            print(f"  [dex] 旧数据缺失（{fname}），跳过该回退来源")
+            continue
+        with path.open("r", encoding="utf-8") as f:
             old_cards = json.load(f)
         for c in old_cards:
             name = c.get(name_f, "")
@@ -155,12 +201,9 @@ def build_dex_from_old():
             attr = c.get("属性", "")
             hp = str(c.get("HP", ""))
             stage = c.get("进化阶段", "")
-            key = (name, attr, hp, stage)
-            dex_lookup[key] = num
-            if name not in name_only_dex:
-                name_only_dex[name] = num
+            dex_lookup[(name, attr, hp, stage)] = num
+            name_only_dex.setdefault(name, num)
     return dex_lookup, name_only_dex
-
 def build_search_text(card, attacks, abilities):
     parts = [card.get("card_name",""), card.get("name_en",""), card.get("card_type",""),
              card.get("mechanic",""), card.get("label",""), card.get("energy_type",""),
@@ -375,7 +418,11 @@ def build_old_to_new_map_v2(cards, dex_lookup, name_only_dex):
     }
     old_by_id = {}
     for tag, (fname, name_f) in old_tags.items():
-        with (old_dir / fname).open("r", encoding="utf-8") as f:
+        path = old_dir / fname
+        if not path.exists():
+            # 旧数字 ID 数据已清理 → 无法做「旧卡→新卡」匹配，直接跳过（调用方会保留现有 id_mapping.json）
+            continue
+        with path.open("r", encoding="utf-8") as f:
             old_cards = json.load(f)
         for c in old_cards:
             ids = c.get("卡牌ID", [])
@@ -559,6 +606,24 @@ def get_dex_for_cn(card, cn_key_to_dex, mapping, dex_lookup, name_only_dex):
     if cn_name in name_only_dex:
         return str(name_only_dex[cn_name])
 
+    # 3.5 名称最长后缀匹配：处理「光辉X」「阿罗拉 X」「太晶X」「Xex」等前缀/后缀变体
+    #     这些卡在 CN-Sync 里 yoren_code 不是 P<图鉴号>（例如光辉妙蛙花 = Y964），
+    #     无法走 cn_key_to_dex，需要按名字回退到基础形态的图鉴号。
+    for _n in sorted(name_only_dex.keys(), key=len, reverse=True):
+        if len(_n) >= 2 and cn_name.endswith(_n):
+            return str(name_only_dex[_n])
+
+    # 3.6 剥离规则后缀（ex / EX / V / VMAX / VSTAR / GX）后再查
+    for _s in ('VMAX', 'VSTAR', 'EX', 'GX', 'ex', 'V'):
+        if cn_name.endswith(_s) and len(cn_name) > len(_s):
+            _base = cn_name[:-len(_s)]
+            if _base in name_only_dex:
+                return str(name_only_dex[_base])
+            for _n in sorted(name_only_dex.keys(), key=len, reverse=True):
+                if len(_n) >= 2 and _base.endswith(_n):
+                    return str(name_only_dex[_n])
+            break
+
     # 4. Try name_en → look up in CN-Sync cards that DID get dex from mapping,
     #    then propagate by name_en
     name_en = card.get("name_en", "")
@@ -595,11 +660,16 @@ def main():
     sets = load_cn_sets()
     print(f"  Standard-legal cards: {len(cards)}")
 
-    # 2. Load old data for dex numbers
-    print("\n[2/6] Extracting national dex numbers from old data...")
-    dex_lookup, name_only_dex = build_dex_from_old()
-    print(f"  Dex lookup entries: {len(dex_lookup)}")
-    print(f"  Name-only fallback: {len(name_only_dex)}")
+    # 2. National dex numbers: 优先 CN-Sync 的 yoren_code，旧 JSON 仅作补充回退
+    print("\n[2/6] Extracting national dex numbers from CN-Sync yoren_code...")
+    dex_lookup, name_only_dex = build_dex_from_sync(cards)
+    print(f"  From yoren_code: dex_lookup={len(dex_lookup)}, name_only={len(name_only_dex)}")
+    old_lookup, old_name_only = build_dex_from_old()
+    for k, v in old_lookup.items():
+        dex_lookup.setdefault(k, v)
+    for k, v in old_name_only.items():
+        name_only_dex.setdefault(k, v)
+    print(f"  After fallback merge: dex_lookup={len(dex_lookup)}, name_only={len(name_only_dex)}")
 
     # 3. Build improved mapping
     print("\n[3/6] Building old→new ID mapping (v2: name+mark+attr)...")
@@ -616,7 +686,11 @@ def main():
     }
     old_by_id = {}
     for tag, (fname, name_f) in old_tags_files.items():
-        with (old_dir / fname).open("r", encoding="utf-8") as f:
+        path = old_dir / fname
+        if not path.exists():
+            # 旧数字 ID 数据已清理 → 无法重建 id_mapping，保留现有文件（见下方写入处）
+            continue
+        with path.open("r", encoding="utf-8") as f:
             for c in json.load(f):
                 ids = c.get("卡牌ID", [])
                 dex = int(c.get("编号", 0) or 0) if fname == "pokemon-cards.json" else 0
@@ -658,9 +732,15 @@ def main():
     print(f"  Rarity consolidations: {consolidated}")
 
     # Build cn_card_key → dex_num reverse index
+    # 优先用 CN-Sync 的 yoren_code 直出（最可靠，不依赖已清理的旧数据）
     cn_key_to_dex = {}
-    for oid, m in mapping.items():
-        ck = m["new_key"]
+    for c in cards:
+        m = re.fullmatch(r"P0*(\d+)", str(c.get("yoren_code") or "").strip())
+        if m and int(m.group(1) or 0):
+            cn_key_to_dex[c["card_key"]] = int(m.group(1))
+    print(f"  cn_key_to_dex from yoren_code: {len(cn_key_to_dex)}")
+    for oid, mm in mapping.items():
+        ck = mm["new_key"]
         if ck not in cn_key_to_dex and oid in old_by_id:
             dex = old_by_id[oid].get("dex_num", 0)
             if dex:
@@ -771,13 +851,18 @@ def main():
     print(f"  Methods: {dict(method_stats)}")
 
     # Save mapping
-    map_path = PTCG / "tools" / "id_mapping.json"
-    with map_path.open("w", encoding="utf-8") as f:
-        json.dump({k: {"new_key": v["new_key"], "method": v["method"]} for k, v in mapping.items()},
-                  f, ensure_ascii=False, indent=2)
-    unm_path = PTCG / "tools" / "unmatched_cards.json"
-    with unm_path.open("w", encoding="utf-8") as f:
-        json.dump(unmatched, f, ensure_ascii=False, indent=2)
+    # 注意：若旧数字 ID 数据缺失（old_by_id 为空），这里会算不出映射，
+    # 此时必须跳过写入，否则会把既有的 id_mapping.json / unmatched_cards.json 覆盖成空文件。
+    if not old_by_id:
+        print("  [3/6] 旧数字 ID 数据缺失 → 保留现有 id_mapping.json / unmatched_cards.json（跳过重建）")
+    else:
+        map_path = PTCG / "tools" / "id_mapping.json"
+        with map_path.open("w", encoding="utf-8") as f:
+            json.dump({k: {"new_key": v["new_key"], "method": v["method"]} for k, v in mapping.items()},
+                      f, ensure_ascii=False, indent=2)
+        unm_path = PTCG / "tools" / "unmatched_cards.json"
+        with unm_path.open("w", encoding="utf-8") as f:
+            json.dump(unmatched, f, ensure_ascii=False, indent=2)
 
     # 4. Group by type and assign dex numbers
     print("\n[4/6] Grouping by card type, assigning dex numbers...")

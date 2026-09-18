@@ -1072,6 +1072,20 @@ export class PTCGBattleApp {
     const isP = this.gs.currentPlayer === this.gs.player1;
     const items = $$('#main-menu .menu-item');
     const over = phase === PHASE.GAME_OVER;
+    this._ensureBackDeckButton();
+
+    // 需求：对战结束后隐藏全部操作按钮，只显示「返回卡组选择」
+    // （原来只是把战斗/结束置灰，卡牌与场地仍可点开）
+    const backBtn = document.getElementById('main-back-deck');
+    if (over) {
+      items.forEach(it => { it.hidden = true; });
+      if (backBtn) backBtn.hidden = false;
+      $('#main-text').textContent = `${this.gs.winner?.name || ''} 获胜！`;
+      this._showPanel('panel-main');
+      return;
+    }
+    if (backBtn) backBtn.hidden = true;
+    items.forEach(it => { if (it.id !== 'main-back-deck') it.hidden = false; });
 
     items[0].classList.toggle('disabled', over || !isP || (phase !== PHASE.BATTLE && phase !== PHASE.MAIN && phase !== PHASE.SETUP));
     items[0].textContent = phase === PHASE.SETUP ? '确认布置' : '战 斗';
@@ -1106,6 +1120,22 @@ export class PTCGBattleApp {
   }
 
   // === Helpers ===
+  // 对战结束后的唯一出口：返回选卡组界面
+  _ensureBackDeckButton() {
+    let btn = document.getElementById('main-back-deck');
+    if (btn) return btn;
+    const menu = document.getElementById('main-menu');
+    if (!menu) return null;
+    btn = document.createElement('div');
+    btn.className = 'menu-item';
+    btn.id = 'main-back-deck';
+    btn.textContent = '返回卡组选择';
+    btn.hidden = true;
+    btn.addEventListener('click', () => this._showDeckSelect());
+    menu.appendChild(btn);
+    return btn;
+  }
+
   _showPanel(id) {
     $$('.dialog-panel').forEach(p => p.classList.remove('active'));
     $(`#${id}`).classList.add('active');

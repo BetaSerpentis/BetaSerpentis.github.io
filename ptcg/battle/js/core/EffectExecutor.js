@@ -693,7 +693,10 @@ const EXECUTORS = {
     const peeked = pl.deck.splice(-peek, peek);
     const topCards = [...peeked].reverse();
     const candidates = topCards.map((card, topIndex) => ({ card, topIndex })).filter(item => _cardMatchesFilter(gs, item.card, p.filter || null));
-    const limit = _selectionLimit(keep, candidates.length, p);
+    // 问题3：这是「查看牌库顶 → 选择其中若干张加入手牌」的效果性选择，取消应视为「不拿任何卡」，而不是让整个训练家使用失败回滚
+    // （代价类选择如高级球的 discard_cost 仍走 payDiscardCostFromHand，取消=放弃发动）
+    const peekSelOpts = p.required === true ? p : { ...p, allowEmpty: true };
+    const limit = _selectionLimit(keep, candidates.length, peekSelOpts);
     let selected = [];
     if (candidates.length === 0) {
       const filterText = p.filter ? `符合${p.filter}条件的卡` : '符合条件的卡';
