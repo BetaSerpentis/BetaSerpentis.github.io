@@ -107,6 +107,35 @@ function cleanPeekFilter(raw) {
     .trim();
   return t || undefined;
 }
+
+// 规则里的 filter 多用 (.+?) 懒匹配，遇到「…宝可梦，在给对手看过后加入手牌」这类文本时，
+// 回溯会把逗号和连接语一起吃进 filter（实测影响 115 处），导致执行端按错的过滤条件选卡。
+// 这里在 parseEffect 末尾集中清洗，避免逐个规则去改正则。
+function _cleanFilterText(raw) {
+  let t = String(raw == null ? '' : raw);
+  // 去掉各种「给对手看过」连接语（可能带前后逗号）
+  t = t.replace(/[，,]?(?:在)?给对手看过(?:之后|后)?[，,]?/g, '');
+  // 去掉首尾标点与空白，以及被顺带吃进来的句号后内容
+  t = t.replace(/^[，,。\s]+/, '').replace(/[，,。\s]+$/, '');
+  if (t.includes('。')) t = t.split('。')[0].trim();
+  return t;
+}
+
+// 递归清洗所有效果里的 filter 字段（含 coin_flip 的 heads、trigger 的 effects 等嵌套结构）
+function sanitizeFilters(effects) {
+  for (const e of effects || []) {
+    const p = e && e.params;
+    if (!p) continue;
+    if (typeof p.filter === 'string') {
+      const cleaned = _cleanFilterText(p.filter);
+      if (cleaned) p.filter = cleaned; else delete p.filter;
+    }
+    if (Array.isArray(p.heads)) sanitizeFilters(p.heads);
+    if (Array.isArray(p.tails)) sanitizeFilters(p.tails);
+    if (Array.isArray(p.effects)) sanitizeFilters(p.effects);
+  }
+  return effects;
+}
 function withCount(base, n, optional=false) { return { ...base, ...countParams(n, optional) }; }
 function withKeep(base, n, optional=false) { return { ...base, ...keepParams(n, optional) }; }
 function discardCostParams(text) {
@@ -1577,6 +1606,7 @@ export function parseEffect(text) {
     merged.push(e);
   }
   const out = finalizeCoverage(merged, text, remaining);
+  sanitizeFilters(out.effects);
   return out;
 }
 

@@ -109,7 +109,12 @@ const { rows, stats, hashInputs } = build();
 
 // 输入指纹：便于判断索引是否与当前数据不同步
 const { createHash } = await import('node:crypto');
-const inputHash = createHash('sha1').update(hashInputs.join('\u0001')).digest('hex').slice(0, 16);
+// 指纹必须覆盖「解析器源码 + 输入文本」：只算输入文本的话，
+// 单独改了 EffectParser 的规则时指纹不变，--check 会误判为一致，索引就悄悄陈旧了。
+const parserSrc = fs.readFileSync(path.resolve(__dirname, '..', 'battle', 'js', 'core', 'EffectParser.js'), 'utf8');
+const inputHash = createHash('sha1')
+  .update(parserSrc).update('\u0000').update(hashInputs.join('\u0001'))
+  .digest('hex').slice(0, 16);
 
 console.log('=== PTCG 效果索引生成器 ===');
 console.log(`  卡牌: ${stats.cards} 张 | 效果文本: ${stats.texts} 条 | 动作: ${stats.actions} 条`);
