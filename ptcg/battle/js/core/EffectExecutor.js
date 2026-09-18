@@ -540,8 +540,12 @@ function _emitTriggers(gs, event, payload = {}) {
       for (const mon of [pl.active, ...(pl.bench || [])]) {
         if (!mon) continue;
         if (!_shouldTrigger(event, mon, payload, pl)) continue;
-        const effects = gs._enabledAbilityEffects?.(mon) || [];
+        const abilityEffects = gs._enabledAbilityEffects?.(mon) || [];
+        // 宝可梦道具的触发式效果（如幸运头盔：受击时抽卡）；「在战斗场上」类限定出战位
+        const toolEffects = Array.isArray(mon.tool?.effects) ? mon.tool.effects : [];
+        const effects = [...abilityEffects, ...toolEffects];
         for (const eff of effects) {
+          if (toolEffects.includes(eff) && mon !== pl.active) continue;
           if (eff.action !== 'trigger' || eff.params?.event !== event) continue;
           const inner = eff.params.effect;
           if (!inner) continue;

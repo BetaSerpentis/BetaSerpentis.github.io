@@ -226,6 +226,8 @@ function triggerParams(m) {
 const RULES = [
   // ===== 触发式「当/每当…时，效果」：优先匹配，避免效果部分被其他规则先吃掉 =====
   { re: /^(?:每当|当)(.{2,40}?)(?:时)[，,]?(.+)$/, act:'trigger', p:triggerParams },
+  // 道具/被动式受击触发：「身上放有这张卡的宝可梦…受到对手宝可梦的招式的伤害时，X」
+  { re: /身上放有这张卡的宝可梦[，,]?(?:在战斗场上)?受到对手(?:的)?宝可梦的招式(?:的)?伤害时[，,]?(.+)$/, act:'trigger', p:m=>{ const inner=parseEffect(m[1]); if(!inner.effects.length) return null; return { event:'attacked_damage', effect:inner.effects[0], sourceKind:'tool' }; } },
   // ===== 训练家/特性使用前提：仅解析为元数据，不执行合法性或费用 =====
   { re: /在上(?:一)?个对手的回合[，,]?若自己的宝可梦【(?:昏厥|气绝)】[^。]*/, act:'usage_condition', p:()=>trainerPrerequisite('own_pokemon_knocked_out_last_opponent_turn', '上一个对手回合己方宝可梦昏厥') },
   { re: /若从自己的手牌将1张["“”「」]?基本【火】能量["“”「」]?卡?(?:丢弃|丢到弃牌区|放于弃牌区)/, act:'ability_discard_cost', p:m=>({ count:1, filter:'基本【火】能量', zone:'hand', raw:m[0] }) },

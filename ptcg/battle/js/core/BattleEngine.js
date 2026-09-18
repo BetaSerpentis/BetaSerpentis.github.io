@@ -479,6 +479,8 @@ export class BattleEngine {
         gs.addLog(`${def.active.name} 因「幸存锻炼器」以剩余HP 10 留在场上`);
       }
       this.cb.onLog?.(`${moveName} → ${damage}伤害`);
+      // 受击事件：供道具/特性（如幸运头盔：受击时抽卡）触发
+      if (def.active.hp > 0) gs.emitTriggerEvent?.('attacked_damage', { target: def.active, source: atk.active, damage });
     }
 
     // Execute skill effects (unless prevented)

@@ -1,4 +1,4 @@
-#eff1 hash=2c2385ff969f3121
+#eff1 hash=ef4c3133ef318ba4
 151C-001	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-002	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-003	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
@@ -23251,7 +23251,7 @@ CS2aC-105	trainer		0	max_hp_mod	{"amount":50,"target":"self"}
 CS2aC-106	trainer		0	usage_condition	{"kind":"generic_effect","raw":"身上放有这张卡的宝可梦，受到对手宝可梦的招式的伤害而【昏厥】时，因该宝可梦【昏厥】而导致对手拿取的奖赏卡，不会被加入手牌，而是被丢到弃牌区。"}
 CS2aC-143	trainer		0	max_hp_mod	{"amount":50,"target":"self"}
 CS2bC-106	trainer		0	usage_condition	{"kind":"generic_effect","raw":"身上放有这张卡的\\"宝可梦VMAX\\"的最大HP会减少\\"100\\"点，当该宝可梦，受到对手宝可梦的招式的伤害而【昏厥】时，对手拿取的奖赏卡将减少1张。"}
-CS2bC-107	trainer		0	damage_place	{"target":"attacker","count":2}
+CS2bC-107	trainer		0	trigger	{"event":"attacked_damage","effect":{"action":"damage_place","params":{"target":"attacker","count":2}},"sourceKind":"tool"}
 CS2bC-108	trainer		0	passive_damage_mod	{"target":"self","amount":30}
 CS2bC-142	trainer		0	usage_condition	{"kind":"generic_effect","raw":"身上放有这张卡的\\"宝可梦VMAX\\"的最大HP会减少\\"100\\"点，当该宝可梦，受到对手宝可梦的招式的伤害而【昏厥】时，对手拿取的奖赏卡将减少1张。"}
 CS2bC-143	trainer		0	passive_damage_mod	{"target":"self","amount":30}
@@ -23259,7 +23259,7 @@ CS3.5C-058	trainer		0	damage_received_mod	{"amount":-30,"target":"self"}
 CS3.5C-059	trainer		0	usage_condition	{"kind":"nullify_opp_tool_while_active","raw":"只要身上放有这张卡的宝可梦在战斗场上，放置于对手战斗宝可梦身上的\\"宝可梦道具\\"（除\\"道具妨碍器\\"外）的效果，全部消除"}
 CS3DC-144	trainer		0	trigger	{"event":"knocked_out","effect":{"action":"move_energy","params":{"source":"self","dest":"bench","count":1}},"optional":true}
 CS3DC-145	trainer		0	passive_damage_mod	{"target":"self","amount":10}
-CS3DC-146	trainer		0	damage_place	{"target":"attacker","count":2}
+CS3DC-146	trainer		0	trigger	{"event":"attacked_damage","effect":{"action":"damage_place","params":{"target":"attacker","count":2}},"sourceKind":"tool"}
 CS3aC-110	trainer		0	usage_condition	{"kind":"tool_learn_move","raw":"身上放有这张卡的\\"一击\\"宝可梦，可使用这张卡上的招式"}
 CS3aC-110	trainer		1	conditional_damage_mod	{"amount":10,"condition":"self_damage_counters","mode":"per_unit"}
 CS3aC-110	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"【斗】 怒发冲冠 10+"}
@@ -23270,7 +23270,7 @@ CS3aC-112	trainer		0	trigger	{"event":"knocked_out","effect":{"action":"move_ene
 CS3aC-113	trainer		0	passive_damage_mod	{"target":"own_field","amount":30}
 CS3aC-114	trainer		0	passive_damage_mod	{"target":"own_field","amount":30}
 CS3aC-183	trainer		0	trigger	{"event":"knocked_out","effect":{"action":"move_energy","params":{"source":"self","dest":"bench","count":1}},"optional":true}
-CS3bC-108	trainer		0	return_energy_to_hand	{"count":1}
+CS3bC-108	trainer		0	trigger	{"event":"attacked_damage","effect":{"action":"return_energy_to_hand","params":{"count":1}},"sourceKind":"tool"}
 CS3bC-109	trainer		0	passive_damage_mod	{"target":"own_field","amount":30}
 CS3bC-110	trainer		0	passive_damage_mod	{"target":"own_field","amount":30}
 CS3bC-111	trainer		0	usage_condition	{"kind":"tool_learn_move","raw":"身上放有这张卡的\\"连击\\"宝可梦，可使用这张卡上的招式"}
@@ -23279,18 +23279,18 @@ CS3bC-111	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"【雷�
 CS3bC-112	trainer		0	usage_condition	{"kind":"tool_learn_move","raw":"身上放有这张卡的\\"连击\\"宝可梦，可使用这张卡上的招式"}
 CS3bC-112	trainer		1	damage_bench	{"target":"opponent_all_field","damage":30}
 CS3bC-112	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"【雷】【无】【无】 漩涡无双"}
-CS3bC-178	trainer		0	return_energy_to_hand	{"count":1}
+CS3bC-178	trainer		0	trigger	{"event":"attacked_damage","effect":{"action":"return_energy_to_hand","params":{"count":1}},"sourceKind":"tool"}
 CS4.5C-053	trainer		0	usage_condition	{"kind":"generic_effect","raw":"身上放有这张卡的，名字中带有\\"水伊布V\\"或\\"雷伊布V\\"或\\"火伊布V\\"的宝可梦使用招式所需能量，减少1个【无】能量。"}
 CS4.5C-054	trainer		0	usage_condition	{"kind":"generic_effect","raw":"身上放有这张卡的，名字中带有\\"叶伊布V\\"或\\"冰伊布V\\"的宝可梦【撤退】所需能量和弱点，全部消除。"}
 CS4.5C-055	trainer		0	passive_damage_mod	{"target":"own_field","amount":30}
 CS4.5C-056	trainer		0	usage_condition	{"kind":"generic_effect","raw":"身上放有这张卡的，名字中带有\\"太阳伊布V\\"或\\"月亮伊布V\\"的宝可梦，当对手从手牌使出支援者时，不受其效果影响。"}
 CS4.5C-057	trainer		0	usage_condition	{"kind":"generic_effect","raw":"身上放有这张卡的，名字中带有\\"仙子伊布V\\"的宝可梦，受到对手宝可梦的招式的伤害而【昏厥】时，对手拿取的奖赏卡将减少1张。"}
-CS4.5C-058	trainer		0	usage_condition	{"kind":"counter_discard_opp_hand","raw":"身上放有这张卡的宝可梦，在战斗场上受到对手宝可梦的招式的伤害时，对手选择对手自己的1张手牌，丢到弃牌区"}
-CS4DaC-382	trainer		0	return_energy_to_hand	{"count":1}
+CS4.5C-058	trainer		0	trigger	{"event":"attacked_damage","effect":{"action":"discard_opponent_hand_random","params":{"count":1,"chooser":"opponent"}},"sourceKind":"tool"}
+CS4DaC-382	trainer		0	trigger	{"event":"attacked_damage","effect":{"action":"return_energy_to_hand","params":{"count":1}},"sourceKind":"tool"}
 CS4DaC-383	trainer		0	trigger	{"event":"knocked_out","effect":{"action":"move_energy","params":{"source":"self","dest":"bench","count":1}},"optional":true}
 CS4DaC-384	trainer		0	damage_received_mod	{"amount":-30,"target":"self"}
 CS4DaC-385	trainer		0	damage_received_mod	{"amount":-20,"target":"self"}
-CS4DaC-386	trainer		0	usage_condition	{"kind":"counter_discard_opp_hand","raw":"身上放有这张卡的宝可梦，在战斗场上受到对手宝可梦的招式的伤害时，对手选择对手自己的1张手牌，丢到弃牌区"}
+CS4DaC-386	trainer		0	trigger	{"event":"attacked_damage","effect":{"action":"discard_opponent_hand_random","params":{"count":1,"chooser":"opponent"}},"sourceKind":"tool"}
 CS4aC-121	trainer		0	passive_damage_mod	{"target":"own_field","amount":30}
 CS4aC-122	trainer		0	usage_condition	{"kind":"tool_learn_move","raw":"身上放有这张卡的\\"一击\\"宝可梦，可使用这张卡上的招式"}
 CS4aC-122	trainer		1	discard_energy	{"target":"self","count":"all"}
@@ -23471,7 +23471,7 @@ CSV1C-117	trainer		0	passive_damage_mod	{"target":"self","amount":30}
 CSV1C-118	trainer		0	max_hp_mod	{"amount":50,"target":"self"}
 CSV2C-114	trainer		0	damage_received_mod	{"amount":-30,"target":"self"}
 CSV2C-115	trainer		0	passive_damage_mod	{"target":"self","amount":10}
-CSV2C-116	trainer		0	damage_place	{"target":"attacker","count":2}
+CSV2C-116	trainer		0	trigger	{"event":"attacked_damage","effect":{"action":"damage_place","params":{"target":"attacker","count":2}},"sourceKind":"tool"}
 CSV2C-117	trainer		0	end_turn	{}
 CSV2C-117	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"在时，若身上放有这张卡的宝可梦在战斗场上，则恢复该宝可梦\\"20\\"HP。"}
 CSV3C-118	trainer		0	usage_condition	{"kind":"generic_effect","raw":"身上放有这张卡的【基础】宝可梦的弱点，全部消除。"}
@@ -23525,7 +23525,7 @@ CSV7C-186	trainer		0	trigger	{"event":"knocked_out","effect":{"action":"usage_co
 CSV7C-187	trainer		0	max_hp_mod	{"amount":100,"target":"self"}
 CSV7C-188	trainer		0	usage_condition	{"kind":"generic_effect","raw":"身上放有这张卡的【撤退】所需能量为4个的宝可梦，在战斗场上受到对手宝可梦的招式的伤害而【昏厥】时，选择那只宝可梦身上附着的最多3张基本能量，以任意方式转附于自己的备战宝可梦身上。"}
 CSV7C-189	trainer		0	passive_damage_mod	{"target":"self","amount":50,"defenderRule":"宝可梦【ex】"}
-CSV7C-190	trainer		0	draw	{"count":2}
+CSV7C-190	trainer		0	trigger	{"event":"attacked_damage","effect":{"action":"draw","params":{"count":2}},"sourceKind":"tool"}
 CSV7C-259	trainer		0	retreat_cost_reduce	{"amount":1,"target":"self"}
 CSV7C-259	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"若那只宝可梦的剩余HP在\\"30\\"及以下，则【撤退】所需能量，全部消除。"}
 CSV8C-184	trainer		0	usage_condition	{"kind":"generic_effect","raw":"身上放有这张卡的宝可梦，受到对手【超】宝可梦的招式的伤害时，那个伤害\\"-60\\"，将这张卡丢到弃牌区。"}
@@ -23535,10 +23535,8 @@ CSV8C-187	trainer		0	passive_damage_mod	{"target":"self","amount":40}
 CSV8C-188	trainer		0	end_turn	{}
 CSV8C-188	trainer		1	attach_energy_from_discard	{"filter":"基本能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSV8C-188	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"在时，若身上放有这张卡的宝可梦在战斗场上，则可。"}
-CSV8C-189	trainer		0	damage_place	{"target":"attacker","count":12}
-CSV8C-189	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"身上放有这张卡的宝可梦，在战斗场上受到对手宝可梦的招式的伤害时，。"}
-CSV8C-189	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"然后，将这张卡丢到弃牌区。"}
-CSV8C-190	trainer		0	usage_condition	{"kind":"generic_effect","raw":"身上放有这张卡的宝可梦，在战斗场上受到对手宝可梦的招式的伤害时，选择使用了招式的宝可梦身上附着的1个能量，转附于对手的备战宝可梦身上。"}
+CSV8C-189	trainer		0	trigger	{"event":"attacked_damage","effect":{"action":"damage_place","params":{"target":"attacker","count":12}},"sourceKind":"tool"}
+CSV8C-190	trainer		0	trigger	{"event":"attacked_damage","effect":{"action":"usage_condition","params":{"kind":"generic_effect","raw":"选择使用了招式的宝可梦身上附着的1个能量，转附于对手的备战宝可梦身上。"}},"sourceKind":"tool"}
 CSV8C-260	trainer		0	max_hp_mod	{"amount":50,"target":"self"}
 CSV9.5C-172	trainer		0	usage_condition	{"kind":"generic_effect","raw":"身上放有这张卡的\\"太晶\\"宝可梦使用招式时，使用那个招式所需能量，减少1个。"}
 CSV9.5C-173	trainer		0	retreat_cost_reduce	{"amount":1,"target":"self"}
@@ -23594,15 +23592,15 @@ CSVE1C-133	trainer		0	end_turn	{}
 CSVE1C-133	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"在时，若身上放有这张卡的宝可梦在战斗场上，则恢复该宝可梦\\"20\\"HP。"}
 CSVE1C-134	trainer		0	usage_condition	{"kind":"tool_immune_supporter","raw":"身上放有这张卡的\\"宝可梦【VSTAR】・【VMAX】\\"，当对手从手牌使出支援者时，不受其效果影响"}
 CSVE1C-135	trainer		0	usage_condition	{"kind":"generic_effect","raw":"身上放有这张卡的，名字中带有\\"仙子伊布V\\"的宝可梦，受到对手宝可梦的招式的伤害而【昏厥】时，对手拿取的奖赏卡将减少1张。"}
-CSVE1C-136	trainer		0	usage_condition	{"kind":"counter_discard_opp_hand","raw":"身上放有这张卡的宝可梦，在战斗场上受到对手宝可梦的招式的伤害时，对手选择对手自己的1张手牌，丢到弃牌区"}
+CSVE1C-136	trainer		0	trigger	{"event":"attacked_damage","effect":{"action":"discard_opponent_hand_random","params":{"count":1,"chooser":"opponent"}},"sourceKind":"tool"}
 CSVE1C-137	trainer		0	usage_condition	{"kind":"tool_learn_move","raw":"身上放有这张卡的\\"连击\\"宝可梦，可使用这张卡上的招式"}
 CSVE1C-137	trainer		1	damage_bench	{"target":"opponent_all_field","damage":30}
 CSVE1C-137	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"【雷】【无】【无】 漩涡无双"}
-CSVE2C-163	trainer		0	return_energy_to_hand	{"count":1}
+CSVE2C-163	trainer		0	trigger	{"event":"attacked_damage","effect":{"action":"return_energy_to_hand","params":{"count":1}},"sourceKind":"tool"}
 CSVE2C-164	trainer		0	usage_condition	{"kind":"generic_effect","raw":"身上放有这张卡的，名字中带有\\"水伊布V\\"或\\"雷伊布V\\"或\\"火伊布V\\"的宝可梦使用招式所需能量，减少1个【无】能量。"}
 CSVE2C-165	trainer		0	trigger	{"event":"knocked_out","effect":{"action":"move_energy","params":{"source":"self","dest":"bench","count":1}},"optional":true}
 CSVE2C-166	trainer		0	damage_received_mod	{"amount":-30,"target":"self"}
-CSVE2C-167	trainer		0	damage_place	{"target":"attacker","count":2}
+CSVE2C-167	trainer		0	trigger	{"event":"attacked_damage","effect":{"action":"damage_place","params":{"target":"attacker","count":2}},"sourceKind":"tool"}
 CSVE2C-168	trainer		0	usage_condition	{"kind":"on_ko_discard_opp_hand","raw":"身上放有这张卡的宝可梦，受到对手宝可梦的招式的伤害而【昏厥】时，在不看正面的前提下，选择对手的1张手牌，丢到弃牌区"}
 CSVE2C-169	trainer		0	passive_damage_mod	{"target":"self","amount":30}
 CSVE2C-170	trainer		0	max_hp_mod	{"amount":50,"target":"self"}
@@ -23613,7 +23611,7 @@ CSVH1C-049	trainer		0	end_turn	{}
 CSVH1C-049	trainer		1	draw	{"count":3}
 CSVH1C-049	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"当身上放有这张卡的宝可梦使用招式时，因招式的伤害或效果自己掷硬币而出现反面，则在时，。"}
 CSVH1C-050	trainer		0	passive_damage_mod	{"target":"self","amount":10}
-CSVH1aC-013	trainer		0	return_energy_to_hand	{"count":1}
+CSVH1aC-013	trainer		0	trigger	{"event":"attacked_damage","effect":{"action":"return_energy_to_hand","params":{"count":1}},"sourceKind":"tool"}
 CSVH1aC-014	trainer		0	trigger	{"event":"knocked_out","effect":{"action":"move_energy","params":{"source":"self","dest":"bench","count":1}},"optional":true}
 CSVH1aC-015	trainer		0	damage_received_mod	{"amount":-30,"target":"self"}
 CSVH1aC-016	trainer		0	passive_damage_mod	{"target":"own_field","amount":30}
@@ -23630,7 +23628,7 @@ CSVH2aC-016	trainer		0	passive_damage_mod	{"target":"self","amount":30}
 CSVH2aC-017	trainer		0	damage_place	{"target":"attacker","count":4}
 CSVH3C-048	trainer		0	passive_damage_mod	{"target":"self","amount":30}
 CSVH3C-049	trainer		0	max_hp_mod	{"amount":50,"target":"self"}
-CSVH3aC-013	trainer		0	damage_place	{"target":"attacker","count":2}
+CSVH3aC-013	trainer		0	trigger	{"event":"attacked_damage","effect":{"action":"damage_place","params":{"target":"attacker","count":2}},"sourceKind":"tool"}
 CSVH3aC-014	trainer		0	end_turn	{}
 CSVH3aC-014	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"在时，若身上放有这张卡的宝可梦在战斗场上，则恢复该宝可梦\\"20\\"HP。"}
 CSVH3aC-015	trainer		0	passive_damage_mod	{"target":"self","amount":30}
@@ -23670,7 +23668,7 @@ CSVH5aC-014	trainer		1	attach_energy_from_discard	{"filter":"基本能量","targ
 CSVH5aC-014	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"在时，若身上放有这张卡的宝可梦在战斗场上，则可。"}
 CSVH5aC-015	trainer		0	usage_condition	{"kind":"on_ko_discard_opp_hand","raw":"身上放有这张卡的宝可梦，受到对手宝可梦的招式的伤害而【昏厥】时，在不看正面的前提下，选择对手的1张手牌，丢到弃牌区"}
 CSVH5aC-016	trainer		0	max_hp_mod	{"amount":50,"target":"self"}
-CSVH5aC-017	trainer		0	draw	{"count":2}
+CSVH5aC-017	trainer		0	trigger	{"event":"attacked_damage","effect":{"action":"draw","params":{"count":2}},"sourceKind":"tool"}
 CSVM1aC-019	trainer		0	passive_damage_mod	{"target":"self","amount":10}
 CSVM1aC-020	trainer		0	passive_damage_mod	{"target":"self","amount":30,"defenderRule":"宝可梦V"}
 CSVM1aC-021	trainer		0	passive_damage_mod	{"target":"self","amount":30}
