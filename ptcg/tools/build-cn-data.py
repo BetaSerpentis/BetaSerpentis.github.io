@@ -171,6 +171,7 @@ def build_dex_from_sync(cards):
     """
     dex_lookup = {}
     name_only_dex = {}
+    out_of_range = []   # 源数据异常：yoren_code 是 P 编号但超出图鉴号范围
     stage_cn_of = {"Basic": "基础", "Stage 1": "1阶进化", "Stage 2": "2阶进化",
                    "VMAX": "V进化", "VSTAR": "VSTAR", "V-UNION": "其他"}
     for c in cards:
@@ -178,7 +179,13 @@ def build_dex_from_sync(cards):
         if not m:
             continue
         num = int(m.group(1))
-        if not num or num > DEX_MAX:
+        if not num:
+            continue
+        if num > DEX_MAX:
+            # CN-Sync 个别记录的 yoren_code 编号越界（如「化石盔」写成 P1220，
+            # 而同卡另一印是 P140）。这类值不可信，跳过并回退名称查表，
+            # 但要明确报告出来，便于发现新的源数据错误。
+            out_of_range.append((c.get("card_key", "?"), c.get("card_name", "?"), str(c.get("yoren_code"))))
             continue
         name = c.get("card_name", "")
         attr = ATTR_CODES.get(c.get("energy_type", ""), "")
@@ -214,6 +221,14 @@ def build_dex_from_sync(cards):
                 break
             base = base[len(_matched):]
             name_only_dex.setdefault(base, num)
+    if out_of_range:
+        print(f"  [dex] 警告：{len(out_of_range)} 条 yoren_code 编号超出 1..{DEX_MAX}，"
+              f"已忽略并改用名称回退（疑似源数据错误）：")
+        for ck, name_cn, code in out_of_range[:10]:
+            print(f"        {ck}  {name_cn}  {code}")
+        if len(out_of_range) > 10:
+            print(f"        ... 其余 {len(out_of_range) - 10} 条略")
+
     return dex_lookup, name_only_dex
 
 
