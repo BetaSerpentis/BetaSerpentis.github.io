@@ -445,7 +445,9 @@ body.ptcg-battle-active {
 .menu-item:active { transform: scale(.97); }
 .menu-item.disabled { opacity: .4; pointer-events: none; }
 .menu-item.selected { border-color: #ffd964; color: #ffd964; }
-.menu-item.selected::before { content: '▶'; margin-right: 5px; }
+/* 需求：【战斗】页签等列表去掉装饰性符号（原来选中项会插入一个 ▶，
+   既被当成 emoji，也让首条招式的排版与其它条目不一致）。
+   选中态仍由上面的边框/文字颜色体现。 */
 .menu-item.back-item { color: #b9c2d8; font-size: 12px; }
 .menu-item .mv-name { font-weight: bold; }
 .menu-item .mv-meta { flex: 0 0 auto; max-width: 58%; font-size: 11px; color: #9fb4ff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

@@ -767,7 +767,8 @@
 /* 卡组页签容器 - 固定在顶部，与搜索栏样式一致 */
 .deck-tabs-container {
     position: sticky !important;
-    top: 0 !important;
+    /* PWA 下 sticky 到 top:0 会滑进刘海区；桌面端 --ptcg-safe-top 为 0，不受影响 */
+    top: var(--ptcg-safe-top) !important;
     z-index: 99 !important;
     max-width: 1200px !important;
     margin: 0 auto !important;
@@ -1565,13 +1566,17 @@
 @media (max-width: 768px) {
     .deck-tabs-container {
         position: fixed !important;
+        /* 保留 top:0，让本元素的背景也铺到刘海区（与 .search-header 移动端做法一致），
+           再用 padding-top 把内容推到安全区之下。
+           需求：PWA 下卡组查看界面的卡组页签原本直接压在刘海里。 */
         top: 0 !important;
         left: 0 !important;
         right: 0 !important;
         width: 100% !important;
         z-index: 1001 !important;
         padding: 12px 15px !important;
-        max-height: 140px !important;
+        padding-top: max(12px, var(--ptcg-safe-top)) !important;
+        max-height: calc(140px + var(--ptcg-safe-top)) !important;
         gap: 8px !important;
     }
     
@@ -1775,14 +1780,16 @@ input, textarea, .search-input, [contenteditable="true"] {
 
 /* 卡组模式（没有搜索栏，有卡组页签） */
 .deck-tabs-container:not([style*="display: none"]) ~ .content-wrapper {
-    margin-top: 140px !important;
-    height: calc(100vh - 140px) !important;
+    /* 卡组页签是 fixed，内容要用 margin-top 让位。这里必须把安全区一并算进去，
+       否则 PWA 下多出来的刘海高度会让首行卡片被页签挡住。 */
+    margin-top: calc(140px + var(--ptcg-safe-top)) !important;
+    height: calc(100vh - 140px - var(--ptcg-safe-top)) !important;
 }
 
 @media (max-width: 480px) {
     .deck-tabs-container:not([style*="display: none"]) ~ .content-wrapper {
-        margin-top: 130px !important;
-        height: calc(100vh - 130px) !important;
+        margin-top: calc(130px + var(--ptcg-safe-top)) !important;
+        height: calc(100vh - 130px - var(--ptcg-safe-top)) !important;
 
     }
 }

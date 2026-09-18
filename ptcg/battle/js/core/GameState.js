@@ -392,8 +392,15 @@ export class GameState {
 
   _abilityUsageFailure(pl,ability,source=null){
     for(const eff of ability?.effects||[]){
-      if(eff.action!=='usage_condition')continue;
       const p=eff.params||{};
+      // 「转放伤害指示物」类特性（如愿增猿「亢奋脑力」）：
+      // 「自己场上有宝可梦带着伤害指示物」是发动前提。没有指示物时该置灰，
+      // 而不是点下去才提示（用户反馈：身上有恶能量、但己方场上无指示物仍然可按）。
+      if(eff.action==='damage_place'&&p.source==='own_field'){
+        const inPlay=this.getPokemonInPlay(pl).filter(Boolean);
+        if(!inPlay.some(m=>(m.maxHp-m.hp)>0))return {reason:'usage_condition',message:'发动条件未满足：自己场上需要有带着伤害指示物的宝可梦'};
+      }
+      if(eff.action!=='usage_condition')continue;
       if(p.kind==='own_pokemon_knocked_out_last_opponent_turn'&&!this.wasOwnPokemonKnockedOutLastOpponentTurn(pl))return {reason:'usage_condition',message:'使用前提未满足：上个对手的回合自己的宝可梦需被击倒'};
       if(p.kind==='ability_name_once_per_turn'&&pl.abilityUsedThisTurn?.[`ability-name:${p.abilityName||ability.name}`])return {reason:'already_used',message:'这个名字的特性本回合已使用'};
       // 需求：像愿增猿「亢奋脑力」这种「若这只宝可梦身上附着了【恶】能量」的发动条件，未满足时应判定为不可用（按钮置灰），而不是点了才提示
