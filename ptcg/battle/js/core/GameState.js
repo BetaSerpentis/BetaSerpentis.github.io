@@ -219,7 +219,10 @@ export class GameState {
     if(!t){this.addLog('目标不存在');return false;}
     if(!cd?.evolvesFrom||t.name!==cd.evolvesFrom){this.addLog(`${t.name} 不能进化为 ${cd?.name||'?'}`);return false;}
     if(t.placedThisTurn||t.evolvedThisTurn){this.addLog(`${t.name} 本回合刚出场或已进化，下回合才能进化`);return false;}
-    const dmg=t.maxHp-t.hp;pl.hand.splice(hi,1);
+    const dmg=t.maxHp-t.hp;
+    const newCardId=pl.hand[hi];   // 需求：进化后更新 cardId，立绘才会换成进化后的形象
+    pl.hand.splice(hi,1);
+    if(newCardId)t.cardId=newCardId;
     t.name=cd.name;t.maxHp=cd.hp;t.hp=Math.max(cd.hp-dmg,10);
     t.stage=cd.stage||t.stage;t.evolvesFrom=cd.evolvesFrom||null;t.ruleText=cd.ruleText||'';t.rule2Text=cd.rule2Text||'';t.ruleBox=cd.ruleBox||'';t.isEx=!!cd.isEx;t.isRadiant=!!cd.isRadiant;t.hasRuleBox=!!cd.hasRuleBox;
     t.attacks=cd.attacks;t.element=cd.element;t.weakness=cd.weakness||null;t.resistance=cd.resistance||null;t.weaknessMultiplier=cd.weaknessMultiplier||2;t.resistanceValue=cd.resistanceValue??-30;t.retreatCost=cd.retreatCost??1;t.ability=cd.ability||null;t.abilityUsed=false;t.abilityDisabled=false;t.abilityDisabledBy=null;t.placedThisTurn=false;t.evolvedThisTurn=true;

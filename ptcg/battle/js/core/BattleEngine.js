@@ -401,7 +401,7 @@ export class BattleEngine {
     if (!atk.active) { this.cb.onLog?.('无战斗宝可梦'); return false; }
     const status = atk.active.status || '';
     if (status.includes('sleep') || status.includes('paralysis')) { this.cb.onLog?.('睡眠/麻痹中无法攻击'); return false; }
-    if (status.includes('confusion') && Math.random() >= 0.5) { atk.active.hp -= 30; this.cb.onLog?.('混乱判定失败，自己受到30伤害'); if (atk.active.hp <= 0) gs.knockout(atk); return false; }
+    if (status.includes('confusion') && Math.random() >= 0.5) { atk.active.hp = Math.max(0, atk.active.hp - 30); this.cb.onLog?.('混乱判定失败，自己受到30伤害'); if (atk.active.hp <= 0) gs.knockout(atk); return false; }
     if (atk.active.cannotAttackNext) { this.cb.onLog?.('无法攻击'); return false; }
     if (!def.active) { this.cb.onLog?.('对手无宝可梦'); return false; }
 
@@ -468,7 +468,8 @@ export class BattleEngine {
     if (damage > 0) {
       const beforeHp = def.active.hp;
       const survivalTool = def.active.tool && (String(def.active.tool.cardId || '') === '11176' || def.active.tool.name === '幸存锻炼器') ? def.active.tool : null;
-      def.active.hp -= damage;
+      // 需求：伤害溢出时血量最低为 0，不出现负值
+      def.active.hp = Math.max(0, def.active.hp - damage);
       gs.addLog(`${atk.active.name} 使用了「${moveName}」！造成 ${damage} 伤害`);
       if (survivalTool && beforeHp === def.active.maxHp && def.active.hp <= 0) {
         const discarded = survivalTool.cardId || survivalTool.name || survivalTool;
