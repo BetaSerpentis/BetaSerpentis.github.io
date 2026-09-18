@@ -206,10 +206,26 @@ export class CardManager {
     // 把外部（结构化查询引擎）算好的结果落地为当前显示集合。
     // 复用同一套 filteredCards/isShowingAllCards/hasActiveSearch 语义，
     // 这样后续的世代/卡包筛选与渲染流程都不用改。
+    //
+    // 关键：传进来的可能只是「查询结果对象」（CardQueryEngine 只产出 id/name/stage/retreat 等
+    // 查询需要的字段），而 CardGrid 渲染要用 card.image 取图、统计模式要用 card.quantity，
+    // 直接把引擎对象塞进 filteredCards 会导致所有卡图「加载失败」。
+    // 所以这里统一按 id 映射回**当前已加载的完整卡片对象**。
+    // 无法映射的（通常是当前页签未加载的类型）计入 _lastExternalFilterMissing。
     setExternalFilter(cards) {
-        this.filteredCards = Array.isArray(cards) ? [...cards] : [];
+        const list = Array.isArray(cards) ? cards : [];
+        const byId = new Map((this.cards || []).map(c => [String(c.id), c]));
+        const out = [];
+        let missing = 0;
+        for (const item of list) {
+            const key = String(item && typeof item === 'object' ? item.id : item);
+            const real = byId.get(key);
+            if (real) out.push(real); else missing++;
+        }
+        this.filteredCards = out;
         this.isShowingAllCards = false;
         this.hasActiveSearch = true;
+        this._lastExternalFilterMissing = missing;
         return this.filteredCards;
     }
 

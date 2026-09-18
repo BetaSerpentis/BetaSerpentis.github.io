@@ -237,9 +237,15 @@ export class CardBrowser {
             }
 
             const cards = engine.query(conds);
-            this.cardManager.setExternalFilter(cards);
+            // setExternalFilter 会按 id 映射回当前已加载的完整卡片对象（渲染需要 image/quantity），
+            // 并返回实际能显示的列表；映射不到的多半是当前页签没加载的类型。
+            const shown = this.cardManager.setExternalFilter(cards);
+            const dropped = this.cardManager._lastExternalFilterMissing || 0;
             const desc = this._describeConditions(conds);
-            this.cardGrid.updateSearchInfo(`AI 解析出条件：${desc} ${tabHint} → ${cards.length} 张`);
+            const dropHint = dropped
+                ? `（另有 ${dropped} 张属于其它类型，切到对应页签后再搜可见）`
+                : '';
+            this.cardGrid.updateSearchInfo(`AI 解析出条件：${desc} ${tabHint} → ${shown.length} 张${dropHint}`);
             this.cardGrid.render();
             return true;
         } catch (e) {
