@@ -21,6 +21,31 @@
 }
 
 @media (max-width: 480px) { :root { --deck-tabs-h: 130px; } }
+
+/* AI 辅助搜索开关（搜索栏内，与搜索按钮同风格；开启态高亮） */
+.ai-search-toggle {
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 20px;
+    color: #a1a1aa;
+    font-weight: bold;
+    font-size: 0.92rem;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: all 0.25s ease;
+}
+.ai-search-toggle:hover { border-color: rgba(129,140,248,0.4); color: #d4d4d8; }
+.ai-search-toggle[aria-pressed="true"] {
+    background: rgba(129,140,248,0.22);
+    border-color: rgba(129,140,248,0.65);
+    color: #e0e7ff;
+    box-shadow: 0 0 0 2px rgba(129,140,248,0.18);
+}
+.ai-search-toggle[disabled] { opacity: 0.45; cursor: not-allowed; }
+.ai-search-toggle.busy { opacity: 0.7; cursor: progress; }
+
 @media (max-width: 360px) { :root { --deck-tabs-h: 120px; } }
 
 @media (display-mode: standalone) {

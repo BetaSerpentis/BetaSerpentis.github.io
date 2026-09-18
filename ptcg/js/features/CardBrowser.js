@@ -10,6 +10,14 @@ export class CardBrowser {
         this.searchInput = document.getElementById('search-input');
         this.searchButton = document.getElementById('search-button');
         this.loadingStatus = document.getElementById('loading-status');
+        this.aiToggleButton = document.getElementById('ai-search-toggle');
+
+        // AI 辅助搜索：{ engine: CardQueryEngine, parser: SearchIntentParser }
+        // 由 main.js 注入。AI 只负责把自然语言翻译成结构化条件，
+        // 筛选由 CardQueryEngine 在本地确定性执行。
+        this.semanticSearch = null;
+        this.aiSearchEnabled = false;
+        this._AI_SEARCH_STORAGE_KEY = 'ptcg_ai_search_enabled';
         
         this.init();
     }
@@ -17,7 +25,49 @@ export class CardBrowser {
     init() {
         if (this._initialized) return;
         this._initialized = true;
+        this._restoreAiSearchState();
         this.bindEvents();
+    }
+
+    /** 注入语义搜索依赖（main.js 在创建后调用） */
+    setSemanticSearch(deps) {
+        this.semanticSearch = deps || null;
+        this._syncAiToggle();
+    }
+
+    _restoreAiSearchState() {
+        try {
+            this.aiSearchEnabled = localStorage.getItem(this._AI_SEARCH_STORAGE_KEY) === '1';
+        } catch (e) {
+            this.aiSearchEnabled = false;
+        }
+        this._syncAiToggle();
+    }
+
+    _syncAiToggle() {
+        const btn = this.aiToggleButton;
+        if (!btn) return;
+        btn.setAttribute('aria-pressed', this.aiSearchEnabled ? 'true' : 'false');
+        const ready = !!this.semanticSearch;
+        btn.disabled = !ready;
+        if (!ready) {
+            btn.title = 'AI 辅助暂不可用（缺少组件）';
+        } else if (this.aiSearchEnabled) {
+            btn.title = 'AI 辅助已开启：点搜索会先把你的描述解析成条件再筛选';
+        } else {
+            btn.title = 'AI 辅助：用自然语言描述条件（如「环境内需要1能就能使用招式的2阶进化宝可梦」）';
+        }
+    }
+
+    _toggleAiSearch() {
+        this.aiSearchEnabled = !this.aiSearchEnabled;
+        try {
+            localStorage.setItem(this._AI_SEARCH_STORAGE_KEY, this.aiSearchEnabled ? '1' : '0');
+        } catch (e) { /* 忽略隐私模式等写入失败 */ }
+        this._syncAiToggle();
+        if (this.aiSearchEnabled && !this.semanticSearch) {
+            this.cardGrid.updateSearchInfo('AI 辅助需要先在设置里配置 AI API Key');
+        }
     }
 
     // 只绑定搜索相关事件；卡牌点击由 main.js 统一处理
@@ -30,6 +80,10 @@ export class CardBrowser {
             if (e.key === 'Enter') {
                 this.performSearch();
             }
+        });
+
+        this.aiToggleButton?.addEventListener('click', () => {
+            this._toggleAiSearch();
         });
     }
 
@@ -83,8 +137,15 @@ export class CardBrowser {
     }
 
     // 执行搜索（更新以考虑世代筛选）
-    performSearch() {
+    async performSearch() {
         const searchText = this.searchInput.value;
+
+        // AI 辅助模式：先解析成结构化条件，再本地筛选；解析失败则回退关键词搜索
+        if (this.aiSearchEnabled && searchText.trim() && this.semanticSearch) {
+            const ok = await this._performSemanticSearch(searchText);
+            if (ok) return;
+        }
+
         const searchResult = this.searchEngine.performSearch(searchText);
         
         // 显示搜索和筛选的综合结果
@@ -100,6 +161,69 @@ export class CardBrowser {
         
         this.cardGrid.updateSearchInfo(message);
         this.cardGrid.render();
+    }
+
+    /**
+     * AI 辅助搜索：把自然语言解析成结构化条件 → CardQueryEngine 本地筛选。
+     * @returns {Promise<boolean>} true 表示已处理（调用方不要再走关键词搜索）
+     */
+    async _performSemanticSearch(searchText) {
+        const { engine, parser } = this.semanticSearch;
+        if (!engine || !parser) return false;
+        this._setAiBusy(true);
+        try {
+            const parsed = await parser.parse(searchText);
+            if (!parsed) {
+                this.cardGrid.updateSearchInfo('AI 解析失败（或未配置 API Key），已回退为普通关键词搜索');
+                return false;
+            }
+            await engine.load();
+
+            const conds = { ...parsed.conditions };
+            const currentTab = this.cardManager.getCurrentTab();
+            let tabHint = '';
+            if (!conds.types) {
+                // 没指明类型时，按当前页签收敛，避免结果跨类型混在同一个列表里
+                conds.types = [currentTab];
+                tabHint = `（未指明类型，按当前页签「${currentTab}」）`;
+            } else if (!conds.types.includes(currentTab)) {
+                tabHint = `（结果含 ${conds.types.join('/')}，与当前页签「${currentTab}」不同）`;
+            }
+
+            const cards = engine.query(conds);
+            this.cardManager.setExternalFilter(cards);
+            const desc = this._describeConditions(conds);
+            this.cardGrid.updateSearchInfo(`AI 解析出条件：${desc} ${tabHint} → ${cards.length} 张`);
+            this.cardGrid.render();
+            return true;
+        } catch (e) {
+            this.cardGrid.updateSearchInfo(`AI 搜索出错，已回退为普通关键词搜索：${e?.message || e}`);
+            return false;
+        } finally {
+            this._setAiBusy(false);
+        }
+    }
+
+    _setAiBusy(busy) {
+        const btn = this.aiToggleButton;
+        if (!btn) return;
+        btn.classList.toggle('busy', !!busy);
+        btn.disabled = busy || !this.semanticSearch;
+    }
+
+    /** 把条件对象翻译成可读文本（让用户能核对 AI 解析得对不对） */
+    _describeConditions(c) {
+        const parts = [];
+        if (c.types?.length) parts.push(`类型=${c.types.join('/')}`);
+        if (c.stage !== undefined) parts.push(`阶段=${['基础', '1阶进化', '2阶进化'][c.stage] || c.stage}`);
+        if (c.retreat) parts.push(`撤退${c.retreat.op}${c.retreat.value}`);
+        if (c.hp) parts.push(`HP${c.hp.op}${c.hp.value}`);
+        if (c.attr) parts.push(`属性=${c.attr}`);
+        if (c.env) parts.push('仅当前环境');
+        if (c.attackCostExactly !== undefined) parts.push(`招式恰好${c.attackCostExactly}能`);
+        if (c.attackCostAtMost !== undefined) parts.push(`招式≤${c.attackCostAtMost}能`);
+        if (c.keyword) parts.push(`名称含「${c.keyword}」`);
+        return parts.length ? parts.join('、') : '（无条件，显示当前页签全部）';
     }
 
     // 在 CardBrowser.js 中确保 loadCardData 方法正确重置状态
