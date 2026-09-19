@@ -175,7 +175,12 @@ export class GameState {
     if(cd.specialRules?.requiresDiscardOnAttach&&pl.hand.length<=1){this.addLog('需要先丢弃1张其他手牌');return false;}
     const attached=pl.hand.splice(idx,1)[0];
     if(cd.specialRules?.requiresDiscardOnAttach&&pl.hand.length>0)pl.discard.push(pl.hand.pop());
-    t.energy.push({cardId:attached,name:cd.name,provides:cd.provides||null,specialRules:cd.specialRules||null});
+    // 尖钉能量类：把「受到招式伤害时给攻击方放置 N 个伤害指示物」记到能量实例上，
+    // 后续在 BattleEngine.attack 里结算反伤（能量离场时自动失效）
+    const reflectCounters=(cd.effects||[])
+      .filter(e=>e.action==='attack_reflect_counters')
+      .reduce((sum,e)=>sum+(e.params?.counters||0),0);
+    t.energy.push({cardId:attached,name:cd.name,provides:cd.provides||null,specialRules:cd.specialRules||null,attackReflectCounters:reflectCounters||undefined});
     if(cd.specialRules?.damageOnAttach){t.hp-=cd.specialRules.damageOnAttach;this.addLog(`${t.name} 因 ${cd.name} 受到${cd.specialRules.damageOnAttach}伤害`);}
     if(cd.specialRules?.maxHpBonus&&(!cd.element||t.element===cd.element||cd.name.includes(t.element))){t.maxHp+=cd.specialRules.maxHpBonus;t.hp+=cd.specialRules.maxHpBonus;}
     if(cd.specialRules?.preventWeakness)t.weakness=null;
@@ -311,6 +316,10 @@ export class GameState {
     if(!cd||cd.cardType!=='trainer')return {ok:false,reason:'not_trainer',message:'不是训练家卡'};
     const prereqFailure=this._trainerPrerequisiteFailure(pl,cd);
     if(prereqFailure)return prereqFailure;
+    // 回收类效果（从弃牌区选择 N 张）：弃牌区没有合法目标时不能使用。
+    // 规则：只有「卡组检索类」允许空发（玩家可以选择不拿），回收类无目标 = 使用前提不满足。
+    const recoverFailure=this._recoverTargetFailure(pl,cd);
+    if(recoverFailure)return recoverFailure;
     const tt=cd.trainerType;
     if(tt==='item'&&pl.playRestrictions?.item){return {ok:false,reason:'play_restriction_item',message:'受到招式效果，下回合无法从手牌使出物品卡'};}
     const hasFirstPlayerFirstTurnSupporterException=(cd.effects||[]).some(e=>e.action==='trainer_prerequisite'&&e.params?.kind==='first_player_first_turn_supporter_exception');
@@ -359,6 +368,40 @@ export class GameState {
   }
 
   _trainerLegalityMessage(check){return check?.message||'无法使用训练家卡';}
+
+  /** 回收类效果必需但弃牌区无合法目标 → 不可使用（返回失败对象，否则 null） */
+  _recoverTargetFailure(pl,cd){
+    for(const eff of cd?.effects||[]){
+      if(eff.action!=='recover_from_discard')continue;
+      const p=eff.params||{};
+      const required=(p.minCount??p.count??1)>0&&!p.optional&&!p.allowEmpty&&!p.allowFewer;
+      if(!required)continue;
+      const hasTarget=(pl?.discard||[]).some(id=>this._cardMatchesLooseFilter(id,p.filter));
+      if(!hasTarget)return {ok:false,reason:'no_recover_target',message:'弃牌区没有可回收的卡牌'};
+    }
+    return null;
+  }
+
+  /** 轻量卡牌类别匹配（仅供使用前提校验，不替代 EffectExecutor 的完整筛选） */
+  _cardMatchesLooseFilter(id,filter){
+    if(!filter)return true;
+    const cd=this.cardResolver?.getCard?.(id)||null;
+    const name=String(cd?.name||'');
+    const f=String(filter).replace(/["“”「」]/g,'').replace(/\d+张/g,'').replace(/\s+/g,'');
+    const isPokemon=cd?.cardType==='pokemon';
+    const isBasicEnergy=cd?.cardType==='energy';
+    const isEnergy=isBasicEnergy||cd?.cardType==='specialEnergy';
+    if(!cd&&!name)return false;
+    if(f.includes('宝可梦')&&isPokemon)return true;
+    if(f.includes('基本能量')&&isBasicEnergy)return true;
+    if(f.includes('能量')&&isEnergy)return true;
+    if(/支援者/i.test(f)&&cd?.trainerType==='supporter')return true;
+    if(/物品/i.test(f)&&cd?.trainerType==='item')return true;
+    if(/竞技场/i.test(f)&&cd?.trainerType==='stadium')return true;
+    if(/训练家/i.test(f)&&cd?.cardType==='trainer')return true;
+    if(name&&f.includes(name))return true;
+    return false;
+  }
 
   useTrainer(pl, hi, cd, targetSlot=null, cardId=null){
     const check=this.canUseTrainer(pl,cd,targetSlot);

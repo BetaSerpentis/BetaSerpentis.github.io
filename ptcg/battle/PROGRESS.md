@@ -255,3 +255,24 @@ ptcg/battle/                # 已并入 ptcg（原 ptcgBattle/，2026-09-16；�
 ### 测试
 - 新增 6 条回归用例：解析（tool_end_of_turn_discard / mirror_damage_counters）、愿增猿数量限制、备战区 KO 奖赏卡、反射屏障反伤、招式学习器回合结束弃置、日志面板限高与跟随
 - 全绿：`test:ptcg-battle` 全通过（连续 3 次稳定）、`test:ptcg-query` 26/26、`ptcg:check-syntax` 42/42、effects 索引指纹一致
+
+## 优化与查错（2026-09-19 第三轮，用户报告 3 项）
+
+- [x] **尖钉能量（特殊能量）反伤未生效**
+      根因：该文本被解析为 `damage_place { target:'attacker' }`（语义是「对自己造成伤害」），
+            且特殊能量的 effects 从不在受击时执行
+      修复：新增 `attack_reflect_counters` 解析 → `GameState.attachEnergy` 把 counters 记到能量实例
+            → `BattleEngine.attack` 受招式伤害时统一结算反伤
+            （反射屏障 = 等量伤害；尖钉能量 = 每张 2 个伤害指示物，能量离场自动失效）
+- [x] **夜间担架（回收类）在弃牌区无合法目标时仍被 AI 发动**
+      根因：`canUseTrainer` 不校验弃牌区是否有可回收目标 → ActionSpace 仍枚举该动作（表现为「空发」）
+      修复：新增 `_recoverTargetFailure` + 轻量类别匹配 `_cardMatchesLooseFilter`，在 `canUseTrainer` 中调用
+      规则口径：**只有「卡组检索类」允许空发**（玩家可以选择不拿）；回收类无目标 = 使用前提不满足
+            → UI 会灰掉该卡，AI 也不再枚举
+- [x] **幸运头盔被「特性放置伤害指示物」误触发**
+      根因：`_applyDamageToPokemon` 无条件 emit `attacked_damage`，特性/指示物造成的伤害也算
+      修复：仅当 `options.source === 'attack'`（招式伤害）时 emit；招式伤害路径仍由 BattleEngine.attack 触发
+
+### 测试
+- 新增 3 条回归用例：尖钉能量反伤、回收类使用前提校验、幸运头盔仅响应招式伤害
+- 全绿：`test:ptcg-battle` 全通过（连续 2 次）、`test:ptcg-query` 26/26、`ptcg:check-syntax` 42/42、effects 指纹一致
