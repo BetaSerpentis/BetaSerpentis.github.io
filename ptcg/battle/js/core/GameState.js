@@ -3,6 +3,27 @@
 export const PHASE = { SETUP:'setup',DRAW:'draw',MAIN:'main',BATTLE:'battle',END:'end',GAME_OVER:'game_over' };
 export const MAX_LOG_ENTRIES = 200;
 
+/**
+ * 选择（waitForPick）的合法返回边界。
+ * 玩家 UI（main.js）与 AI 决策（AiPolicy）共用同一份推导，避免出现非法返回值。
+ */
+export function derivePickBounds(pick = {}) {
+  const options = pick?.options || {};
+  const cardsLen = (pick.cards || []).length;
+  const requested = Number.isFinite(pick.count) ? pick.count : 1;
+  if (options.source === 'retreat-energy') return { min:0, max:cardsLen, allowEmpty:true, allowFewer:true };
+  const rawMax = Number.isFinite(options.maxCount) ? options.maxCount : requested;
+  const max = Math.max(0, Math.min(rawMax, cardsLen));
+  let min;
+  if (Number.isFinite(options.minCount)) min = options.minCount;
+  else if (Number.isFinite(options.requiredMin)) min = options.requiredMin;
+  else if (options.allowEmpty) min = 0;
+  else if (options.allowFewer) min = max > 0 ? 1 : 0;
+  else min = Math.min(requested, cardsLen);
+  min = Math.max(0, Math.min(min, max));
+  return { min, max, allowEmpty:min === 0, allowFewer:!!options.allowFewer || min < max };
+}
+
 const TYPE_CN = { grass:'草',fire:'火',water:'水',lightning:'雷',psychic:'超',fighting:'斗',dark:'恶',metal:'钢',dragon:'龙',fairy:'妖',colorless:'无' };
 const TYPE_EN = Object.fromEntries(Object.entries(TYPE_CN).map(([k,v])=>[v,k]));
 
@@ -27,8 +48,31 @@ export class GameState {
     }
     return total;}
 
-  waitForPick(cards,count,options={}){return new Promise(r=>{this.pendingPick={cards,count,options,resolve:r};this._onPendingPick?.(this.pendingPick);});}
-  waitForPokemonPick(player, options={}){return new Promise(r=>{this.pendingPokemonPick={player,options,resolve:r};this._onPendingPokemonPick?.(this.pendingPokemonPick);});}
+  waitForPick(cards,count,options={}){return new Promise(r=>{
+    this.pendingPick={cards,count,options,resolve:r};
+    // AI 决策路由：AI 回合（或自动对战）由策略直接应答，避免 Promise 永不 resolve 把回合卡死
+    const handler=this.aiPickHandler;
+    if(handler){
+      Promise.resolve()
+        .then(()=>handler(this.pendingPick))
+        .then(sel=>this.resolvePick(Array.isArray(sel)?sel:[]))
+        .catch(()=>this.resolvePick([]));
+      return;
+    }
+    this._onPendingPick?.(this.pendingPick);
+  });}
+  waitForPokemonPick(player, options={}){return new Promise(r=>{
+    this.pendingPokemonPick={player,options,resolve:r};
+    const handler=this.aiPokemonPickHandler;
+    if(handler){
+      Promise.resolve()
+        .then(()=>handler(this.pendingPokemonPick))
+        .then(slot=>this.resolvePokemonPick(slot||null))
+        .catch(()=>this.resolvePokemonPick(null));
+      return;
+    }
+    this._onPendingPokemonPick?.(this.pendingPokemonPick);
+  });}
   resolvePokemonPick(slot){if(this.pendingPokemonPick){const r=this.pendingPokemonPick.resolve;this.pendingPokemonPick=null;r(slot);}}
   resolvePick(selected){if(this.pendingPick){const r=this.pendingPick.resolve;this.pendingPick=null;r(selected);}}
 

@@ -62,13 +62,30 @@ export const CONFIG = {
 };
 
 // AI 分析配置（DeepSeek API，OpenAI 兼容格式）
+// 模型名说明（2026-09 官方）：deepseek-chat / deepseek-reasoner 两个遗留名已于 2026-07-24 停止服务，
+// 现行模型名为 deepseek-flash（= DeepSeek-V4.1-Flash）与 deepseek-v4-pro。
+// 遗留名 deepseek-v4-flash / deepseek-v4-flash-vision-exp 仍被接受，但对应模型已退役（由 V4.1-Flash 服务）。
 export const CONFIG_AI = {
-    model: 'deepseek-chat',
+    model: 'deepseek-flash',
     maxTokens: 4096,
     maxContextCards: 50,
     maxHistoryMessages: 20,
     apiEndpoint: 'https://api.deepseek.com/v1/chat/completions'
 };
+
+/** 已停止服务的遗留模型名 → 现行模型名（localStorage 里可能残留旧值） */
+export const AI_LEGACY_MODEL_MAP = {
+    'deepseek-chat': 'deepseek-flash',
+    'deepseek-reasoner': 'deepseek-flash',
+    'deepseek-coder': 'deepseek-flash',
+};
+
+/** 把遗留模型名归一为现行模型名；非字符串/空值回退默认模型 */
+export function normalizeAiModel(model) {
+    const name = typeof model === 'string' ? model.trim() : '';
+    if (!name) return CONFIG_AI.model;
+    return AI_LEGACY_MODEL_MAP[name] || name;
+}
 
 // debug 关闭时跳过所有参数求值；需懒求值时传函数：debugLog(() => ['msg', obj])
 export function debugLog(fnOrMsg, ...rest) {

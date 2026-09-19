@@ -1,5 +1,5 @@
 // js/main.js — PTCG Battle (FRLG Style)
-import { GameState, PHASE } from './core/GameState.js';
+import { GameState, PHASE, derivePickBounds } from './core/GameState.js';
 import { BattleEngine } from './core/BattleEngine.js';
 import { CardResolver } from './core/CardResolver.js';
 import { executeEffects } from './core/EffectExecutor.js';
@@ -56,23 +56,6 @@ export function pokemonPickerConfirmEnabled(selectedSlot, options = {}) {
   return pokemonPickerSlotAllowed(selectedSlot, options);
 }
 
-function derivePickBounds(pick = {}) {
-  const options = pick?.options || {};
-  const cardsLen = (pick.cards || []).length;
-  const requested = Number.isFinite(pick.count) ? pick.count : 1;
-  if (options.source === 'retreat-energy') return { min:0, max:cardsLen, allowEmpty:true, allowFewer:true };
-  const rawMax = Number.isFinite(options.maxCount) ? options.maxCount : requested;
-  let max = Math.max(0, Math.min(rawMax, cardsLen));
-  let min;
-  if (Number.isFinite(options.minCount)) min = options.minCount;
-  else if (Number.isFinite(options.requiredMin)) min = options.requiredMin;
-  else if (options.allowEmpty) min = 0;
-  else if (options.allowFewer) min = max > 0 ? 1 : 0;
-  else min = Math.min(requested, cardsLen);
-  min = Math.max(0, Math.min(min, max));
-  return { min, max, allowEmpty:min === 0, allowFewer:!!options.allowFewer || min < max };
-}
-
 export function cardPickerTitleFor(pick = {}) {
   const options = pick?.options || {};
   if (options.prompt) return options.prompt;
@@ -119,12 +102,22 @@ export class PTCGBattleApp {
 
   async init() {
     await this.resolver.load();
+    this._aiThinking = false;
     this.engine = new BattleEngine(this.gs, this.resolver, {
       onLog: m => this._onEngineLog(m),
       onPhaseChange: () => this._refresh(),
       onFieldUpdate: () => {
         this._renderScene();
         this._syncPlayerMainPanel();
+      },
+      // AI 对手：逐个动作播报，让玩家看得清对手做了什么（而不是一瞬间结束回合）
+      onAiAction: ({ desc }) => {
+        this._appendBattleLog(`对手：${desc}`);
+        this._refresh();
+      },
+      onAiThinking: thinking => {
+        this._aiThinking = !!thinking;
+        this._updateMainMenu();
       }
     });
     this.gs.onLog = m => this._appendBattleLog(m);
@@ -381,11 +374,14 @@ export class PTCGBattleApp {
 
   // === Target Panel (legacy, kept for compatibility) ===
   _handlePick(pick) {
+    // AI 回合（或自动对战）的选择由策略应答，不走玩家 UI
+    if (this.gs.aiPickHandler) return;
     // 去全屏界面：候选卡在右下操作区滚动列表中选择
     this._showPickCards(pick);
   }
 
   _handlePokemonPick(pick) {
+    if (this.gs.aiPokemonPickHandler) return;
     // 去全屏界面：目标宝可梦在右下操作区列表中选
     this._showPickPokemon(pick);
   }
@@ -1105,7 +1101,7 @@ export class PTCGBattleApp {
     if (over) {
       $('#main-text').textContent = `${this.gs.winner?.name || ''} 获胜！`;
     } else if (!isP) {
-      $('#main-text').textContent = '对手回合...';
+      $('#main-text').textContent = this._aiThinking ? '对手思考中…' : '对手回合...';
     } else {
       const texts = {
         [PHASE.SETUP]: '放置宝可梦后点确认',
