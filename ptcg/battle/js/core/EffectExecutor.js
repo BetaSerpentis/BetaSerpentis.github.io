@@ -548,15 +548,20 @@ function _emitTriggers(gs, event, payload = {}) {
         for (const eff of effects) {
           if (toolEffects.includes(eff) && mon !== pl.active) continue;
           if (eff.action !== 'trigger' || eff.params?.event !== event) continue;
-          const inner = eff.params.effect;
-          if (!inner) continue;
-          const fn = EXECUTORS[inner.action];
-          if (!fn) continue;
-          // target:'attacker' 应指向事件源（使用招式的宝可梦）
-          const execPl = (inner.params?.target === 'attacker' && payload.source)
-            ? ([gs.player1, gs.player2].find(p => p.active === payload.source || p.bench?.includes(payload.source)) || pl)
-            : pl;
-          try { Promise.resolve(fn(gs, execPl, inner.params || {}, eff)).catch(() => {}); } catch (e) { /* 忽略触发式执行错误 */ }
+          // 依次执行全部内层效果（兼容旧的单 effect 结构）
+          const innerList = Array.isArray(eff.params?.effects) && eff.params.effects.length
+            ? eff.params.effects
+            : (eff.params?.effect ? [eff.params.effect] : []);
+          for (const inner of innerList) {
+            if (!inner?.action) continue;
+            const fn = EXECUTORS[inner.action];
+            if (!fn) continue;
+            // target:'attacker' 应指向事件源（使用招式的宝可梦）
+            const execPl = (inner.params?.target === 'attacker' && payload.source)
+              ? ([gs.player1, gs.player2].find(p => p.active === payload.source || p.bench?.includes(payload.source)) || pl)
+              : pl;
+            try { Promise.resolve(fn(gs, execPl, inner.params || {}, eff)).catch(() => {}); } catch (e) { /* 忽略触发式执行错误 */ }
+          }
         }
       }
     }

@@ -219,15 +219,61 @@ function triggerParams(m) {
   const event = triggerEventKey(m[1]);
   if (!event) return null;
   const inner = parseEffect(m[2]);
-  if (!inner.effects.length) return { event, effect: null, optional:/可选择|若希望|可以/.test(m[0]) };
-  return { event, effect: inner.effects[0], optional:/可选择|若希望|可以/.test(m[0]) };
+  const optional = /可选择|若希望|可以/.test(m[0]);
+  if (!inner.effects.length) return { event, effect: null, effects: [], optional };
+  // 保留全部内层效果（原先只留第一条，会把「可使用1次」之后的动作丢掉，
+  // 导致 trigger 内层的填能/转附等动作既不执行也不可检索）
+  return { event, effect: inner.effects[0], effects: inner.effects, optional };
 }
 
 const RULES = [
   // ===== 触发式「当/每当…时，效果」：优先匹配，避免效果部分被其他规则先吃掉 =====
   { re: /^(?:每当|当)(.{2,40}?)(?:时)[，,]?(.+)$/, act:'trigger', p:triggerParams },
+  // ===== 填能措辞变体（附着/转附；含引号「基本【X】能量」与目标变体）=====
+  // 手牌能量附着（含「基本【水】能量」「特殊能量」等写法）
+  { re: /选择自己手牌中的(\d+)张["“”「」]?(?:基本)?【(.+?)】能量["“”「」]?[，,]?(?:以任意方式)?(?:附着于|附于)(?:这只|自己的)?(?:战斗场?|备战区?)?(?:的)?(?:1只)?(?:["“”「」][^"“”「」]+["“”「」])?(?:宝可梦)?身上/, act:'attach_energy_from_hand', p:m=>withCount({filter:`【${m[2]}】能量`,target:'any'},m[1],true) },
+  { re: /选择自己手牌中最多(\d+)张["“”「」]?(?:基本)?【(.+?)】能量["“”「」]?[，,]?(?:附着于|附于)(?:这只|自己的)?(?:备战区?中的1只)?(?:["“”「」][^"“”「」]+["“”「」])?(?:宝可梦)?身上/, act:'attach_energy_from_hand', p:m=>withCount({filter:`【${m[2]}】能量`,target:'any'},m[1],true) },
+  { re: /将(?:自己的|自己)?手牌中的(\d+)张特殊能量[，,]?(?:附着于|附于)自己的宝可梦身上/, act:'attach_energy_from_hand', p:m=>withCount({filter:'特殊能量',target:'any'},m[1],false) },
+  // 牌库能量附着（含引号与"以任意方式"）
+  { re: /(?:选择自己牌库中最多|从自己的牌库选择最多)(\d+)张["“”「」]?(?:基本)?【(.+?)】能量["“”「」]?[，,]?(?:以任意方式)?(?:附着于|附于)(?:这只|自己的)?(?:备战区中的1只)?(?:["“”「」][^"“”「」]+["“”「」])?(?:宝可梦)?身上/, act:'attach_energy_from_deck', p:m=>withCount({filter:`【${m[2]}】能量`,target:'any'},m[1],true) },
+  { re: /(?:选择自己牌库中的|从自己的牌库选择的?)(\d+)张["“”「」]([^"“”「」]{1,8})["“”「」][，,]?(?:附着于|附于)自己的["“”「」][^"“”「」]+["“”「」]宝可梦身上/, act:'attach_energy_from_deck', p:m=>withCount({filter:m[2],target:'any'},m[1],false) },
+  { re: /(?:选择自己牌库中最多|从自己的牌库选择最多)(\d+)张特殊能量[，,]?(?:附着于|附于)自己的1只宝可梦身上/, act:'attach_energy_from_deck', p:m=>withCount({filter:'特殊能量',target:'any'},m[1],true) },
+  // 弃牌区能量附着
+  { re: /(?:将(?:自己的|自己)?弃牌区中的|从自己的弃牌区选择)(\d+)张能量[，,]?以任意方式(?:附着于|附于)自己的宝可梦身上/, act:'attach_energy_from_discard', p:m=>withCount({filter:'能量',target:'any'},m[1],false) },
+  { re: /(?:选择(?:自己的|自己)?弃牌区中最多|从自己的弃牌区选择最多)(\d+)张能量[，,]?(?:附着于|附于)自己的1只宝可梦身上/, act:'attach_energy_from_discard', p:m=>withCount({filter:'能量',target:'any'},m[1],true) },
+  // 转附（自方场内 → 这只宝可梦 / 其他宝可梦）
+  { re: /(?:如果成功执行互换了的话[，,]?则)?将任意数量的(?:附着于|附于)自己场上宝可梦身上的【(.+?)】能量[，,]?转附于这只宝可梦身上/, act:'move_energy', p:m=>({source:'self',dest:'bench',count:'all',filter:`【${m[1]}】能量`}) },
+  { re: /选择(?:附着于|附于)自己场上宝可梦身上的(?:任意数量|(\d+)个)【(.+?)】能量[，,]?(?:以任意方式)?转附于(?:这只|自己(?:的)?(?:其他)?|自己的)?(?:1只)?宝可梦身上/, act:'move_energy', p:m=>({source:'self',dest:'bench',count:m[1]?+m[1]:'all',filter:`【${m[2]}】能量`}) },
+  { re: /选择(?:附着于|附于)自己场上宝可梦身上的(\d+)个特殊能量[，,]?转附于自己其他宝可梦身上/, act:'move_energy', p:m=>({source:'self',dest:'bench',count:+m[1],filter:'特殊能量'}) },
+  // 查看牌库上方后附着（近似：忽略"上方 N 张"限制，按牌库附能执行）
+  { re: /查看(?:自己的|自己)?牌库上方(\d+)张卡牌?[，,]?选择其中任意数量的["“”「」]?基本?【(.+?)】能量["“”「」]?[，,]?以任意方式(?:附着于|附于)自己的宝可梦身上/, act:'attach_energy_from_deck', p:m=>withCount({filter:`【${m[2]}】能量`,target:'any'},99,true) },
+  { re: /查看(?:自己的|自己)?牌库上方(\d+)张卡牌?[，,]?选择其中任意数量的基本能量[，,]?以任意方式(?:附着于|附于)自己的宝可梦身上/, act:'attach_energy_from_deck', p:()=>withCount({filter:'基本能量',target:'any'},99,true) },
+  { re: /查看(?:自己的|自己)?牌库上方(\d+)张卡牌?[，,]?将其中任意数量的【(.+?)】能量[，,]?(?:附着于|附于)这只宝可梦身上/, act:'attach_energy_from_deck', p:m=>withCount({filter:`【${m[2]}】能量`,target:'active'},99,true) },
+  // 弃置牌库顶后附着（火恐龙 / 熔岩蜗牛GX）
+  { re: /将自己(?:的)?牌库上方(\d+)张卡(?:牌)?(?:丢到弃牌区|放于弃牌区)[，,]?将其中所有的【(.+?)】能量(?:附着于|附于)这只宝可梦身上/, act:'attach_energy_from_discard', p:m=>withCount({filter:`【${m[2]}】能量`,target:'active'},99,true) },
+  { re: /将自己(?:的)?牌库上方的1张卡(?:牌)?(?:丢到弃牌区|放于弃牌区)[，,]?(?:如果|若)该卡(?:牌)?是基本能量(?:的话)?[，,]?则(?:附着于|附于)自己的宝可梦身上/, act:'attach_energy_from_discard', p:()=>withCount({filter:'基本能量',target:'any'},1,true) },
+  // 硬币正面后附着（露力丽）
+  { re: /掷1次硬币(?:如果|若)为正面[，,]?则将自己弃牌区中的(\d+)张基本能量[，,]?(?:附着于|附于)战斗宝可梦身上/, act:'coin_flip', p:m=>({count:1,heads:[{action:'attach_energy_from_discard',params:{filter:'基本能量',target:'active',count:+m[1]}}]}) },
+
+  // 转附补充变体（【昏厥】了的宝可梦 / 备战→战斗 / 自方任意→其他）
+  { re: /选择(?:附着于|附于)?【(?:昏厥|气绝)】了的宝可梦身上(?:附着的)?(?:任意数量|(\d+)张)(?:基本)?【(.+?)】能量[，,]?转附于这只宝可梦身上/, act:'move_energy', p:m=>({source:'self',dest:'bench',count:+m[1],filter:`【${m[2]}】能量`}) },
+  { re: /将附于【(?:昏厥|气绝)】了的宝可梦身上的(\d+)张基本能量[，,]?转附于这只宝可梦身上/, act:'move_energy', p:m=>({source:'self',dest:'bench',count:+m[1],filter:'基本能量'}) },
+  { re: /将附于自己备战宝可梦身上的(\d+)个(?:【(.+?)】)?能量[，,]?转附于自己战斗宝可梦身上/, act:'move_energy', p:m=>({source:'bench',dest:'active',count:+m[1],filter:m[2]?`【${m[2]}】能量`:undefined}) },
+  { re: /选择附于自己场上宝可梦身上的(\d+)个特殊能量[，,]?转附于自己其他宝可梦身上/, act:'move_energy', p:m=>({source:'self',dest:'bench',count:+m[1],filter:'特殊能量'}) },
+
   // 道具/被动式受击触发：「身上放有这张卡的宝可梦…受到对手宝可梦的招式的伤害时，X」
   { re: /身上放有这张卡的宝可梦[，,]?(?:在战斗场上)?受到对手(?:的)?宝可梦的招式(?:的)?伤害时[，,]?(.+)$/, act:'trigger', p:m=>{ const inner=parseEffect(m[1]); if(!inner.effects.length) return null; return { event:'attacked_damage', effect:inner.effects[0], sourceKind:'tool' }; } },
+  // 补充变体：选择N个（附于自己场上）→ 转附 / 将这只宝可梦身上的最多N张基本能量转附
+  { re: /选择(\d+)个(?:附着于|附于)自己场上宝可梦身上的【(.+?)】能量[，,]?转附于(?:这只|自己(?:的)?(?:其他)?|自己的)?宝可梦身上/, act:'move_energy', p:m=>({source:'self',dest:'bench',count:+m[1],filter:`【${m[2]}】能量`}) },
+  { re: /将附于这只宝可梦身上的最多(\d+)张基本能量[，,]?以任意方式转附于自己的备战宝可梦身上/, act:'move_energy', p:m=>({source:'self',dest:'bench',count:+m[1],filter:'基本能量'}) },
+  { re: /选择附于自己场上宝可梦身上的任意数量的【(.+?)】能量[，,]?以任意方式转附于自己的宝可梦身上/, act:'move_energy', p:m=>({source:'self',dest:'bench',count:'all',filter:`【${m[1]}】能量`}) },
+
+  // 补充：基本能量牌库附能 / 两种能量各1张 / 【昏厥】转附 / 场上的宝可梦转附
+  { re: /(?:选择自己牌库中最多|从自己的牌库选择最多)(\d+)张基本能量[，,]?(?:以任意方式)?(?:附着于|附于)自己的宝可梦身上/, act:'attach_energy_from_deck', p:m=>withCount({filter:'基本能量',target:'any'},m[1],true) },
+  { re: /选择自己牌库中的「基本【(.+?)】能量」和「基本【(.+?)】能量」各最多(\d+)张[，,]?以任意方式附着于自己的【.+?】或【.+?】宝可梦身上/, act:'attach_energy_from_deck', p:m=>withCount({filter:`【${m[1]}】能量或【${m[2]}】能量`,target:'any'},m[3],true) },
+  { re: /选择附着于该?【(?:昏厥|气绝)】了的宝可梦身上的(\d+)张(?:基本)?【(.+?)】能量[，,]?转附于自己的其他宝可梦身上/, act:'move_energy', p:m=>({source:'self',dest:'bench',count:+m[1],filter:`【${m[2]}】能量`}) },
+  { re: /将附着于自己场上的宝可梦身上的(\d+)个(?:基本)?【(.+?)】能量[，,]?转附于自己的其他宝可梦身上/, act:'move_energy', p:m=>({source:'self',dest:'bench',count:+m[1],filter:`【${m[2]}】能量`}) },
+
   // ===== 训练家/特性使用前提：仅解析为元数据，不执行合法性或费用 =====
   { re: /在上(?:一)?个对手的回合[，,]?若自己的宝可梦【(?:昏厥|气绝)】[^。]*/, act:'usage_condition', p:()=>trainerPrerequisite('own_pokemon_knocked_out_last_opponent_turn', '上一个对手回合己方宝可梦昏厥') },
   { re: /若从自己的手牌将1张["“”「」]?基本【火】能量["“”「」]?卡?(?:丢弃|丢到弃牌区|放于弃牌区)/, act:'ability_discard_cost', p:m=>({ count:1, filter:'基本【火】能量', zone:'hand', raw:m[0] }) },
