@@ -375,7 +375,8 @@ export class BattleEngine {
       return false;
     }
     gs.markStadiumUsed?.(player, check.stadium);
-    gs.addLog(`${player.name} 使用了竞技场「${check.stadium.name}」`);
+    // 文案区分「发动竞技场效果」（双方每回合各一次，规则允许）与「打出竞技场卡」，避免误认为重复打出
+    gs.addLog(`${player.name} 发动了竞技场「${check.stadium.name}」的效果`);
     await executeEffects(gs, player, check.effects);
     gs.recomputePassives?.();
     this.cb.onFieldUpdate?.();

@@ -1780,8 +1780,15 @@ const EXECUTORS = {
 
   // ===== 直接击倒 =====
   knockout(gs, pl, p) {
-    const target = (p.target === 'self') ? pl.active : _opponent(gs, pl).active;
-    if (target) { target.hp = 0; gs.knockout?.(target); gs.addLog(`${target.name} 被击倒`); }
+    // 修正：GameState.knockout(pl) 接收的是「玩家」而非宝可梦。
+    // 原实现直接传宝可梦对象，knockout 内部读 pl.active 得到 undefined 后直接 return，
+    // 导致「令这只宝可梦昏厥」类特性（如仿徨夜灵「咒怨炸弹」）只把 HP 设为 0 而不离场。
+    const owner = (p?.target === 'self') ? pl : _opponent(gs, pl);
+    const target = owner?.active;
+    if (!target) return;
+    target.hp = 0;
+    _knockoutPokemon(gs, owner, target);
+    gs.addLog(`${target.name} 被击倒`);
   },
 
   // ===== 特性消除（主动/临时效果）=====

@@ -753,7 +753,14 @@ export class PTCGBattleApp {
       items.push({ label: '放置到备战区', meta: benchFull ? '备战区已满' : `备战 ${pl.bench?.length || 0}/5`, disabled: benchFull, onSelect: () => { this.engine.placeBenchPokemon(idx, cd); done(); } });
     }
     if (cd.cardType === 'pokemon' && cd.evolvesFrom) {
-      items.push({ label: '进化', meta: `由 ${cd.evolvesFrom} 进化`, onSelect: () => this._pickPokemonFor({ kind: 'evolve', handIdx: idx, cd }) });
+      // 需求：当回合不可进化的宝可梦（刚出场/本回合已进化）→ 进化选项置灰
+      const fieldMons = [pl.active, ...(pl.bench || [])].filter(Boolean);
+      const bases = fieldMons.filter(mon => mon.name === cd.evolvesFrom);
+      const targets = bases.filter(mon => !mon.placedThisTurn && !mon.evolvedThisTurn);
+      const meta = targets.length
+        ? `由 ${cd.evolvesFrom} 进化`
+        : (bases.length ? '本回合刚出场或已进化，下回合才能进化' : `场上没有 ${cd.evolvesFrom}`);
+      items.push({ label: '进化', meta, disabled: !targets.length, onSelect: () => this._pickPokemonFor({ kind: 'evolve', handIdx: idx, cd }) });
     }
     if (cd.cardType === 'energy' || cd.cardType === 'specialEnergy') {
       const used = !!pl.energyAttached;
@@ -940,11 +947,17 @@ export class PTCGBattleApp {
   _pickPokemonFor({ kind, handIdx, cd }) {
     const pl = this.gs.player1;
     const items = [];
-    const push = (slot, mon, tag) => {
+    const push = (slot, mon) => {
       if (!mon) return;
+      // 需求：与【场地】列表保持一致 —— 只显示「名字 + 血量 + 能量」，去掉标签和冗余信息
+      const enText = this._energyShortText(mon);
+      // 进化目标：名字需匹配且本回合未出场/未进化（不可选时置灰）
+      const blocked = kind === 'evolve'
+        && (mon.name !== cd.evolvesFrom || mon.placedThisTurn || mon.evolvedThisTurn);
       items.push({
-        label: `${mon.name}${tag ? `（${tag}）` : ''}`,
-        meta: `HP ${mon.hp}/${mon.maxHp} · 能量 ${(mon.energy || []).length}`,
+        label: mon.name,
+        meta: enText ? `${mon.hp}/${mon.maxHp}·${enText}` : `${mon.hp}/${mon.maxHp}`,
+        disabled: blocked,
         onSelect: async () => {
           if (kind === 'evolve') this.engine.evolvePokemon(handIdx, cd, slot);
           else if (kind === 'energy') {
@@ -958,21 +971,25 @@ export class PTCGBattleApp {
       });
     };
     const label = kind === 'evolve' ? '选择进化目标' : kind === 'energy' ? '选择附着目标' : '选择装备目标';
-    // 进化目标限制：名字匹配 evolvesFrom（由 engine 再校验）
-    push('active', pl.active, '出战');
-    (pl.bench || []).forEach((mon, i) => push(`bench-${i}`, mon, `备战${i + 1}`));
+    push('active', pl.active);
+    (pl.bench || []).forEach((mon, i) => push(`bench-${i}`, mon));
     if (!items.length) items.push({ label: '（无可选目标）', disabled: true });
     // 需求：点返回直接回到【卡牌】手牌列表（不再回到动作子菜单）
     this._showListView(items, { onBack: () => this._showHandList() });
   }
 
-  // 撤退：选择换上的备战宝可梦
+  // 撤退：选择换上的备战宝可梦（格式与【场地】列表一致：名字 + 血量 + 能量）
   _showBenchForRetreat() {
     const pl = this.gs.player1;
-    const items = (pl.bench || []).map((mon, i) => mon ? {
-      label: mon.name, meta: `HP ${mon.hp}/${mon.maxHp} · 备战${i + 1}`,
-      onSelect: () => this._retreatTo(i),
-    } : null).filter(Boolean);
+    const items = (pl.bench || []).map((mon) => {
+      if (!mon) return null;
+      const enText = this._energyShortText(mon);
+      return {
+        label: mon.name,
+        meta: enText ? `${mon.hp}/${mon.maxHp}·${enText}` : `${mon.hp}/${mon.maxHp}`,
+        onSelect: () => this._retreatTo(pl.bench.indexOf(mon)),
+      };
+    }).filter(Boolean);
     if (!items.length) items.push({ label: '（备战区无宝可梦）', disabled: true });
     this._showListView(items, { onBack: () => this._showPokeActions('active') });
   }
@@ -1040,12 +1057,18 @@ export class PTCGBattleApp {
       this._goBackToList();
     };
     const items = [];
-    const push = (slot, mon, tag) => {
+    const push = (slot, mon) => {
       if (!mon || !pokemonPickerSlotAllowed(slot, options)) return;
-      items.push({ label: `${mon.name}（${tag}）`, meta: `HP ${mon.hp}/${mon.maxHp}${mon.status ? ` · ${mon.status}` : ''}`, onSelect: () => finish(slot) });
+      // 需求：与【场地】列表保持一致 —— 只显示名字 + 血量 + 能量
+      const enText = this._energyShortText(mon);
+      items.push({
+        label: mon.name,
+        meta: enText ? `${mon.hp}/${mon.maxHp}·${enText}` : `${mon.hp}/${mon.maxHp}`,
+        onSelect: () => finish(slot),
+      });
     };
-    push('active', pl.active, '出战');
-    (pl.bench || []).forEach((mon, i) => push(`bench-${i}`, mon, `备战${i + 1}`));
+    push('active', pl.active);
+    (pl.bench || []).forEach((mon, i) => push(`bench-${i}`, mon));
     if (!items.length) items.push({ label: '（无可选目标）', disabled: true });
     if (options.allowEmpty || options.optional) items.push({ label: '取消选择', onSelect: () => finish(null) });
     this._showListView(items, { onBack: () => finish(null) });
