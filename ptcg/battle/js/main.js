@@ -877,10 +877,17 @@ export class PTCGBattleApp {
     const done = () => { this._renderScene(); this._afterAction(); };
 
     // 进化：手牌中存在可进化成该宝可梦的卡
+    // 需求：当回合刚出场/已进化的宝可梦，进化选项要置灰（而不是点了才报错）
     const evoIdx = (pl.hand || []).findIndex(cid => { const c = this.resolver.getCard(cid); return c?.cardType === 'pokemon' && c.evolvesFrom === mon.name; });
     if (evoIdx >= 0) {
       const evo = this.resolver.getCard(pl.hand[evoIdx]);
-      items.push({ label: '进化', meta: `→ ${evo.name}`, onSelect: async () => { this.engine.evolvePokemon(evoIdx, evo, slot); done(); } });
+      const blocked = !!mon.placedThisTurn || !!mon.evolvedThisTurn;
+      items.push({
+        label: '进化',
+        meta: blocked ? '本回合刚出场或已进化，下回合才能进化' : `→ ${evo.name}`,
+        disabled: blocked,
+        onSelect: async () => { this.engine.evolvePokemon(evoIdx, evo, slot); done(); },
+      });
     }
     // 附着能量：手牌中的能量卡
     const energyIdxs = (pl.hand || []).map((cid, i) => ({ cid, i })).filter(x => { const c = this.resolver.getCard(x.cid); return c?.cardType === 'energy' || c?.cardType === 'specialEnergy'; });

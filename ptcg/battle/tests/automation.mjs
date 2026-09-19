@@ -6556,6 +6556,34 @@ await test('UI：选择目标列表与场地一致（名/血量/能量），不�
   assert.ok(/本回合刚出场或已进化/.test(js), '进化选项不可用时置灰并说明原因');
 });
 
+await test('「令这只宝可梦昏厥」作用于效果来源（备战区）而非战斗场', async () => {
+  const gs = new GameState();
+  gs.player1.deck = Array(10).fill('x'); gs.player2.deck = Array(10).fill('y');
+  gs.player1.prizes = Array(6).fill('p'); gs.player2.prizes = Array(6).fill('p');
+  gs.player1.active = mon('我方宝可梦', 'a');
+  gs.player2.active = mon('超梦', 'mewtwo');
+  const benchMon = mon('仿徨夜灵', 'CSV8C-082');
+  gs.player2.bench = [benchMon];
+  const prizesBefore = gs.player1.prizes.length;
+  await executeEffects(gs, gs.player2, [{ action: 'knockout', params: { target: 'self' }, source: benchMon }]);
+  assert.equal(gs.player2.active.cardId, 'mewtwo', '战斗场的宝可梦不应被昏厥');
+  assert.equal(gs.player2.active.hp, gs.player2.active.maxHp, '战斗场宝可梦应保持满血');
+  assert.equal(gs.player2.bench.length, 0, '来源宝可梦应离开备战区');
+  assert.ok(gs.player2.discard.includes('CSV8C-082'), '来源宝可梦应进入弃牌区');
+  assert.equal(prizesBefore - gs.player1.prizes.length, 1, '对手应拿 1 张奖赏卡');
+});
+
+await test('UI：场地页签的进化项在不可进化时也要置灰', () => {
+  const js = fs.readFileSync(path.resolve(__dirname, '../js/main.js'), 'utf8');
+  const start = js.indexOf('_showPokeActions(slot) {');
+  assert.ok(start >= 0, '应存在场地页签宝可梦动作入口');
+  const block = js.slice(start, start + 2000);
+  assert.ok(/const blocked = !!mon\.placedThisTurn \|\| !!mon\.evolvedThisTurn/.test(block),
+    '场地页签进化项应有「刚出场/已进化」判断');
+  assert.ok(/disabled: blocked/.test(block), '场地页签进化项应置灰');
+  assert.ok(/下回合才能进化/.test(block), '置灰时应说明原因');
+});
+
 if (process.exitCode) {
   console.error('\n自动化测试失败。');
   process.exit(process.exitCode);
