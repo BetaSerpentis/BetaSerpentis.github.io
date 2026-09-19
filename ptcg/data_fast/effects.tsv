@@ -1,4 +1,4 @@
-#eff1 hash=4fd985c21a5a5f5c
+#eff1 hash=a482ca0783000f71
 151C-001	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-002	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-003	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
@@ -2534,7 +2534,7 @@ CS1DC-140	attack	1	0	shuffle_deck	{}
 CS1DC-140	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"从自己的牌库选择最多与附于这只宝可梦身上的能量数量相同数量的训练家，在给对手看过后，加入手牌。"}
 CS1DC-142	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"从自己的弃牌区选择1张能量，附于这只宝可梦身上。"}
 CS1DC-143	attack	1	0	damage_received_mod	{"amount":-30,"target":"self","duration":"next_opp_turn"}
-CS1DC-144	attack	1	0	attach_energy_from_discard	{"filter":"基本能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
+CS1DC-144	attack	1	0	attach_energy_from_discard	{"filter":"【钢】能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CS1DC-145	attack	2	0	self_damage	{"amount":40}
 CS1DC-146	ability		0	damage_received_mod	{"amount":-30,"target":"self"}
 CS1DC-146	attack	1	0	conditional_damage_mod	{"amount":40,"condition":"self_energy","mode":"per_unit"}
@@ -2971,7 +2971,7 @@ CS1bC-040	attack	1	0	inflict_status	{"statuses":["burn"]}
 CS1bC-040	attack	2	0	conditional_damage_mod	{"amount":10,"condition":"self_damage_counters","mode":"per_unit"}
 CS1bC-041	attack	1	0	inflict_status	{"statuses":["burn"]}
 CS1bC-042	ability		0	usage_condition	{"kind":"bench_self_on_draw","raw":"在自己的回合开始，从牌库抽出到这张卡时，若自己的备战区有空位，在将卡牌加入手牌前可使用1次。将这张卡放置于自己的备战区"}
-CS1bC-042	attack	1	0	attach_energy_from_discard	{"filter":"基本能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
+CS1bC-042	attack	1	0	attach_energy_from_discard	{"filter":"【火】能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CS1bC-043	ability		0	weakness_null	{"target":"own_field"}
 CS1bC-043	attack	1	0	inflict_status	{"statuses":["confusion"]}
 CS1bC-044	attack	1	0	coin_flip_status	{"count":1,"statuses":["paralysis"]}
@@ -3063,7 +3063,7 @@ CS1bC-098	attack	1	0	heal	{"amount":30,"target":"self"}
 CS1bC-098	attack	2	0	usage_condition	{"kind":"generic_effect","raw":"若这只宝可梦身上放置有8个以上（包含8个）伤害指示物，则这个招式失败。"}
 CS1bC-099	attack	1	0	damage_received_mod	{"amount":-30,"target":"self","duration":"next_opp_turn"}
 CS1bC-100	attack	1	0	conditional_damage_mod	{"condition":"opponent_active_type","type":"基础","amount":100,"mode":"fixed"}
-CS1bC-101	attack	1	0	attach_energy_from_discard	{"filter":"基本能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
+CS1bC-101	attack	1	0	attach_energy_from_discard	{"filter":"【钢】能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CS1bC-102	attack	1	0	coin_flip	{"count":1}
 CS1bC-102	attack	1	1	discard_energy	{"target":"opponent","count":1}
 CS1bC-102	attack	2	0	discard_energy	{"target":"self","count":3}
@@ -3121,7 +3121,7 @@ CS1bC-152	attack	2	0	discard_energy	{"target":"self","count":2}
 CS1bC-152	attack	2	1	damage_received_mod	{"amount":-100,"target":"self","duration":"next_opp_turn"}
 CS1bC-152	attack	2	2	usage_condition	{"kind":"residual_sentence","raw":"若希望，可。"}
 CS1bC-152	attack	2	3	usage_condition	{"kind":"residual_sentence","raw":"在这种情况下，。"}
-CS1bC-153	attack	1	0	attach_energy_from_discard	{"filter":"基本能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
+CS1bC-153	attack	1	0	attach_energy_from_discard	{"filter":"【钢】能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CS1bC-154	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"查看对手牌库上方1张卡，再放回原处。"}
 CS1bC-154	attack	2	0	coin_flip_damage	{"count":2,"damage_per":20}
 CS1bC-155	ability		0	ability_discard_cost	{"count":1,"zone":"hand","raw":"若将自己的1张手牌丢到弃牌区，则可使用1次"}
@@ -4340,7 +4340,7 @@ CS3bC-036	ability		2	shuffle_deck	{}
 CS3bC-036	ability		3	usage_condition	{"kind":"ability_name_once_per_turn","abilityName":"连击搜索","raw":"在这个回合，若已经使用了其他的\\"连击搜索\\"，则无法使用这个特性"}
 CS3bC-038	attack	1	0	switch_pokemon	{"who":"opponent"}
 CS3bC-038	attack	2	0	cannot_attack_next	{"duration":"next_self_turn"}
-CS3bC-040	ability		0	trigger	{"event":"evolved","effect":{"action":"attach_energy_from_discard","params":{"filter":"基本能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}},"effects":[{"action":"attach_energy_from_discard","params":{"filter":"基本能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"可使用1次。"}}],"optional":false}
+CS3bC-040	ability		0	trigger	{"event":"evolved","effect":{"action":"attach_energy_from_discard","params":{"filter":"【水】能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}},"effects":[{"action":"attach_energy_from_discard","params":{"filter":"【水】能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"可使用1次。"}}],"optional":false}
 CS3bC-040	attack	1	0	cannot_attack_next	{"duration":"next_self_turn"}
 CS3bC-041	attack	1	0	discard_energy	{"target":"self","count":1}
 CS3bC-041	attack	1	1	heal	{"amount":"full"}
@@ -4515,7 +4515,7 @@ CS3bC-174	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的
 CS3bC-174	ability		1	search_deck_to_hand	{"filter":"连击卡","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CS3bC-174	ability		2	shuffle_deck	{}
 CS3bC-174	ability		3	usage_condition	{"kind":"ability_name_once_per_turn","abilityName":"连击搜索","raw":"在这个回合，若已经使用了其他的\\"连击搜索\\"，则无法使用这个特性"}
-CS3bC-175	ability		0	trigger	{"event":"evolved","effect":{"action":"attach_energy_from_discard","params":{"filter":"基本能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}},"effects":[{"action":"attach_energy_from_discard","params":{"filter":"基本能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"可使用1次。"}}],"optional":false}
+CS3bC-175	ability		0	trigger	{"event":"evolved","effect":{"action":"attach_energy_from_discard","params":{"filter":"【水】能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}},"effects":[{"action":"attach_energy_from_discard","params":{"filter":"【水】能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"可使用1次。"}}],"optional":false}
 CS3bC-175	attack	1	0	cannot_attack_next	{"duration":"next_self_turn"}
 CS4.1C-002	attack	1	0	coin_flip	{"count":1,"heads":[{"action":"switch_pokemon","params":{"who":"opponent"}}]}
 CS4.1C-012	attack	1	0	switch_pokemon	{"who":"self"}
@@ -4809,7 +4809,7 @@ CS4DaC-095	ability		1	attach_energy_from_hand	{"filter":"【水】或【斗】�
 CS4DaC-095	attack	1	0	damage_bench	{"target":"self_all","damage":20}
 CS4DaC-097	attack	1	0	switch_pokemon	{"who":"opponent"}
 CS4DaC-097	attack	2	0	cannot_attack_next	{"duration":"next_self_turn"}
-CS4DaC-099	ability		0	trigger	{"event":"evolved","effect":{"action":"attach_energy_from_discard","params":{"filter":"基本能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}},"effects":[{"action":"attach_energy_from_discard","params":{"filter":"基本能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"可使用1次。"}}],"optional":false}
+CS4DaC-099	ability		0	trigger	{"event":"evolved","effect":{"action":"attach_energy_from_discard","params":{"filter":"【水】能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}},"effects":[{"action":"attach_energy_from_discard","params":{"filter":"【水】能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"可使用1次。"}}],"optional":false}
 CS4DaC-099	attack	1	0	cannot_attack_next	{"duration":"next_self_turn"}
 CS4DaC-100	ability		0	ability_nullify	{"scope":"opponent_field","duration":"while_active","exceptAbilityNames":["拥有规则的宝可梦"],"sourceZone":"field"}
 CS4DaC-100	attack	1	0	move_energy	{"source":"self","dest":"bench","count":1}
@@ -7232,7 +7232,7 @@ CS6bC-066	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"从自�
 CS6bC-067	attack	1	0	search_deck_to_hand	{"filter":"宝可梦","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CS6bC-067	attack	1	1	shuffle_deck	{}
 CS6bC-068	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
-CS6bC-068	ability		1	attach_energy_from_discard	{"filter":"基本能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
+CS6bC-068	ability		1	attach_energy_from_discard	{"filter":"【斗】能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CS6bC-069	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"若希望，可选择自己手牌中的1张\\"谜之化石\\"，丢到弃牌区。在这种情况下，增加120伤害。"}
 CS6bC-070	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"若对手战斗宝可梦的剩余HP在\\"100\\"以下（包含\\"100\\"），使其【昏厥】。"}
 CS6bC-071	attack	1	0	recover_from_discard	{"filter":"基本能量","target":"hand","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
@@ -13851,7 +13851,7 @@ CSV6C-074	attack	1	0	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个�
 CSV6C-075	attack	2	0	coin_flip_damage	{"count":1,"damage":20}
 CSV6C-076	attack	1	0	self_damage	{"amount":30}
 CSV6C-077	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
-CSV6C-077	ability		1	attach_energy_from_discard	{"filter":"基本能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
+CSV6C-077	ability		1	attach_energy_from_discard	{"filter":"基本【斗】能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSV6C-077	ability		2	usage_condition	{"kind":"residual_sentence","raw":"然后，恢复被附着能量的宝可梦\\"30\\"HP。"}
 CSV6C-079	attack	2	0	coin_flip_damage	{"count":2,"damage_per":100}
 CSV6C-080	attack	1	0	conditional_damage_mod	{"condition":"custom","conditionText":"这只宝可梦处于特殊状态","amount":160,"mode":"fixed"}
@@ -13932,7 +13932,7 @@ CSV6C-130	attack	1	0	conditional_damage_mod	{"amount":20,"condition":"self_energ
 CSV6C-131	ability		0	trigger	{"event":"evolved","effect":{"action":"prevent_damage","params":{"source":"attack"}},"effects":[{"action":"prevent_damage","params":{"source":"attack"}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"可使用1次。"}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"在下个对手的回合结束前，这只宝可梦，和效果影响。"}}],"optional":false}
 CSV6C-131	attack	1	0	conditional_damage_mod	{"condition":"custom","conditionText":"自己的弃牌区中有\\"莉普\\"","amount":70,"mode":"fixed"}
 CSV6C-132	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
-CSV6C-132	ability		1	attach_energy_from_discard	{"filter":"基本能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
+CSV6C-132	ability		1	attach_energy_from_discard	{"filter":"基本【斗】能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSV6C-132	ability		2	usage_condition	{"kind":"residual_sentence","raw":"然后，恢复被附着能量的宝可梦\\"30\\"HP。"}
 CSV6C-133	attack	1	0	mill	{"target":"opponent","count":1}
 CSV6C-133	attack	2	0	self_damage	{"amount":90}
@@ -14645,7 +14645,7 @@ CSV8C-163	attack	1	0	coin_flip_damage	{"count":3,"damage_per":50}
 CSV8C-164	attack	1	0	attach_energy_from_hand	{"filter":"基本能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSV8C-164	attack	2	0	cannot_attack_next	{"duration":"next_self_turn"}
 CSV8C-165	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
-CSV8C-165	ability		1	move_energy	{"source":"self","dest":"bench","count":1}
+CSV8C-165	ability		1	move_energy	{"source":"self","dest":"bench","count":1,"filter":"基本能量"}
 CSV8C-165	attack	1	0	draw_until	{"target":6}
 CSV8C-166	attack	1	0	search_deck_energy_split	{"count":3,"filter":"基本能量","distinctTypes":true,"toHand":1}
 CSV8C-166	attack	1	1	shuffle_deck	{}
@@ -14715,7 +14715,7 @@ CSV8C-228	ability		0	trigger	{"event":"attacked_damage","effect":{"action":"usag
 CSV8C-228	attack	1	0	cannot_retreat	{"target":"opponent","duration":"next_opp_turn"}
 CSV8C-229	attack	2	0	damage_place	{"target":"opponent_bench","count":6}
 CSV8C-230	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
-CSV8C-230	ability		1	move_energy	{"source":"self","dest":"bench","count":1}
+CSV8C-230	ability		1	move_energy	{"source":"self","dest":"bench","count":1,"filter":"基本能量"}
 CSV8C-230	attack	1	0	draw_until	{"target":6}
 CSV8C-231	ability		0	attack_cost_reduction	{"target":"self","type":"colorless","amount":"opponent_prizes_taken"}
 CSV8C-231	attack	1	0	cannot_attack_next	{"duration":"next_self_turn"}
@@ -19473,7 +19473,7 @@ CSVE1C-103	trainer		2	shuffle_deck	{}
 CSVE1C-104	trainer		0	recover_from_discard	{"filter":"基本能量","target":"hand","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CSVE1C-105	trainer		0	search_deck_to_hand	{"filter":"基本能量","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSVE1C-105	trainer		1	shuffle_deck	{}
-CSVE1C-106	trainer		0	move_energy	{"source":"self","dest":"bench","count":1}
+CSVE1C-106	trainer		0	move_energy	{"source":"self","dest":"bench","count":1,"filter":"基本能量"}
 CSVE1C-107	trainer		0	recover_from_discard	{"count":1,"target":"hand"}
 CSVE1C-107	trainer		1	shuffle_deck	{}
 CSVE1C-108	trainer		0	peek_and_keep	{"peek":5,"keep":1}
@@ -19525,7 +19525,7 @@ CSVE2C-136	trainer		0	peek_and_keep	{"peek":7,"filter":"能量","keep":1,"maxCou
 CSVE2C-136	trainer		1	usage_condition	{"kind":"put_remaining_back","raw":"将剩余的卡牌放回牌库"}
 CSVE2C-136	trainer		2	shuffle_deck	{}
 CSVE2C-137	trainer		0	recover_from_discard	{"filter":"基本能量","target":"hand","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
-CSVE2C-138	trainer		0	move_energy	{"source":"self","dest":"bench","count":1}
+CSVE2C-138	trainer		0	move_energy	{"source":"self","dest":"bench","count":1,"filter":"基本能量"}
 CSVE2C-139	trainer		0	search_deck_to_hand	{"filter":"基本能量","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSVE2C-139	trainer		1	shuffle_deck	{}
 CSVE2C-140	trainer		0	recover_from_discard	{"count":1,"target":"hand"}
@@ -19612,7 +19612,7 @@ CSVH1C-047	trainer		0	coin_flip	{"count":1,"heads":[{"action":"switch_pokemon","
 CSVH1aC-007	trainer		0	heal	{"amount":20}
 CSVH1aC-007	trainer		1	coin_flip	{"count":1}
 CSVH1aC-007	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"然后，若为正面，则不将这张\\"可中奖棒冰\\"丢到弃牌区，而是放回手牌。"}
-CSVH1aC-008	trainer		0	move_energy	{"source":"self","dest":"bench","count":1}
+CSVH1aC-008	trainer		0	move_energy	{"source":"self","dest":"bench","count":1,"filter":"基本能量"}
 CSVH1aC-009	trainer		0	coin_flip	{"count":1}
 CSVH1aC-009	trainer		1	search_deck_to_hand	{"filter":"进化宝可梦，若为反面则从自己的牌库选择1张【基础】宝可梦","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSVH1aC-009	trainer		2	shuffle_deck	{}
@@ -19624,7 +19624,7 @@ CSVH1aC-011	trainer		1	discard_energy	{"target":"opponent_field","count":1}
 CSVH1aC-012	trainer		0	end_turn	{}
 CSVH1aC-012	trainer		1	usage_condition	{"kind":"evolve_from_any_field_pokemon","raw":"从自己的牌库选择1张从自己场上的1只宝可梦进化而来的卡牌，放置于该宝可梦身上进行进化"}
 CSVH1aC-012	trainer		2	shuffle_deck	{}
-CSVH2C-038	trainer		0	move_energy	{"source":"self","dest":"bench","count":1}
+CSVH2C-038	trainer		0	move_energy	{"source":"self","dest":"bench","count":1,"filter":"基本能量"}
 CSVH2C-039	trainer		0	recover_from_discard	{"count":1,"target":"hand"}
 CSVH2C-039	trainer		1	shuffle_deck	{}
 CSVH2C-040	trainer		0	heal	{"amount":30}
@@ -19676,7 +19676,7 @@ CSVH3C-047	trainer		0	coin_flip	{"count":1,"heads":[{"action":"switch_pokemon","
 CSVH3aC-007	trainer		0	switch_active_basic_heal_bench	{"heal":30}
 CSVH3aC-008	trainer		0	coin_flip	{"count":1}
 CSVH3aC-008	trainer		1	attach_energy_from_discard	{"filter":"基本能量","target":"bench","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
-CSVH3aC-009	trainer		0	move_energy	{"source":"self","dest":"bench","count":1}
+CSVH3aC-009	trainer		0	move_energy	{"source":"self","dest":"bench","count":1,"filter":"基本能量"}
 CSVH3aC-010	trainer		0	hikers_shoes	{"peek":1,"drawOnDiscard":1}
 CSVH3aC-011	trainer		0	trainer_prerequisite	{"kind":"own_prizes_more_than_opponent","raw":"这张卡，只有在自己的剩余奖赏卡张数，比对手的剩余奖赏卡张数多时才可使用"}
 CSVH3aC-011	trainer		1	heal	{"amount":60}
@@ -19719,7 +19719,7 @@ CSVH4aC-010	trainer		2	shuffle_deck	{}
 CSVH4aC-011	trainer		0	heal_all	{"amount":30}
 CSVH4aC-012	trainer		0	recover_from_discard	{"filter":"宝可梦或1张基本能量","target":"hand","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSVH5C-034	trainer		0	recover_from_discard	{"filter":"基本能量","target":"hand","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
-CSVH5C-035	trainer		0	move_energy	{"source":"self","dest":"bench","count":1}
+CSVH5C-035	trainer		0	move_energy	{"source":"self","dest":"bench","count":1,"filter":"基本能量"}
 CSVH5C-036	trainer		0	search_deck_to_hand	{"filter":"基本能量","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSVH5C-036	trainer		1	shuffle_deck	{}
 CSVH5C-037	trainer		0	heal	{"amount":30}
@@ -19804,7 +19804,7 @@ CSVM1cC-015	trainer		1	discard_field_attachments	{"target":"any","tools":true,"s
 CSVM1cC-015	trainer		2	lost_zone	{}
 CSVM1cC-015	trainer		3	lost_zone	{}
 CSVM2aC-013	trainer		0	recover_from_discard	{"filter":"基本能量","target":"hand","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
-CSVM2aC-014	trainer		0	move_energy	{"source":"self","dest":"bench","count":1}
+CSVM2aC-014	trainer		0	move_energy	{"source":"self","dest":"bench","count":1,"filter":"基本能量"}
 CSVM2aC-015	trainer		0	trainer_prerequisite	{"kind":"own_prizes_more_than_opponent","raw":"这张卡，只有在自己的剩余奖赏卡张数，比对手的剩余奖赏卡张数多时才可使用"}
 CSVM2aC-015	trainer		1	switch_pokemon	{"who":"opponent"}
 CSVM2aC-016	trainer		0	trainer_prerequisite	{"kind":"discard_cost","raw":"这张卡，只有将自己的2张手牌丢到弃牌区才可使用","count":2,"zone":"hand"}
@@ -20115,7 +20115,7 @@ SVP-237	trainer		0	coin_flip	{"count":1,"heads":[{"action":"switch_pokemon","par
 SVP-283	trainer		0	trainer_prerequisite	{"kind":"requires_field_type","raw":"这张卡，只有在自己场上有\\"太晶\\"宝可梦时才可使用"}
 SVP-283	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"选择自己备战区中最多2只【无】宝可梦，各附着1张弃牌区中的基本能量。"}
 SVP-284	trainer		0	recover_from_discard	{"filter":"宝可梦或1张基本能量","target":"hand","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
-SVP-293	trainer		0	move_energy	{"source":"self","dest":"bench","count":1}
+SVP-293	trainer		0	move_energy	{"source":"self","dest":"bench","count":1,"filter":"基本能量"}
 SVP-294	trainer		0	switch_pokemon	{"who":"self"}
 SVP-NaN10	trainer		0	evolve_rare_candy	{"stage":"2阶","targetStage":"基础","bypassStage":"1阶","noPlacedThisTurn":true,"noFirstTurn":true}
 SVP-NaN11	trainer		0	evolve_rare_candy	{"stage":"2阶","targetStage":"基础","bypassStage":"1阶","noPlacedThisTurn":true,"noFirstTurn":true}
@@ -22005,7 +22005,7 @@ CSV5C-125	trainer		1	shuffle_deck	{}
 CSV5C-125	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"可加入手牌的宝可梦的张数，会增加与自己弃牌区中\\"帕底亚的学生\\"（除这张卡外）张数相同的张数。"}
 CSV5C-126	trainer		0	move_energy	{"source":"self","dest":"bench","count":2}
 CSV5C-127	trainer		0	trainer_prerequisite	{"kind":"own_pokemon_knocked_out_last_opponent_turn","raw":"这张卡，只有在上一个对手的回合，自己的宝可梦【昏厥】时才可使用"}
-CSV5C-127	trainer		1	attach_energy_from_discard	{"filter":"基本能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
+CSV5C-127	trainer		1	attach_energy_from_discard	{"filter":"基本【火】能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSV5C-127	trainer		2	draw_until	{"target":6}
 CSV5C-148	trainer		0	coin_flip	{"count":1}
 CSV5C-148	trainer		1	search_deck_to_hand	{"filter":"宝可梦，若为反面则从自己的牌库选择1张【基础】宝可梦","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
@@ -22016,7 +22016,7 @@ CSV5C-150	trainer		0	look_at	{"target":"opponent_hand"}
 CSV5C-150	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"从自己的牌库抽出对手的手牌中支援者张数×2张卡。"}
 CSV5C-151	trainer		0	move_energy	{"source":"self","dest":"bench","count":2}
 CSV5C-152	trainer		0	trainer_prerequisite	{"kind":"own_pokemon_knocked_out_last_opponent_turn","raw":"这张卡，只有在上一个对手的回合，自己的宝可梦【昏厥】时才可使用"}
-CSV5C-152	trainer		1	attach_energy_from_discard	{"filter":"基本能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
+CSV5C-152	trainer		1	attach_energy_from_discard	{"filter":"基本【火】能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSV5C-152	trainer		2	draw_until	{"target":6}
 CSV5C-157	trainer		0	coin_flip	{"count":1}
 CSV5C-157	trainer		1	search_deck_to_hand	{"filter":"宝可梦，若为反面则从自己的牌库选择1张【基础】宝可梦","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
@@ -22025,7 +22025,7 @@ CSV5C-158	trainer		0	look_at	{"target":"opponent_hand"}
 CSV5C-158	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"从自己的牌库抽出对手的手牌中支援者张数×2张卡。"}
 CSV5C-159	trainer		0	move_energy	{"source":"self","dest":"bench","count":2}
 CSV5C-160	trainer		0	trainer_prerequisite	{"kind":"own_pokemon_knocked_out_last_opponent_turn","raw":"这张卡，只有在上一个对手的回合，自己的宝可梦【昏厥】时才可使用"}
-CSV5C-160	trainer		1	attach_energy_from_discard	{"filter":"基本能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
+CSV5C-160	trainer		1	attach_energy_from_discard	{"filter":"基本【火】能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSV5C-160	trainer		2	draw_until	{"target":6}
 CSV6C-121	trainer		0	usage_condition	{"kind":"bench_n_ancient_energy","raw":"选择自己最多2只\\"古代\\"宝可梦，各附着1张弃牌区中的基本能量"}
 CSV6C-121	trainer		1	draw	{"count":3}
@@ -22203,7 +22203,7 @@ CSV9.5C-198	trainer		0	heal	{"amount":"full"}
 CSV9.5C-199	trainer		0	trainer_prerequisite	{"kind":"discard_cost","raw":"这张卡，只有将自己的1张手牌丢到弃牌区才可使用","count":1,"zone":"hand"}
 CSV9.5C-199	trainer		1	usage_condition	{"kind":"draw_matching_opponent_field_count","raw":"从自己的牌库抽出与对手备战宝可梦数量相同数量的卡牌"}
 CSV9.5C-200	trainer		0	trainer_prerequisite	{"kind":"own_pokemon_knocked_out_last_opponent_turn","raw":"这张卡，只有在上一个对手的回合，自己的宝可梦【昏厥】时才可使用"}
-CSV9.5C-200	trainer		1	attach_energy_from_discard	{"filter":"基本能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
+CSV9.5C-200	trainer		1	attach_energy_from_discard	{"filter":"基本【火】能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSV9.5C-200	trainer		2	draw_until	{"target":6}
 CSV9.5C-209	trainer		0	discard_all_hand	{}
 CSV9.5C-209	trainer		1	shuffle_deck	{}
@@ -22234,7 +22234,7 @@ CSV9.5C-217	trainer		0	usage_condition	{"kind":"discard_opp_special_each","raw":
 CSV9.5C-218	trainer		0	look_at	{"target":"opponent_hand"}
 CSV9.5C-218	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"选择其中最多2张物品，丢到弃牌区。"}
 CSV9.5C-219	trainer		0	trainer_prerequisite	{"kind":"own_pokemon_knocked_out_last_opponent_turn","raw":"这张卡，只有在上一个对手的回合，自己的宝可梦【昏厥】时才可使用"}
-CSV9.5C-219	trainer		1	attach_energy_from_discard	{"filter":"基本能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
+CSV9.5C-219	trainer		1	attach_energy_from_discard	{"filter":"基本【火】能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSV9.5C-219	trainer		2	draw_until	{"target":6}
 CSV9.5C-220	trainer		0	peek_and_keep	{"peek":5,"keep":1}
 CSV9.5C-220	trainer		1	usage_condition	{"kind":"discard_then_reorder_top","raw":"其中任意数量的卡牌，丢到弃牌区。将剩余的卡牌以任意顺序重新排列，放回牌库上方"}
@@ -22512,7 +22512,7 @@ CSVH3C-057	trainer		1	shuffle_deck	{}
 CSVH3C-058	trainer		0	draw_until_opp_hand_plus	{"delta":1}
 CSVH3C-059	trainer		0	move_energy	{"source":"self","dest":"bench","count":2}
 CSVH3C-060	trainer		0	trainer_prerequisite	{"kind":"own_pokemon_knocked_out_last_opponent_turn","raw":"这张卡，只有在上一个对手的回合，自己的宝可梦【昏厥】时才可使用"}
-CSVH3C-060	trainer		1	attach_energy_from_discard	{"filter":"基本能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
+CSVH3C-060	trainer		1	attach_energy_from_discard	{"filter":"基本【火】能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSVH3C-060	trainer		2	draw_until	{"target":6}
 CSVH3aC-018	trainer		0	coin_flip	{"count":1}
 CSVH3aC-018	trainer		1	search_deck_to_hand	{"filter":"宝可梦，若为反面则从自己的牌库选择1张【基础】宝可梦","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
@@ -22595,7 +22595,7 @@ CSVH5C-056	trainer		0	recover_from_discard	{"count":1,"target":"hand"}
 CSVH5C-056	trainer		1	shuffle_deck	{}
 CSVH5C-056	trainer		2	draw	{"count":3}
 CSVH5C-057	trainer		0	trainer_prerequisite	{"kind":"own_pokemon_knocked_out_last_opponent_turn","raw":"这张卡，只有在上一个对手的回合，自己的宝可梦【昏厥】时才可使用"}
-CSVH5C-057	trainer		1	attach_energy_from_discard	{"filter":"基本能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
+CSVH5C-057	trainer		1	attach_energy_from_discard	{"filter":"基本【火】能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSVH5C-057	trainer		2	draw_until	{"target":6}
 CSVH5C-058	trainer		0	recover_from_discard	{"count":1,"target":"hand"}
 CSVH5aC-018	trainer		0	draw_until	{"target":6}

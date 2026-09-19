@@ -318,6 +318,47 @@ await test('填能语义：属性限定有效（火/雷结果不同）', () => {
   }
 });
 
+await test('填能语义：属性交叉验证（限定【X】能量的卡不得出现在【Y】查询）', () => {
+  // 防回归：解析规则若把捕获到的能量限定丢掉（硬编码「基本能量」），
+  // 会让「填【斗】能量」「填【水】能量」的卡误入「填【雷】能量」查询
+  const ENERGY = ['草', '火', '水', '雷', '超', '斗', '恶', '钢', '妖'];
+  const sets = new Map(ENERGY.map(et => [et, new Set(
+    engine.query({ types: ['宝可梦'], energyAttach: true, energyType: et, energyIn: 'ability' }).map(c => c.id)
+  )]));
+  const offenders = [];
+  for (const c of engine.cards.values()) {
+    const txt = (c.abilityTexts || []).join(' ');
+    const attrs = new Set();
+    for (const m of txt.matchAll(/(?:基本)?【([草火水雷超斗恶钢妖])】能量/g)) attrs.add(m[1]);
+    if (!attrs.size) continue;              // 文本未限定属性（任意能量）→ 命中任意属性都合理
+    for (const et of ENERGY) {
+      if (attrs.has(et)) continue;
+      if (sets.get(et).has(c.id)) offenders.push(`${c.id} ${c.name}（文本限定 ${[...attrs].join('/')}）误入 ${et} 查询`);
+    }
+  }
+  assert.deepEqual(offenders, [], `属性交叉验证失败：\n${offenders.join('\n')}`);
+});
+
+await test('填能语义：弃牌区附能按属性区分 + 被动描述不算填能', () => {
+  const q = et => new Set(engine.query({ types: ['宝可梦'], energyAttach: true, energyType: et, energyIn: 'ability' }).map(c => c.id));
+  const thunder = q('雷'), fighting = q('斗'), water = q('水');
+  // 规则 [269] 曾把捕获到的能量限定丢掉（filter 硬编码「基本能量」）
+  for (const [id, name, own] of [
+    ['CS6bC-068', '念力土偶', fighting],
+    ['CS3bC-040', '雪妖女', water],
+    ['CSV6C-077', '盐石巨灵', fighting],
+  ]) {
+    assert.ok(!thunder.has(id), `${name} 只填其它属性能量，不应出现在雷查询`);
+    assert.ok(own.has(id), `${name} 应出现在自身属性查询`);
+  }
+  // 被动/触发时点描述不应算作填能效果
+  for (const [id, why] of [
+    ['CSM1.5C-010', '捷拉奥拉GX「身上附有【雷】能量…撤退所需能量消除」是被动'],
+    ['CS6.5C-025', '光辉虫电宝「每当…附着于…身上时」是触发时点'],
+    ['CSM1DC-076', '西狮海壬「当…附着…时，可同时最多附着2张」是附着规则修改'],
+  ]) assert.ok(!thunder.has(id), `不应包含 ${id}：${why}`);
+});
+
 await test('搜索结果排序：默认卡库顺序，可切换 id 排序', () => {
   const load = engine.query({ types: ['宝可梦'], abilityText: ['雷能量'] });
   assert.ok(load.every((c, i) => i === 0 || (load[i - 1].loadIndex ?? 0) <= (c.loadIndex ?? 0)), '默认应为卡库顺序');
