@@ -278,8 +278,11 @@ export class CardQueryEngine {
     if (!/(附着|转附|改附|充能|填充|贴上)于[^。]{0,12}(宝可梦|备战|战斗场)/.test(hay)) return false;
     if (/(附着|转附|改附)于对手/.test(hay)) return false;                       // 作用于对手能量（移除/转移）
     if (/(不会受到|不受|不会被|效果影响)/.test(hay)) return false;               // 保护/免疫描述，不是填能
-    if (/(每当|当|在)[^。]{0,18}(附着|转附)[^。]{0,8}时/.test(hay)) return false; // 触发时点，不是效果
+    if (/(每次|每当|当|在)[^。]{0,18}(附着|转附)[^。]{0,8}时/.test(hay)) return false; // 触发时点，不是效果
+    if (/(被视作|视为|视作|当作)/.test(hay)) return false;                          // 能量倍化等被动，不是填能
     if (/的话[，,]?则/.test(hay) && /(属性变为|变为和)/.test(hay)) return false;   // 条件从句（附着是前提）
+    // 排除「把已附着的能量丢到弃牌区/放回」这类移除操作（如多边兽乙型GX、伽勒尔泥巴鱼）
+    if (/(附着于|附于)[^。]{0,16}身上的?[^。]{0,12}(放于弃牌区|丢到弃牌区|丢弃|放回)/.test(hay)) return false;
     return this._textCoversEnergyType(hay, energyType);
   }
 
