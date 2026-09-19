@@ -153,9 +153,12 @@ export class CardQueryEngine {
       if (!r[0]) continue;
       let params = {};
       try { params = r[5] ? JSON.parse(r[5]) : {}; } catch (e) { params = {}; }
+      const entry = { scope: r[1], slot: r[2], seq: toNum(r[3]) || 0, action: r[4], params };
       const list = this.effects.get(r[0]) || [];
-      list.push({ scope: r[1], slot: r[2], seq: toNum(r[3]) || 0, action: r[4], params });
+      list.push(entry);
       this.effects.set(r[0], list);
+      const card = this.cards.get(r[0]);
+      if (card) (card.effectList = card.effectList || []).push(entry);
     }
 
     // 特性 / 招式文本（用于「特性内容是…」「招式效果含…」这类检索；缺文件则跳过）
@@ -186,8 +189,9 @@ export class CardQueryEngine {
 
   /** 文本归一化：去括号/标点/空白，使「雷能量」能命中「【雷】能量」 */
   _normText(s) {
+    // 注意：保留「」以便识别具名能量（如「治疗能量」「尖钉能量」）
     return String(s ?? '')
-      .replace(/[【】\[\]（）()「」『』〈〉《》]/g, '')
+      .replace(/[【】\[\]（）()『』〈〉《》]/g, '')
       .replace(/[\s，,。.、·:：;；!！?？"'‘’“”]/g, '')
       .toLowerCase();
   }
@@ -198,26 +202,85 @@ export class CardQueryEngine {
    */
   static ATTACH_VERB_RE = /(附着|附于|转附|改附|充能|填充|贴上|加速)/;
 
+  /** 「填能」动作集合（结构化 action 名） */
+  static ENERGY_FILL_ACTIONS = new Set([
+    'attach_energy_from_hand',
+    'attach_energy_from_discard',
+    'attach_energy_from_deck',
+    'move_energy',
+  ]);
+
   /**
-   * 判断（归一化后的）文本是否表达「给宝可梦填 X 能量」：
-   *  - 必须同时出现「填能动作词」与「能量对象」
-   *  - 能量对象允许泛化：查询「雷能量」时，"基本能量"、"能量"（未限定属性）也算命中
-   *    （因为雷能量 ⊂ 基本能量 ⊂ 能量）；但明确写了其它属性（如"火能量"）不算
+   * 递归收集 effect 树中的动作（含 trigger / conditional_effect 的内层 effect / heads / effects）。
+   * 用于语义判定「这张卡是否真的执行了某个动作」，而不是靠关键词。
    */
-  _matchesEnergyAttach(hay, energyType = null) {
-    if (!hay || !hay.includes('能量')) return false;
-    if (!CardQueryEngine.ATTACH_VERB_RE.test(hay)) return false;
-    // 目标必须是「自方宝可梦」：排除「选择附着于对手宝可梦身上的能量，放回/丢弃」这类反向操作
-    const toSelf = /自己的宝可梦|自己场上的|这只宝可梦/.test(hay);
-    if (/对手/.test(hay) && !toSelf) return false;
+  _collectActions(eff, out = []) {
+    if (!eff || typeof eff !== 'object') return out;
+    if (eff.action) out.push(eff);
+    const p = eff.params || {};
+    if (p.effect) this._collectActions(p.effect, out);
+    if (Array.isArray(p.heads)) for (const h of p.heads) this._collectActions(h, out);
+    if (Array.isArray(p.effects)) for (const e of p.effects) this._collectActions(e, out);
+    return out;
+  }
+
+  /** filter 串是否涵盖查询属性（结构化短串口径） */
+  _filterCoversType(filter, energyType) {
+    const f = this._normText(filter || '');
+    if (!f) return true;                        // 未限定 → 任意能量（含该属性）
     if (!energyType) return true;
     const t = this._normText(energyType);
     if (!t) return true;
-    if (hay.includes(`${t}能量`)) return true;           // 直接命中该属性
-    if (hay.includes('基本能量')) return true;            // 泛化为基本能量
+    if (f.includes(`${t}能量`)) return true;     // 【雷】能量 / 基本【雷】能量
+    if (f.includes('基本能量')) return true;      // 基本能量 ⊃ 雷能量
+    if (f === '能量') return true;               // 未限定属性的"能量"→ 含该属性
+    if (f.includes('特殊能量')) return false;     // 明确"特殊能量"
+    return false;                               // 具名能量（治疗能量/尖钉能量…）→ 不涵盖
+  }
+
+  /** 效果索引判定：卡片是否真的执行「填能」动作（结构化，含内层效果） */
+  _effectsHaveEnergyFill(card, scope, energyType) {
+    const list = (card.effectList || []).filter(e => scope === 'any' || e.scope === scope);
+    for (const entry of list) {
+      for (const eff of this._collectActions(entry)) {
+        if (!CardQueryEngine.ENERGY_FILL_ACTIONS.has(eff.action)) continue;
+        const p = eff.params || {};
+        if (eff.action === 'move_energy') {
+          // 排除「对手宝可梦之间转移能量」这类非自方填能
+          if (String(p.dest || '').includes('opponent') || String(p.source || '').includes('opponent')) continue;
+        }
+        if (this._filterCoversType(p.filter, energyType)) return true;
+      }
+    }
+    return false;
+  }
+
+  /** 文本涵盖判定（宽松，用于解析漏网时的回退） */
+  _textCoversEnergyType(hay, energyType) {
+    if (!hay || !hay.includes('能量')) return false;
+    if (!energyType) return true;
+    const t = this._normText(energyType);
+    if (!t) return true;
+    if (hay.includes(`${t}能量`)) return true;              // 【雷】能量 / 基本【雷】能量
+    if (hay.includes('基本能量')) return true;               // 基本能量 ⊃ 雷
+    if (/「[^」]{0,8}能量」/.test(hay)) return false;          // 具名能量（「治疗能量」）→ 不涵盖
+    if (hay.includes('特殊能量')) return false;
     const others = Object.values(ATTR_CN).filter(x => x !== energyType);
-    if (others.some(x => hay.includes(`${this._normText(x)}能量`))) return false; // 明确了其它属性
-    return true;                                          // 只提"能量"（未限定属性）→ 泛化命中
+    return !others.some(x => hay.includes(`${this._normText(x)}能量`)); // 仅"能量"泛化且无其它属性
+  }
+
+  /**
+   * 回退文本判定：要求「贴能动作 + 目标宝可梦」结构，排除触发时点与对手目标。
+   */
+  _textHasEnergyFill(hay, energyType) {
+    if (!hay || !hay.includes('能量')) return false;
+    // 必须是「贴能动作 + 目标宝可梦」结构
+    if (!/(附着|转附|改附|充能|填充|贴上)于[^。]{0,12}(宝可梦|备战|战斗场)/.test(hay)) return false;
+    if (/(附着|转附|改附)于对手/.test(hay)) return false;                       // 作用于对手能量（移除/转移）
+    if (/(不会受到|不受|不会被|效果影响)/.test(hay)) return false;               // 保护/免疫描述，不是填能
+    if (/(每当|当|在)[^。]{0,18}(附着|转附)[^。]{0,8}时/.test(hay)) return false; // 触发时点，不是效果
+    if (/的话[，,]?则/.test(hay) && /(属性变为|变为和)/.test(hay)) return false;   // 条件从句（附着是前提）
+    return this._textCoversEnergyType(hay, energyType);
   }
 
   /** 卡片的效果文本池（特性 + 招式） */
@@ -353,7 +416,10 @@ export class CardQueryEngine {
       }
       if (energyAttach) {
         const scope = energyIn === 'ability' ? 'ability' : energyIn === 'attack' ? 'attack' : 'any';
-        if (!this._matchesEnergyAttach(this._effectTextPool(card, scope), energyType || null)) continue;
+        // 结构化优先（effects.tsv 的 attach/move 动作，含内层效果）；解析漏网时回退严格文本结构
+        const structured = this._effectsHaveEnergyFill(card, scope, energyType || null);
+        const textual = this._textHasEnergyFill(this._effectTextPool(card, scope), energyType || null);
+        if (!structured && !textual) continue;
       }
 
       let minCosts = null;

@@ -290,7 +290,21 @@ await test('填能语义：动作词 × 能量泛化（雷能量/基本能量/�
     assert.ok(hay.includes('能量'), `${c.name} 应含能量对象`);
   }
   assert.ok(res.some(c => c.id === '151C-026'), '应包含「转附雷能量」的雷丘');
-  assert.ok(!res.some(c => c.id === 'CS1.5C-021'), '不应包含「把对手能量放回牌库」这类反向操作');
+  assert.ok(res.some(c => c.id === 'CS5.5C-014'), '应包含「附着能量」的水箭龟');
+  // 用户反馈的反例：以下都不应命中
+  const bad = [
+    ['CSV3C-057', '附着具名特殊能量「治疗能量」'],
+    ['CSV10C-115', '附着具名特殊能量「尖钉能量」'],
+    ['151C-145', '「身上附着了【雷】能量」是条件（伏特飘浮），不是填能效果'],
+    ['CS2bC-004', '「每当…附着能量时」是触发时点（水幕），不是填能效果'],
+    ['CSM1.5C-023', '移除对手能量的反向操作'],
+    ['CS1.5C-021', '把对手能量放回牌库的反向操作'],
+  ];
+  for (const [id, why] of bad) assert.ok(!res.some(c => c.id === id), `不应包含 ${id}：${why}`);
+
+  // 结构化判定（effects.tsv 的 attach/move 动作）应占相当比例，而不是全靠文本
+  const structured = res.filter(c => engine._effectsHaveEnergyFill(c, 'ability', '雷'));
+  assert.ok(structured.length > 0, '应有至少一部分走结构化 action 判定');
 });
 
 await test('填能语义：属性限定有效（火/雷结果不同）', () => {
