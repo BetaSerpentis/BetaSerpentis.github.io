@@ -279,3 +279,47 @@ await test('sanitizeConditions：效果文本字段保留并清理非法项', ()
   const bad = sanitizeConditions({ abilityText: [1, null, {}, 'x'.repeat(50)] });
   assert.equal(bad.abilityText, 'x'.repeat(24), '超长截断、非法项丢弃');
 });
+
+await test('填能语义：动作词 × 能量泛化（雷能量/基本能量/通用能量，排除反向操作）', () => {
+  const res = engine.query({ types: ['宝可梦'], energyAttach: true, energyType: '雷', energyIn: 'ability' });
+  assert.ok(res.length > 0, '应有结果');
+  const hayOf = c => (c.abilityTexts || []).join('\n').replace(/[【】\s]/g, '');
+  for (const c of res) {
+    const hay = hayOf(c);
+    assert.ok(/(附着|附于|转附|改附|充能|填充|贴上|加速)/.test(hay), `${c.name} 应含填能动作词`);
+    assert.ok(hay.includes('能量'), `${c.name} 应含能量对象`);
+  }
+  assert.ok(res.some(c => c.id === '151C-026'), '应包含「转附雷能量」的雷丘');
+  assert.ok(!res.some(c => c.id === 'CS1.5C-021'), '不应包含「把对手能量放回牌库」这类反向操作');
+});
+
+await test('填能语义：属性限定有效（火/雷结果不同）', () => {
+  const fire = engine.query({ types: ['宝可梦'], energyAttach: true, energyType: '火', energyIn: 'ability' });
+  const thunder = engine.query({ types: ['宝可梦'], energyAttach: true, energyType: '雷', energyIn: 'ability' });
+  assert.ok(fire.length > 0 && thunder.length > 0);
+  const hay = c => (c.abilityTexts || []).join('').replace(/[【】\s]/g, '');
+  for (const c of fire) {
+    const t = hay(c);
+    assert.ok(!t.includes('雷能量') || t.includes('基本能量'), `${c.name} 不应仅因雷能量命中火查询`);
+  }
+});
+
+await test('搜索结果排序：默认卡库顺序，可切换 id 排序', () => {
+  const load = engine.query({ types: ['宝可梦'], abilityText: ['雷能量'] });
+  assert.ok(load.every((c, i) => i === 0 || (load[i - 1].loadIndex ?? 0) <= (c.loadIndex ?? 0)), '默认应为卡库顺序');
+  const byId = engine.query({ types: ['宝可梦'], abilityText: ['雷能量'], sort: 'id' });
+  assert.ok(byId.every((c, i) => i === 0 || String(byId[i - 1].id) <= String(c.id)), 'id 排序生效');
+  assert.notDeepEqual(byId.map(c => c.id).slice(0, 6), load.map(c => c.id).slice(0, 6), '两种排序应有差异');
+});
+
+await test('sanitizeConditions：energyAttach / energyType / energyIn 白名单', () => {
+  const c = sanitizeConditions({ types: ['宝可梦'], energyAttach: true, energyType: '雷', energyIn: 'ability' });
+  assert.equal(c.energyAttach, true);
+  assert.equal(c.energyType, '雷');
+  assert.equal(c.energyIn, 'ability');
+  const bad = sanitizeConditions({ energyAttach: true, energyType: '火焰', energyIn: 'nowhere' });
+  assert.equal(bad.energyAttach, true);
+  assert.equal(bad.energyType, undefined);
+  assert.equal(bad.energyIn, undefined);
+  assert.equal(sanitizeConditions({ energyAttach: 'yes' }).energyAttach, undefined);
+});

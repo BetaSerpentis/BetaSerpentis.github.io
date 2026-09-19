@@ -9,7 +9,11 @@
  *   <type>.filter.tsv hp stage attr retreat flags costs dmg  —— costs 是**逐招式**逗号分隔的消耗串（如 "R,RR"）
  *   <type>.detail.tsv 第 9 列是**环境标记**（如 H）
  *   effects.tsv       card_key scope slot seq action params_json —— 用于读减费效果
+ *   abilities.tsv     卡号 / 套装 / 序号 / 顺序 / 特性名 / 特性文本 —— 特性内容检索
+ *   attacks.tsv       卡号 / 套装 / 序号 / 顺序 / 招式名 / 消耗 / 伤害 / 招式文本 —— 招式内容检索
  *   meta.json         currentMarks / retiredMarks（环境合法性以它为准）
+ *
+ * 排序：默认按卡库加载顺序（idx.tsv，与卡牌库列表一致），可选 sort='id' / 'dex'。
  *
  * 减费折算口径（与用户确认）：
  *   1. 动态减费量按**理论上限**算（如「对手备战数量」→ 最多 5）
@@ -80,6 +84,7 @@ export class CardQueryEngine {
       return r.text();
     });
     this.cards = new Map();     // id -> card
+    this.loadSeq = 0;           // 卡库加载顺序（与 idx.tsv 一致，用于默认排序）
     this.effects = new Map();   // id -> [{scope, slot, seq, action, params}]
     this.envMarks = [];         // 标准环境标记（来自 meta.json）
     this.retiredMarks = [];
@@ -119,10 +124,12 @@ export class CardQueryEngine {
       for (const r of idx) {
         const id = r[0];
         if (!id) continue;
+        const loadIndex = this.loadSeq++;
         const f = filterMap.get(id) || [];
         const d = detailMap.get(id) || [];
         this.cards.set(id, {
           id,
+          loadIndex,
           name: r[1] || '',
           type: cnType,
           typeSlug: slug,
@@ -183,6 +190,34 @@ export class CardQueryEngine {
       .replace(/[【】\[\]（）()「」『』〈〉《》]/g, '')
       .replace(/[\s，,。.、·:：;；!！?？"'‘’“”]/g, '')
       .toLowerCase();
+  }
+
+  /**
+   * 「填能」动作词：附着 / 转附 / 改附 / 充能 / 填充 / 贴上 / 加速
+   * 注意：归一化后文本里，"附着于"→"附于"，"转附"保持
+   */
+  static ATTACH_VERB_RE = /(附着|附于|转附|改附|充能|填充|贴上|加速)/;
+
+  /**
+   * 判断（归一化后的）文本是否表达「给宝可梦填 X 能量」：
+   *  - 必须同时出现「填能动作词」与「能量对象」
+   *  - 能量对象允许泛化：查询「雷能量」时，"基本能量"、"能量"（未限定属性）也算命中
+   *    （因为雷能量 ⊂ 基本能量 ⊂ 能量）；但明确写了其它属性（如"火能量"）不算
+   */
+  _matchesEnergyAttach(hay, energyType = null) {
+    if (!hay || !hay.includes('能量')) return false;
+    if (!CardQueryEngine.ATTACH_VERB_RE.test(hay)) return false;
+    // 目标必须是「自方宝可梦」：排除「选择附着于对手宝可梦身上的能量，放回/丢弃」这类反向操作
+    const toSelf = /自己的宝可梦|自己场上的|这只宝可梦/.test(hay);
+    if (/对手/.test(hay) && !toSelf) return false;
+    if (!energyType) return true;
+    const t = this._normText(energyType);
+    if (!t) return true;
+    if (hay.includes(`${t}能量`)) return true;           // 直接命中该属性
+    if (hay.includes('基本能量')) return true;            // 泛化为基本能量
+    const others = Object.values(ATTR_CN).filter(x => x !== energyType);
+    if (others.some(x => hay.includes(`${this._normText(x)}能量`))) return false; // 明确了其它属性
+    return true;                                          // 只提"能量"（未限定属性）→ 泛化命中
   }
 
   /** 卡片的效果文本池（特性 + 招式） */
@@ -268,6 +303,10 @@ export class CardQueryEngine {
    *   abilityText?: string|string[], 特性效果文本子串（数组 = 任一命中）
    *   attackText?: string|string[],  招式效果文本子串（数组 = 任一命中）
    *   textAny?: string|string[],     特性+招式文本子串（数组 = 任一命中）
+   *   energyAttach?: boolean,         「填能」语义：动作词（附着/转附/充能…）+ 能量对象
+   *   energyType?: string,            填能属性（如 '雷'）；省略 = 任意能量
+   *   energyIn?: 'ability'|'attack'|'any', 填能语义的检索范围（默认 any）
+   *   sort?: 'load'|'id'|'dex',       排序：load=卡库顺序（默认）/ id / 图鉴号
    *   limit?: number,
    * }} conds
    */
@@ -276,6 +315,7 @@ export class CardQueryEngine {
       types, stage, retreat, hp, attr, marks, env,
       attackCostExactly, attackCostAtMost, keyword, limit,
       abilityName, abilityText, attackText, textAny,
+      energyAttach, energyType, energyIn, sort,
     } = conds;
 
     const typeSet = types && types.length ? new Set(types) : null;
@@ -311,6 +351,10 @@ export class CardQueryEngine {
         const hay = this._effectTextPool(card, 'any');
         if (!toKeywordList(textAny).map(k => this._normText(k)).some(k => k && hay.includes(k))) continue;
       }
+      if (energyAttach) {
+        const scope = energyIn === 'ability' ? 'ability' : energyIn === 'attack' ? 'attack' : 'any';
+        if (!this._matchesEnergyAttach(this._effectTextPool(card, scope), energyType || null)) continue;
+      }
 
       let minCosts = null;
       if (attackCostExactly !== undefined && attackCostExactly !== null) {
@@ -325,7 +369,12 @@ export class CardQueryEngine {
       out.push(minCosts ? { ...card, minCosts } : card);
     }
 
-    out.sort((a, b) => String(a.id).localeCompare(String(b.id)));
+    // 默认按卡库加载顺序（与卡牌库列表一致）；可选 id / 图鉴号
+    // 统一的 id 比较（纯码点序，避免 localeCompare 在不同环境下的差异）
+    const cmpId = (a, b) => (String(a.id) < String(b.id) ? -1 : String(a.id) > String(b.id) ? 1 : 0);
+    if (sort === 'id') out.sort(cmpId);
+    else if (sort === 'dex') out.sort((a, b) => (toNum(a.dexNumber) ?? 99999) - (toNum(b.dexNumber) ?? 99999) || cmpId(a, b));
+    else out.sort((a, b) => (a.loadIndex ?? 0) - (b.loadIndex ?? 0));
     return limit ? out.slice(0, limit) : out;
   }
 }

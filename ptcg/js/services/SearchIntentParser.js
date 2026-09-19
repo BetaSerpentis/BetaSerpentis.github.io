@@ -37,6 +37,10 @@ const SYSTEM_PROMPT = `你是一个查询条件翻译器。把用户的卡牌查
   「特性是转附基本能量的宝可梦」→ {"types":["宝可梦"], "abilityText":["转附"]} 或 ["基本能量"]
 - attackText: 招式**效果文本内容**字符串或数组（数组 = 任一命中）
 - textAny: 特性+招式文本任意位置字符串或数组（数组 = 任一命中），不确定在特性还是招式时用
+- energyAttach: true 表示「**给宝可梦填能量**」这类效果（附着能量 / 转附能量 / 充能 / 加速）。
+  与 energyType 搭配表示「填某属性的能量」。
+- energyType: 属性（${ATTR_LABEL} 之一），配合 energyAttach 使用
+- energyIn: "ability" | "attack" | "any"，限定 energyAttach 的检索范围（用户说「特性里」用 ability）
 
 规则：
 1. 「N能」「需要N个能量」一律用 attackCostExactly: N。只有当用户说「N能以下」「N能以内」「不超过N能」时才用 attackCostAtMost: N。
@@ -48,7 +52,10 @@ const SYSTEM_PROMPT = `你是一个查询条件翻译器。把用户的卡牌查
 5. 撤退能量相关用 retreat。HP 相关用 hp。
 6. **描述「效果/特性内容是…」时必须用 abilityText / attackText / textAny，不要退化成 keyword 或 attr**。
    keyword 只匹配卡名；attr 只匹配宝可梦属性。
-7. 不要臆造字段。无法翻译的部分忽略。`;
+7. 「填X能量的特性」这类查询用 energyAttach:true + energyType:"X" + energyIn:"ability"。
+   例：「有填雷能量特性的宝可梦」→ {"types":["宝可梦"], "energyAttach":true, "energyType":"雷", "energyIn":"ability"}
+   （引擎会把语义泛化：附着/转附雷能量、基本能量、通用能量都算命中，无需你穷举同义词）
+8. 不要臆造字段。无法翻译的部分忽略。`;
 
 /** 逐字段白名单校验：模型返回任何越界内容都会被丢弃 */
 export function sanitizeConditions(raw) {
@@ -82,6 +89,13 @@ export function sanitizeConditions(raw) {
   for (const key of ['attackCostExactly', 'attackCostAtMost']) {
     const v = Number(raw[key]);
     if (Number.isInteger(v) && v >= 0 && v <= 10) out[key] = v;
+  }
+
+  if (raw.energyAttach === true) {
+    out.energyAttach = true;
+    const attrValues2 = Object.values(ATTR_CN);
+    if (attrValues2.includes(String(raw.energyType))) out.energyType = String(raw.energyType);
+    if (['ability', 'attack', 'any'].includes(String(raw.energyIn))) out.energyIn = String(raw.energyIn);
   }
 
   // 效果/特性文本类条件：只接受字符串或字符串数组，逐项去空/限长

@@ -281,6 +281,7 @@ export class CardBrowser {
         if (c.abilityText) parts.push(`特性内容含「${kwList(c.abilityText)}」`);
         if (c.attackText) parts.push(`招式内容含「${kwList(c.attackText)}」`);
         if (c.textAny) parts.push(`效果内容含「${kwList(c.textAny)}」`);
+        if (c.energyAttach) parts.push(`填能效果${c.energyType ? `（${c.energyType}能量` : '（任意能量'}${c.energyIn === 'ability' ? '·特性' : c.energyIn === 'attack' ? '·招式' : ''}）`);
         return parts.length ? parts.join('、') : '（无条件，显示当前页签全部）';
     }
 
