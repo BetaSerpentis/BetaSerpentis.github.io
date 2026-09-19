@@ -297,3 +297,19 @@ ptcg/battle/                # 已并入 ptcg（原 ptcgBattle/，2026-09-16；�
 ### 测试
 - 新增 3 条回归用例：自爆昏厥离场（含无后备判负）、竞技场同名/重复发动、UI 列表格式与置灰
 - 全绿：`test:ptcg-battle` 全通过（连续 2 次）、`test:ptcg-query` 26/26、`ptcg:check-syntax` 42/42、effects 指纹一致
+
+## 优化与查错（2026-09-19 第五轮，用户报告 2 项）
+
+- [x] **场地页签的进化项未置灰**（当回合刚上场的大岩蛇仍可点「进化」→ 点了才失败）
+      根因：上一轮只改了**手牌页签**（`_showCardActions`），**场地页签**的宝可梦动作菜单（`_showPokeActions`）漏了
+      修复：同样按「本回合刚出场 / 已进化」判断并置灰，提示「本回合刚出场或已进化，下回合才能进化」
+- [x] **「令这只宝可梦昏厥」误作用于战斗场**
+      现象：备战区的彷徨夜灵发动「咒怨炸弹」→ 战斗场的超梦被昏厥
+      根因：`knockout` executor 取 `pl.active`，而规则上「这只宝可梦」= **特性/效果来源宝可梦**（可能在备战区）
+      修复：`executeEffects` 本来就把 effect 对象作为第 4 参数传给 executors，
+            因此 `knockout` 改为优先取 `eff.source`；备战区来源走 `_knockoutPokemon` 的 bench 分支
+            （离开备战区 + 进弃牌区 + 对手拿 1 张奖赏）
+
+### 测试
+- 新增 2 条回归用例：来源宝可梦（备战区）昏厥、场地页签进化项置灰
+- 全绿：`test:ptcg-battle` 全通过（连续 2 次）、`test:ptcg-query` 26/26、`ptcg:check-syntax` 42/42、effects 指纹一致
