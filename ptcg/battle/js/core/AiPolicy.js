@@ -13,6 +13,8 @@
 
 import { ACTION } from './ActionSpace.js';
 import { derivePickBounds } from './GameState.js';
+import { getAiApiKey, getAiSettings, normalizeAiModelName, AI_ENDPOINT, AI_DEFAULT_MODEL } from './AiSettings.js';
+import { serializeBattleState, formatActionList, buildLlmMessages, extractActionId } from './StateSerializer.js';
 
 /** 「准备类」动作：做完它们再攻击（攻击会立刻结束回合，所以顺序很关键） */
 const PREP_KINDS = new Set([
@@ -190,26 +192,121 @@ export class HeuristicPolicy {
 }
 
 /**
- * LLM 策略（P2 实现）：
- * 与启发式同接口，内部把「候选动作 + 事实标注」交给 deepseek-flash 选择；
- * 任何失败（超时/非法/无 Key）都回退启发式，绝不阻塞对局。
+ * 混合 AI（默认模式）：**启发式算数 + LLM 取舍**。
+ *
+ * 工作方式：
+ *   - 启发式先算好候选与事实（伤害/KO/奖赏），并作为永远可用的兜底；
+ *   - 只在「关键决策点」（攻击/训练家/特性/撤退/进化）且候选≥2 时问模型；
+ *   - 每回合限制调用次数（默认 2 次），其余动作走启发式 —— 兼顾质量与延迟；
+ *   - 三道闸：① 输出可解析 ② id 在候选内 ③ 引擎执行时再校验；任一失败均回退启发式；
+ *   - 无 API Key、超时、报错 → 自动降级，不阻塞对局（失败后冷却一段时间，避免每个动作都等超时）。
  */
 export class LlmPolicy extends HeuristicPolicy {
   constructor(engine, options = {}) {
     super(engine, options.player);
     this.options = options;
-    this.llmEnabled = false; // P2：接入后置为 true
+    this.llmTimeoutMs = Number.isFinite(options.llmTimeoutMs) ? options.llmTimeoutMs : 8000;
+    this.maxLlmCallsPerTurn = Number.isFinite(options.maxLlmCallsPerTurn) ? options.maxLlmCallsPerTurn : 2;
+    this.cooldownMs = Number.isFinite(options.cooldownMs) ? options.cooldownMs : 60000;
+    this._cooldownUntil = 0;
+    this._askedTurn = -1;
+    this._askedThisTurn = 0;
+    this._warnedOnce = false;
+    this.stats = { asked: 0, accepted: 0, rejected: 0, failed: 0, fallback: 0 };
+    // 测试/调试可注入 fetch
+    this.fetchImpl = options.fetchImpl || (typeof fetch !== 'undefined' ? fetch.bind(globalThis) : null);
+  }
+
+  /** 关键决策点才值得花一次模型调用 */
+  _isKeyDecision(actions) {
+    const kinds = new Set(actions.map(a => a.kind));
+    if (actions.length < 2) return false;
+    if (kinds.has(ACTION.ATTACK)) return true;
+    if (kinds.has(ACTION.RETREAT)) return true;
+    if (kinds.has(ACTION.USE_TRAINER) && actions.filter(a => a.kind === ACTION.USE_TRAINER).length >= 2) return true;
+    if (kinds.has(ACTION.USE_ABILITY)) return true;
+    if (kinds.has(ACTION.EVOLVE)) return true;
+    return false;
+  }
+
+  _canAskLlm(actions) {
+    if (!this.fetchImpl) return false;
+    if (Date.now() < this._cooldownUntil) return false;
+    if (!getAiApiKey()) return false;
+    if (!this._isKeyDecision(actions)) return false;
+    const turn = this.gs.turn;
+    if (this._askedTurn !== turn) { this._askedTurn = turn; this._askedThisTurn = 0; }
+    return this._askedThisTurn < this.maxLlmCallsPerTurn;
   }
 
   async chooseAction(actions = []) {
-    // P2：调用 LLM 选择候选 id；此处先行为与启发式一致，保证可随时启用
-    return super.chooseAction(actions);
+    const fallback = await super.chooseAction(actions);
+    if (!actions.length) return fallback;
+    if (!this._canAskLlm(actions)) return fallback;
+
+    this._askedThisTurn += 1;
+    this.stats.asked += 1;
+    const picked = await this._askLlm(actions);
+    if (picked) { this.stats.accepted += 1; return picked; }
+    this.stats.rejected += 1;
+    return fallback;
+  }
+
+  /** 调用模型并做三道闸校验（返回合法 action 或 null） */
+  async _askLlm(actions) {
+    const stateText = serializeBattleState(this.gs, this.player, { recentLogs: 4 });
+    const actionText = formatActionList(actions);
+    const messages = buildLlmMessages(stateText, actionText);
+    const settings = getAiSettings({});
+    const model = normalizeAiModelName(settings.model) || AI_DEFAULT_MODEL;
+    const body = {
+      model,
+      messages,
+      max_tokens: 120,
+      temperature: 0,
+      stream: false,
+      // 关闭思考模式：战斗决策要求低延迟（开启会先输出大段 CoT）
+      thinking: { type: 'disabled' },
+      response_format: { type: 'json_object' },
+    };
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timer = controller ? setTimeout(() => controller.abort(), this.llmTimeoutMs) : null;
+    try {
+      const resp = await this.fetchImpl(AI_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getAiApiKey()}` },
+        body: JSON.stringify(body),
+        signal: controller ? controller.signal : undefined,
+      });
+      if (!resp || !resp.ok) throw new Error(`API ${resp?.status ?? 'error'}`);
+      const data = await resp.json();
+      const content = data?.choices?.[0]?.message?.content;
+      // 闸 1：输出可解析
+      const id = extractActionId(content);
+      if (!id) throw new Error('unparsable_output');
+      // 闸 2：id 必须在本次候选内
+      const action = actions.find(a => a.id === id);
+      if (!action) throw new Error(`unknown_action:${id}`);
+      return action;
+    } catch (err) {
+      this.stats.failed += 1;
+      this.stats.fallback += 1;
+      // 失败后冷却，避免每个动作都白等一个超时
+      this._cooldownUntil = Date.now() + this.cooldownMs;
+      if (!this._warnedOnce) {
+        this._warnedOnce = true;
+        this.engine?.cb?.onLog?.(`AI 模型暂不可用，改用启发式策略（${err?.message || err}）`);
+      }
+      return null;
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
   }
 }
 
-/** 策略工厂 */
+/** 策略工厂（默认混合模式：无 Key / 失败自动降级为纯启发式） */
 export function createAiPolicy(engine, options = {}) {
-  const mode = options.mode || 'heuristic';
-  if (mode === 'llm') return new LlmPolicy(engine, options);
-  return new HeuristicPolicy(engine, options.player);
+  const mode = options.mode || 'hybrid';
+  if (mode === 'heuristic') return new HeuristicPolicy(engine, options.player);
+  return new LlmPolicy(engine, options);
 }

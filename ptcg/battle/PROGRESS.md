@@ -199,3 +199,32 @@ ptcg/battle/                # 已并入 ptcg（原 ptcgBattle/，2026-09-16；�
 - [ ] P1：AI 设置 UI（启用开关 / 是否用 LLM / 模型名 / 难度）+ 动作播放节奏可调
 - [ ] P2：`StateSerializer` + `LlmPolicy`（deepseek-flash，关闭 thinking 模式）+ 三道闸校验 + 超时回退启发式
 - [ ] 策略细化：训练家前置条件判断（避免打出无有效目标的卡）、能量长期规划、硬币分支期望值
+
+## 本次修复与 P2 混合 AI（2026-09-19）
+
+### 修复项
+- [x] 战斗日志可拖动回看：`#battle-log` 限高 40vh + `overflow-y:auto` + 鼠标拖拽滚动；保留行数 6 → 200；用户上翻查看历史时不强行拉回底部
+- [x] 对手动作间隔 850ms → 2000ms（看得更清楚）
+- [x] 「夜间担架」回收三类根因（用户报告）：
+  1. 解析 filter 残留数量词（`宝可梦或1张基本能量`）→ 修正则捕获 + `_cardMatchesFilter` 兜底清理 `\d+张`
+  2. `GameState.useTrainer` 把**卡名**推进弃牌区（应为卡牌 ID）→ 回收后手牌是卡名，UI 显示「未知」
+  3. 弃能量时把**能量对象**推进弃牌区 → 新增 `toCardRef()` 统一规范化为 ID；`recover_from_discard` 取出时再规范一次
+  - 另：回收类效果「弃牌区没有合法目标时不得发动」（抛必需失败 → 训练家事务回滚），不再「白用一张卡」
+  - 顺手修：`_isPokemonCard` 对未解析的中文卡名不再默认当作宝可梦（否则弃牌区卡名会被当成合法目标）
+- [x] 启发式枚举不再产出「付不起丢弃费用」的训练家动作（`discardCostFeasible`，修掉 AI 反复尝试并刷屏日志）
+
+### P2：混合 AI（默认模式，无需开关）
+- [x] 新增 `js/core/StateSerializer.js`：视角隔离（只看得到自己手牌；对手手牌/双方牌库/奖赏卡只给数量）+ ≤1.2k tokens 紧凑文本 + 候选动作事实清单
+- [x] `LlmPolicy`（`AiPolicy.js`）：**启发式算数 + LLM 取舍**
+  - 只在关键决策点问模型（攻击/训练家/特性/撤退/进化，且候选 ≥2）
+  - 每回合最多 2 次模型调用（`maxLlmCallsPerTurn`），其余动作走启发式
+  - 关闭 thinking 模式（`thinking.type=disabled`）压低延迟
+  - 三道闸：① 输出可解析 ② id 在候选集合内 ③ 执行层再校验；失败回退启发式并冷却 60s（避免每个动作都白等超时）
+  - 无 API Key 时完全等同纯启发式（零额外开销）
+- [x] `BattleEngine` 默认 `aiMode: 'hybrid'`；`aiAutoplayDelayMs` 可配置（<0 表示禁用自动触发，供批量测试）
+- [x] 模型名：`deepseek-chat`/`deepseek-reasoner` 已于 2026-07-24 停服 → `deepseek-flash`（含 localStorage 遗留名自动迁移）
+- 实测：整局 16 回合，模型参与 14 次决策（全部采纳），无异常/无挂起
+
+### 测试
+- 新增/更新用例：动作枚举、选择边界、整局自动对战（同时模拟模型参与）、LLM 三道闸与降级、夜间担架回收语义、弃牌区存卡牌 ID（17 处旧断言随行为修正）
+- 全绿：`test:ptcg-battle` 全通过（连续 3 次稳定）、`test:ptcg-query` 26/26、`ptcg:check-syntax` 42/42

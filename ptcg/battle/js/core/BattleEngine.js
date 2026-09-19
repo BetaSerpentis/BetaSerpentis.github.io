@@ -17,7 +17,7 @@ const SETUP_HAND_SIZE = 7;
 const MAX_OPPONENT_MULLIGANS = 20;
 const MAX_AI_ACTIONS = 3; // legacy：旧的「写死三步」预算，已被逐步动作循环取代
 /** AI 回合逐步播放：每个动作之间的停顿（毫秒）；0 = 不停顿（批量测试用） */
-const AI_ACTION_DELAY_MS = 850;
+const AI_ACTION_DELAY_MS = 2000;
 /** AI 单回合最多执行动作数（防死循环） */
 const MAX_AI_STEPS = 40;
 
@@ -135,10 +135,18 @@ export class BattleEngine {
     if (resolver) this.gs.cardResolver = resolver;
     this.cb = callbacks;
     this._aiTurnInProgress = false;
-    // AI 决策策略（P0 启发式；callbacks.aiMode='llm' 时走 LlmPolicy，失败自动回退）
-    this._aiPolicy = createAiPolicy(this, { mode: callbacks.aiMode || 'heuristic', player: gameState.player2 });
+    // AI 决策策略：默认「混合模式」（启发式算数 + LLM 取舍），无 Key 或调用失败自动降级启发式
+    this._aiPolicy = createAiPolicy(this, {
+      mode: callbacks.aiMode || 'hybrid',
+      player: gameState.player2,
+      llmTimeoutMs: callbacks.llmTimeoutMs,
+      maxLlmCallsPerTurn: callbacks.maxLlmCallsPerTurn,
+      fetchImpl: callbacks.fetchImpl,
+    });
     // 动作间隔（可见性）：让玩家能看清对手的每个动作
     this.aiActionDelayMs = Number.isFinite(callbacks.aiActionDelayMs) ? callbacks.aiActionDelayMs : AI_ACTION_DELAY_MS;
+    // 回合交接后自动开始对手回合的延迟；<0 表示禁用自动触发（测试手动驱动）
+    this.aiAutoplayDelayMs = Number.isFinite(callbacks.aiAutoplayDelayMs) ? callbacks.aiAutoplayDelayMs : 800;
   }
 
   startGame(p1Deck, p2Deck) {
@@ -528,7 +536,8 @@ export class BattleEngine {
     this.cb.onPhaseChange?.(gs.phase);
     this.cb.onFieldUpdate?.();
     if (gs.currentPlayer === gs.player2 && gs.phase !== PHASE.GAME_OVER && !this._aiTurnInProgress) {
-      setTimeout(async () => { await this._aiTurn(); }, 800);
+      // aiAutoplayDelayMs < 0 时禁用自动触发（批量测试/外部手动驱动场景）
+      if (this.aiAutoplayDelayMs >= 0) setTimeout(async () => { await this._aiTurn(); }, this.aiAutoplayDelayMs);
     }
   }
 
@@ -576,6 +585,8 @@ export class BattleEngine {
 
       for (let step = 0; step < MAX_AI_STEPS; step++) {
         if (gs.phase === PHASE.GAME_OVER || gs.currentPlayer !== gs.player2) break;
+        // 结束阶段无动作可做：直接交出回合，避免空转
+        if (gs.phase === PHASE.END) { this.finishTurn(); break; }
         const actions = getLegalActions(gs, this.resolver, gs.player2)
           .filter(a => !failed.has(this._aiActionKey(a)));
         if (!actions.length) break;

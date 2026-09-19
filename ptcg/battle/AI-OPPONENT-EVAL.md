@@ -251,6 +251,46 @@ Kaggle「Pokémon TCG AI Battle Challenge」（The Pokémon Company × Matsuo La
 - **不建议**：直接端到端让 LLM 从原始状态「直接输出动作」——没有枚举器与校验，稳定性和成本都不可控；也不建议让 LLM 承担伤害计算。
 - **可选增强**：IS-MCTS（路线 B）作为「高难度 AI」，无需外部 API、延迟可控，适合做难度档位。
 
+## 十一、P2 实施记录：混合 AI（2026-09-19 已完成）
+
+### 落地形态（默认开启，无需开关）
+
+| 文件 | 内容 |
+|---|---|
+| `ptcg/battle/js/core/StateSerializer.js`（新） | 视角隔离状态序列化（只看得到自己手牌；对手手牌/双方牌库/奖赏卡只给数量）、候选动作事实清单、提示词组装、回复解析（`extractActionId` 容忍代码块/夹带说明） |
+| `ptcg/battle/js/core/AiPolicy.js` | `LlmPolicy`：启发式算数 + LLM 取舍；三道闸 + 超时回退 + 失败冷却 |
+| `ptcg/battle/js/core/BattleEngine.js` | 默认 `aiMode: 'hybrid'`；`aiAutoplayDelayMs` 可配（<0 禁用自动触发）；`_aiTurn` 对 END 阶段也直接交出回合 |
+| `ptcg/battle/js/core/AiSettings.js` | 新增 `AI_ENDPOINT` / `AI_DEFAULT_MODEL`（battle 侧仍不依赖 ptcg/js） |
+
+### 混合策略（质量与延迟的折中）
+
+1. 启发式先算好候选与事实（伤害/KO/奖赏）并作为**永远可用的兜底**
+2. 只在**关键决策点**问模型：含攻击 / 撤退 / 特性 / 进化，或同时有多张训练家可选（且候选 ≥2）
+3. **每回合最多 2 次**模型调用（`maxLlmCallsPerTurn`），其余动作走启发式
+4. 请求关 `thinking`（`thinking.type=disabled`）→ 不输出 CoT，延迟明显降低
+5. 三道闸：① 输出可解析 ② id 在本次候选集合内 ③ 执行层再校验；任一失败 → 回退启发式
+6. 失败后冷却 60s（避免每个动作都白等一个超时）；无 API Key 时**完全等同纯启发式**
+
+### 实测
+
+- 整局自动对战：16 回合分胜负，模型参与 **14 次决策全部采纳**（`stats={asked:14,accepted:14}`），无异常/无挂起
+- 测试：新增「混合AI：三道闸 + 非法/失败回退 + 冷却 + 无 Key 不调用」用例；整局用例同时以模拟模型驱动（真实跑通状态序列化/提示词/解析链路）
+
+### 本轮的三个附带修复（用户报告）
+
+| 问题 | 根因 | 修法 |
+|---|---|---|
+| 日志无法回看历史 | 只保留最近 6 行且 `pointer-events:none` | 保留 200 行 + 限高滚动 + 鼠标拖拽；上翻时不强行拉回底部 |
+| 对手动作太快看不清 | 动作间隔 850ms | 改为 2000ms |
+| 「夜间担架」无目标也能发动、回收后变「未知」 | ① 解析 filter 残留「1张」② `useTrainer` 把卡名写进弃牌区（应为 ID）③ 弃能量把能量对象写进弃牌区 | 修正则捕获 + `_cardMatchesFilter` 清理量词；新增 `toCardRef()` 统一存 ID；回收类无合法目标时抛必需失败（回滚，不消耗卡） |
+
+### 下一步（P3 可选）
+
+- 训练家前置条件更细（结合卡牌效果判断「当前是否有有效目标」）
+- 能量长期规划、硬币分支期望值
+- IS-MCTS 难度档位；LLM 决策缓存（局面指纹）
+- 把「模型是否参与」做成可观测（例如难度档/日志标记），便于调参与对比
+
 
 ## 相关代码
 - ptcg/battle/js/core/BattleEngine.js（_aiTurn/_firstLegalAttackIndex/_passAiTurn/attack/useTrainer/useAbility/attachEnergy/evolvePokemon）

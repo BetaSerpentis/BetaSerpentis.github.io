@@ -634,11 +634,11 @@ const RULES = [
   { re: /选择自己场上(?:的)?1只宝可梦[，,]?将(?:那只|该)宝可梦[，,]?以及放置于其身上的所有卡(?:牌)?[，,]?放回手牌/, act:'return_to_hand', p:()=>({target:'choose',with_attachments:true}) },
 
   // ===== 弃牌区回收 =====
-  { re: /从(?:自己的)?弃牌区选择(.+?)合计最多(\d+)张[，,]?在给对手看过后加入手牌/, act:'recover_from_discard', p:m=>withCount({filter:m[1].trim(),target:'hand'},m[2],true) },
-  { re: /从(?:自己的)?弃牌区选择最多(\d+)张(.+?)(?:卡)?[,，]在给对手看过后加入手牌/, act:'recover_from_discard', p:m=>withCount({filter:m[2].trim(),target:'hand'},m[1],true) },
-  { re: /从(?:自己的)?弃牌区选择(\d+)张(.+?)(?:卡)?[,，]在给对手看过后加入手牌/, act:'recover_from_discard', p:m=>withCount({filter:m[2].trim(),target:'hand'},m[1],false) },
-  { re: /从(?:自己的)?弃牌区选择最多(\d+)张(.+?)(?:卡)?[,，]加入手牌/, act:'recover_from_discard', p:m=>withCount({filter:m[2].trim(),target:'hand'},m[1],true) },
-  { re: /从(?:自己的)?弃牌区选择(\d+)张(.+?)(?:卡)?[,，]加入手牌/, act:'recover_from_discard', p:m=>withCount({filter:m[2].trim(),target:'hand'},m[1],false) },
+  { re: /从(?:自己的)?弃牌区选择(.+?)合计最多(\d+)张[，,]?在给对手看过后加入手牌/, act:'recover_from_discard', p:m=>withCount({filter:m[1].replace(/\d+张/g,'').replace(/\s+/g,'').trim(),target:'hand'},m[2],true) },
+  { re: /从(?:自己的)?弃牌区选择最多(\d+)张(.+?)(?:卡)?[,，]在给对手看过后加入手牌/, act:'recover_from_discard', p:m=>withCount({filter:m[2].replace(/\d+张/g,'').replace(/\s+/g,'').trim(),target:'hand'},m[1],true) },
+  { re: /从(?:自己的)?弃牌区选择(\d+)张(.+?)(?:卡)?[,，]在给对手看过后加入手牌/, act:'recover_from_discard', p:m=>withCount({filter:m[2].replace(/\d+张/g,'').replace(/\s+/g,'').trim(),target:'hand'},m[1],false) },
+  { re: /从(?:自己的)?弃牌区选择最多(\d+)张(.+?)(?:卡)?[,，]加入手牌/, act:'recover_from_discard', p:m=>withCount({filter:m[2].replace(/\d+张/g,'').replace(/\s+/g,'').trim(),target:'hand'},m[1],true) },
+  { re: /从(?:自己的)?弃牌区选择(\d+)张(.+?)(?:卡)?[,，]加入手牌/, act:'recover_from_discard', p:m=>withCount({filter:m[2].replace(/\d+张/g,'').replace(/\s+/g,'').trim(),target:'hand'},m[1],false) },
   { re: /从(?:自己的)?弃牌区选择宝可梦卡与基本能量卡合计最多(\d+)张[，,]?在给对手看过后放回牌库并重洗/, act:'recover_from_discard', p:m=>withCount({filter:'宝可梦卡与基本能量卡',target:'deck',shuffle:true},m[1],true) },
   { re: /从(?:自己的)?弃牌区选择.*?合计最多(\d+)张[,，]在给对手看过后放回牌库/, act:'recover_from_discard', p:m=>withCount({target:'deck'},m[1],true) },
   { re: /从(?:自己的)?弃牌区选择.*?合计(\d+)张[,，]在给对手看过后放回牌库/, act:'recover_from_discard', p:m=>withCount({target:'deck'},m[1],false) },
@@ -811,7 +811,7 @@ const RULES = [
   // --- 弃牌区道具数条件攻能消除（加热洛托姆）---
   { re: /若自己的弃牌区中有(\d+)张以上（包含\d+张）["“”]([^"“”]+)["“”][，,]?则这只宝可梦使用招式所需能量，全部消除/, act:'conditional_effect', p:m=>({condition:'own_discard_items_gte',count:+m[1],effect:{action:'energy_cost_eliminate',params:{target:'self'}}}) },
   // --- 弃牌区回收组合过滤（支援者和竞技场共计N张，露莎米奈）---
-  { re: /从自己的弃牌区中选择(.+?)共计(\d+)张[，,]?在给对手看过后，加入手牌/, act:'recover_from_discard', p:m=>withCount({filter:m[1].trim(),target:'hand'},m[2],false) },
+  { re: /从自己的弃牌区中选择(.+?)共计(\d+)张[，,]?在给对手看过后，加入手牌/, act:'recover_from_discard', p:m=>withCount({filter:m[1].replace(/\d+张/g,'').replace(/\s+/g,'').trim(),target:'hand'},m[2],false) },
 
   // ===== P3b（2026-09）：措辞词序变体 + 特性组合 =====
   // --- 备战区全体伤害（“对手所有的”词序变体 + 无“点”措辞）---
@@ -836,7 +836,7 @@ const RULES = [
   { re: /在这个回合[，,]?自己的宝可梦使用的招式[，,]?给对手的战斗宝可梦造成的伤害["“”]([+-]?\d+)["“”]/, act:'turn_damage_mod', p:m=>({target:'own_field',amount:+m[1],defender:'opponent_active',duration:'turn'}) },
   { re: /在这个回合[，,]?自己的宝可梦所使用的招式[，,]?给对手的战斗宝可梦造成的伤害["“”]([+-]?\d+)["“”]/, act:'turn_damage_mod', p:m=>({target:'own_field',amount:+m[1],defender:'opponent_active',duration:'turn'}) },
   // --- 弃牌区基本能量回手（能量回收：将…弃牌区中的…）---
-  { re: /将(?:自己的|自己)?弃牌区中的(\d+)张(.+?)，在给对手看过后，加入手牌/, act:'recover_from_discard', p:m=>withCount({filter:m[2].trim(),target:'hand'},m[1],false) },
+  { re: /将(?:自己的|自己)?弃牌区中的(\d+)张(.+?)，在给对手看过后，加入手牌/, act:'recover_from_discard', p:m=>withCount({filter:m[2].replace(/\d+张/g,'').replace(/\s+/g,'').trim(),target:'hand'},m[1],false) },
   // --- 弃牌区回收直接版（在给对手看过之后→看过后已归一）---
   { re: /选择自己弃牌区中的1张【基础】宝可梦，与自己场上的1只【基础】宝可梦互换/, act:'usage_condition', p:m=>trainerPrerequisite('swap_discard_basic_with_field', m[0]) },
   // --- 手牌弃置抽卡（亚洛：弃 N 张抽 2N）---
