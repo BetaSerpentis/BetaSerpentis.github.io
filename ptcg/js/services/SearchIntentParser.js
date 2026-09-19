@@ -30,7 +30,13 @@ const SYSTEM_PROMPT = `你是一个查询条件翻译器。把用户的卡牌查
 - env: true 表示「仅当前标准环境（合法标记）」
 - attackCostExactly: 数字。含义是「该宝可梦至少有一个招式，在把该宝可梦自身特性的减费算到理论上限后，所需能量数**恰好**等于这个数字」
 - attackCostAtMost: 数字。同上，但表示「≤这个数字」
-- keyword: 名称子串（只有在用户明确要按名字找时才用）
+- keyword: 名称子串（**只有在用户明确要按卡名找时才用**）
+- abilityName: 特性名字符串或数组（数组 = 任一命中），用于「特性名是/含…」
+- abilityText: 特性**效果文本内容**字符串或数组（数组 = 任一命中）。
+  例：「有附着雷能量特性的宝可梦」→ {"types":["宝可梦"], "abilityText":["雷能量"]}
+  「特性是转附基本能量的宝可梦」→ {"types":["宝可梦"], "abilityText":["转附"]} 或 ["基本能量"]
+- attackText: 招式**效果文本内容**字符串或数组（数组 = 任一命中）
+- textAny: 特性+招式文本任意位置字符串或数组（数组 = 任一命中），不确定在特性还是招式时用
 
 规则：
 1. 「N能」「需要N个能量」一律用 attackCostExactly: N。只有当用户说「N能以下」「N能以内」「不超过N能」时才用 attackCostAtMost: N。
@@ -40,7 +46,9 @@ const SYSTEM_PROMPT = `你是一个查询条件翻译器。把用户的卡牌查
 3. 提到「环境内」「标准环境」「合法」时加 env: true。
 4. 提到宝可梦的进化阶段用 stage；提到「宝可梦」时加 types: ["宝可梦"]。
 5. 撤退能量相关用 retreat。HP 相关用 hp。
-6. 不要臆造字段。无法翻译的部分忽略。`;
+6. **描述「效果/特性内容是…」时必须用 abilityText / attackText / textAny，不要退化成 keyword 或 attr**。
+   keyword 只匹配卡名；attr 只匹配宝可梦属性。
+7. 不要臆造字段。无法翻译的部分忽略。`;
 
 /** 逐字段白名单校验：模型返回任何越界内容都会被丢弃 */
 export function sanitizeConditions(raw) {
@@ -74,6 +82,17 @@ export function sanitizeConditions(raw) {
   for (const key of ['attackCostExactly', 'attackCostAtMost']) {
     const v = Number(raw[key]);
     if (Number.isInteger(v) && v >= 0 && v <= 10) out[key] = v;
+  }
+
+  // 效果/特性文本类条件：只接受字符串或字符串数组，逐项去空/限长
+  for (const key of ['abilityName', 'abilityText', 'attackText', 'textAny']) {
+    const v = raw[key];
+    const list = (Array.isArray(v) ? v : [v])
+      .filter(x => typeof x === 'string')
+      .map(x => x.trim().slice(0, 24))
+      .filter(Boolean)
+      .slice(0, 6);
+    if (list.length) out[key] = list.length === 1 ? list[0] : list;
   }
 
   if (typeof raw.keyword === 'string') {

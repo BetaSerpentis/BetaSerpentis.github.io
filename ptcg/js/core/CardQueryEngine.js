@@ -55,6 +55,12 @@ function splitTsvLine(line) {
   return line.split('\t').map(v => v.replace(/\\([\\trn])/g, (_, ch) => (ch === 't' ? '\t' : ch === 'r' ? '\r' : ch === 'n' ? '\n' : '\\')));
 }
 
+function toKeywordList(v) {
+  if (Array.isArray(v)) return v.map(x => String(x ?? '').trim()).filter(Boolean);
+  const s = String(v ?? '').trim();
+  return s ? [s] : [];
+}
+
 function toNum(v) {
   if (v === undefined || v === null || v === '') return null;
   const n = Number(v);
@@ -145,8 +151,46 @@ export class CardQueryEngine {
       this.effects.set(r[0], list);
     }
 
+    // 特性 / 招式文本（用于「特性内容是…」「招式效果含…」这类检索；缺文件则跳过）
+    try {
+      for (const r of await this._rows('abilities.tsv')) {
+        const card = this.cards.get(r[0]);
+        if (!card) continue;
+        card.abilityNames = card.abilityNames || [];
+        card.abilityTexts = card.abilityTexts || [];
+        if (r[4]) card.abilityNames.push(r[4]);
+        if (r[5]) card.abilityTexts.push(r[5]);
+      }
+    } catch (e) { /* abilities.tsv 不存在时忽略 */ }
+    try {
+      for (const r of await this._rows('attacks.tsv')) {
+        const card = this.cards.get(r[0]);
+        if (!card) continue;
+        card.attackNames = card.attackNames || [];
+        card.attackTexts = card.attackTexts || [];
+        if (r[4]) card.attackNames.push(r[4]);
+        if (r[7]) card.attackTexts.push(r[7]);
+      }
+    } catch (e) { /* attacks.tsv 不存在时忽略 */ }
+
     this.loaded = true;
     return this;
+  }
+
+  /** 文本归一化：去括号/标点/空白，使「雷能量」能命中「【雷】能量」 */
+  _normText(s) {
+    return String(s ?? '')
+      .replace(/[【】\[\]（）()「」『』〈〉《》]/g, '')
+      .replace(/[\s，,。.、·:：;；!！?？"'‘’“”]/g, '')
+      .toLowerCase();
+  }
+
+  /** 卡片的效果文本池（特性 + 招式） */
+  _effectTextPool(card, scope = 'any') {
+    const parts = [];
+    if (scope === 'ability' || scope === 'any') parts.push(...(card.abilityTexts || []));
+    if (scope === 'attack' || scope === 'any') parts.push(...(card.attackTexts || []));
+    return this._normText(parts.join('\n'));
   }
 
   /** 该卡自身特性提供的【无】色减费上限（动态量按理论上限） */
@@ -219,7 +263,11 @@ export class CardQueryEngine {
    *   env?: boolean,               true = 仅当前标准环境（meta.json 的 currentMarks）
    *   attackCostExactly?: number,  至少有一个招式「折算后恰好 N 能」
    *   attackCostAtMost?: number,   至少有一个招式「折算后 ≤ N 能」
-   *   keyword?: string,            名称子串
+   *   keyword?: string,            名称子串（仅卡名）
+   *   abilityName?: string|string[], 特性名子串（数组 = 任一命中）
+   *   abilityText?: string|string[], 特性效果文本子串（数组 = 任一命中）
+   *   attackText?: string|string[],  招式效果文本子串（数组 = 任一命中）
+   *   textAny?: string|string[],     特性+招式文本子串（数组 = 任一命中）
    *   limit?: number,
    * }} conds
    */
@@ -227,6 +275,7 @@ export class CardQueryEngine {
     const {
       types, stage, retreat, hp, attr, marks, env,
       attackCostExactly, attackCostAtMost, keyword, limit,
+      abilityName, abilityText, attackText, textAny,
     } = conds;
 
     const typeSet = types && types.length ? new Set(types) : null;
@@ -244,6 +293,24 @@ export class CardQueryEngine {
       if (markSet && !markSet.has(card.mark)) continue;
       if (envSet && !envSet.has(card.mark)) continue;
       if (kw && !card.name.toLowerCase().includes(kw)) continue;
+
+      // 效果/特性文本检索（归一化后子串匹配；数组语义 = 任一命中）
+      if (abilityName) {
+        const hay = this._normText((card.abilityNames || []).join('\n'));
+        if (!toKeywordList(abilityName).map(k => this._normText(k)).some(k => k && hay.includes(k))) continue;
+      }
+      if (abilityText) {
+        const hay = this._effectTextPool(card, 'ability');
+        if (!toKeywordList(abilityText).map(k => this._normText(k)).some(k => k && hay.includes(k))) continue;
+      }
+      if (attackText) {
+        const hay = this._effectTextPool(card, 'attack');
+        if (!toKeywordList(attackText).map(k => this._normText(k)).some(k => k && hay.includes(k))) continue;
+      }
+      if (textAny) {
+        const hay = this._effectTextPool(card, 'any');
+        if (!toKeywordList(textAny).map(k => this._normText(k)).some(k => k && hay.includes(k))) continue;
+      }
 
       let minCosts = null;
       if (attackCostExactly !== undefined && attackCostExactly !== null) {

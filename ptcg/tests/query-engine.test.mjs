@@ -230,3 +230,52 @@ await test('引擎产出对象本身不含 image（所以必须经过 setExterna
 });
 
 console.log(`\n结果：${pass} 通过 / ${fail} 失败`);
+
+await test('效果文本检索：特性含「雷能量」的宝可梦（归一化命中【雷】能量）', () => {
+  const res = engine.query({ types: ['宝可梦'], abilityText: ['雷能量'] });
+  assert.ok(res.length > 0, '应有结果');
+  for (const c of res) {
+    const hay = (c.abilityTexts || []).join('\n').replace(/[【】\s]/g, '');
+    assert.ok(hay.includes('雷能量'), `${c.name} 的特性文本应含雷能量`);
+  }
+});
+
+await test('效果文本检索：数组语义 = 任一命中（雷能量 或 基本能量）', () => {
+  const only = engine.query({ types: ['宝可梦'], abilityText: ['雷能量'] });
+  const both = engine.query({ types: ['宝可梦'], abilityText: ['雷能量', '基本能量'] });
+  assert.ok(both.length >= only.length, 'OR 语义结果不应少于单一条件');
+  for (const c of both) {
+    const hay = (c.abilityTexts || []).join('\n').replace(/[【】\s]/g, '');
+    assert.ok(hay.includes('雷能量') || hay.includes('基本能量'), `${c.name} 应命中任一关键词`);
+  }
+});
+
+await test('效果文本检索：attackText / textAny 的范围区分', () => {
+  const attack = engine.query({ types: ['宝可梦'], attackText: ['雷能量'] });
+  assert.ok(attack.length > 0, '招式文本应有结果');
+  for (const c of attack) {
+    const hay = (c.attackTexts || []).join('\n').replace(/[【】\s]/g, '');
+    assert.ok(hay.includes('雷能量'), `${c.name} 的招式文本应含雷能量`);
+  }
+  const any = engine.query({ types: ['宝可梦'], textAny: ['转附'] });
+  assert.ok(any.length > 0, 'textAny 应有结果');
+  const nameOnly = engine.query({ types: ['宝可梦'], abilityName: ['引雷'] });
+  assert.ok(nameOnly.length > 0, '特性名检索应有结果');
+  for (const c of nameOnly) assert.ok((c.abilityNames || []).join('').includes('引雷'));
+});
+
+await test('sanitizeConditions：效果文本字段保留并清理非法项', () => {
+  const c = sanitizeConditions({
+    types: ['宝可梦'],
+    abilityText: ['雷能量', '', 123, '   '],
+    attackText: '附着',
+    textAny: ['转附', '雷'],
+    abilityName: ['引雷'],
+  });
+  assert.equal(c.abilityText, '雷能量', '数组收敛为单字符串');
+  assert.equal(c.attackText, '附着');
+  assert.deepEqual(c.textAny, ['转附', '雷']);
+  assert.equal(c.abilityName, '引雷');
+  const bad = sanitizeConditions({ abilityText: [1, null, {}, 'x'.repeat(50)] });
+  assert.equal(bad.abilityText, 'x'.repeat(24), '超长截断、非法项丢弃');
+});
