@@ -6488,6 +6488,74 @@ await test('幸运头盔：只有受到招式伤害才抽卡（特性放置伤�
   assert.ok(gs.player2.hand.length <= beforeAttack + 3, '不应多抽（避免重复触发）');
 });
 
+await test('「令这只宝可梦昏厥」类效果：自爆后离场并换上后备（仿徨夜灵 咒怨炸弹）', async () => {
+  const gs = new GameState();
+  gs.player1.deck = Array(10).fill('x'); gs.player2.deck = Array(10).fill('y');
+  gs.player1.prizes = Array(6).fill('p'); gs.player2.prizes = Array(6).fill('p');
+  gs.player1.active = mon('我方宝可梦', 'a');
+  gs.player2.active = mon('仿徨夜灵', 'CSV8C-082');
+  gs.player2.bench = [mon('对手后备', 'b')];
+  const prizesBefore = gs.player1.prizes.length;
+  await executeEffects(gs, gs.player2, [{ action: 'knockout', params: { target: 'self' } }]);
+  assert.equal(gs.player2.active.cardId, 'b', '昏厥后应换上后备宝可梦');
+  assert.ok(gs.player2.discard.includes('CSV8C-082'), '昏厥的宝可梦应进入弃牌区');
+  assert.equal(prizesBefore - gs.player1.prizes.length, 1, '对手应拿 1 张奖赏卡');
+
+  // 无后备时：立即结束对局
+  const gs2 = new GameState();
+  gs2.player1.deck = Array(10).fill('x'); gs2.player2.deck = Array(10).fill('y');
+  gs2.player1.prizes = Array(6).fill('p'); gs2.player2.prizes = Array(6).fill('p');
+  gs2.player1.active = mon('我方宝可梦', 'a');
+  gs2.player2.active = mon('仿徨夜灵', 'CSV8C-082');
+  await executeEffects(gs2, gs2.player2, [{ action: 'knockout', params: { target: 'self' } }]);
+  assert.equal(gs2.phase, PHASE.GAME_OVER, '无后备宝可梦时自爆应立即结束对局');
+  assert.equal(gs2.winner, gs2.player1, '对手无宝可梦 → 我方获胜');
+});
+
+await test('竞技场：同名不能再打出；同回合不能重复发动效果', async () => {
+  const resolver = await makeFileResolver();
+  const raw = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../data/battle/Stadium-cards.json'), 'utf8'));
+  const byName = new Map();
+  for (const c of raw) {
+    const n = c['卡牌名字'];
+    if (!byName.has(n)) byName.set(n, []);
+    byName.get(n).push(c);
+  }
+  const pair = [...byName.values()].find(list => list.length >= 2);
+  assert.ok(pair, '数据中应存在同名竞技场用于验证');
+  const cdA = resolver.getCard(pair[0]['卡牌ID'][0]);
+  const cdB = resolver.getCard(pair[1]['卡牌ID'][0]);
+  const gs = new GameState();
+  gs.cardResolver = resolver;
+  gs.turn = 3; gs.phase = PHASE.MAIN; gs.currentPlayer = gs.player1;
+  gs.player1.active = mon('测试', 't');
+  gs.player2.active = mon('对手', 'o');
+  gs.player1.hand = [pair[0]['卡牌ID'][0]];
+  assert.equal(gs.useTrainer(gs.player1, 0, cdA, null, pair[0]['卡牌ID'][0]), true, '第一张竞技场应能打出');
+  // 模拟新回合（本回合未打出过竞技场）后尝试同名
+  gs.player1.stadiumPlayedThisTurn = false;
+  gs.player1.hand = [pair[1]['卡牌ID'][0]];
+  const check = gs.canUseTrainer(gs.player1, cdB, null);
+  assert.equal(check.ok, false, '同名竞技场不能再打出');
+  assert.equal(check.reason, 'stadium_same_name');
+  // 同一玩家同回合不能重复发动同一竞技场效果
+  const engine = makeEngine(gs);
+  engine.aiAutoplayDelayMs = -1;
+  gs.player1.stadiumUsedThisTurn = {};
+  const first = await engine.activateStadium(gs.player1);
+  if (first) {
+    assert.equal(await engine.activateStadium(gs.player1), false, '同回合不能重复发动同一竞技场效果');
+  }
+});
+
+await test('UI：选择目标列表与场地一致（名/血量/能量），不可选时置灰', () => {
+  const js = fs.readFileSync(path.resolve(__dirname, '../js/main.js'), 'utf8');
+  assert.ok(/_energyShortText\(mon\)/.test(js), '选择目标列表应使用能量简写（与场地列表一致）');
+  assert.ok(!/HP \$\{mon\.hp\}\//.test(js), '不应再使用「HP x/y · 能量 n」的冗长格式');
+  assert.ok(/disabled: blocked/.test(js), '不可进化的目标应置灰');
+  assert.ok(/本回合刚出场或已进化/.test(js), '进化选项不可用时置灰并说明原因');
+});
+
 if (process.exitCode) {
   console.error('\n自动化测试失败。');
   process.exit(process.exitCode);
