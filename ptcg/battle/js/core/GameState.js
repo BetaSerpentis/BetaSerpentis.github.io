@@ -108,6 +108,22 @@ export class GameState {
       mon.cannotAttackNext=false;mon.cannotRetreat=false;mon.ignore=[];
       mon.costEliminated=false;mon.abilityUsed=false;
     }
+    // 1.5 「招式学习器」类道具：自己的回合结束时自动放入弃牌区
+    //     （如「招式学习器 退化」：附着的回合结束就要进弃牌区，原实现漏了）
+    for(const mon of[this.currentPlayer.active,...this.currentPlayer.bench]){
+      if(!mon?.tool)continue;
+      const toolEffects=Array.isArray(mon.tool.effects)?mon.tool.effects:[];
+      if(!toolEffects.some(e=>e.action==='tool_end_of_turn_discard'))continue;
+      this.currentPlayer.discard.push(this._toolCardValue(mon.tool));
+      this.addLog(`${mon.name} 身上的「${this._toolLabel(mon.tool)}」被放入弃牌区`);
+      mon.tool=null;
+    }
+    // 1.6 清除「反射屏障」类反伤标记：只在“下个对手回合”有效，
+    //     所以对手回合结束时（currentPlayer 不是标记所有者）清除
+    for(const pl of[this.player1,this.player2]){
+      if(pl===this.currentPlayer)continue;
+      for(const mon of[pl.active,...(pl.bench||[])])if(mon)mon.mirrorDamageCounters=false;
+    }
     // 2. 回合间检查（Pokémon Checkup）：双方出战宝可梦的中毒/灼伤/睡眠；结束方麻痹回合末恢复
     for(const pl of [this.player1, this.player2]){
       const mon=pl.active;

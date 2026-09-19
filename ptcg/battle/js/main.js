@@ -1168,9 +1168,8 @@ export class PTCGBattleApp {
     box.appendChild(div);
     // 保留更多历史（与 GameState MAX_LOG_ENTRIES 同量级），便于回查报错
     while (box.children.length > 200) box.removeChild(box.firstChild);
-    // 只有用户本来就在底部时才自动跟随；正在向上翻看历史时不要把他拉回去
-    const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight <= 24;
-    if (atBottom) box.scrollTop = box.scrollHeight;
+    // 实时跟随最新动作：默认始终跟随；用户主动上滚查看历史时暂停跟随（滚回底部恢复）
+    if (this._logFollow !== false) box.scrollTop = box.scrollHeight;
   }
 
   /** 日志区支持鼠标按住拖动滚动（方便查看之前的动作/报错） */
@@ -1179,6 +1178,15 @@ export class PTCGBattleApp {
     if (!box || box.dataset.dragBound) return;
     box.dataset.dragBound = '1';
     let dragging = false, startY = 0, startTop = 0;
+    // 是否跟随最新：滚到底部（容差内）则恢复跟随
+    const syncFollow = () => {
+      const nearBottom = box.scrollHeight - box.scrollTop - box.clientHeight <= 48;
+      this._logFollow = nearBottom;
+    };
+    this._logFollow = true;
+    box.addEventListener('scroll', syncFollow);
+    box.addEventListener('wheel', () => { setTimeout(syncFollow, 0); }, { passive: true });
+    box.addEventListener('touchmove', () => { setTimeout(syncFollow, 0); }, { passive: true });
     box.addEventListener('pointerdown', e => {
       if (e.button !== 0) return;
       dragging = true; startY = e.clientY; startTop = box.scrollTop;
@@ -1188,6 +1196,7 @@ export class PTCGBattleApp {
     box.addEventListener('pointermove', e => {
       if (!dragging) return;
       box.scrollTop = startTop - (e.clientY - startY);
+      syncFollow();
       e.preventDefault();
     });
     const end = e => {

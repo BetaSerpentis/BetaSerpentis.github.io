@@ -341,7 +341,10 @@ const RULES = [
   { re: /从自己的手牌抽出1张宝可梦[，,]?在给对手看过后放回牌库[。.]然后[，,]?从自己的牌库选择1张宝可梦[，,]?在给对手看过后加入手牌[。.]并且重洗牌库/, act:'hand_pokemon_to_deck_search_pokemon', p:()=>({return_count:1,search_count:1,filter:'宝可梦'}) },
   // ===== 回合结束 =====
   { re: /若使用了这张卡[，,]?则自己的回合结束/, act:'end_turn', p:()=>({}) },
-  { re: /自己的回合结束/, act:'end_turn', p:()=>({}) },
+  // 「招式学习器」类道具：回合结束时自动进弃牌区（元数据，真正的丢弃在 GameState.endTurn 里执行）。
+  // 必须放在 end_turn 规则之前，否则会被 /自己的回合结束/ 误解析为「结束回合」。
+  { re: /放(?:置)?于宝可梦身上的这张卡(?:牌)?[，,]?(?:将)?在自己的回合结束时被(?:丢到弃牌区|放于弃牌区)/, act:'tool_end_of_turn_discard', p:()=>({}) },
+  { re: /自己的回合结束(?!时)/, act:'end_turn', p:()=>({}) },
 
   // 掷硬币 heads 变体（位于普通“掷N次硬币”之前，先整段命中）
   { re: /掷1次硬币若为正面，则将(?:自己的|自己)?牌库中的1张物品，在给对手看过后，加入手牌。并且重洗牌库/, act:'coin_flip', p:()=>({count:1,heads:[{action:'search_deck_to_hand',params:{count:1,filter:'物品'}}]}) },
@@ -1039,7 +1042,7 @@ const RULES = [
   // --- 天气/场地特殊 ---
   { re: /双方的身上附着基本【斗】能量的宝可梦（除["“”]究极异兽["“”]外）使用的招式，给对手战斗宝可梦造成的伤害["“”]([+-]?\d+)["“”]，若自己的剩余奖赏卡张数，比对手多，则变为["“”]([+-]?\d+)["“”]/, act:'passive_damage_mod', p:m=>({target:'own_field',amount:+m[1]}) },
   // --- 触发式反伤/计数/metadata ---
-  { re: /在下个对手的回合，当这只宝可梦受到招式的伤害时，将与受到的伤害数值相同的伤害指示物，放置于使用了招式的宝可梦身上/, act:'usage_condition', p:m=>trainerPrerequisite('mirror_damage_counters', m[0]) },
+  { re: /在下个对手的回合，当这只宝可梦受到招式的伤害时，将与受到的伤害数值相同的伤害指示物，放置于使用了招式的宝可梦身上/, act:'mirror_damage_counters', p:()=>({}) },
   { re: /将与自己弃牌区中的宝可梦张数相同数量的伤害指示物，放置于对手的战斗宝可梦身上/, act:'usage_condition', p:m=>trainerPrerequisite('counters_by_discard_pokemon', m[0]) },
   { re: /若这只宝可梦身上附着有(?:【(.+?)】)?能量，则这只宝可梦【撤退】所需能量，全部消除/, act:'retreat_cost_zero', p:()=>({target:'self'}) },
   { re: /(?:对手场上的)?【基础】宝可梦（除["“”]([^"“”]+)["“”]外）的特性，全部消除/, act:'ability_nullify', p:m=>abilityNullifyParams(m[0],m.input) },

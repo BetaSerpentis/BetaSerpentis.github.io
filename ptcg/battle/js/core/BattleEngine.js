@@ -514,6 +514,25 @@ export class BattleEngine {
       await executeEffects(gs, atk, postEffects);
     }
 
+    // 反射屏障类反伤：防守方具备反射标记时，给攻击方放置等量伤害指示物
+    //（如超梦「反射屏障」：下个对手回合受到招式伤害时反伤）
+    if (damage > 0 && def.active?.mirrorDamageCounters && atk.active) {
+      const mirrorDamage = damage;
+      const defenderName = def.active.name;
+      atk.active.hp = Math.max(0, atk.active.hp - mirrorDamage);
+      gs.addLog(`${defenderName} 的反射屏障：${atk.active.name} 受到 ${mirrorDamage} 伤害`);
+      def.active.mirrorDamageCounters = false; // 每次受击反伤一次
+      if (atk.active.hp <= 0) {
+        gs.knockout(atk);
+        this.cb.onLog?.(`${atk.active?.name || '攻击方'} 被反射伤害击倒`);
+        if (gs.phase === PHASE.GAME_OVER) {
+          this.cb.onPhaseChange?.(gs.phase);
+          this.cb.onFieldUpdate?.();
+          return true;
+        }
+      }
+    }
+
     if (def.active.hp <= 0) {
       gs.knockout(def);
       this.cb.onLog?.(`${def.active?.name || ''} 被击倒`);
