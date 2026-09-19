@@ -6337,6 +6337,86 @@ await test('混合AI：LLM 输出经三道闸校验；非法/失败自动回退�
   }
 });
 
+// ===== 用户报告问题回归（2026-09-19）=====
+
+await test('解析：招式学习器类道具产出 tool_end_of_turn_discard，不被误解析为结束回合', () => {
+  const tool = parseEffect('放于宝可梦身上的这张卡牌，将在自己的回合结束时被放于弃牌区。');
+  assert.ok(tool.effects.some(e => e.action === 'tool_end_of_turn_discard'), '应产出回合结束丢弃标记');
+  assert.ok(!tool.effects.some(e => e.action === 'end_turn'), '不应被误解析为「结束回合」');
+  const mirror = parseEffect('在下一个对手的回合，当这只宝可梦受到招式的伤害时，将与受到的伤害数值相同的伤害指示物，放置于使用了招式的宝可梦身上。');
+  assert.ok(mirror.effects.some(e => e.action === 'mirror_damage_counters'), '反射屏障应解析为可执行 action');
+});
+
+await test('愿增猿「亢奋脑力」：转放伤害指示物数量受实际指示物限制（2 个不能转 3 个）', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  const opp = gs.player2;
+  pl.deck = ['x', 'x', 'x']; opp.deck = ['y', 'y', 'y'];
+  pl.prizes = ['p', 'p']; opp.prizes = ['p', 'p'];
+  pl.active = mon('愿增猿', 'annihilape'); pl.active.maxHp = 130; pl.active.hp = 110; // 2 个伤害指示物
+  opp.active = mon('对手宝可梦', 'oppmon'); opp.active.maxHp = 90; opp.active.hp = 90;
+  gs._onPendingPick = null; gs._onPendingPokemonPick = null;
+  await executeEffects(gs, pl, [{ action: 'damage_place', params: { target: 'opponent_field', count: 3, source: 'own_field' } }]);
+  assert.equal(pl.active.hp, 130, '源应恢复全部 2 个指示物');
+  assert.equal(opp.active.hp, 70, '目标只应受到 2 个指示物（20），而不是 3 个（30）');
+});
+
+await test('备战区宝可梦被击倒：只拿 1 张奖赏卡（修 ?? 误用导致的重复拿取）', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  const opp = gs.player2;
+  pl.deck = ['x', 'x', 'x']; opp.deck = ['y', 'y', 'y'];
+  pl.prizes = Array(6).fill('p'); opp.prizes = Array(6).fill('p');
+  pl.active = mon('愿增猿', 'annihilape');
+  opp.active = mon('对手出战', 'oppactive');
+  const benchMon = mon('皮宝宝', 'pichu'); benchMon.maxHp = 30; benchMon.hp = 30;
+  opp.bench = [benchMon];
+  gs._onPendingPick = null; gs._onPendingPokemonPick = null;
+  await executeEffects(gs, pl, [{ action: 'damage_place', params: { target: 'opponent_bench', count: 3 } }]);
+  assert.equal(6 - pl.prizes.length, 1, '基础宝可梦（非 ex）被击倒应只拿 1 张奖赏卡');
+  assert.ok(opp.discard.includes('pichu'), '被击倒的备战宝可梦应进入弃牌区');
+});
+
+await test('超梦「反射屏障」：使用后下个对手回合受到招式伤害时反伤', async () => {
+  const gs = new GameState();
+  gs.player1.deck = ['x', 'x']; gs.player2.deck = ['y', 'y'];
+  gs.player1.prizes = ['p', 'p']; gs.player2.prizes = ['p', 'p'];
+  gs.player1.active = mon('超梦', 'mewtwo', [{ name: '反射屏障', damage: 20, cost: [], effects: [{ action: 'mirror_damage_counters', params: {} }] }]);
+  gs.player2.active = mon('对手宝可梦', 'oppmon', [{ name: '攻击', damage: 50, cost: [], effects: [] }]);
+  gs.firstPlayer = gs.player2;
+  gs.firstPlayerFirstTurnInProgress = false;
+  const engine = makeEngine(gs);
+  engine.aiAutoplayDelayMs = -1;
+  gs.phase = PHASE.BATTLE; gs.currentPlayer = gs.player1;
+  await engine.attack(0);
+  assert.equal(gs.player1.active.mirrorDamageCounters, true, '使用后应进入反射状态');
+  gs.phase = PHASE.BATTLE; gs.currentPlayer = gs.player2;
+  const before = gs.player2.active.hp;
+  await engine.attack(0);
+  // 反伤值等于受到的伤害；但受攻击方剩余 HP 限制（前者已在本回合被反射屏障打下 20）
+  assert.equal(before - gs.player2.active.hp, Math.min(50, before), '攻击方应受到与伤害等量的反伤');
+  assert.ok(gs.log.some(l => /反射屏障.*受到 50 伤害/.test(l)), '应记录反伤日志');
+});
+
+await test('道具「招式学习器」：自己的回合结束时被放入弃牌区', async () => {
+  const gs = new GameState();
+  gs.player1.deck = ['x', 'x']; gs.player2.deck = ['y', 'y'];
+  gs.player1.active = mon('测试宝可梦', 't');
+  gs.player1.active.tool = { cardId: 'CSV5C-120', name: '招式学习器 退化', effects: [{ action: 'tool_end_of_turn_discard', params: {} }] };
+  gs.currentPlayer = gs.player1;
+  gs.endTurn();
+  assert.equal(gs.player1.active.tool, null, '道具应被移除');
+  assert.ok(gs.player1.discard.includes('CSV5C-120'), '道具应进入弃牌区');
+});
+
+await test('战斗日志面板：限高约 8 个按钮厚度 + 实时跟随 + 可拖动', () => {
+  const css = fs.readFileSync(path.resolve(__dirname, '../style.css'), 'utf8');
+  assert.ok(/max-height:\s*min\(260px/.test(css), '日志面板应限高（≈ 8 个按钮厚度）');
+  const js = fs.readFileSync(path.resolve(__dirname, '../js/main.js'), 'utf8');
+  assert.ok(/_logFollow/.test(js), '应实现实时跟随/暂停跟随');
+  assert.ok(/_bindLogDrag/.test(js), '应支持拖动滚动回看');
+});
+
 if (process.exitCode) {
   console.error('\n自动化测试失败。');
   process.exit(process.exitCode);

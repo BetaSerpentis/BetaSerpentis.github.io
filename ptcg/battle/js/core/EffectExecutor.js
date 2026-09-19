@@ -612,7 +612,12 @@ function _knockoutPokemon(gs, owner, mon) {
   _emitTriggers(gs, 'knocked_out', { target: mon, owner });
   const prizeTaker = gs.getOpponent?.(owner) || [gs.player1, gs.player2].find(p => p !== owner);
   if (typeof gs._recordKnockout === 'function') gs._recordKnockout(owner);
-  if (prizeTaker) gs.takePrizesForKnockout?.(prizeTaker, mon) ?? gs.takePrize(prizeTaker);
+  if (prizeTaker) {
+    // 注意：不能用 `?? gs.takePrize(...)` —— takePrizesForKnockout 没有返回值（undefined），
+    // `undefined ?? x` 会执行右操作数，导致备战区宝可梦被击倒时重复拿奖赏卡（拿 2 张）。
+    if (typeof gs.takePrizesForKnockout === 'function') gs.takePrizesForKnockout(prizeTaker, mon);
+    else gs.takePrize(prizeTaker);
+  }
   gs.recomputePassives?.();
 }
 
@@ -1174,7 +1179,12 @@ const EXECUTORS = {
       });
       const srcMon = srcSlot ? _getMon(pl, srcSlot) : null;
       if (!srcMon) { gs.addLog('己方场上没有可移走的伤害指示物'); return; }
-      const movable = Math.min(p.count || 1, srcMon.maxHp - srcMon.hp);
+      // 伤害指示物的「个数」= 已损失HP / 10。
+      // 原先写成 Math.min(p.count, maxHp - hp)：把伤害值当成个数，
+      // 导致身上只有 2 个指示物（20 伤害）却能转放 3 个（min(3,20)=3）。
+      const availableCounters = Math.floor(Math.max(0, srcMon.maxHp - srcMon.hp) / 10);
+      const movable = Math.max(0, Math.min(p.count || 1, availableCounters));
+      if (movable <= 0) { gs.addLog('己方场上没有可移走的伤害指示物'); return; }
       const dstSlot = await _pickPokemonTarget(gs, pl, opp, {
         mode:'damage', side:'opponent', allowActive:true, allowBench:true,
         prompt:'选择要转放伤害指示物的对手宝可梦',
@@ -1544,6 +1554,17 @@ const EXECUTORS = {
     if (p.target === 'deck' && p.shuffle) gs._shuffle(pl.deck);
     gs.addLog(`回收 ${selected.length} 张卡`);
   },
+
+  // ===== 反射屏障类：下个对手回合受到招式伤害时反伤 =====
+  mirror_damage_counters(gs, pl) {
+    const mon = pl?.active;
+    if (!mon) return;
+    mon.mirrorDamageCounters = true;
+    gs.addLog(`${mon.name} 进入反射状态：下个对手回合受到招式伤害时将反伤`);
+  },
+
+  // ===== 「招式学习器」类道具的回合结束丢弃（元数据；实际丢弃在 GameState.endTurn）=====
+  tool_end_of_turn_discard() { /* no-op：标记类效果，由回合结束流程消费 */ },
 
   // ===== 多获奖赏 =====
   extra_prize(gs, pl) { gs.takePrize(pl); },

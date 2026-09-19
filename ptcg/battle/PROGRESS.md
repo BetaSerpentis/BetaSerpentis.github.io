@@ -228,3 +228,30 @@ ptcg/battle/                # 已并入 ptcg（原 ptcgBattle/，2026-09-16；�
 ### 测试
 - 新增/更新用例：动作枚举、选择边界、整局自动对战（同时模拟模型参与）、LLM 三道闸与降级、夜间担架回收语义、弃牌区存卡牌 ID（17 处旧断言随行为修正）
 - 全绿：`test:ptcg-battle` 全通过（连续 3 次稳定）、`test:ptcg-query` 26/26、`ptcg:check-syntax` 42/42
+
+## 优化与查错（2026-09-19 第二轮，用户报告 5 项）
+
+### 交互
+- [x] 战斗日志面板限高 `min(260px, 40vh)`（≈ 操作区 8 个按钮厚度），并改为**实时跟随最新动作**
+      默认始终跟随；用户主动上滚查看历史时暂停跟随，滚回底部自动恢复
+      （原来只在「已经贴底」时才滚，导致新动作要手动拖滚动条才看到）
+- [x] 保留鼠标按住拖动滚动（回看历史/报错）
+
+### 规则修复（4 个 bug，全部定位到根因并有回归用例）
+- [x] **愿增猿「亢奋脑力」转放数量错误**（身上 2 个指示物却给对手放 3 个）
+      根因：`movable = Math.min(count, maxHp - hp)` 把**伤害值**当成**指示物个数**（20 伤害被当成 20 个 → min(3,20)=3）
+      修复：`availableCounters = (maxHp - hp) / 10` 后再取 min
+- [x] **备战区宝可梦被击倒重复拿奖赏卡**（应 1 张，实际 2 张）
+      根因：`gs.takePrizesForKnockout?.(prizeTaker, mon) ?? gs.takePrize(prizeTaker)`
+      —— `takePrizesForKnockout` 没有返回值（undefined），`??` 因此执行右操作数，再拿 1 张
+      修复：改显式 `if (typeof ... === 'function') ... else ...`
+- [x] **超梦「反射屏障」无反伤**
+      根因：该文本只被解析为 `usage_condition`（元数据），从未产生可执行动作
+      修复：新增 `mirror_damage_counters` action（解析 + 执行标记）→ `BattleEngine.attack` 在伤害结算后给攻击方放置等量伤害指示物 → `GameState.endTurn` 在下个对手回合结束时清除标记
+- [x] **道具「招式学习器 退化」回合结束未进弃牌区**
+      根因：①「将在自己的回合结束时被放于弃牌区」被 `/自己的回合结束/` 误解析为 `end_turn`（潜在的自杀式结束回合）②缺少回合结束丢弃机制
+      修复：新增 `tool_end_of_turn_discard` 元数据 action（置于 end_turn 规则之前）+ 收紧 end_turn 正则（排除「结束时」）+ `GameState.endTurn` 执行丢弃
+
+### 测试
+- 新增 6 条回归用例：解析（tool_end_of_turn_discard / mirror_damage_counters）、愿增猿数量限制、备战区 KO 奖赏卡、反射屏障反伤、招式学习器回合结束弃置、日志面板限高与跟随
+- 全绿：`test:ptcg-battle` 全通过（连续 3 次稳定）、`test:ptcg-query` 26/26、`ptcg:check-syntax` 42/42、effects 索引指纹一致
