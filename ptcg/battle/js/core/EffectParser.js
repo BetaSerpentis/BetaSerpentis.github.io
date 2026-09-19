@@ -566,7 +566,7 @@ const RULES = [
 
   // ===== 弃牌区附能 =====
   { re: /从自己的弃牌区(?:选择|抽出)最多(\d+)张["“”]?([^"“”。，,]+?能量)["“”]?卡?[，,]?附于((?:(?!(?:所有|各|那些|以任意方式)).)+?宝可梦)(?:身上)?/, act:'attach_energy_from_discard', p:m=>discardAttachParams(m,true) },
-  { re: /从自己的弃牌区选择(\d+)张["“”「」]?([^"“”「」。，,]+?能量)["“”「」]?卡?[，,]?附于自己的宝可梦身上/, act:'attach_energy_from_discard', p:()=>withCount({filter:'基本能量',target:'any'},1,false) },
+  { re: /从自己的弃牌区选择(\d+)张["“”「」]?([^"“”「」。，,]+?能量)["“”「」]?卡?[，,]?附于自己的宝可梦身上/, act:'attach_energy_from_discard', p:m=>withCount({filter:m[2].trim(),target:'any'},m[1],false) },
   { re: /从自己的弃牌区(?:选择|抽出)(\d+)张["“”]?([^"“”。，,]+?能量)["“”]?卡?[，,]?附于((?:(?!(?:所有|各|那些|以任意方式)).)+?宝可梦)(?:身上)?/, act:'attach_energy_from_discard', p:m=>discardAttachParams(m,false) },
 
   // ===== 牌库附能 =====
@@ -702,7 +702,7 @@ const RULES = [
   { re: /选择附于这只宝可梦身上的(\d+)个能量[，,]?转附于备战宝可梦身上/, act:'move_energy', p:m=>({source:'self',dest:'bench',count:+m[1]}) },
   { re: /将附于这只宝可梦身上的(\d+)个能量[，,]?转附于备战宝可梦身上/, act:'move_energy', p:m=>({source:'self',dest:'bench',count:+m[1]}) },
   { re: /(?:选择|将)附于自己场上宝可梦身上的1个基本能量[，,]?转附于自己其他宝可梦身上/, act:'move_energy', p:()=>({source:'self',dest:'bench',count:1}) },
-  { re: /(?:选择|将)自己场上宝可梦身上附着的1个基本能量[，,]?转附于自己其他宝可梦身上/, act:'move_energy', p:()=>({source:'self',dest:'bench',count:1}) },
+  { re: /(?:选择|将)自己场上宝可梦身上附着的1个基本能量[，,]?转附于自己其他宝可梦身上/, act:'move_energy', p:()=>({source:'self',dest:'bench',count:1,filter:'基本能量'}) },
   { re: /选择附于自己场上宝可梦身上的任意数量的能量[，,]?以任意方式转附于自己的宝可梦身上/, act:'move_energy', p:()=>({source:'self',dest:'bench',count:'all'}) },
   // --- 伤害指示物转放 ---
   // 愿增猿「亢奋脑力」等：选择自己场上（任意）宝可梦身上最多 N 个伤害指示物转放到对手场上
