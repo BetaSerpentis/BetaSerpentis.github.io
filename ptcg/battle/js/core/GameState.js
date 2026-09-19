@@ -4,6 +4,17 @@ export const PHASE = { SETUP:'setup',DRAW:'draw',MAIN:'main',BATTLE:'battle',END
 export const MAX_LOG_ENTRIES = 200;
 
 /**
+ * 卡牌引用规范化：手牌/牌库/弃牌区统一存「卡牌 ID」。
+ * 背景下：弃能量等操作曾把能量对象直接 push 进弃牌区，
+ * 回收（如「夜间担架」）后对象进了手牌，UI 按 ID 查不到就显示成「未知」。
+ */
+export function toCardRef(value) {
+  if (value === null || value === undefined) return value;
+  if (typeof value === 'object') return value.cardId ?? value.id ?? value.name ?? null;
+  return value;
+}
+
+/**
  * 选择（waitForPick）的合法返回边界。
  * 玩家 UI（main.js）与 AI 决策（AiPolicy）共用同一份推导，避免出现非法返回值。
  */
@@ -238,7 +249,7 @@ export class GameState {
     if(selectedIndices){
       if(!this._canSelectedEnergyPayRetreat(mon,count,selectedIndices))return false;
       const unique=[...new Set(selectedIndices.map(Number))].sort((a,b)=>b-a);
-      for(const idx of unique)pl.discard.push(mon.energy.splice(idx,1)[0]);
+      for(const idx of unique)pl.discard.push(toCardRef(mon.energy.splice(idx,1)[0]));
       return true;
     }
     let paid=0;
@@ -247,7 +258,7 @@ export class GameState {
       const idx=mon.energy.length-1;
       const energy=mon.energy[idx];
       paid+=this._energyUnitsForRetreat(energy,mon);
-      pl.discard.push(mon.energy.splice(idx,1)[0]);
+      pl.discard.push(toCardRef(mon.energy.splice(idx,1)[0]));
     }
     return true;
   }
@@ -354,8 +365,9 @@ export class GameState {
       this.addLog(`${pl.name} 为 ${t.name} 装备了「${cd.name}」`);
       return true;
     }
-    // 物品卡
-    pl.hand.splice(hi,1); pl.discard.push(cd.name);
+    // 物品卡：弃牌区统一存卡牌 ID（曾错误地存卡名，导致「夜间担架」等回收后显示为「未知」）
+    const used = pl.hand.splice(hi,1)[0];
+    pl.discard.push(cardId ?? used);
     this.addLog(`${pl.name} 使用了「${cd.name}」`);
     return true;
   }

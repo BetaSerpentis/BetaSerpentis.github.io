@@ -125,6 +125,7 @@ export class PTCGBattleApp {
     this.gs._onPendingPokemonPick = pick => this._handlePokemonPick(pick);
     this._bindAll();
     this._bindHostReturn();
+    this._bindLogDrag();
     this._fitScreen();
     window.addEventListener('resize', () => this._fitScreen());
     this._showDeckSelect();
@@ -1155,7 +1156,7 @@ export class PTCGBattleApp {
     }, 1200);
   }
 
-  // 战斗日志浮层（左上，保留最近 6 行，pmBattle 风格）
+  // 战斗日志浮层（左上；可拖动滚动回看历史动作）
   _appendBattleLog(line) {
     const box = $('#battle-log');
     if (!box || !line) return;
@@ -1165,8 +1166,39 @@ export class PTCGBattleApp {
     div.className = 'log-line';
     div.textContent = line;
     box.appendChild(div);
-    while (box.children.length > 6) box.removeChild(box.firstChild);
-    box.scrollTop = box.scrollHeight;
+    // 保留更多历史（与 GameState MAX_LOG_ENTRIES 同量级），便于回查报错
+    while (box.children.length > 200) box.removeChild(box.firstChild);
+    // 只有用户本来就在底部时才自动跟随；正在向上翻看历史时不要把他拉回去
+    const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight <= 24;
+    if (atBottom) box.scrollTop = box.scrollHeight;
+  }
+
+  /** 日志区支持鼠标按住拖动滚动（方便查看之前的动作/报错） */
+  _bindLogDrag() {
+    const box = $('#battle-log');
+    if (!box || box.dataset.dragBound) return;
+    box.dataset.dragBound = '1';
+    let dragging = false, startY = 0, startTop = 0;
+    box.addEventListener('pointerdown', e => {
+      if (e.button !== 0) return;
+      dragging = true; startY = e.clientY; startTop = box.scrollTop;
+      box.classList.add('dragging');
+      try { box.setPointerCapture?.(e.pointerId); } catch (_) { /* 忽略 */ }
+    });
+    box.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      box.scrollTop = startTop - (e.clientY - startY);
+      e.preventDefault();
+    });
+    const end = e => {
+      if (!dragging) return;
+      dragging = false;
+      box.classList.remove('dragging');
+      try { box.releasePointerCapture?.(e.pointerId); } catch (_) { /* 忽略 */ }
+    };
+    box.addEventListener('pointerup', end);
+    box.addEventListener('pointercancel', end);
+    box.addEventListener('pointerleave', end);
   }
 
   _openOverlay(id) { $(`#${id}`)?.classList?.add('active'); }

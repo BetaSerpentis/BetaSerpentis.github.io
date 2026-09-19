@@ -1,5 +1,5 @@
 // js/core/EffectExecutor.js — 异步执行指令 (v3 全效果)
-import { PHASE } from './GameState.js';
+import { PHASE, toCardRef } from './GameState.js';
 
 export async function payDiscardCostFromHand(gs, pl, params = {}, options = {}) {
   const originalTrainerIndex = Number.isInteger(options.trainerHandIndex) ? options.trainerHandIndex : -1;
@@ -190,7 +190,7 @@ function _cardMatchesFilter(gs, card, filter) {
   }
   const meta = _resolveZoneCard(gs, card);
   const text = meta.label;
-  const f = String(filter).replace(/["“”]/g, '').trim();
+  const f = String(filter).replace(/["“”]/g, '').replace(/\d+张/g, '').replace(/\s+/g, '').trim();
   const trainerSubtype = _trainerSubtypeWanted(f);
   if (trainerSubtype) return _isTrainerSubtypeMeta(meta, trainerSubtype);
   const wantsPokemon = f.includes('宝可梦') || /pokemon/i.test(f);
@@ -340,8 +340,10 @@ function _isPokemonCard(gs, card) {
   if (nonPokemonLabelPattern.test(text)) return false;
   const lower = text.toLowerCase();
   if (text.includes('宝可梦') || lower.includes('pokemon') || lower.includes('pokémon')) return true;
-  // Unknown string IDs keep the existing broad Pokémon safe fallback.
-  return !meta.resolved;
+  // 未解析的值：只有「像个 ID」时才保留宽容回退（历史行为）。
+  // 中文卡名不能当作宝可梦 —— 否则弃牌区里的卡名（如「夜间担架」）会被误认为合法目标而回收。
+  const looksLikeId = !/[\u4e00-\u9fa5]/.test(text) && !/\s/.test(text);
+  return !meta.resolved && looksLikeId;
 }
 function _isBasicPokemonCard(gs, card) {
   if (!_isPokemonCard(gs, card)) return false;
@@ -437,7 +439,7 @@ function _removeAttachedEnergy(selected) {
   }
   return removed;
 }
-function _pushEnergyDiscard(owner, energy) { owner.discard.push(energy); }
+function _pushEnergyDiscard(owner, energy) { owner.discard.push(toCardRef(energy)); }
 function _slotsForPokemonPick(pl, options = {}) {
   const slots = [];
   if (options.allowActive !== false && pl.active) slots.push('active');
@@ -1063,7 +1065,7 @@ const EXECUTORS = {
           const kept = [];
           for (const e of mon.energy) {
             if (n >= maxCount) { kept.push(e); continue; }
-            if (_isSpecialEnergyAttachment(gs, e)) { owner.discard.push(e); n++; }
+            if (_isSpecialEnergyAttachment(gs, e)) { owner.discard.push(toCardRef(e)); n++; }
             else kept.push(e);
           }
           mon.energy = kept;
@@ -1528,9 +1530,15 @@ const EXECUTORS = {
   // ===== 弃牌区回收 =====
   async recover_from_discard(gs, pl, p) {
     const selected = await _pickCardsFromZone(gs, pl, pl, pl.discard, p.count || 1, { source:'discard', filter:p.filter || null, allowFewer:!!p.allowFewer, allowEmpty:!!p.allowEmpty, maxCount:p.maxCount, minCount:p.minCount, optional:!!p.optional });
-    if (!selected.length) return;
+    if (!selected.length) {
+      // 回收类效果：弃牌区没有合法目标时不能发动（否则会白用一张卡，甚至把不合规的卡回手）
+      const required = (p.minCount ?? p.count ?? 1) > 0 && !p.optional && !p.allowEmpty && !p.allowFewer;
+      if (required) _requiredFailure('recover_from_discard', 'no_target');
+      return;
+    }
     for (const item of selected.sort((a,b)=>b.index-a.index)) {
-      const card = pl.discard.splice(item.index, 1)[0];
+      // 统一存卡牌 ID：弃牌区可能残留能量对象（历史数据/旧的弃能量路径）
+      const card = toCardRef(pl.discard.splice(item.index, 1)[0]);
       if (p.target === 'deck') pl.deck.push(card); else pl.hand.push(card);
     }
     if (p.target === 'deck' && p.shuffle) gs._shuffle(pl.deck);

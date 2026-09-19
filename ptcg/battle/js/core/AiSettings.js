@@ -18,6 +18,12 @@ export const AI_STORAGE_KEYS = {
   CHAT_HISTORY: 'ptcg_ai_chat_history',
 };
 
+/** DeepSeek OpenAI 兼容接口（直连） */
+export const AI_ENDPOINT = 'https://api.deepseek.com/v1/chat/completions';
+
+/** 默认模型名（deepseek-chat / deepseek-reasoner 已于 2026-07-24 停服） */
+export const AI_DEFAULT_MODEL = 'deepseek-flash';
+
 function safeStorage() {
   try {
     return typeof localStorage !== 'undefined' ? localStorage : null;
@@ -36,7 +42,7 @@ const LEGACY_MODEL_MAP = {
 /** 归一模型名（battle 侧不依赖 ptcg/js，因此内联同一份映射） */
 export function normalizeAiModelName(model) {
   const name = typeof model === 'string' ? model.trim() : '';
-  return name ? (LEGACY_MODEL_MAP[name] || name) : 'deepseek-flash';
+  return name ? (LEGACY_MODEL_MAP[name] || name) : AI_DEFAULT_MODEL;
 }
 
 /** 读取 API Key（未配置返回 null） */

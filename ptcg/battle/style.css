@@ -355,12 +355,24 @@ body.ptcg-battle-active {
   position: absolute;
   top: calc(var(--safe-gap) + 14px); left: 6px;
   width: 44%;
+  max-height: 40vh;            /* 限高：超出可滚动回看历史动作 */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,.4) transparent;
   z-index: 4;
-  pointer-events: none;
+  pointer-events: auto;        /* 允许拖动/滚动查看历史（原为 none，无法交互） */
+  cursor: grab;
   display: flex;
   flex-direction: column;
   gap: 3px;
 }
+#battle-log.dragging { cursor: grabbing; user-select: none; }
+#battle-log::-webkit-scrollbar { width: 6px; }
+#battle-log::-webkit-scrollbar-track { background: transparent; }
+#battle-log::-webkit-scrollbar-thumb { background: rgba(255,255,255,.4); border-radius: 3px; }
 .log-line {
   background: rgba(0,0,0,.5);
   color: #fff;

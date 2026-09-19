@@ -449,7 +449,7 @@ await test('宝可装置3.0：牌库上方没有支援者时仍算发动成功�
     effects:[{ action:'peek_and_keep', params:{ peek:7, keep:1, filter:'支援者', maxCount:1, minCount:1, allowFewer:false, allowEmpty:false } }] };
   const ok = await engine.useTrainer(0, device);
   assert.equal(ok, true, '没有支援者也应算发动成功');
-  assert.deepEqual(pl.discard, ['宝可装置3.0'], '使用的卡应进入弃牌区');
+  assert.deepEqual(pl.discard, ['device'], '使用的卡应以卡牌 ID 进入弃牌区');
   assert.equal(pl.hand.length, 0, '空发不应拿到卡');
 });
 
@@ -2949,8 +2949,8 @@ await test('百万吨吹风机：丢弃对手道具、特殊能量和竞技场',
   assert.ok(opp.discard.includes('tool-print-1'));
   assert.ok(opp.discard.includes('旧字符串道具'));
   assert.ok(opp.discard.includes('特殊能量'));
-  assert.ok(opp.discard.includes(specialEnergyByCardId));
-  assert.ok(opp.discard.includes(specialEnergyById));
+  assert.ok(opp.discard.includes('special-energy-print'), '特殊能量以 cardId 进弃牌区');
+  assert.ok(opp.discard.includes('special-energy-id'), '特殊能量以 id 进弃牌区');
   assert.equal(opp.discard.includes(basicEnergyObject), false);
 });
 
@@ -3965,12 +3965,21 @@ await test('手牌/弃牌/牌库操作效果执行', async () => {
   assert.equal(pl.discard.includes('x2'), true);
 });
 
-await test('弃牌区回收：无候选时安全跳过', async () => {
+await test('弃牌区回收：必需无候选时报必需失败，可选无候选时安全跳过', async () => {
   const gs = new GameState();
   const pl = gs.player1;
   pl.discard = [];
-  await executeEffects(gs, pl, [{ action:'recover_from_discard', params:{ count:1, target:'hand' } }]);
-  assert.deepEqual(pl.hand, []);
+  // 必需（如「夜间担架」选择1张）：弃牌区没有合法目标时不能发动，
+  // 必须抛出必需失败让上层回滚，避免「白用一张卡」或回收不合规的卡
+  await assert.rejects(
+    () => executeEffects(gs, pl, [{ action:'recover_from_discard', params:{ count:1, target:'hand' } }]),
+    err => err && err.requiredEffectFailed === true,
+    '必需回收无目标时应抛出必需失败'
+  );
+  assert.deepEqual(pl.hand, [], '不应回收任何卡');
+  // 可选（最多N张 / allowFewer）：无候选按空发处理，不报错
+  await executeEffects(gs, pl, [{ action:'recover_from_discard', params:{ count:1, maxCount:1, allowFewer:true, target:'hand' } }]);
+  assert.deepEqual(pl.hand, [], '可选回收无候选时安全跳过');
 });
 
 await test('防止伤害/无法攻击/无法撤退 flag 生效', async () => {
@@ -4127,7 +4136,7 @@ await test('先攻玩家最初回合：物品仍可使用并执行效果', async
 
   assert.equal(ok, true);
   assert.deepEqual(pl.hand, ['drawnCard']);
-  assert.deepEqual(pl.discard, ['测试物品']);
+  assert.deepEqual(pl.discard, ['itemCard'], '弃牌区存卡牌 ID');
   assert.equal(pl.supporterUsed, false);
 });
 
@@ -4153,12 +4162,12 @@ await test('先攻玩家结束最初回合后：先攻标记清除且后续回�
   let ok = await engine.useTrainer(0, { cardType:'trainer', trainerType:'supporter', name:'后续支援者A', effects:[{ action:'draw', params:{ count:1 } }] });
   assert.equal(ok, true);
   assert.equal(pl.supporterUsed, true);
-  assert.deepEqual(pl.discard, ['后续支援者A']);
+  assert.deepEqual(pl.discard, ['supporterA'], '弃牌区存卡牌 ID');
 
   ok = await engine.useTrainer(0, { cardType:'trainer', trainerType:'supporter', name:'后续支援者B', effects:[{ action:'draw', params:{ count:1 } }] });
   assert.equal(ok, false);
   assert.deepEqual(pl.hand, ['supporterB', 'drawnB']);
-  assert.deepEqual(pl.discard, ['后续支援者A']);
+  assert.deepEqual(pl.discard, ['supporterA']);
 });
 
 await test('后攻玩家最初回合：支援者可使用，除非已用过或其他规则阻止', async () => {
@@ -4175,13 +4184,13 @@ await test('后攻玩家最初回合：支援者可使用，除非已用过或�
   assert.equal(ok, true);
   assert.equal(pl.supporterUsed, true);
   assert.deepEqual(pl.hand, ['drawnCard']);
-  assert.deepEqual(pl.discard, ['后攻支援者']);
+  assert.deepEqual(pl.discard, ['supporterCard'], '弃牌区存卡牌 ID');
 
   pl.hand = ['secondSupporter'];
   ok = await engine.useTrainer(0, { cardType:'trainer', trainerType:'supporter', name:'第二张支援者', effects:[{ action:'draw', params:{ count:1 } }] });
   assert.equal(ok, false);
   assert.deepEqual(pl.hand, ['secondSupporter']);
-  assert.deepEqual(pl.discard, ['后攻支援者']);
+  assert.deepEqual(pl.discard, ['supporterCard']);
 });
 
 await test('训练家discard_cost：支援者已用过时先判定失败且不丢费用', async () => {
@@ -4264,7 +4273,7 @@ await test('训练家discard_cost：物品先丢指定手牌再执行搜牌效�
 
   assert.equal(ok, true);
   assert.deepEqual(pl.hand, ['costA', 'targetPokemon 宝可梦']);
-  assert.deepEqual(pl.discard, ['costB', '大地之容器']);
+  assert.deepEqual(pl.discard, ['costB', 'trainerCard']);
   assert.equal(pl.deck.includes('targetPokemon 宝可梦'), false);
 });
 
@@ -4356,7 +4365,7 @@ await test('训练家discard_cost：无选卡器时确定性支付首个匹配�
 
   assert.equal(ok, true);
   assert.deepEqual(pl.hand, ['costB', 'drawnCard']);
-  assert.deepEqual(pl.discard, ['costA', '费用物品']);
+  assert.deepEqual(pl.discard, ['costA', 'trainerCard']);
 });
 
 await test('WP1 高级球：必须丢弃2张手牌才搜索宝可梦，取消或费用不足不消耗', async () => {
@@ -4384,7 +4393,7 @@ await test('WP1 高级球：必须丢弃2张手牌才搜索宝可梦，取消或
   let ok = await makeEngine(legal).useTrainer(0, { cardType:'trainer', trainerType:'item', name:'高级球', effects });
   assert.equal(ok, true);
   assert.deepEqual(pl.hand, ['keepCard', 'targetPokemon 宝可梦']);
-  assert.deepEqual(pl.discard, ['costB', 'costA', '高级球']);
+  assert.deepEqual(pl.discard, ['costB', 'costA', 'ultraBall']);
 
 
   const insufficient = new GameState();
@@ -4419,7 +4428,7 @@ await test('WP1 反击捕捉器：奖赏落后时执行对手换位，否则不�
   assert.equal(ok, true);
   assert.equal(opp.active.name, '对手备战B');
   assert.deepEqual(opp.bench.map(p => p.name), ['对手备战A', '对手出战']);
-  assert.deepEqual(pl.discard, ['反击捕捉器']);
+  assert.deepEqual(pl.discard, ['counterCatcher']);
 
   const illegal = new GameState();
   const pl2 = illegal.player1;
@@ -4462,7 +4471,7 @@ await test('WP1 梅洛可：仅在上个对手回合己方被击倒后先附火�
   const ok = await makeEngine(legal).useTrainer(0, { cardType:'trainer', trainerType:'supporter', name:'梅洛可', effects });
   assert.equal(ok, true);
   assert.deepEqual(pl.bench[0].energy, ['基本【火】能量']);
-  assert.deepEqual(pl.discard, ['基本【水】能量', '梅洛可']);
+  assert.deepEqual(pl.discard, ['基本【水】能量', 'mela']);
   assert.equal(pl.hand.length, 6);
   assert.deepEqual(pl.hand.slice(1), ['draw5', 'draw4', 'draw3', 'draw2', 'draw1']);
 
@@ -4500,7 +4509,7 @@ await test('训练家元数据回归：未结构化condition前提不强制但�
 
   assert.equal(ok, true);
   assert.deepEqual(pl.hand, ['drawnCard']);
-  assert.deepEqual(pl.discard, ['条件物品']);
+  assert.deepEqual(pl.discard, ['trainerCard']);
 });
 
 await test('先攻支援者例外：可在先攻最初回合使用且不是硬first_turn前提', async () => {
@@ -4522,7 +4531,7 @@ await test('先攻支援者例外：可在先攻最初回合使用且不是硬fi
   assert.equal(ok, true);
   assert.equal(pl.supporterUsed, true);
   assert.deepEqual(pl.hand, ['drawnCard']);
-  assert.deepEqual(pl.discard, ['大姐姐']);
+  assert.deepEqual(pl.discard, ['supporterCard']);
 });
 
 await test('先攻支援者例外：后续普通回合仍可使用且不要求后攻最初回合', async () => {
@@ -4541,7 +4550,7 @@ await test('先攻支援者例外：后续普通回合仍可使用且不要求�
   assert.equal(ok, true);
   assert.equal(pl.supporterUsed, true);
   assert.deepEqual(pl.hand, ['drawnCard']);
-  assert.deepEqual(pl.discard, ['丹瑜']);
+  assert.deepEqual(pl.discard, ['supporterCard']);
   assert.equal(gs.log.some(line => line.includes('最初回合')), false);
 });
 
@@ -4560,7 +4569,7 @@ await test('训练家first_turn前提：自己的最初回合合法且会正常�
 
   assert.equal(ok, true);
   assert.deepEqual(pl.hand, ['drawnCard']);
-  assert.deepEqual(pl.discard, ['对战VIP参加证']);
+  assert.deepEqual(pl.discard, ['vipPass']);
 });
 
 await test('训练家first_turn前提：非最初回合失败且不消耗、不支付费用、不执行效果', async () => {
@@ -4599,7 +4608,7 @@ await test('训练家后攻first_turn前提：后攻最初回合合法，先攻�
   let ok = await makeEngine(legal).useTrainer(0, { cardType:'trainer', trainerType:'item', name:'帮忙铃', effects });
   assert.equal(ok, true);
   assert.deepEqual(second.hand, ['drawnCard']);
-  assert.deepEqual(second.discard, ['帮忙铃']);
+  assert.deepEqual(second.discard, ['bell']);
 
   const illegal = new GameState();
   const first = illegal.player1;
@@ -4629,7 +4638,7 @@ await test('训练家奖赏落后前提：自己奖赏多于对手时合法，�
   let ok = await makeEngine(legal).useTrainer(0, { cardType:'trainer', trainerType:'item', name:'反击捕捉器', effects });
   assert.equal(ok, true);
   assert.deepEqual(pl.hand, ['drawnCard']);
-  assert.deepEqual(pl.discard, ['反击捕捉器']);
+  assert.deepEqual(pl.discard, ['counterCatcher']);
 
   const illegal = new GameState();
   const pl2 = illegal.player1;
@@ -4666,7 +4675,7 @@ await test('训练家opponent_prizes_at_most前提：合法时可消耗支援者
   assert.equal(ok, true);
   assert.equal(pl.supporterUsed, true);
   assert.deepEqual(pl.hand, ['drawnCard']);
-  assert.deepEqual(pl.discard, ['杜娟']);
+  assert.deepEqual(pl.discard, ['roxanneCard']);
 });
 
 await test('训练家事务：必需选卡取消会回滚卡牌费用与支援者标记', async () => {
@@ -4738,7 +4747,7 @@ await test('训练家事务：必需效果成功仍消耗并结算', async () =>
 
   assert.equal(ok, true);
   assert.deepEqual(pl.hand, ['targetPokemon 宝可梦']);
-  assert.deepEqual(pl.discard, ['成功物品']);
+  assert.deepEqual(pl.discard, ['trainerCard']);
   assert.deepEqual(pl.deck, ['bottom']);
 });
 
@@ -4762,7 +4771,7 @@ await test('训练家事务：可选allowEmpty取消保持成功且不回滚', a
 
   assert.equal(ok, true);
   assert.deepEqual(pl.hand, []);
-  assert.deepEqual(pl.discard, ['可选物品']);
+  assert.deepEqual(pl.discard, ['trainerCard']);
   assert.deepEqual(pl.deck, ['bottom', 'targetPokemon 宝可梦']);
 });
 
@@ -5258,7 +5267,7 @@ await test('retreat cost 2 can be paid by one two-unit special energy', () => {
   pl.active.energy = [doubleColorless, 'basic A'];
   pl.bench = [mon('bench')];
   assert.equal(gs.retreat(pl, 0, [0]), true);
-  assert.deepEqual(pl.discard, [doubleColorless]);
+  assert.deepEqual(pl.discard, [doubleColorless.cardId ?? doubleColorless.name], '被丢弃的能量以卡牌引用入弃牌区');
   assert.deepEqual(pl.bench[0].energy, ['basic A']);
 });
 
@@ -6164,15 +6173,34 @@ await test('AI 对手：整局自动对战（无异常/无挂起/会做附能等
   const realRandom = Math.random;
   let seed = 20260919;
   Math.random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+  // localStorage mock 必须在 try 之前声明（finally 里要恢复，块作用域不可见）
+  const originalStorage = globalThis.localStorage;
+  const store = new Map([['ptcg_ai_api_key', 'sk-test-key'], ['ptcg_ai_settings', JSON.stringify({ model: 'deepseek-flash' })]]);
+  globalThis.localStorage = {
+    getItem: k => (store.has(k) ? store.get(k) : null),
+    setItem: (k, v) => store.set(k, String(v)),
+    removeItem: k => store.delete(k),
+  };
   try {
   const resolver = await makeFileResolver();
   const [deckA, deckB] = aiTestDecks();
   const gs = new GameState();
   const aiKinds = new Set();
+  // 该用例同时验证混合模式：模拟模型参与决策（真实驱动状态序列化/提示词/三道闸）
   const engine = new BattleEngine(gs, resolver, {
     aiActionDelayMs: 0,
+    aiAutoplayDelayMs: -1,   // 禁用自动触发，由测试手动驱动（避免与定时器叠加）
+    aiMode: 'llm',
     onAiAction: ({ action }) => aiKinds.add(action.kind),
+    fetchImpl: async (url, opts) => {
+      // 模拟模型：从提示词里解析出候选 id，选第一个（保证合法）
+      const body = JSON.parse(opts.body);
+      const user = body.messages.find(m => m.role === 'user')?.content || '';
+      const ids = [...user.matchAll(/^(a\d+) \[/gm)].map(m => m[1]);
+      return { ok: true, json: async () => ({ choices: [{ message: { content: JSON.stringify({ action: ids[0] || null, reason: 'test' }) } }] }) };
+    },
   });
+  const aiPolicy = engine._aiPolicy;
   const policy = new HeuristicPolicy(engine, gs.player1);
   gs.aiPickHandler = pick => policy.choosePick(pick);
   gs.aiPokemonPickHandler = pick => policy.choosePokemonPick(pick);
@@ -6182,13 +6210,25 @@ await test('AI 对手：整局自动对战（无异常/无挂起/会做附能等
   engine.startGame(deckA, deckB);
 
   const runAutoPlayerTurn = async (player, maxSteps = 40) => {
+    const failed = new Set();
+    let stagnant = 0;
+    let lastFp = '';
     for (let i = 0; i < maxSteps; i++) {
       if (gs.phase === PHASE.GAME_OVER || gs.currentPlayer !== player) return;
-      const actions = getLegalActions(gs, resolver, player);
-      if (!actions.length) return;
+      // DRAW / END 这类无动作阶段：由引擎推进，避免测试驱动在无动作阶段空转
+      if (gs.phase === PHASE.DRAW || gs.phase === PHASE.END) { gs.nextPhase(); continue; }
+      const actions = getLegalActions(gs, resolver, player).filter(a => !failed.has(`${a.kind}|${a.params?.handIndex ?? ''}|${a.params?.targetSlot ?? ''}|${a.desc}`));
+      if (!actions.length) { gs.nextPhase(); continue; }
       const action = await policy.chooseAction(actions);
       if (!action) return;
-      await engine._applyAiAction(action, player);
+      const key = `${action.kind}|${action.params?.handIndex ?? ''}|${action.params?.targetSlot ?? ''}|${action.desc}`;
+      const result = await engine._applyAiAction(action, player);
+      if (result === false) failed.add(key);
+      // 局面无变化 → 防死循环（与引擎同思路）
+      const fp = [gs.phase, gs.turn, player.hand.length, player.discard.length, player.deck.length, player.active?.hp ?? -1].join('|');
+      stagnant = fp === lastFp ? stagnant + 1 : 0;
+      lastFp = fp;
+      if (stagnant >= 5) return;
     }
   };
 
@@ -6197,8 +6237,13 @@ await test('AI 对手：整局自动对战（无异常/无挂起/会做附能等
     let lastTurn = -1;
     let stagnant = 0;
     while (gs.phase !== PHASE.GAME_OVER && gs.turn <= 60 && guard++ < 6000) {
-      if (gs.currentPlayer === gs.player2) await engine.runAiTurn();
-      else await runAutoPlayerTurn(gs.player1);
+      if (gs.currentPlayer === gs.player2) {
+        await engine.runAiTurn();
+        // 若因「正在执行」而直接返回，让出一次事件循环（避免空转误判卡死）
+        await new Promise(r => setTimeout(r, 0));
+      } else {
+        await runAutoPlayerTurn(gs.player1);
+      }
       // 卡死检测：回合数长期不增长才是真挂起（步数多只是对局长）
       if (gs.turn === lastTurn) stagnant += 1;
       else { stagnant = 0; lastTurn = gs.turn; }
@@ -6220,8 +6265,75 @@ await test('AI 对手：整局自动对战（无异常/无挂起/会做附能等
     assert.ok(smart.some(k => aiKinds.has(k)),
       `对手应会做附能/进化/训练家/特性等操作，实际只做了：${[...aiKinds].join(',') || '（无）'}`);
   }
+  // 混合模式：模型确实参与过决策（不是全程启发式）
+  assert.ok(aiPolicy.stats.asked > 0, '应至少向模型发起过一次决策请求');
+  assert.ok(aiPolicy.stats.accepted > 0, '模型的合法选择应被采纳过');
   } finally {
     Math.random = realRandom;
+    globalThis.localStorage = originalStorage;
+  }
+});
+
+await test('混合AI：LLM 输出经三道闸校验；非法/失败自动回退且冷却', async () => {
+  const original = globalThis.localStorage;
+  const store = new Map([
+    ['ptcg_ai_api_key', 'sk-test-key'],
+    ['ptcg_ai_settings', JSON.stringify({ model: 'deepseek-flash' })],
+  ]);
+  globalThis.localStorage = {
+    getItem: k => (store.has(k) ? store.get(k) : null),
+    setItem: (k, v) => store.set(k, String(v)),
+    removeItem: k => store.delete(k),
+  };
+  try {
+    const resolver = await makeFileResolver();
+    const gs = new GameState();
+    const engine = new BattleEngine(gs, resolver, { aiActionDelayMs: 0, aiMode: 'llm' });
+    const policy = engine._aiPolicy;
+
+    gs.phase = PHASE.BATTLE;
+    gs.currentPlayer = gs.player2;
+    gs.player1.active = mon('玩家出战');
+    gs.player2.active = mon('AI出战', 'ai', [
+      { name: '弱击', damage: 20, cost: [], effects: [] },
+      { name: '强击', damage: 60, cost: [], effects: [] },
+    ]);
+    const actions = getLegalActions(gs, resolver, gs.player2);
+    const attacks = actions.filter(a => a.kind === ACTION.ATTACK);
+    assert.ok(attacks.length >= 2, '应枚举出两个可打招式');
+
+    // ① 合法输出：采纳模型选择
+    policy.fetchImpl = async () => ({ ok: true, json: async () => ({ choices: [{ message: { content: JSON.stringify({ action: attacks[0].id }) } }] }) });
+    policy._cooldownUntil = 0; policy._askedTurn = -1;
+    const picked = await policy.chooseAction(actions);
+    assert.equal(picked.id, attacks[0].id, '应采纳模型给出的候选 id');
+
+    // ② 非法 id：回退启发式（启发式选伤害最高/可击倒的那个）
+    policy.fetchImpl = async () => ({ ok: true, json: async () => ({ choices: [{ message: { content: '{"action":"a999"}' } }] }) });
+    policy._cooldownUntil = 0; policy._askedTurn = -1;
+    const fallback = await policy.chooseAction(actions);
+    assert.equal(fallback.id, attacks[1].id, '非法 id 必须回退启发式');
+
+    // ③ 请求失败：仍给出动作 + 进入冷却（避免每个动作都白等超时）
+    let calls = 0;
+    policy.fetchImpl = async () => { calls += 1; throw new Error('network'); };
+    policy._cooldownUntil = 0; policy._askedTurn = -1;
+    const afterFail = await policy.chooseAction(actions);
+    assert.ok(afterFail, '失败也必须给出动作');
+    assert.ok(policy._cooldownUntil > Date.now(), '失败后应进入冷却');
+    const callsBefore = calls;
+    await policy.chooseAction(actions);
+    assert.equal(calls, callsBefore, '冷却期内不应再调用模型');
+
+    // ④ 无 API Key：完全不调用模型（等同纯启发式）
+    store.delete('ptcg_ai_api_key');
+    let calledWithoutKey = 0;
+    policy.fetchImpl = async () => { calledWithoutKey += 1; return { ok: true, json: async () => ({ choices: [] }) }; };
+    policy._cooldownUntil = 0; policy._askedTurn = -1;
+    await policy.chooseAction(actions);
+    assert.equal(calledWithoutKey, 0, '无 API Key 时不应调用模型');
+  } finally {
+    globalThis.localStorage = original;
   }
 });
 

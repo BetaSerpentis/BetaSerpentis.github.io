@@ -97,6 +97,25 @@ function energyLabel(cardData, id) {
 }
 
 /**
+ * 训练家「丢弃手牌费用」是否可支付（枚举阶段先排除付不起的）。
+ * 背景：canUseTrainer 不检查 discard_cost 类实际费用，曾导致 AI 反复尝试一张
+ * 「需要丢弃 2 张手牌」但手里只有 1 张的卡，日志刷屏且浪费回合步数。
+ * 注：这里只判断张数是否够（保守）；具体 filter 匹配由执行层再校验。
+ */
+function discardCostFeasible(player, handIndex, cardData) {
+  const costs = (cardData?.effects || []).filter(e => e.action === 'trainer_prerequisite' && e.params?.kind === 'discard_cost');
+  if (!costs.length) return true;
+  let available = Math.max(0, (player?.hand || []).length - 1); // 使用中的这张不能当费用
+  for (const cost of costs) {
+    const raw = cost.params?.count;
+    const need = raw === 'all' ? available : (Number(raw) || 1);
+    if (available < need) return false;
+    available -= need;
+  }
+  return true;
+}
+
+/**
  * 枚举当前玩家（默认 gs.currentPlayer）的合法动作。
  * @param {object} gs GameState
  * @param {object} resolver CardResolver（用于 getCard）
@@ -200,7 +219,8 @@ export function getLegalActions(gs, resolver, player = gs.currentPlayer) {
     if (cd.cardType === 'trainer') {
       const legal = gs.canUseTrainer ? gs.canUseTrainer(player, cd, null) : { ok: true };
       const type = cd.trainerType || 'item';
-      if (legal.ok) {
+      const affordable = discardCostFeasible(player, idx, cd);
+      if (legal.ok && affordable) {
         push(ACTION.USE_TRAINER, { handIndex: idx, targetSlot: null },
           `使用${trainerTypeLabel(type)} ${cardLabel(cd, id)}`, { trainerType: type });
       } else if (type === 'tool') {
