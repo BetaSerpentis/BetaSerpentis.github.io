@@ -1,6 +1,8 @@
 // js/core/BattleEngine.js
 import { PHASE } from './GameState.js';
 import { executeEffects, payDiscardCostFromHand } from './EffectExecutor.js';
+import { getLegalActions, describeAction, ACTION } from './ActionSpace.js';
+import { createAiPolicy } from './AiPolicy.js';
 
 const EFF_NAMES = {
   draw:'抽牌', draw_until:'补牌', heal:'回血', switch_pokemon:'换位',
@@ -13,7 +15,11 @@ const EFF_NAMES = {
 
 const SETUP_HAND_SIZE = 7;
 const MAX_OPPONENT_MULLIGANS = 20;
-const MAX_AI_ACTIONS = 3;
+const MAX_AI_ACTIONS = 3; // legacy：旧的「写死三步」预算，已被逐步动作循环取代
+/** AI 回合逐步播放：每个动作之间的停顿（毫秒）；0 = 不停顿（批量测试用） */
+const AI_ACTION_DELAY_MS = 850;
+/** AI 单回合最多执行动作数（防死循环） */
+const MAX_AI_STEPS = 40;
 
 function _cloneForTrainerTransaction(value, seen = new WeakMap()) {
   if (value === null || typeof value !== 'object') return value;
@@ -129,6 +135,10 @@ export class BattleEngine {
     if (resolver) this.gs.cardResolver = resolver;
     this.cb = callbacks;
     this._aiTurnInProgress = false;
+    // AI 决策策略（P0 启发式；callbacks.aiMode='llm' 时走 LlmPolicy，失败自动回退）
+    this._aiPolicy = createAiPolicy(this, { mode: callbacks.aiMode || 'heuristic', player: gameState.player2 });
+    // 动作间隔（可见性）：让玩家能看清对手的每个动作
+    this.aiActionDelayMs = Number.isFinite(callbacks.aiActionDelayMs) ? callbacks.aiActionDelayMs : AI_ACTION_DELAY_MS;
   }
 
   startGame(p1Deck, p2Deck) {
@@ -296,6 +306,13 @@ export class BattleEngine {
 
   evolvePokemon(handIndex, cardData, targetSlot) {
     const ok = this.gs.evolve(this.gs.currentPlayer, handIndex, cardData, targetSlot);
+    this.cb.onFieldUpdate?.();
+    return ok;
+  }
+
+  /** 撤退（每回合一次；能量不足或状态限制时返回 false） */
+  retreat(benchIndex, energyIndices = null) {
+    const ok = this.gs.retreat(this.gs.currentPlayer, benchIndex, energyIndices);
     this.cb.onFieldUpdate?.();
     return ok;
   }
@@ -526,42 +543,153 @@ export class BattleEngine {
     this.finishTurn();
   }
 
+  /**
+   * AI 回合：逐动作循环。
+   * 每轮重新枚举合法动作（手牌/阶段会变）→ 策略选一个 → 执行 → 停顿（可见性）→ 下一轮。
+   * 效果执行中的选择由 gs.aiPickHandler 路由到策略，因此不会出现「等待玩家选牌」而卡死。
+   */
   async _aiTurn() {
     const gs = this.gs;
     if (gs.phase === PHASE.GAME_OVER || gs.currentPlayer !== gs.player2) return;
     if (this._aiTurnInProgress) return;
 
     this._aiTurnInProgress = true;
+    const prevPickHandler = gs.aiPickHandler;
+    const prevMonPickHandler = gs.aiPokemonPickHandler;
+    gs.aiPickHandler = pick => this._aiPolicy.choosePick(pick);
+    gs.aiPokemonPickHandler = pick => this._aiPolicy.choosePokemonPick(pick);
+
     try {
       this.cb.onLog?.('对手回合');
-      let budget = MAX_AI_ACTIONS;
+      this.cb.onAiThinking?.(true);
 
-      if (gs.phase === PHASE.DRAW && budget-- > 0) gs.nextPhase();
-      if (gs.phase === PHASE.MAIN && budget-- > 0) {
-        gs.setPhase(PHASE.BATTLE);
-        this.cb.onLog?.('对手进入战斗阶段');
+      if (gs.phase === PHASE.DRAW) {
+        gs.nextPhase();
         this.cb.onPhaseChange?.(gs.phase);
         this.cb.onFieldUpdate?.();
+        await this._aiPause();
       }
 
-      if (gs.phase === PHASE.BATTLE && budget-- > 0) {
-        const attackIndex = this._firstLegalAttackIndex(gs.player2);
-        if (attackIndex >= 0) {
-          const ok = await this.attack(attackIndex);
-          if (!ok && gs.currentPlayer === gs.player2 && gs.phase !== PHASE.GAME_OVER) this._passAiTurn('攻击失败，回合结束');
-        } else {
-          this._passAiTurn('无法攻击，回合结束');
+      const failed = new Set();
+      let stagnant = 0;
+      let lastFingerprint = this._aiFingerprint();
+
+      for (let step = 0; step < MAX_AI_STEPS; step++) {
+        if (gs.phase === PHASE.GAME_OVER || gs.currentPlayer !== gs.player2) break;
+        const actions = getLegalActions(gs, this.resolver, gs.player2)
+          .filter(a => !failed.has(this._aiActionKey(a)));
+        if (!actions.length) break;
+
+        const action = await this._aiPolicy.chooseAction(actions);
+        if (!action) break;
+
+        this.cb.onAiAction?.({ action, desc: describeAction(action) });
+        const result = await this._applyAiAction(action);
+        if (result === false) failed.add(this._aiActionKey(action));
+
+        this.cb.onPhaseChange?.(gs.phase);
+        this.cb.onFieldUpdate?.();
+        if (gs.phase === PHASE.GAME_OVER || gs.currentPlayer !== gs.player2) break;
+        if (result && result.turnEnded) break;
+
+        // 动作被引擎拒绝且未造成任何变化 → 防死循环
+        const fingerprint = this._aiFingerprint();
+        stagnant = fingerprint === lastFingerprint ? stagnant + 1 : 0;
+        lastFingerprint = fingerprint;
+        if (stagnant >= 3) {
+          this.cb.onLog?.('对手连续无有效行动，回合结束');
+          break;
         }
-      } else if (gs.currentPlayer === gs.player2 && gs.phase !== PHASE.GAME_OVER) {
-        this._passAiTurn();
+        await this._aiPause();
       }
     } catch (err) {
       this.cb.onLog?.(`对手行动异常，回合结束：${err?.message || err}`);
-      if (gs.currentPlayer === gs.player2 && gs.phase !== PHASE.GAME_OVER) this.finishTurn();
     } finally {
       this._aiTurnInProgress = false;
+      gs.aiPickHandler = prevPickHandler || null;
+      gs.aiPokemonPickHandler = prevMonPickHandler || null;
+      this.cb.onAiThinking?.(false);
+      // 兜底：回合未正常结束（异常/无动作可选）时也要交回玩家，避免卡在对手回合
+      if (gs.currentPlayer === gs.player2 && gs.phase !== PHASE.GAME_OVER) this.finishTurn();
       this.cb.onPhaseChange?.(gs.phase);
       this.cb.onFieldUpdate?.();
     }
+  }
+
+  /** 外部/测试手动触发一次 AI 回合 */
+  async runAiTurn() {
+    await this._aiTurn();
+  }
+
+  /** 执行一个 AI 动作（人类侧的方法均按 gs.currentPlayer 工作；默认操作对手） */
+  async _applyAiAction(action, player = this.gs.player2) {
+    const gs = this.gs;
+    const pl = player;
+    const p = action?.params || {};
+    const card = id => this.resolver?.getCard?.(id) || null;
+    const handCard = idx => card(pl.hand?.[idx]);
+
+    switch (action?.kind) {
+      case ACTION.MULLIGAN:
+        this.mulliganPlayer(pl);
+        return true;
+      case ACTION.PUT_ACTIVE:
+        return this.placeActivePokemon(p.handIndex, handCard(p.handIndex));
+      case ACTION.PUT_BENCH:
+        return this.placeBenchPokemon(p.handIndex, handCard(p.handIndex));
+      case ACTION.CONFIRM_SETUP:
+        return this.confirmSetup();
+      case ACTION.ATTACH_ENERGY:
+        return this.attachEnergy(p.handIndex, handCard(p.handIndex), p.targetSlot);
+      case ACTION.EVOLVE:
+        return this.evolvePokemon(p.handIndex, handCard(p.handIndex), p.targetSlot);
+      case ACTION.USE_TRAINER: {
+        const cd = handCard(p.handIndex);
+        if (!cd) return false;
+        return this.useTrainer(p.handIndex, cd, p.targetSlot ?? null);
+      }
+      case ACTION.USE_ABILITY:
+        return this.useAbility(p.source, p.ability, { player: pl, zone: p.zone });
+      case ACTION.ACTIVATE_STADIUM:
+        return this.activateStadium(pl);
+      case ACTION.RETREAT:
+        return this.retreat(p.benchIndex, p.energyIndices ?? null);
+      case ACTION.ATTACK:
+        return this.attack(p.attackIndex);
+      case ACTION.PASS_PHASE:
+        this.advancePhase();
+        return true;
+      case ACTION.END_TURN:
+        this.finishTurn();
+        return { turnEnded: true };
+      default:
+        return false;
+    }
+  }
+
+  /** 动作指纹：用于「失败动作去重」与「无变化检测」 */
+  _aiActionKey(action) {
+    const p = action?.params || {};
+    return [action?.kind, p.handIndex ?? '', p.targetSlot ?? '', p.attackIndex ?? '', p.benchIndex ?? '', action?.desc].join('|');
+  }
+
+  /** 动作间隔（可见性）：让玩家能看清除对手的每个动作 */
+  _aiPause() {
+    const ms = Number(this.aiActionDelayMs) || 0;
+    if (ms <= 0) return Promise.resolve();
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /** 局面指纹（检测「动作执行了但什么都没变」） */
+  _aiFingerprint() {
+    const gs = this.gs;
+    const pl = gs.player2;
+    return [
+      gs.phase, gs.turn,
+      pl.hand.length, pl.discard.length, pl.deck.length, pl.prizes.length,
+      pl.active?.hp ?? -1, pl.active?.energy?.length ?? 0, (pl.bench || []).length,
+      pl.energyAttached ? 1 : 0, pl.supporterUsed ? 1 : 0, pl.retreatUsed ? 1 : 0,
+      gs.player1.active?.hp ?? -1, gs.log.length,
+    ].join('|');
   }
 }

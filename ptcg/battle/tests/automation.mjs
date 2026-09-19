@@ -14,8 +14,10 @@ import { CardResolver } from '../js/core/CardResolver.js';
 import { PTCGBattleApp, cardPickerTitleFor, energyElementClass, energyLabel, pokemonPickerConfirmEnabled, pokemonPickerHasLegalTarget, pokemonPickerSlotAllowed, pokemonPickerSlotClass, pokemonPickerTitleFor } from '../js/main.js';
 import { pokemonSpriteImgHtml, pokemonSpriteSrc } from '../js/ui/SpriteUtils.js';
 import { DeckSource, PTCG_DECKS_STORAGE_KEY } from '../js/core/DeckSource.js';
-import { TEST_DECKS } from '../js/data/decks.js';
+import { TEST_DECKS, expandDeck } from '../js/data/decks.js';
 import { AI_STORAGE_KEYS, getAiApiKey, hasAiApiKey, getAiSettings, describeAiStatus, onAiKeyChange } from '../js/core/AiSettings.js';
+import { getLegalActions, ACTION } from '../js/core/ActionSpace.js';
+import { HeuristicPolicy } from '../js/core/AiPolicy.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.resolve(__dirname, '../../data/battle');
@@ -392,8 +394,15 @@ await test('AiSettings：读取共用 localStorage 中的 API Key 与设置', ()
     assert.equal(hasAiApiKey(), true);
     assert.equal(describeAiStatus().configured, true);
 
+    // 遗留模型名会被归一：deepseek-chat / deepseek-reasoner 已于 2026-07-24 停止服务
     store.set(AI_STORAGE_KEYS.SETTINGS, JSON.stringify({ model: 'deepseek-chat' }));
-    assert.deepEqual(getAiSettings({ model: 'default', temperature: 0.7 }), { model: 'deepseek-chat', temperature: 0.7 });
+    assert.deepEqual(getAiSettings({ model: 'default', temperature: 0.7 }), { model: 'deepseek-flash', temperature: 0.7 });
+
+    // 现行模型名原样保留，且 deepseek-flash 不被误改
+    store.set(AI_STORAGE_KEYS.SETTINGS, JSON.stringify({ model: 'deepseek-flash' }));
+    assert.deepEqual(getAiSettings({ model: 'default' }), { model: 'deepseek-flash' });
+    store.set(AI_STORAGE_KEYS.SETTINGS, JSON.stringify({ model: 'deepseek-v4-pro' }));
+    assert.deepEqual(getAiSettings({ model: 'default' }), { model: 'deepseek-v4-pro' });
 
     store.set(AI_STORAGE_KEYS.SETTINGS, '{坏 JSON');
     assert.deepEqual(getAiSettings({ model: 'default' }), { model: 'default' });
@@ -2679,13 +2688,15 @@ await test('AI在main阶段有合法招式时会进入battle并攻击后交还�
   gs.player1.active = mon('玩家出战');
   gs.player2.active = mon('AI出战', 'ai', [{ name: '免费攻击', damage: 20, cost: [], effects: [] }]);
   const { engine, events } = makeEngineWithEvents(gs);
+  engine.aiActionDelayMs = 0;
 
   await engine._aiTurn();
 
   assert.equal(gs.currentPlayer, gs.player1);
   assert.equal(gs.phase, PHASE.MAIN);
-  assert.equal(gs.player1.active.hp, 40);
-  assert.equal(events.logs.some(msg => msg.includes('对手进入战斗阶段')), true);
+  // 新 AI 逐动作推进：MAIN →（进入战斗阶段）→ 攻击 → 交还玩家
+  assert.equal(gs.player1.active.hp, 40, 'AI 应完成攻击并造成伤害');
+  assert.equal(events.logs.some(msg => msg.includes('战斗阶段')), true, '应记录进入战斗阶段');
   assert.equal(events.phases.at(-1), PHASE.MAIN);
 });
 
@@ -2697,13 +2708,14 @@ await test('AI无合法招式或能量不足时会pass并回到玩家', async ()
   gs.player1.active = mon('玩家出战');
   gs.player2.active = mon('AI出战', 'ai', [{ name: '火费攻击', damage: 50, cost: ['fire'], effects: [] }]);
   const { engine, events } = makeEngineWithEvents(gs);
+  engine.aiActionDelayMs = 0;
 
   await engine._aiTurn();
 
-  assert.equal(gs.currentPlayer, gs.player1);
+  assert.equal(gs.currentPlayer, gs.player1, '无招可打也应把行动权交回玩家');
   assert.equal(gs.phase, PHASE.MAIN);
-  assert.equal(gs.player1.active.hp, 60);
-  assert.equal(events.logs.some(msg => msg.includes('对手无法攻击，回合结束')), true);
+  assert.equal(gs.player1.active.hp, 60, '能量不足不应造成伤害');
+  assert.equal(engine._aiTurnInProgress, false);
   assert.equal(events.phases.at(-1), PHASE.MAIN);
 });
 
@@ -2716,14 +2728,15 @@ await test('AI攻击失败路径会结束回合且不遗留进行中状态', asy
   gs.player2.active = mon('睡眠AI', 'ai', [{ name: '梦中攻击', damage: 20, cost: [], effects: [] }]);
   gs.player2.active.status = 'sleep';
   const { engine, events } = makeEngineWithEvents(gs);
+  engine.aiActionDelayMs = 0;
 
   await engine._aiTurn();
 
   assert.equal(gs.currentPlayer, gs.player1);
   assert.equal(gs.phase, PHASE.MAIN);
-  assert.equal(gs.player1.active.hp, 60);
-  assert.equal(engine._aiTurnInProgress, false);
-  assert.equal(events.logs.some(msg => msg.includes('攻击失败，回合结束')), true);
+  assert.equal(gs.player1.active.hp, 60, '睡眠中不能攻击');
+  assert.equal(engine._aiTurnInProgress, false, '不应遗留进行中状态');
+  assert.equal(events.phases.at(-1), PHASE.MAIN);
 });
 
 await test('连续回合循环不会卡在对手回合或重复触发AI', async () => {
@@ -6048,6 +6061,168 @@ await test('全卡牌效果文本解析覆盖率报告', () => {
   // 最新验证基线为4518/7208（约63%）且残留4499，当前保护线为>=60%且残留<=4650。
   assert.ok(coverageRatio >= PARSER_COVERAGE_MIN_RATIO, `解析覆盖率低于保护线: ${parsed}/${total} (${coverageRatio.toFixed(3)}) < ${PARSER_COVERAGE_MIN_RATIO}`);
   assert.ok(unparsed <= PARSER_RESIDUAL_MAX_COUNT, `解析残留高于保护线: ${unparsed} > ${PARSER_RESIDUAL_MAX_COUNT}`);
+});
+
+// ===== AI 对手（P0）：合法动作枚举 + 启发式策略 + 选择路由（防挂起）=====
+
+/**
+ * 用 fs 支撑 file:// 读取，让 CardResolver 在 node 环境下能加载真实卡数据。
+ * （CardResolver 内部用 fetch(new URL(file, DATA_BASE))，node 的 fetch 不支持 file: 协议）
+ */
+async function makeFileResolver() {
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    const href = String(url);
+    if (href.startsWith('file:')) {
+      const text = fs.readFileSync(fileURLToPath(href), 'utf8');
+      return { ok: true, json: async () => JSON.parse(text) };
+    }
+    return realFetch(url);
+  };
+  try {
+    const resolver = new CardResolver();
+    await resolver.load();
+    return resolver;
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+}
+
+function withTimeout(promise, ms, label) {
+  let timer = null;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${label} 超时（疑似挂起）`)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => { if (timer) clearTimeout(timer); });
+}
+
+/** 固定随机种子：让洗牌/硬币可重现，避免同一用例偶发失败 */
+async function withSeededMath(seed, fn) {
+  const realRandom = Math.random;
+  let s = seed >>> 0;
+  Math.random = () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+  try { return await fn(); } finally { Math.random = realRandom; }
+}
+
+function aiTestDecks() {
+  const deckA = expandDeck(TEST_DECKS[0]);
+  const second = TEST_DECKS[1] || TEST_DECKS[0];
+  return [deckA, expandDeck(second)];
+}
+
+await test('ActionSpace：起手枚举基础宝可梦、主要阶段动作含结束回合', async () => {
+  await withSeededMath(1234, async () => {
+  const resolver = await makeFileResolver();
+  const [deckA, deckB] = aiTestDecks();
+  const gs = new GameState();
+  const engine = new BattleEngine(gs, resolver, { aiActionDelayMs: 0 });
+  engine.startGame(deckA, deckB);
+
+  const setup = getLegalActions(gs, resolver, gs.player1);
+  assert.ok(setup.every(a => a.id && a.kind && typeof a.desc === 'string'), '每个动作都应带 id/kind/desc');
+  const put = setup.find(a => a.kind === ACTION.PUT_ACTIVE);
+  assert.ok(put || setup.some(a => a.kind === ACTION.MULLIGAN), '起手应能放置基础宝可梦或重新抽牌');
+
+  // 无基础宝可梦时先重抽，直到可以放置
+  let guard = 0;
+  let active = put;
+  while (!active && guard++ < 20) {
+    engine.mulliganPlayer(gs.player1);
+    active = getLegalActions(gs, resolver, gs.player1).find(a => a.kind === ACTION.PUT_ACTIVE);
+  }
+  assert.ok(active, '重抽后应能放置基础宝可梦');
+  engine.placeActivePokemon(active.params.handIndex);
+  assert.ok(engine.confirmSetup(), '确认布置后应进入对战（对手由引擎自动布置）');
+
+  gs.setPhase(PHASE.MAIN);
+  gs.currentPlayer = gs.player2;
+  const main = getLegalActions(gs, resolver, gs.player2);
+  assert.ok(main.some(a => a.kind === ACTION.END_TURN), '主要阶段应至少有「结束回合」');
+  assert.ok(main.some(a => a.kind === ACTION.PASS_PHASE || a.kind === ACTION.ATTACK || a.kind === ACTION.ATTACH_ENERGY),
+    '主要阶段应能枚举出推进/附能等动作');
+  });
+});
+
+await test('AiPolicy：选择应答遵守 derivePickBounds 边界', async () => {
+  const resolver = await makeFileResolver();
+  const gs = new GameState();
+  const engine = new BattleEngine(gs, resolver, { aiActionDelayMs: 0 });
+  const policy = new HeuristicPolicy(engine, gs.player2);
+
+  const picked = await policy.choosePick({ cards: ['卡A', '卡B', '卡C'], count: 1, options: { source: 'peek', minCount: 1, maxCount: 2 } });
+  assert.ok(Array.isArray(picked), '应返回索引数组');
+  assert.ok(picked.length >= 1 && picked.length <= 2, `选择数量应在 [1,2]，实际 ${picked.length}`);
+  assert.ok(picked.every(i => i >= 0 && i < 3), '索引应在合法范围内');
+
+  assert.deepEqual(await policy.choosePick({ cards: [], count: 0, options: { allowEmpty: true } }), [], '无候选应返回空数组');
+  const emptyAllowed = await policy.choosePick({ cards: ['X'], count: 0, options: { allowEmpty: true, maxCount: 1 } });
+  assert.ok(emptyAllowed.length <= 1, 'allowEmpty 时不应超出上限');
+});
+
+await test('AI 对手：整局自动对战（无异常/无挂起/会做附能等操作）', async () => {
+  // 固定随机种子：洗牌/硬币可重现，避免「同一用例偶发失败」
+  const realRandom = Math.random;
+  let seed = 20260919;
+  Math.random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+  try {
+  const resolver = await makeFileResolver();
+  const [deckA, deckB] = aiTestDecks();
+  const gs = new GameState();
+  const aiKinds = new Set();
+  const engine = new BattleEngine(gs, resolver, {
+    aiActionDelayMs: 0,
+    onAiAction: ({ action }) => aiKinds.add(action.kind),
+  });
+  const policy = new HeuristicPolicy(engine, gs.player1);
+  gs.aiPickHandler = pick => policy.choosePick(pick);
+  gs.aiPokemonPickHandler = pick => policy.choosePokemonPick(pick);
+  gs._onPendingPick = null;
+  gs._onPendingPokemonPick = null;
+
+  engine.startGame(deckA, deckB);
+
+  const runAutoPlayerTurn = async (player, maxSteps = 40) => {
+    for (let i = 0; i < maxSteps; i++) {
+      if (gs.phase === PHASE.GAME_OVER || gs.currentPlayer !== player) return;
+      const actions = getLegalActions(gs, resolver, player);
+      if (!actions.length) return;
+      const action = await policy.chooseAction(actions);
+      if (!action) return;
+      await engine._applyAiAction(action, player);
+    }
+  };
+
+  const runGame = async () => {
+    let guard = 0;
+    let lastTurn = -1;
+    let stagnant = 0;
+    while (gs.phase !== PHASE.GAME_OVER && gs.turn <= 60 && guard++ < 6000) {
+      if (gs.currentPlayer === gs.player2) await engine.runAiTurn();
+      else await runAutoPlayerTurn(gs.player1);
+      // 卡死检测：回合数长期不增长才是真挂起（步数多只是对局长）
+      if (gs.turn === lastTurn) stagnant += 1;
+      else { stagnant = 0; lastTurn = gs.turn; }
+      if (stagnant > 300) break;
+    }
+    return { guard, stagnant };
+  };
+
+  const { guard, stagnant } = await withTimeout(runGame(), 60000, '整局自动对战');
+  assert.ok(stagnant <= 300, `疑似卡死：连续 ${stagnant} 步没有推进回合`);
+  assert.ok(guard < 6000, `对局应在步数上限内结束或到达回合上限，实际 ${guard} 步`);
+  // 回合结束后行动权必须交回玩家（AI 挂起的直接表现就是卡在 player2）
+  assert.ok(gs.phase === PHASE.GAME_OVER || gs.currentPlayer === gs.player1, 'AI 回合结束应把行动权交回玩家');
+  assert.ok(gs.turn > 1 || gs.phase === PHASE.GAME_OVER, '对局应至少推进过回合');
+  // P0 目标：对手不再只普攻
+  assert.ok(aiKinds.size > 0, '对手应至少执行过一个动作');
+  const smart = [ACTION.ATTACH_ENERGY, ACTION.EVOLVE, ACTION.USE_TRAINER, ACTION.USE_ABILITY, ACTION.RETREAT];
+  if (gs.turn >= 3) {
+    assert.ok(smart.some(k => aiKinds.has(k)),
+      `对手应会做附能/进化/训练家/特性等操作，实际只做了：${[...aiKinds].join(',') || '（无）'}`);
+  }
+  } finally {
+    Math.random = realRandom;
+  }
 });
 
 if (process.exitCode) {

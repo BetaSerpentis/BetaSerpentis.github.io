@@ -1,5 +1,5 @@
 // ptcg/js/core/ApiKeyManager.js
-import { STORAGE_KEYS, CONFIG_AI } from '../utils/constants.js';
+import { STORAGE_KEYS, CONFIG_AI, normalizeAiModel } from '../utils/constants.js';
 import { showToast } from '../utils/helpers.js';
 
 export class ApiKeyManager {
@@ -77,7 +77,15 @@ export class ApiKeyManager {
         try {
             const raw = localStorage.getItem(STORAGE_KEYS.AI_SETTINGS);
             if (raw) {
-                return { ...CONFIG_AI, ...JSON.parse(raw) };
+                const parsed = JSON.parse(raw);
+                const settings = { ...CONFIG_AI, ...parsed };
+                // 遗留模型名迁移：deepseek-chat / deepseek-reasoner 已于 2026-07-24 停止服务
+                const normalized = normalizeAiModel(settings.model);
+                if (normalized !== settings.model) {
+                    settings.model = normalized;
+                    this.saveSettings({ ...parsed, model: normalized });
+                }
+                return settings;
             }
         } catch (e) { /* ignore */ }
         return { ...CONFIG_AI };

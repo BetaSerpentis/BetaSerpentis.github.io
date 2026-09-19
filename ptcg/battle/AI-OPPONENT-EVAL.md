@@ -180,7 +180,8 @@ Kaggle「Pokémon TCG AI Battle Challenge」（The Pokémon Company × Matsuo La
 ### 5.6 模型与端点（已定：直连）
 
 - **已定走直连**：`CONFIG_AI.apiEndpoint = https://api.deepseek.com/v1/chat/completions` 保持不变，**无需**把 endpoint 做成可配置
-- **模型名**：直连 DeepSeek 官方时用官方模型名（当前常量 `deepseek-chat`）。`deepseek-v4.1-flash` 目前见于第三方聚合平台（LinkTokenView 等）；若 DeepSeek 官方后续上线新版本，只改 `settings.model` 即可（已可从 localStorage 覆盖，无需改代码）
+- **模型名已核实（2026-09 官方文档）**：`deepseek-chat` / `deepseek-reasoner` 两个遗留名已于 **2026-07-24 停止服务**；现行模型名为 **`deepseek-flash`**（= DeepSeek-V4.1-Flash，即用户预期的那个）与 `deepseek-v4-pro`。项目常量已同步为 `deepseek-flash`，并在读取设置时自动迁移 localStorage 里的遗留名
+- **thinking 模式**：默认开启且 `effort=high`（会产生大量 CoT token，拖慢响应）。战斗决策建议 `{"thinking":{"type":"disabled"}}`（或 `reasoning_effort:"none"`）；带 `tools` 时所有历史轮 `reasoning_content` 必须回传
 - 预留：将来若要切聚合平台，再补 `settings.endpoint` 字段即可，不阻塞当前开发
 - battle 侧设置项：启用开关 / 是否使用 LLM / 模型名 / 难度档
 
@@ -313,8 +314,45 @@ Kaggle「Pokémon TCG AI Battle Challenge」（The Pokémon Company × Matsuo La
 - 无 Key 或 API 故障时必须能降级为启发式对手（不能让对战不可用）
 
 ## 已确认决策与下一步
-- 接入方式：**直连** api.deepseek.com（endpoint 不改造，模型名用 settings.model）
+- 接入方式：**直连** api.deepseek.com（endpoint 不改造，模型名用 settings.model；现行模型名 `deepseek-flash`）
 - AI 风格：**认真打**（强度优先，启发式需算好伤害/KO/奖赏事实）
-- 决策粒度：**按可见行动走**，每个行动 1 次调用，目标 **1s**（超时即回退启发式）
+- 决策粒度：**按可见行动走**，每个行动 1 次决策；**1 秒不是刚需，动作可见性优先**
 - 能力分工：**启发式算数 + LLM 取舍**
-- 待确认：是否现在开工做 P0（DecisionRouter + ActionSpace.getLegalActions + HeuristicPolicy）；若开工，先出接口草案（AiPolicy/DecisionRouter/ActionSpace 签名与 pendingPick 各 source 的启发式策略表）
+- 待确认：P0 已完成（见下），是否继续 P1（AI 设置 UI）/ P2（LLM 策略层）
+
+## 十、P0 实施记录（2026-09-19 已完成）
+
+### 交付物
+
+| 文件 | 内容 |
+|---|---|
+| `ptcg/battle/js/core/ActionSpace.js`（新） | `getLegalActions(gs, resolver, player)` 确定性枚举；`estimateAttackDamage` 事实标注（伤害/能否 KO/几奖赏/附能解锁哪个招式） |
+| `ptcg/battle/js/core/AiPolicy.js`（新） | `HeuristicPolicy`：打分式取舍 + `choosePick`/`choosePokemonPick` 选择应答；`LlmPolicy` 预留同接口 |
+| `ptcg/battle/js/core/BattleEngine.js` | `_aiTurn` 重写为「逐动作循环 + 间隔播放」；新增 `_applyAiAction`（人类/AI 共用执行路径）、`retreat()`、`runAiTurn()`；失败动作去重 + 无变化检测（防死循环） |
+| `ptcg/battle/js/core/GameState.js` | `waitForPick`/`waitForPokemonPick` 支持 `aiPickHandler`/`aiPokemonPickHandler` 路由；`derivePickBounds` 抽为导出（AI 与玩家 UI 共用同一套边界推导） |
+| `ptcg/battle/js/main.js` | AI 动作逐个播报（`对手：<动作>` + 刷新）；`onAiThinking` → 「对手思考中…」；pick 回调加 AI 守卫 |
+| `ptcg/js/utils/constants.js`、`ApiKeyManager.js`、`battle/js/core/AiSettings.js` | 模型名 `deepseek-chat`（已停服）→ `deepseek-flash`，并自动迁移 localStorage 遗留名 |
+
+### 关键行为变化
+
+1. **修掉挂起**：以前 AI 回合遇到 `waitForPick` 会永久卡住（回调只服务玩家 UI）。现由策略应答 —— 实测 AI 打出「巢穴球」「宝可装置3.0」「老大的指令」等需要选牌/选目标的卡都能正常走完。
+2. **动作可见（本次重点）**：每个动作之间有间隔（`engine.aiActionDelayMs`，默认 850ms）+ 逐条日志 + 每次都刷新，不再「一瞬间结束回合」。
+3. **不再只普攻**：实测 20 回合对局中对手动作统计：**附能×8、训练家×28、攻击×10、竞技场×7、进化×2、撤退×1**。
+
+### 逐动作循环的两条关键规则
+
+- 攻击会**立即结束回合** → 策略规定「先做完善准备动作（附能/进化/特性/训练家/竞技场）再攻击」（`PREP_KINDS` + 攻击降权）
+- 主要阶段必须能 `PASS_PHASE` 进入战斗阶段，否则永远打不出攻击
+
+### 已知限制（P0 范围内接受）
+
+1. AI 仍可能打出「当前没有有效目标」的物品卡（如神奇糖果），只是浪费一张牌，不会卡住 —— P2 可结合卡牌效果做前置条件判断。
+2. 伤害估算不含硬币/随机分支（标注 `mayVary`），对随机招式的把握偏保守。
+3. 能量附着目标选择较简单（优先战斗宝可梦 + 能解锁招式者），没有长期能量规划。
+4. 未接入 LLM（`LlmPolicy` 目前直接复用启发式）；接入见 P2 计划。
+
+### 验证
+
+- `npm run test:ptcg-battle`：新增 3 条用例（动作枚举 / 选择边界 / 整局自动对战），使用固定随机种子，连续 4 次运行全通过
+- 整局自动对战断言：无异常、无挂起（回合停滞检测）、回合结束交回玩家、对手会做附能/进化/训练家等操作
+- `npm run test:ptcg-query` 26 项、`npm run ptcg:check-syntax` 41/41 全通过

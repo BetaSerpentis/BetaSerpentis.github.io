@@ -179,3 +179,23 @@ ptcg/battle/                # 已并入 ptcg（原 ptcgBattle/，2026-09-16；�
 - [ ] 扩展trainer_prerequisite执行范围，优先覆盖高频前置条件（如特定场面/对象/次数限制），避免把metadata误当已执行规则
 - [x] WP3训练家轻量事务/回滚边界已覆盖必需选卡取消、必需宝可梦无目标和必需效果失败；后续只在发现具体卡牌需求时扩展更多必需效果信号
 - [ ] 扩展竞技场效果模型，从最小激活入口推进到持续效果、离场触发与完整替换规则
+
+## AI 对手（P0，2026-09-19）
+
+### 已完成
+- [x] 合法动作枚举 `ActionSpace.getLegalActions(gs, resolver, player)`：布置/附能/进化/训练家/特性/竞技场/撤退/攻击/推进阶段/结束回合，并给攻击标注事实（伤害、能否 KO、几奖赏）与附能解锁的招式
+- [x] 启发式策略 `AiPolicy.HeuristicPolicy`：打分式取舍（优先 KO 与高伤害、先做完善准备动作再攻击、濒危才撤退）+ `choosePick`/`choosePokemonPick` 选择应答（遵守 `derivePickBounds` 边界）
+- [x] 修掉「AI 回合遇效果内选择永久挂起」：`GameState.waitForPick`/`waitForPokemonPick` 支持策略路由（`aiPickHandler`/`aiPokemonPickHandler`）
+- [x] `BattleEngine._aiTurn` 重写为「逐动作循环 + 间隔播放」：每轮重新枚举 → 选一个 → 执行 → 停顿（默认 850ms）→ 下一轮；新增 `_applyAiAction` 统一执行路径、失败动作去重、无变化检测（防死循环）、`runAiTurn()` 供测试
+- [x] 动作可见性：main.js 逐个播报「对手：<动作>」并刷新，AI 思考时显示「对手思考中…」
+- [x] 模型名修正：`deepseek-chat`/`deepseek-reasoner` 已于 2026-07-24 停止服务 → 统一为 `deepseek-flash`，并自动迁移 localStorage 遗留名
+- [x] 测试：新增 3 条用例（动作枚举 / 选择边界 / 整局自动对战），固定随机种子，连续 4 次全通过
+
+### 实测（内置卡组自动对战）
+- 对手动作统计：附能×8、训练家×28、攻击×10、竞技场×7、进化×2、撤退×1；20 回合分出胜负
+- 使用「巢穴球」「宝可装置3.0」「老大的指令」等需要选牌/选目标的卡均正常完成（验证挂起已修复）
+
+### 待办
+- [ ] P1：AI 设置 UI（启用开关 / 是否用 LLM / 模型名 / 难度）+ 动作播放节奏可调
+- [ ] P2：`StateSerializer` + `LlmPolicy`（deepseek-flash，关闭 thinking 模式）+ 三道闸校验 + 超时回退启发式
+- [ ] 策略细化：训练家前置条件判断（避免打出无有效目标的卡）、能量长期规划、硬币分支期望值

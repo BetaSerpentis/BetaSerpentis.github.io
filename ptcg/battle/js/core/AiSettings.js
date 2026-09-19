@@ -26,6 +26,19 @@ function safeStorage() {
   }
 }
 
+/** 已停止服务的遗留模型名（2026-07-24）→ 现行模型名 */
+const LEGACY_MODEL_MAP = {
+  'deepseek-chat': 'deepseek-flash',
+  'deepseek-reasoner': 'deepseek-flash',
+  'deepseek-coder': 'deepseek-flash',
+};
+
+/** 归一模型名（battle 侧不依赖 ptcg/js，因此内联同一份映射） */
+export function normalizeAiModelName(model) {
+  const name = typeof model === 'string' ? model.trim() : '';
+  return name ? (LEGACY_MODEL_MAP[name] || name) : 'deepseek-flash';
+}
+
 /** 读取 API Key（未配置返回 null） */
 export function getAiApiKey() {
   const storage = safeStorage();
@@ -43,7 +56,7 @@ export function hasAiApiKey() {
   return !!getAiApiKey();
 }
 
-/** 读取 AI 设置（与默认值合并） */
+/** 读取 AI 设置（与默认值合并；遗留模型名自动归一） */
 export function getAiSettings(defaults = {}) {
   const storage = safeStorage();
   if (!storage) return { ...defaults };
@@ -51,7 +64,11 @@ export function getAiSettings(defaults = {}) {
     const raw = storage.getItem(AI_STORAGE_KEYS.SETTINGS);
     if (!raw) return { ...defaults };
     const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === 'object' ? { ...defaults, ...parsed } : { ...defaults };
+    if (!parsed || typeof parsed !== 'object') return { ...defaults };
+    const merged = { ...defaults, ...parsed };
+    // deepseek-chat / deepseek-reasoner 已于 2026-07-24 停止服务 → 归一为现行模型名
+    if (merged.model) merged.model = normalizeAiModelName(merged.model);
+    return merged;
   } catch (e) {
     return { ...defaults };
   }
