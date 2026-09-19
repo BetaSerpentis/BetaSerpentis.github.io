@@ -276,6 +276,11 @@ export class CardBrowser {
         if (c.attackCostExactly !== undefined) parts.push(`招式恰好${c.attackCostExactly}能`);
         if (c.attackCostAtMost !== undefined) parts.push(`招式≤${c.attackCostAtMost}能`);
         if (c.keyword) parts.push(`名称含「${c.keyword}」`);
+        const kwList = v => Array.isArray(v) ? v.join('或') : v;
+        if (c.abilityName) parts.push(`特性名含「${kwList(c.abilityName)}」`);
+        if (c.abilityText) parts.push(`特性内容含「${kwList(c.abilityText)}」`);
+        if (c.attackText) parts.push(`招式内容含「${kwList(c.attackText)}」`);
+        if (c.textAny) parts.push(`效果内容含「${kwList(c.textAny)}」`);
         return parts.length ? parts.join('、') : '（无条件，显示当前页签全部）';
     }
 
