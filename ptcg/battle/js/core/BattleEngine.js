@@ -514,21 +514,36 @@ export class BattleEngine {
       await executeEffects(gs, atk, postEffects);
     }
 
-    // 反射屏障类反伤：防守方具备反射标记时，给攻击方放置等量伤害指示物
-    //（如超梦「反射屏障」：下个对手回合受到招式伤害时反伤）
-    if (damage > 0 && def.active?.mirrorDamageCounters && atk.active) {
-      const mirrorDamage = damage;
-      const defenderName = def.active.name;
-      atk.active.hp = Math.max(0, atk.active.hp - mirrorDamage);
-      gs.addLog(`${defenderName} 的反射屏障：${atk.active.name} 受到 ${mirrorDamage} 伤害`);
-      def.active.mirrorDamageCounters = false; // 每次受击反伤一次
-      if (atk.active.hp <= 0) {
-        gs.knockout(atk);
-        this.cb.onLog?.(`${atk.active?.name || '攻击方'} 被反射伤害击倒`);
-        if (gs.phase === PHASE.GAME_OVER) {
-          this.cb.onPhaseChange?.(gs.phase);
-          this.cb.onFieldUpdate?.();
-          return true;
+    // 受招式伤害时的反伤类效果：
+    //   · 反射屏障（超梦）：反伤 = 受到的伤害数值，标记一次后消耗
+    //   · 尖钉能量（特殊能量）：反伤 = 每张 2 个伤害指示物（20 伤害），附着期间持续生效
+    if (damage > 0 && atk.active) {
+      const defenderMon = def.active;
+      let counterDamage = 0;
+      const reasons = [];
+      if (defenderMon?.mirrorDamageCounters) {
+        counterDamage += damage;
+        reasons.push('反射屏障');
+        defenderMon.mirrorDamageCounters = false; // 每次受击反伤一次
+      }
+      const spikeCounters = (defenderMon?.energy || [])
+        .reduce((sum, e) => sum + (e?.attackReflectCounters || 0), 0);
+      if (spikeCounters > 0) {
+        counterDamage += spikeCounters * 10;
+        reasons.push('尖钉能量');
+      }
+      if (counterDamage > 0) {
+        const attackerName = atk.active.name;
+        atk.active.hp = Math.max(0, atk.active.hp - counterDamage);
+        gs.addLog(`${defenderMon.name} 的${reasons.join('、')}：${attackerName} 受到 ${counterDamage} 伤害`);
+        if (atk.active.hp <= 0) {
+          gs.knockout(atk);
+          this.cb.onLog?.(`${atk.active?.name || '攻击方'} 被反伤击倒`);
+          if (gs.phase === PHASE.GAME_OVER) {
+            this.cb.onPhaseChange?.(gs.phase);
+            this.cb.onFieldUpdate?.();
+            return true;
+          }
         }
       }
     }

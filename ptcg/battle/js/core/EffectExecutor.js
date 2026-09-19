@@ -594,7 +594,9 @@ function _applyDamageToPokemon(gs, owner, mon, amount, logSuffix = '受到', opt
   gs.addLog(`${mon.name} ${logSuffix} ${amount} 伤害`);
   if (mon.hp <= 0) _knockoutPokemon(gs, owner, mon);
   const attacker = options.attacker || gs.getOpponent?.(owner)?.active || null;
-  _emitTriggers(gs, 'attacked_damage', { target: mon, source: attacker });
+  // 只有「招式造成的伤害」才触发受击类效果（幸运头盔/尖钉能量等）。
+  // 特性或效果「放置伤害指示物」不算招式伤害，不应触发（如仿徨夜灵的指示物曾误触发幸运头盔）。
+  if (options.source === 'attack') _emitTriggers(gs, 'attacked_damage', { target: mon, source: attacker });
   return true;
 }
 function _knockoutPokemon(gs, owner, mon) {

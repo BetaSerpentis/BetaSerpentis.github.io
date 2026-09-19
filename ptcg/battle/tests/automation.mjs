@@ -6417,6 +6417,77 @@ await test('战斗日志面板：限高约 8 个按钮厚度 + 实时跟随 + �
   assert.ok(/_bindLogDrag/.test(js), '应支持拖动滚动回看');
 });
 
+await test('尖钉能量：附着后受招式伤害时给攻击方放置 2 个伤害指示物', async () => {
+  const gs = new GameState();
+  gs.player1.deck = ['x', 'x']; gs.player2.deck = ['y', 'y'];
+  gs.player1.prizes = ['p', 'p']; gs.player2.prizes = ['p', 'p'];
+  gs.player1.active = mon('攻击者', 'a', [{ name: '攻击', damage: 50, cost: [], effects: [] }]);
+  gs.player2.active = mon('防守者', 'd'); gs.player2.active.maxHp = 200; gs.player2.active.hp = 200;
+  const spiky = {
+    cardType: 'specialEnergy', name: '尖钉能量',
+    provides: [{ types: ['colorless'], count: 1 }],
+    effects: [{ action: 'attack_reflect_counters', params: { counters: 2 } }],
+  };
+  gs.player2.hand = ['spiky'];
+  assert.equal(gs.attachEnergy(gs.player2, 0, spiky, 'active'), true, '尖钉能量应能附着');
+  assert.equal(gs.player2.active.energy[0].attackReflectCounters, 2, '附着时应登记反伤标记');
+  const engine = makeEngine(gs);
+  engine.aiAutoplayDelayMs = -1;
+  gs.firstPlayer = gs.player2; gs.firstPlayerFirstTurnInProgress = false;
+  gs.phase = PHASE.BATTLE; gs.currentPlayer = gs.player1;
+  const before = gs.player1.active.hp;
+  await engine.attack(0);
+  assert.equal(before - (gs.player1.active?.hp ?? 0), 20, '攻击方应因尖钉能量受到 20 伤害（2 个指示物）');
+  assert.ok(gs.log.some(l => /尖钉能量/.test(l)), '应记录尖钉能量反伤日志');
+});
+
+await test('回收类训练家：弃牌区无合法目标时不可使用（只有卡组检索类可空发）', async () => {
+  const resolver = await makeFileResolver();
+  const gs = new GameState();
+  gs.cardResolver = resolver;
+  const pl = gs.player1;
+  pl.active = mon('测试宝可梦', 't');
+  const stretcher = {
+    cardType: 'trainer', trainerType: 'item', name: '夜间担架',
+    effects: [{ action: 'recover_from_discard', params: { filter: '宝可梦或基本能量', target: 'hand', count: 1, maxCount: 1, minCount: 1, allowFewer: false, allowEmpty: false } }],
+  };
+  pl.discard = ['CS1DC-196']; // 只有训练家卡
+  assert.equal(gs.canUseTrainer(pl, stretcher, null).ok, false, '弃牌区只有训练家卡时不可使用');
+  assert.equal(gs.canUseTrainer(pl, stretcher, null).reason, 'no_recover_target');
+  pl.discard = [];
+  assert.equal(gs.canUseTrainer(pl, stretcher, null).ok, false, '弃牌区为空时不可使用');
+  pl.discard = ['CS5.5C-008']; // 宝可梦
+  assert.equal(gs.canUseTrainer(pl, stretcher, null).ok, true, '弃牌区有宝可梦时可用');
+  pl.discard = ['30thC-DAR']; // 基本能量
+  assert.equal(gs.canUseTrainer(pl, stretcher, null).ok, true, '弃牌区有基本能量时可用');
+});
+
+await test('幸运头盔：只有受到招式伤害才抽卡（特性放置伤害指示物不触发）', async () => {
+  const gs = new GameState();
+  gs.player1.deck = Array(10).fill('x'); gs.player2.deck = Array(10).fill('y');
+  gs.player1.prizes = ['p', 'p']; gs.player2.prizes = ['p', 'p'];
+  gs.player1.active = mon('攻击者', 'a', [{ name: '攻击', damage: 30, cost: [], effects: [] }]);
+  gs.player2.active = mon('防守者', 'd'); gs.player2.active.maxHp = 300; gs.player2.active.hp = 300;
+  gs.player2.active.tool = {
+    cardId: 'helmet', name: '幸运头盔',
+    effects: [{ action: 'trigger', params: { event: 'attacked_damage', effect: { action: 'draw', params: { count: 2 } }, sourceKind: 'tool' } }],
+  };
+  const engine = makeEngine(gs);
+  engine.aiAutoplayDelayMs = -1;
+  gs.firstPlayer = gs.player2; gs.firstPlayerFirstTurnInProgress = false;
+  // ① 特性/效果「放置伤害指示物」不算招式伤害
+  const beforeEffect = gs.player2.hand.length;
+  await executeEffects(gs, gs.player1, [{ action: 'damage_place', params: { target: 'opponent_active', count: 2 } }]);
+  assert.equal(gs.player2.hand.length, beforeEffect, '放置伤害指示物不应触发幸运头盔');
+  // ② 招式伤害应触发
+  gs.phase = PHASE.BATTLE; gs.currentPlayer = gs.player1;
+  const beforeAttack = gs.player2.hand.length;
+  await engine.attack(0);
+  // 头盔抽 2 张；攻击会结束回合，随后 player2 作为新回合玩家再抽 1 张
+  assert.ok(gs.player2.hand.length >= beforeAttack + 2, '受到招式伤害应抽 2 张（另含回合切换抽卡）');
+  assert.ok(gs.player2.hand.length <= beforeAttack + 3, '不应多抽（避免重复触发）');
+});
+
 if (process.exitCode) {
   console.error('\n自动化测试失败。');
   process.exit(process.exitCode);

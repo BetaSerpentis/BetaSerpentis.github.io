@@ -1,4 +1,4 @@
-#eff1 hash=57d4e3e02c508e04
+#eff1 hash=d3592ac416e23b49
 151C-001	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-002	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-003	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
@@ -23903,16 +23903,12 @@ CSOC-019	trainer		1	usage_condition	{"kind":"energy_supply_desc","raw":"只要�
 CSOC-019	trainer		2	energy_provides	{"types":["any"],"count":1}
 CSOC-019	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"且身上附着这张卡的宝可梦，不会受到对手宝可梦的特性的效果影响。"}
 CSV10C-221	trainer		0	energy_provides	{"types":["colorless"],"count":1}
-CSV10C-221	trainer		1	damage_place	{"target":"attacker","count":2}
-CSV10C-221	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"只要这张卡被附于宝可梦身上，就。"}
-CSV10C-221	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"身上附着了这张卡的宝可梦在战斗场上受到对手宝可梦的招式的伤害时，。"}
+CSV10C-221	trainer		1	attack_reflect_counters	{"counters":2}
 CSV10C-222	trainer		0	energy_provides	{"types":["psychic","dark"],"count":2}
 CSV10C-222	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"这张卡只能附于\\"火箭队的宝可梦\\"身上，若这张卡附于\\"火箭队的宝可梦\\"之外的宝可梦身上，则将其丢到弃牌区。"}
 CSV10C-222	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"只要这张卡被附于宝可梦身上，就。"}
 CSV10C-287	trainer		0	energy_provides	{"types":["colorless"],"count":1}
-CSV10C-287	trainer		1	damage_place	{"target":"attacker","count":2}
-CSV10C-287	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"只要这张卡被附于宝可梦身上，就。"}
-CSV10C-287	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"身上附着了这张卡的宝可梦在战斗场上受到对手宝可梦的招式的伤害时，。"}
+CSV10C-287	trainer		1	attack_reflect_counters	{"counters":2}
 CSV1C-127	trainer		0	usage_condition	{"kind":"energy_supply_desc","raw":"只要这张卡，被附于宝可梦身上，就的能量"}
 CSV1C-127	trainer		1	energy_provides	{"types":["any"],"count":1}
 CSV1C-127	trainer		2	energy_provides	{"types":["colorless"],"count":1}

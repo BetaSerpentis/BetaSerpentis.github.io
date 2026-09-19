@@ -468,6 +468,9 @@ const RULES = [
 
   // ===== 伤害指示物 =====
   { re: /将(\d+)个伤害指示物以任意方式放置于对手的宝可梦身上/, act:'damage_place', p:m=>({target:'opponent_any',count:+m[1]}) },
+  // 尖钉能量类（特殊能量）：附着后该宝可梦在战斗场受到招式伤害 → 给攻击方放置 N 个伤害指示物。
+  // 必须放在通用「给使用了招式的宝可梦身上放置 N 个伤害指示物」规则之前。
+  { re: /身上附(?:着|有)了?这张卡的宝可梦在战斗场上受到对手宝可梦的招式的伤害时[，,]?给使用了招式的宝可梦身上放置(\d+)个伤害指示物/, act:'attack_reflect_counters', p:m=>({counters:+m[1]}) },
   { re: /将(\d+)个伤害指示物放置于(?:使用了|使用)招式的宝可梦身上/, act:'damage_place', p:m=>({target:'attacker',count:+m[1]}) },
   { re: /将(\d+)个伤害指示物[，,]?以任意方式放置于对手的备战宝可梦身上/, act:'damage_place', p:m=>({target:'opponent_bench',count:+m[1]}) },
   { re: /给对手的1只宝可梦身上[，,]?放置(\d+)个伤害指示物/, act:'damage_place', p:m=>({target:'opponent_any',count:+m[1]}) },
