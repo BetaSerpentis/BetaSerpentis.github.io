@@ -14,7 +14,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { CardQueryEngine, REDUCTION_CAP } from '../js/core/CardQueryEngine.js';
+import { scopeConditionsToTab, CardQueryEngine, REDUCTION_CAP } from '../js/core/CardQueryEngine.js';
 import { SearchIntentParser, sanitizeConditions, extractJson } from '../js/services/SearchIntentParser.js';
 import { CardManager } from '../js/core/CardManager.js';
 
@@ -227,6 +227,44 @@ await test('引擎产出对象本身不含 image（所以必须经过 setExterna
   const one = engine.query({ types: ['宝可梦'], limit: 1 })[0];
   assert.ok(one && one.id);
   assert.equal(one.image, undefined, '引擎只产出查询字段，渲染字段由 CardManager 补');
+});
+
+
+// ============================================================
+//  页签硬过滤：搜索结果只在当前页签里显示（用户口径）
+// ============================================================
+
+await test('scopeConditionsToTab：无论条件是否指定类型，都收敛到当前页签', () => {
+  // 未指定类型 → 补上页签类型
+  assert.deepEqual(scopeConditionsToTab({ stage: 0 }, '支援者'), { stage: 0, types: ['支援者'] });
+  // 指定了别的类型 → 强制覆盖（不是取交集），这样才符合「页签始终生效」
+  assert.deepEqual(scopeConditionsToTab({ types: ['宝可梦'], stage: 0 }, '支援者'), { types: ['支援者'], stage: 0 });
+  // 页签为空 → 原样返回
+  assert.deepEqual(scopeConditionsToTab({ types: ['宝可梦'] }, ''), { types: ['宝可梦'] });
+  assert.deepEqual(scopeConditionsToTab(null, '宝可梦'), { types: ['宝可梦'] });
+  // 不修改传入对象（纯函数）
+  const src = { types: ['宝可梦'] };
+  scopeConditionsToTab(src, '物品');
+  assert.deepEqual(src, { types: ['宝可梦'] });
+});
+
+await test('页签硬过滤：在支援者页签搜宝可梦类条件应查不到', () => {
+  // 用户口径：在支援者页签搜「撤退能量为4的基础宝可梦」就是看不到，得切回宝可梦页签
+  const asSupporter = scopeConditionsToTab({ types: ['宝可梦'], stage: 0, retreat: 4 }, '支援者');
+  assert.equal(engine.query(asSupporter).length, 0, '支援者页签不应显示宝可梦');
+  const asPokemon = scopeConditionsToTab({ types: ['宝可梦'], stage: 0, retreat: 4 }, '宝可梦');
+  assert.ok(engine.query(asPokemon).length > 100, '宝可梦页签应有结果');
+});
+
+await test('页签硬过滤：同一条件在不同页签各自只出自己类型', () => {
+  // 例：搜「抽6张以上」这类条件，宝可梦页签只出宝可梦、支援者页签只出支援者
+  const conds = { stage: 2 };
+  const poke = engine.query(scopeConditionsToTab(conds, '宝可梦'));
+  const sup = engine.query(scopeConditionsToTab(conds, '支援者'));
+  assert.ok(poke.length > 0);
+  assert.ok(poke.every(c => c.type === '宝可梦'));
+  assert.ok(sup.every(c => c.type === '支援者'));
+  assert.equal(sup.length, 0, '支援者没有进化阶段概念 → 该页签下应为 0');
 });
 
 console.log(`\n结果：${pass} 通过 / ${fail} 失败`);

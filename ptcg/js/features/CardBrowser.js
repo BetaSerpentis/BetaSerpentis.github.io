@@ -1,3 +1,6 @@
+// 页签收敛是纯函数，直接导入（其余依赖仍走构造函数注入）
+import { scopeConditionsToTab } from '../core/CardQueryEngine.js';
+
 export class CardBrowser {
     constructor(cardManager, imageLoader, cardGrid, modalView, statsManager, searchEngine) {
         this.cardManager = cardManager;
@@ -18,6 +21,13 @@ export class CardBrowser {
         this.semanticSearch = null;
         this.aiSearchEnabled = false;
         this._AI_SEARCH_STORAGE_KEY = 'ptcg_ai_search_enabled';
+
+        // 解析结果缓存：同一段文字不重复调用 API（省 token）。
+        // 内存 Map + localStorage 持久化，刷新/换页也不重复解析。
+        this._INTENT_CACHE_KEY = 'ptcg_ai_search_intent_cache';
+        this._INTENT_CACHE_MAX = 100;
+        this._intentCache = new Map();
+        this._lastSemanticText = '';   // 最近一次 AI 搜索的原始文本（切页签时用它本地重筛）
         
         this.init();
     }
@@ -26,6 +36,7 @@ export class CardBrowser {
         if (this._initialized) return;
         this._initialized = true;
         this._restoreAiSearchState();
+        this._loadIntentCache();
         this.bindEvents();
     }
 
@@ -218,34 +229,35 @@ export class CardBrowser {
         if (!engine || !parser) return false;
         this._setAiBusy(true);
         try {
-            const parsed = await parser.parse(searchText);
-            if (!parsed) {
-                this.cardGrid.updateSearchInfo('AI 解析失败（或未配置 API Key），已回退为普通关键词搜索');
-                return false;
+            // 先查解析缓存：同一段文字不重复调用 API（省 token）
+            const key = String(searchText).trim();
+            let conditions = this._intentCache.get(key);
+            const fromCache = !!conditions;
+            if (!conditions) {
+                const parsed = await parser.parse(searchText);
+                if (!parsed) {
+                    this.cardGrid.updateSearchInfo('AI 解析失败（或未配置 API Key），已回退为普通关键词搜索');
+                    return false;
+                }
+                conditions = parsed.conditions;
+                this._intentCache.set(key, conditions);
+                this._saveIntentCache();
             }
             await engine.load();
 
-            const conds = { ...parsed.conditions };
-            const currentTab = this.cardManager.getCurrentTab();
-            let tabHint = '';
-            if (!conds.types) {
-                // 没指明类型时，按当前页签收敛，避免结果跨类型混在同一个列表里
-                conds.types = [currentTab];
-                tabHint = `（未指明类型，按当前页签「${currentTab}」）`;
-            } else if (!conds.types.includes(currentTab)) {
-                tabHint = `（结果含 ${conds.types.join('/')}，与当前页签「${currentTab}」不同）`;
-            }
+            // 记住这次查询，切页签时可以只做本地重筛（不再调 API）
+            this._lastSemanticText = key;
 
+            const currentTab = this.cardManager.getCurrentTab();
+            const conds = scopeConditionsToTab(conditions, currentTab);
             const cards = engine.query(conds);
-            // setExternalFilter 会按 id 映射回当前已加载的完整卡片对象（渲染需要 image/quantity），
-            // 并返回实际能显示的列表；映射不到的多半是当前页签没加载的类型。
+            // setExternalFilter 会按 id 映射回当前已加载的完整卡片对象（渲染需要 image/quantity）
             const shown = this.cardManager.setExternalFilter(cards);
-            const dropped = this.cardManager._lastExternalFilterMissing || 0;
             const desc = this._describeConditions(conds);
-            const dropHint = dropped
-                ? `（另有 ${dropped} 张属于其它类型，切到对应页签后再搜可见）`
-                : '';
-            this.cardGrid.updateSearchInfo(`AI 解析出条件：${desc} ${tabHint} → ${shown.length} 张${dropHint}`);
+            const cacheHint = fromCache ? '（复用上次解析，未消耗 token）' : '';
+            this.cardGrid.updateSearchInfo(
+                `AI 条件${cacheHint}：${desc}（页签「${currentTab}」内筛选）→ ${shown.length} 张`
+            );
             this.cardGrid.render();
             return true;
         } catch (e) {
@@ -254,6 +266,48 @@ export class CardBrowser {
         } finally {
             this._setAiBusy(false);
         }
+    }
+
+    _loadIntentCache() {
+        try {
+            const raw = localStorage.getItem(this._INTENT_CACHE_KEY);
+            if (!raw) return;
+            const obj = JSON.parse(raw);
+            if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
+                for (const [k, v] of Object.entries(obj)) {
+                    if (k && v && typeof v === 'object') this._intentCache.set(k, v);
+                }
+            }
+        } catch (e) { /* 解析失败就当没有缓存 */ }
+    }
+
+    _saveIntentCache() {
+        try {
+            const entries = [...this._intentCache.entries()].slice(-this._INTENT_CACHE_MAX);
+            localStorage.setItem(this._INTENT_CACHE_KEY, JSON.stringify(Object.fromEntries(entries)));
+        } catch (e) { /* 隐私模式等写入失败忽略 */ }
+    }
+
+    /**
+     * 用已缓存的条件在当前页签做**本地**筛选（不调用 API）。
+     * @param {string} searchText 原始查询文本（缓存 key）
+     * @param {string} note 结果栏前缀说明
+     * @returns {number} 实际显示数量；无缓存条件时返回 -1
+     */
+    _applySemanticConditions(searchText, note = '') {
+        const conditions = this._intentCache.get(searchText);
+        if (!conditions) return -1;
+        const engine = this.semanticSearch && this.semanticSearch.engine;
+        if (!engine) return -1;
+
+        // 页签始终生效：无论条件里有没有 types，都收敛到当前页签
+        const conds = scopeConditionsToTab(conditions, this.cardManager.getCurrentTab());
+        const cards = engine.query(conds);
+        const shown = this.cardManager.setExternalFilter(cards);
+        const desc = this._describeConditions(conds);
+        this.cardGrid.updateSearchInfo(`${note}AI 条件：${desc} → ${shown.length} 张`);
+        this.cardGrid.render();
+        return shown.length;
     }
 
     _setAiBusy(busy) {
@@ -357,6 +411,18 @@ export class CardBrowser {
             displayMessage = isIndexOnly
                 ? `显示${generationName}: ${displayCount} 张卡牌，正在补充搜索/筛选数据`
                 : `显示${generationName}: ${displayCount} 张卡牌`;
+        }
+
+        // 切页签后：如果上一次是 AI 搜索且条件还在缓存里，就用缓存**本地**重筛（不调 API），
+        // 这样「宝可梦页签搜不到、切到支援者页签才看到」这类预期行为才能成立。
+        if (resetSearchState && this.aiSearchEnabled && this._lastSemanticText
+            && this.semanticSearch && this.semanticSearch.engine
+            && this._intentCache.has(this._lastSemanticText)) {
+            const shown = this._applySemanticConditions(this._lastSemanticText, `切到「${cardType}」页签重筛：`);
+            if (shown >= 0) {
+                this.searchInput.placeholder = this.searchEngine.getSearchPlaceholder();
+                return;
+            }
         }
 
         this.cardGrid.updateSearchInfo(displayMessage);

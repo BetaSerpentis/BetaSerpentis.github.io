@@ -1,4 +1,4 @@
-#eff1 hash=d3592ac416e23b49
+#eff1 hash=48d24945baeecc7a
 151C-001	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-002	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-003	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}

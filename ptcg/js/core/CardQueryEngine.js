@@ -71,6 +71,20 @@ function toNum(v) {
   return Number.isFinite(n) ? n : null;
 }
 
+/**
+ * 把查询条件收敛到「当前页签」。
+ *
+ * 用户口径：卡牌查看的页签始终生效 —— 搜索结果只在当前页签里显示。
+ * 例：在「支援者」页签搜「xxxx的宝可梦」就是看不到，得切回「宝可梦」页签才看得到。
+ * 所以这里**无论条件里有没有 types，都强制覆盖为当前页签类型**（而不是取交集后给提示）。
+ * tab 为空时保持原样。
+ */
+export function scopeConditionsToTab(conditions, tab) {
+  const base = conditions && typeof conditions === 'object' ? { ...conditions } : {};
+  if (tab) base.types = [tab];
+  return base;
+}
+
 export class CardQueryEngine {
   /**
    * @param {{loadText?: (url:string)=>Promise<string>, basePath?: string}} options
