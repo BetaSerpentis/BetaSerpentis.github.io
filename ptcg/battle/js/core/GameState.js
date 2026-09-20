@@ -38,6 +38,20 @@ export function derivePickBounds(pick = {}) {
 const TYPE_CN = { grass:'草',fire:'火',water:'水',lightning:'雷',psychic:'超',fighting:'斗',dark:'恶',metal:'钢',dragon:'龙',fairy:'妖',colorless:'无' };
 const TYPE_EN = Object.fromEntries(Object.entries(TYPE_CN).map(([k,v])=>[v,k]));
 
+/** 备战区上限（与 placeBench 的判定保持一致） */
+const BENCH_MAX = 5;
+
+/**
+ * 「必须放到备战区」的动作：备战区已满时这类效果无法执行。
+ * 需求：竞技场「深钵镇」、物品「巢穴球」这类把宝可梦放到场上的效果，
+ * 在备战区已满时**不能空发**，使用前就应该置灰。
+ * 注意只列“放置到备战区”的动作；switch_active_basic_heal_bench（换位）不需要空位。
+ */
+const BENCH_SLOT_ACTIONS = new Set(['search_deck_to_bench', 'discard_to_bench']);
+
+/** 附带动作：不影响「这张卡能不能用」的判断（如检索后必然附带的重洗牌库） */
+const INCIDENTAL_ACTIONS = new Set(['shuffle_deck']);
+
 export class PlayerState {
   constructor(name){this.name=name;this.deck=[];this.hand=[];this.discard=[];this.prizes=[];this.active=null;this.bench=[];
     this.stadium=null;this.supporterUsed=false;this.energyAttached=false;this.retreatUsed=false;this.stadiumPlayedThisTurn=false;this.abilityUsedThisTurn={};this.stadiumUsedThisTurn={};this.turnAttackModifiers=[];}
@@ -326,6 +340,21 @@ export class GameState {
   //   只能靠硬编码卡名，覆盖不了新卡）
   _makeToolState(cardId,cd){return {cardId,name:cd?.name||String(cardId),effects:cd?.effects||null,specialRules:cd?.specialRules||null};}
 
+  /**
+   * 备战区已满、且该效果**全部**可执行动作都需要空备战位 → 视为不可用。
+   * 只在这种“纯放宝可梦”的情况下拦截；如果一张卡还有别的可用效果则不拦
+   * （例如既有检索又有其他收益的卡，规则上仍可打出）。
+   */
+  _benchSlotBlocked(pl, effects){
+    if((pl?.bench||[]).length < BENCH_MAX) return false;
+    // 排除元数据与附带动作后再判断：剩下的“实质效果”如果全是“放到备战区”，
+    // 备战区已满时这张卡/这个竞技场就用不了（不能空发）。
+    const relevant=(effects||[]).filter(e=>e.action!=='usage_condition'
+      &&e.action!=='trainer_prerequisite'&&!INCIDENTAL_ACTIONS.has(e.action));
+    if(!relevant.length) return false;
+    return relevant.every(e=>BENCH_SLOT_ACTIONS.has(e.action));
+  }
+
   canUseTrainer(pl, cd, targetSlot=null){
     if(!cd||cd.cardType!=='trainer')return {ok:false,reason:'not_trainer',message:'不是训练家卡'};
     const prereqFailure=this._trainerPrerequisiteFailure(pl,cd);
@@ -352,6 +381,8 @@ export class GameState {
       if(!t)return {ok:false,reason:'missing_tool_target',message:'请选择目标宝可梦'};
       if(t.tool)return {ok:false,reason:'tool_already_attached',message:`${t.name} 已装备 ${this._toolLabel(t.tool)}`};
     }
+    // 需求：巢穴球这类「放于备战区」的效果，备战区已满时不能空发
+    if(this._benchSlotBlocked(pl,cd.effects))return {ok:false,reason:'bench_full',message:'备战区已满，无法放置宝可梦'};
     return {ok:true,trainerType:tt};
   }
 
@@ -480,6 +511,8 @@ export class GameState {
     if(!stadium)return {ok:false,reason:'missing_stadium',message:'没有可使用的竞技场'};
     const effects=this.stadiumActivationEffects(stadium);
     if(!effects.length)return {ok:false,reason:'no_effects',message:'这个竞技场暂无可执行效果'};
+    // 需求：深钵镇这类「放于备战区」的竞技场效果，备战区已满时不能空发
+    if(this._benchSlotBlocked(pl,effects))return {ok:false,reason:'bench_full',message:'备战区已满，这个竞技场无法放置宝可梦'};
     const key=this._stadiumUseKey(stadium);pl.stadiumUsedThisTurn=pl.stadiumUsedThisTurn||{};
     if(pl.stadiumUsedThisTurn[key])return {ok:false,reason:'already_used',message:'这个竞技场本回合已使用'};
     return {ok:true,stadium,effects,key};

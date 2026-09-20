@@ -6208,6 +6208,79 @@ await test('⑤ 竞技场动作文案区分「发动效果」与「打出卡」'
   assert.ok(desc.includes('深钵镇'));
 });
 
+// ------------------------------------------------------------
+//  场地列表置灰 / 备战区满时不能空发
+// ------------------------------------------------------------
+
+await test('① 场地列表：本回合不能进化且无其他操作时置灰', () => {
+  const gs = new GameState();
+  gs.phase = PHASE.MAIN;
+  const evoCard = { cardType:'pokemon', name:'火恐龙', evolvesFrom:'小火龙' };
+  const app = Object.create(PTCGBattleApp.prototype);
+  app.gs = gs;
+  app.resolver = { getCard: () => evoCard };
+  gs.player1.hand = ['evo-1'];
+  gs.player1.energyAttached = false;
+  gs.player1.bench = [];
+
+  // 本回合刚出场 → 不能进化，且没有其他可执行操作 → 应置灰
+  const justPlaced = { name:'小火龙', placedThisTurn:true, evolvedThisTurn:false, tool:null, ability:null, cannotRetreat:false };
+  assert.equal(app._pokeHasActions('active', justPlaced), false, '刚出场且无其他操作应置灰');
+
+  // 本回合已进化过 → 同样不能再进化
+  const alreadyEvolved = { name:'小火龙', placedThisTurn:false, evolvedThisTurn:true, tool:null, ability:null, cannotRetreat:false };
+  assert.equal(app._pokeHasActions('active', alreadyEvolved), false, '已进化过应置灰');
+
+  // 可以进化 → 有可执行操作
+  const canEvolve = { name:'小火龙', placedThisTurn:false, evolvedThisTurn:false, tool:null, ability:null, cannotRetreat:false };
+  assert.equal(app._pokeHasActions('active', canEvolve), true, '能进化时应可点');
+
+  // 不能进化，但手上有能量可附 → 仍可点
+  app.resolver = { getCard: id => (id === 'energy-1' ? { cardType:'energy', name:'基本火能量' } : evoCard) };
+  gs.player1.hand = ['evo-1', 'energy-1'];
+  assert.equal(app._pokeHasActions('active', justPlaced), true, '有可附能量时应可点');
+});
+
+await test('② 备战区已满：巢穴球与深钵镇不可使用（不能空发）', () => {
+  const nestBall = { name:'巢穴球', cardType:'trainer', trainerType:'item',
+    effects: parseEffect('选择自己牌库中的1张【基础】宝可梦，放于备战区。并重洗牌库。').effects };
+  const stadium = { name:'深钵镇', cardId:'st-2', cardType:'stadium', trainerType:'stadium',
+    effects: parseEffect('双方玩家，每次在自己的回合有1次机会，可选择自己牌库中的1张【基础】宝可梦（除「拥有规则的宝可梦」外），放于备战区。并重洗牌库。').effects };
+
+  const fill = (pl, n) => { pl.bench = Array.from({ length:n }, (_, i) => mon('备战' + i)); };
+
+  // 备战区满（5 只）→ 两者都不可用
+  const full = new GameState();
+  full.phase = PHASE.MAIN;
+  full.currentPlayer = full.player1;
+  fill(full.player1, 5);
+  full.stadium = stadium;
+  const nf = full.canUseTrainer(full.player1, nestBall);
+  assert.equal(nf.ok, false, '备战区满时巢穴球应不可用');
+  assert.equal(nf.reason, 'bench_full');
+  const sf = full.canActivateStadium(full.player1);
+  assert.equal(sf.ok, false, '备战区满时深钵镇应不可用');
+  assert.equal(sf.reason, 'bench_full');
+
+  // 备战区有空位 → 两者都可用
+  const free = new GameState();
+  free.phase = PHASE.MAIN;
+  free.currentPlayer = free.player1;
+  fill(free.player1, 1);
+  free.stadium = stadium;
+  assert.equal(free.canUseTrainer(free.player1, nestBall).ok, true);
+  assert.equal(free.canActivateStadium(free.player1).ok, true);
+
+  // 不是“纯放宝可梦”的卡（还带抽卡）不应被误拦
+  const mixed = { name:'混合卡', cardType:'trainer', trainerType:'item',
+    effects:[{ action:'draw', params:{ count:2 } }, { action:'search_deck_to_bench', params:{ count:1 } }, { action:'shuffle_deck', params:{} }] };
+  const full2 = new GameState();
+  full2.phase = PHASE.MAIN;
+  full2.currentPlayer = full2.player1;
+  fill(full2.player1, 5);
+  assert.equal(full2.canUseTrainer(full2.player1, mixed).ok, true, '混合效果不应被备战区满误拦');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

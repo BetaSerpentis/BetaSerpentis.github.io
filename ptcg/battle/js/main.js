@@ -835,8 +835,10 @@ export class PTCGBattleApp {
     if (!mon) return false;
     const hand = pl?.hand || [];
     const find = pred => hand.some(cid => { const c = this.resolver.getCard(cid); return c && pred(c); });
-    // 进化
-    if (find(c => c.cardType === 'pokemon' && c.evolvesFrom === mon.name)) return true;
+    // 进化（需求：本回合刚出场或已进化的宝可梦不能再进化，
+    //   此时不该因为「手牌有进化卡」就算作有可执行操作 —— 否则点进去发现按钮全是灰的）
+    const canEvolveNow = !mon.placedThisTurn && !mon.evolvedThisTurn;
+    if (canEvolveNow && find(c => c.cardType === 'pokemon' && c.evolvesFrom === mon.name)) return true;
     // 附着能量（每回合 1 次）
     if (!pl.energyAttached && find(c => c.cardType === 'energy' || c.cardType === 'specialEnergy')) return true;
     // 装备道具
