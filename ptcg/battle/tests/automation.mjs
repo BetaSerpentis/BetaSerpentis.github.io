@@ -12,7 +12,7 @@ import { GameState, PHASE } from '../js/core/GameState.js';
 import { BattleEngine } from '../js/core/BattleEngine.js';
 import { CardResolver } from '../js/core/CardResolver.js';
 import { PTCGBattleApp, cardPickerTitleFor, energyElementClass, energyLabel, pokemonPickerConfirmEnabled, pokemonPickerHasLegalTarget, pokemonPickerSlotAllowed, pokemonPickerSlotClass, pokemonPickerTitleFor } from '../js/main.js';
-import { pokemonSpriteImgHtml, pokemonSpriteSrc } from '../js/ui/SpriteUtils.js';
+import { pokemonSpriteImgHtml, pokemonSpriteSrc, pokemonSpriteCandidates, SPRITE_PREFER_ONLINE } from '../js/ui/SpriteUtils.js';
 import { DeckSource, PTCG_DECKS_STORAGE_KEY } from '../js/core/DeckSource.js';
 import { TEST_DECKS, expandDeck } from '../js/data/decks.js';
 import { AI_STORAGE_KEYS, getAiApiKey, hasAiApiKey, getAiSettings, describeAiStatus, onAiKeyChange } from '../js/core/AiSettings.js';
@@ -2531,13 +2531,63 @@ await test('引擎放置返回真实失败，后续附能路径仍可写日志',
 });
 
 await test('精灵图工具：编号生成稳定URL并提供onerror隐藏回退', () => {
-  assert.equal(pokemonSpriteSrc('719'), '/ddp/images/719.png');
-  assert.equal(pokemonSpriteSrc('774'), '/ddp/images/774.png');
+  // 2026-09：立绘已本地化到 /ptcg/images/sprites/（原 /ddp/images/ 是 ddp 子项目的另一套美术）
+  assert.equal(pokemonSpriteSrc('719'), '/ptcg/images/sprites/719.png');
+  assert.equal(pokemonSpriteSrc('774'), '/ptcg/images/sprites/774.png');
   assert.equal(pokemonSpriteSrc(null), '');
+  // 补零规则：3 位；4 位数不截断
+  assert.equal(pokemonSpriteSrc(25), '/ptcg/images/sprites/025.png');
+  assert.equal(pokemonSpriteSrc(1000), '/ptcg/images/sprites/1000.png');
+  // 背面（我方立绘）走 back 子目录
+  assert.equal(pokemonSpriteSrc(25, undefined, { back: true }), '/ptcg/images/sprites/back/025.png');
   const html = pokemonSpriteImgHtml('719', '蒂安希');
-  assert.equal(html.includes('src="/ddp/images/719.png"'), true);
+  assert.equal(html.includes('src="/ptcg/images/sprites/719.png"'), true);
   assert.equal(html.includes('onerror='), true);
   assert.equal(html.includes('sprite-missing'), true);
+});
+
+await test('精灵图工具：默认本地优先，回退链含本地背面→本地正面→在线', () => {
+  assert.equal(SPRITE_PREFER_ONLINE, false, '立绘本地化后应默认本地优先');
+  const chain = pokemonSpriteCandidates(25, { back: true });
+  assert.equal(chain[0], '/ptcg/images/sprites/back/025.png', '第一位应是本地背面');
+  assert.equal(chain[1], '/ptcg/images/sprites/025.png', '第二位应是本地正面');
+  assert.ok(chain[2].startsWith('https://'), '第三位应是在线背面');
+  assert.ok(chain.some(u => u.includes('sprites/pokemon/back/25.png')), '在线背面 URL 应正确');
+  // 正面时不应混入 back 段
+  const front = pokemonSpriteCandidates(25, { back: false });
+  assert.equal(front[0], '/ptcg/images/sprites/025.png');
+  assert.ok(!front[1].includes('/back/'), '正面链不应出现 back');
+});
+
+await test('立绘已本地化：卡池里每个图鉴号的正/背两张图都在本地', () => {
+  // 防止以后新增卡包（出现新图鉴号）时忘记跑 fetch-battle-sprites.py
+  const dex = new Set();
+  for (const f of ['pokemon-cards.json']) {
+    for (const c of loadJson(f)) {
+      const n = parseInt(c['编号'], 10);
+      if (Number.isFinite(n)) dex.add(n);
+    }
+  }
+  assert.ok(dex.size > 900, `图鉴号数量异常: ${dex.size}`);
+  const missing = [];
+  let bytes = 0;
+  for (const n of dex) {
+    for (const back of [false, true]) {
+      const rel = pokemonSpriteSrc(n, undefined, { back }).replace(/^\//, '');
+      // pokemonSpriteSrc 返回的是站点绝对路径（/ptcg/...），要从**仓库根**解析
+      const abs = path.resolve(__dirname, '..', '..', '..', rel);
+      if (!fs.existsSync(abs)) missing.push(rel);
+      else bytes += fs.statSync(abs).size;
+    }
+  }
+  if (missing.length) {
+    console.error(`    缺失 ${missing.length} 张，例: ${missing.slice(0, 5).join(', ')}`);
+    console.error('    修复: python3 ptcg/tools/fetch-battle-sprites.py');
+  }
+  assert.equal(missing.length, 0, `本地缺 ${missing.length} 张立绘（跑一下 fetch-battle-sprites.py）`);
+  // 体积合理性：全量应在 1~12 MB
+  const mb = bytes / 1048576;
+  assert.ok(mb > 1 && mb < 12, `立绘总体积异常: ${mb.toFixed(2)} MB`);
 });
 
 await test('CardResolver 保留真实卡牌撤退费用 0', () => {

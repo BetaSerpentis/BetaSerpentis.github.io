@@ -5,7 +5,7 @@ import { CardResolver } from './core/CardResolver.js';
 import { executeEffects } from './core/EffectExecutor.js';
 import { expandDeck } from './data/decks.js';
 import { DeckSource } from './core/DeckSource.js';
-import { pokemonSpriteImgHtml, pokemonSpriteSrc, cardThumbImgHtml, cardFullImgHtml, applySpriteBottomTrim } from './ui/SpriteUtils.js';
+import { pokemonSpriteImgHtml, pokemonSpriteSrc, cardThumbImgHtml, cardFullImgHtml, applySpriteBottomTrim, SPRITE_PREFER_ONLINE } from './ui/SpriteUtils.js';
 
 // 卡面显示开关（true=卡图缩略图；后续可切 false 只保留名字与标签）
 const SHOW_CARD_ART = true;
@@ -192,7 +192,7 @@ export class PTCGBattleApp {
         const info = this.resolver.getInfo(deck.coverCardId);
         const imgSrc = pokemonSpriteSrc(info.number);
         const count = deck.totalCount ? ` (${deck.totalCount}张)` : '';
-        opt.innerHTML = `${imgSrc ? pokemonSpriteImgHtml(info.number, info.name, { preferOnline: true }) : ''}<span>${deck.name}${count}</span>`;
+        opt.innerHTML = `${imgSrc ? pokemonSpriteImgHtml(info.number, info.name, { preferOnline: SPRITE_PREFER_ONLINE }) : ''}<span>${deck.name}${count}</span>`;
         opt.addEventListener('click', () => { this[col.key] = i; this._renderDeckSelect(body); });
         div.appendChild(opt);
       });
@@ -485,7 +485,7 @@ export class PTCGBattleApp {
     if (spriteEl) {
       const info = this.resolver.getInfo(mon.cardId);
       if (info && info.number) {
-        spriteEl.innerHTML = pokemonSpriteImgHtml(info.number, mon.name, { preferOnline: true, back: prefix === 'pl' });
+        spriteEl.innerHTML = pokemonSpriteImgHtml(info.number, mon.name, { preferOnline: SPRITE_PREFER_ONLINE, back: prefix === 'pl' });
       } else {
         spriteEl.innerHTML = `<div class="placeholder">${mon.name}</div>`;
       }

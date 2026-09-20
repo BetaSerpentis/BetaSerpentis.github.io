@@ -1,26 +1,34 @@
 // js/ui/SpriteUtils.js — 宝可梦立绘 / 卡图 资源路径与回退链
 //
-// 资源策略（与 UI-MIGRATION-PLAN.md 对齐）：
-//   1) 在线优先（PokeAPI sprites，与 pmBattle 同源）
-//   2) 本地回退（/ddp/images/NNN.png，离线可用）
+// 资源策略：
+//   1) **本地优先**：/ptcg/images/sprites/NNN.png（正面）/ sprites/back/NNN.png（背面，我方）
+//   2) 在线回退：PokeAPI sprites（与 pmBattle 同源）
 //   3) 再失败 → 隐藏 img 并给容器加 .sprite-missing（显示文字占位）
-// 未来改为「纯本地资源运行」时：把本地目录补齐后，把 SPRITE_PREFER_ONLINE 置 false，
-// 或把 onlineSpr teBase 指向本地目录（sprite/），调用方无需改动。
+//
+// 2026-09 变更：立绘已全部本地化（1018 个图鉴号 × 正/背 = 2036 张，约 1.9 MB，
+// 由 ptcg/tools/fetch-battle-sprites.py 生成），因此默认改为本地优先、不再依赖网络。
+// 注意：不要复用 /ddp/images/ —— 那里是 ddp 子项目的 256×64 像素风 4 帧切片，
+// 与这里的 96×96 官方风立绘不是同一套美术，混用会出现画风突变。
 
-export const SPRITE_BASE = '/ddp/images/';
+export const SPRITE_BASE = '/ptcg/images/sprites/';
 export const SPRITE_ONLINE_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
 export const SPRITE_IMG_ONERROR = "this.style.display='none';this.parentElement&&this.parentElement.classList.add('sprite-missing')";
 
-// 是否默认在线优先（main.js 渲染时传 { preferOnline: true } 覆盖此值）
-export let SPRITE_PREFER_ONLINE = true;
+// 是否在线优先。本地已补齐 → 默认 false（本地优先，在线作为回退）。
+// 调用方应传 { preferOnline: SPRITE_PREFER_ONLINE } 而不是硬编码 true，
+// 这样以后要切回在线只需要改这一个开关。
+export let SPRITE_PREFER_ONLINE = false;
 
 export function setSpritePreferOnline(v) { SPRITE_PREFER_ONLINE = !!v; }
 
-/** 本地精灵图（/ddp/images/NNN.png）——历史行为保持不变 */
-export function pokemonSpriteSrc(number, base = SPRITE_BASE) {
+/**
+ * 本地精灵图：正面 base/NNN.png / 背面 base/back/NNN.png（我方用背面）
+ * 注意补零规则是 padStart(3,'0')：1 → 001.png，1000 → 1000.png
+ */
+export function pokemonSpriteSrc(number, base = SPRITE_BASE, { back = false } = {}) {
   const parsed = parseInt(number, 10);
   if (!Number.isFinite(parsed)) return '';
-  return `${base}${String(parsed).padStart(3, '0')}.png`;
+  return `${base}${back ? 'back/' : ''}${String(parsed).padStart(3, '0')}.png`;
 }
 
 /** 在线精灵图（PokeAPI）；back=true 为我方背面形象 */
@@ -30,15 +38,19 @@ export function pokemonSpriteOnlineSrc(number, back = false) {
   return `${SPRITE_ONLINE_BASE}${back ? 'back/' : ''}${parsed}.png`;
 }
 
-/** 立绘候选链：按在线优先/本地优先给出依次尝试的 URL */
+/**
+ * 立绘候选链：按在线优先/本地优先给出依次尝试的 URL。
+ * 两侧都按「需要的那一面 → 正面」回退（背面图缺失时至少还能显示正面，不至于空着）。
+ */
 export function pokemonSpriteCandidates(number, { back = false, preferOnline = SPRITE_PREFER_ONLINE } = {}) {
   const online = pokemonSpriteOnlineSrc(number, back);
-  const onlineFront = pokemonSpriteOnlineSrc(number, false);
-  const local = pokemonSpriteSrc(number);
-  if (!online) return [];
+  const onlineFront = back ? pokemonSpriteOnlineSrc(number, false) : null;
+  const local = pokemonSpriteSrc(number, SPRITE_BASE, { back });
+  const localFront = back ? pokemonSpriteSrc(number, SPRITE_BASE, { back: false }) : null;
+  if (!online && !local) return [];
   const chain = preferOnline
-    ? [online, back ? onlineFront : null, local]
-    : [local, online];
+    ? [online, onlineFront, local, localFront]
+    : [local, localFront, online, onlineFront];
   return chain.filter(Boolean);
 }
 
@@ -66,13 +78,13 @@ if (typeof window !== 'undefined' && !window.__spriteFallback) {
 
 /**
  * 立绘 <img> HTML。
- * 默认（无 opts）保持历史行为：src=本地 ddp 图 + onerror 隐藏（兼容既有测试与调用方）。
- * opts.preferOnline=true 时：src=在线图，data-fb=后续回退链（在线正面 → 本地 → 隐藏）。
+ * 默认（无 opts）保持历史行为：src=本地图 + onerror 隐藏（兼容既有测试与调用方）。
+ * 显式给出 opts.preferOnline 时：按候选链设置 src + data-fb（依次回退）。
  */
 export function pokemonSpriteImgHtml(number, alt = '', opts = {}) {
   // 未显式给出 preferOnline 时保持历史行为：本地图 + 直接隐藏回退（兼容既有调用方与测试）
   if (!Object.prototype.hasOwnProperty.call(opts, 'preferOnline')) {
-    const local = pokemonSpriteSrc(number);
+    const local = pokemonSpriteSrc(number, SPRITE_BASE, { back: !!opts.back });
     if (!local) return '';
     return `<img src="${escapeAttr(local)}" alt="${escapeAttr(alt)}" onerror="${SPRITE_IMG_ONERROR}">`;
   }
