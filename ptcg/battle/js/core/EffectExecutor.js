@@ -586,6 +586,28 @@ function _energyStateFor(gs, card) {
   };
 }
 
+/**
+ * 施加「不受招式伤害/效果」防护。
+ * 必须是**模块级函数**：executeEffects 里是以 `fn(gs, player, params, ...)` 形式调用执行器的，
+ * `this` 为 undefined，写成 EXECUTORS 的方法会在顶层调用时抛错、效果静默失效。
+ * duration='next_opp_turn'（如大岩蛇「坚硬头锤」）时用 attackShieldArmed 标记，
+ * 让 GameState.endTurn 在自己回合结束时保留、改由对手回合结束时清除。
+ */
+function _applyAttackShield(gs, mon, { damage = false, effect = false, duration = null } = {}) {
+  if (!mon) return;
+  if (damage) mon.preventDamage = true;
+  if (effect) mon.preventEffect = true;
+  if (duration === 'next_opp_turn') {
+    mon.attackShieldArmed = true;
+    const parts = [];
+    if (damage) parts.push('伤害');
+    if (effect) parts.push('效果');
+    gs.addLog(`${mon.name} 在下一个对手的回合不会受到招式的${parts.join('和')}影响`);
+  } else {
+    gs.addLog(damage && effect ? '防伤防效' : damage ? '防止伤害' : '防止效果');
+  }
+}
+
 function _applyDamageToPokemon(gs, owner, mon, amount, logSuffix = '受到', options = {}) {
   if (!mon || !amount) return false;
   if (options.source === 'attack' && gs.isBenchProtectedFromOpponentAttack?.(owner, mon, 'damage')) { gs.addLog(`${mon.name} 防止了备战伤害`); return false; }
@@ -1110,7 +1132,14 @@ const EXECUTORS = {
     if (!mon) return;
     const opp = _opponent(gs, pl);
     if ((gs._passiveEffectsFor?.(opp.active, 'block_heal') || []).some(e => ['both_field', 'opponent_field', 'opponent_bench'].includes(e.params?.target))) { gs.addLog('无法回复HP'); return; }
-    const amount = p.amount === 'full' ? mon.maxHp : p.amount === 'as_attack_damage' ? (eff?._attackDamage || 0) : (p.amount || 20);
+    let amount = p.amount === 'full' ? mon.maxHp : p.amount === 'as_attack_damage' ? (eff?._attackDamage || 0) : (p.amount || 20);
+    // 条件回复量：如「派帕的三明治」——如果那只宝可梦是「派帕的宝可梦」则回复量由 30 变为 100。
+    // 注意「派帕的宝可梦」是**持有者前缀**分类，不是名字里真的含这几个字：
+    // 判定方式是名字以「派帕的」开头（「派帕的藏饱栗鼠」✓、「藏饱栗鼠」✗）。
+    if (p.ifNamePrefix && String(mon.name || '').startsWith(String(p.ifNamePrefix))) {
+      amount = p.amountThen !== undefined ? p.amountThen : amount;
+      gs.addLog(`（${mon.name} 是「${p.ifNamePrefix}宝可梦」，回复量提升为 ${amount}）`);
+    }
     mon.hp = Math.min(mon.maxHp, mon.hp + amount);
     gs.addLog(`恢复 ${amount} HP`);
   },
@@ -1641,14 +1670,17 @@ const EXECUTORS = {
   },
 
   // ===== 防止伤害 =====
+  // duration='next_opp_turn' 时（如大岩蛇「坚硬头锤」）：生效窗口是**对手的下一个回合**，
+  // 用 attackShieldArmed 标记它，让 GameState.endTurn 在自己回合结束时不要清掉，
+  // 改由对手回合结束时清除（见 GameState.endTurn 的 1 / 1.1 两段）。
   prevent_damage(gs, pl, p) {
-    if (pl.active) { pl.active.preventDamage = true; gs.addLog('防止伤害'); }
+    _applyAttackShield(gs, pl.active, { damage: true, duration: p?.duration });
   },
   prevent_effect(gs, pl, p) {
-    if (pl.active) { pl.active.preventEffect = true; gs.addLog('防止效果'); }
+    _applyAttackShield(gs, pl.active, { effect: true, duration: p?.duration });
   },
   prevent_damage_effect(gs, pl, p) {
-    if (pl.active) { pl.active.preventDamage = true; pl.active.preventEffect = true; gs.addLog('防伤防效'); }
+    _applyAttackShield(gs, pl.active, { damage: true, effect: true, duration: p?.duration });
   },
   bench_attack_shield(gs, pl, p) {
     gs.addLog('备战保护生效');

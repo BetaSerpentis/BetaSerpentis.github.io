@@ -249,7 +249,9 @@ export function getLegalActions(gs, resolver, player = gs.currentPlayer) {
   if (gs.phase === PHASE.MAIN && gs.canActivateStadium) {
     const check = gs.canActivateStadium(player);
     if (check.ok) {
-      push(ACTION.ACTIVATE_STADIUM, {}, `发动竞技场「${check.stadium?.name || '竞技场'}」`, {});
+      // 文案加「效果」二字：区分「发动竞技场效果」（双方每回合各一次，规则允许）
+      // 与「打出一张竞技场卡」，否则会被误认为对手重复打出了同名竞技场。
+      push(ACTION.ACTIVATE_STADIUM, {}, `发动竞技场效果「${check.stadium?.name || '竞技场'}」`, {});
     }
   }
 

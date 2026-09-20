@@ -319,18 +319,25 @@ export class PTCGBattleApp {
     menu.innerHTML = '';
     const elem = this._elementLabel(mon.element);
     const attacks = mon.attacks || [];
-    const usableCount = attacks.filter((_, i) => this.gs.checkEnergy(mon, i)).length;
+    // 需求：先攻玩家最初回合不能用招式等「确定性不可用」也要像能量不足一样置灰
+    const reasonOf = i => (this.gs.canUseAttack ? this.gs.canUseAttack(this.gs.player1, mon, i) : { ok: this.gs.checkEnergy(mon, i), message: '能量不足' });
+    const usableCount = attacks.filter((_, i) => reasonOf(i).ok).length;
     if (!attacks.length) this._appendBattleLog(`${mon.name} 没有可使用的招式`);
-    else if (!usableCount) this._appendBattleLog(`${mon.name} 能量不足，无法使用招式（可返回）`);
+    else if (!usableCount) {
+      const first = reasonOf(0);
+      this._appendBattleLog(`${mon.name} 无法使用招式：${first.message || '条件不满足'}（可返回）`);
+    }
     attacks.forEach((atk, i) => {
-      const canUse = this.gs.checkEnergy(mon, i);
+      const chk = reasonOf(i);
+      const canUse = chk.ok;
       const item = document.createElement('div');
       item.className = 'menu-item' + (!canUse ? ' disabled' : '') + (i === 0 ? ' selected' : '');
       item.dataset.idx = i;
       // 需求：只保留所需能量（招式名在左、能量在右），避免小屏信息截断
       const cost = (this.gs.adjustedAttackCost ? this.gs.adjustedAttackCost(mon, atk) : (atk.cost || []))
         .map(c => this._elementLabel(c)).join('·');
-      const meta = cost || '无需能量';
+      // 不可用时右侧显示原因（能量不足 / 先攻首回合 / 睡眠麻痹…），可用时显示所需能量
+      const meta = canUse ? (cost || '无需能量') : (chk.message || '不可使用');
       item.innerHTML = `<span class="mv-name">${atk.name}</span><span class="mv-meta">${meta}</span>`;
       menu.appendChild(item);
     });

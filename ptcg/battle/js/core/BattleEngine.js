@@ -460,8 +460,17 @@ export class BattleEngine {
     damage += gs.getConditionalDamageModifier?.(atk.active, def.active, move, atk) || 0;
 
     // Weakness/resistance: 弱点倍率/抵抗值来自真实卡牌数据（简中 CN-Sync），缺省时退回 x2 / -30。
-    if (damage > 0 && def.active.weakness && def.active.weakness === atk.active.element && !(atk.active.ignore||[]).includes('weakness') && !gs._hasPassive?.(def.active, 'weakness_null')) damage *= (def.active.weaknessMultiplier || 2);
-    if (damage > 0 && def.active.resistance && def.active.resistance === atk.active.element && !(atk.active.ignore||[]).includes('resistance')) damage = Math.max(0, damage + (def.active.resistanceValue ?? -30));
+    // 需求：命中弱点/被抵抗时要在日志里体现，否则玩家注意不到
+    if (damage > 0 && def.active.weakness && def.active.weakness === atk.active.element && !(atk.active.ignore||[]).includes('weakness') && !gs._hasPassive?.(def.active, 'weakness_null')) {
+      const mult = def.active.weaknessMultiplier || 2;
+      damage *= mult;
+      this.cb.onLog?.(`命中弱点，效果绝佳！（${atk.active.element} → ${def.active.weakness}，伤害 ×${mult}）`);
+    }
+    if (damage > 0 && def.active.resistance && def.active.resistance === atk.active.element && !(atk.active.ignore||[]).includes('resistance')) {
+      const val = def.active.resistanceValue ?? -30;
+      damage = Math.max(0, damage + val);
+      this.cb.onLog?.(`被抵抗，效果一般…（伤害 ${val}）`);
+    }
 
     // Apply damage modifier
     damage += (atk.active.damageMod || 0);

@@ -355,7 +355,7 @@ const RULES = [
   // ===== 掷硬币类 =====
   { re: /掷1次硬币若为反面[，,]?则这个招式失败/, act:'coin_flip', p:()=>({count:1,fail_on_tails:true}) },
   { re: /掷1次硬币若为正面[，,]?则将对手的战斗宝可梦【(.+?)】/, act:'coin_flip_status', p:m=>({count:1,statuses:[STATUS_MAP[m[1]]||m[1]]}) },
-  { re: /掷1次硬币若为正面[，,]?则在下个对手的回合[，,]?这只宝可梦不会受到招式的伤害与效果的影响/, act:'coin_flip', p:()=>({count:1,heads:[{action:'prevent_damage',params:{duration:'next_opp_turn'}},{action:'prevent_effect',params:{duration:'next_opp_turn'}}]}) },
+  { re: /掷1次硬币若为正面[，,]?则在下个对手的回合[，,]?这只宝可梦不会受到招式的伤害(?:与|和)效果(?:的)?影响/, act:'coin_flip', p:()=>({count:1,heads:[{action:'prevent_damage',params:{duration:'next_opp_turn'}},{action:'prevent_effect',params:{duration:'next_opp_turn'}}]}) },
   { re: /掷1次硬币若为正面[，,]?则在下个对手的回合[，,]?这只宝可梦不会受到招式的伤害/, act:'coin_flip', p:()=>({count:1,heads:[{action:'prevent_damage',params:{duration:'next_opp_turn'}}]}) },
   { re: /掷1次硬币若为正面[，,]?则选择1个对手的(?:战斗宝可梦|备战宝可梦|(?:场上)?宝可梦|1只宝可梦)身上附加的能量[，,]?将其丢弃/, act:'coin_flip', p:m=>opponentDiscardEnergyHeads(m[0]) },
   { re: /掷1次硬币若为正面[，,]?则增加(\d+)伤害/, act:'coin_flip_damage', p:m=>({count:1,damage:+m[1]}) },
@@ -420,6 +420,8 @@ const RULES = [
   { re: /若自己的剩余奖赏卡张数为(\d+)张[，,]?则抽出的张数变为(\d+)张/, act:'action_count_override', p:m=>({ targets:['shuffle_hand_to_deck','draw'], set:{ ownPrizesExactly:+m[1], countThen:+m[2] }, raw:m[0] }) },
 
   // ===== HP恢复 =====
+  // 条件回复量：如「派帕的三明治」——若是「派帕的宝可梦」则回复量由 30 变为 100
+  { re: /恢复(?:自己的)?(?:战斗|战斗场)?宝可梦["“”「」]?(\d+)["“”「」]?HP[。.]若(?:那只|该)宝可梦是["“”「」]?(.+?的)宝可梦["“”「」]?[，,]?则恢复的HP变为["“”「」]?(\d+)["“”「」]?/, act:'heal', p:m=>({amount:+m[1],ifNamePrefix:m[2],amountThen:+m[3]}) },
   { re: /HP全部恢复/, act:'heal', p:()=>({amount:'full'}) },
   { re: /将(?:这只)?(?:宝可梦|.*?)恢复"?(\d+)"?HP/, act:'heal', p:m=>({amount:+m[1]}) },
   { re: /恢复这只宝可梦["“”「」]?(\d+)["“”「」]?HP/, act:'heal', p:m=>({amount:+m[1],target:'self'}) },
@@ -545,7 +547,7 @@ const RULES = [
   { re: /造成放置于这只宝可梦身上的伤害指示物数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'self_damage_counters',mode:'per_unit'}) },
 
   // ===== 防止伤害/效果 =====
-  { re: /在下个对手的回合[，,]?这只宝可梦不会受到招式的伤害与效果的影响/, act:'prevent_damage_effect', p:()=>({duration:'next_opp_turn'}) },
+  { re: /在下个对手的回合[，,]?这只宝可梦不会受到招式的伤害(?:与|和)效果(?:的)?影响/, act:'prevent_damage_effect', p:()=>({duration:'next_opp_turn'}) },
   { re: /在下个对手的回合[，,]?这只宝可梦不会受到招式的伤害/, act:'prevent_damage', p:()=>({duration:'next_opp_turn'}) },
   { re: /自己的所有备战宝可梦不会受到对手的宝可梦招式的伤害与效果的影响/, act:'bench_attack_shield', p:()=>({target:'own_bench',source:'opponent_attack',preventDamage:true,preventEffect:true}) },
   { re: /自己的所有备战宝可梦[，,]?不会受到对手宝可梦的招式的伤害(?:和|与)效果(?:的)?影响/, act:'bench_attack_shield', p:()=>({target:'own_bench',source:'opponent_attack',preventDamage:true,preventEffect:true}) },

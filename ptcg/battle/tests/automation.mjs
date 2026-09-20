@@ -16,7 +16,7 @@ import { pokemonSpriteImgHtml, pokemonSpriteSrc, pokemonSpriteCandidates, SPRITE
 import { DeckSource, PTCG_DECKS_STORAGE_KEY } from '../js/core/DeckSource.js';
 import { TEST_DECKS, expandDeck } from '../js/data/decks.js';
 import { AI_STORAGE_KEYS, getAiApiKey, hasAiApiKey, getAiSettings, describeAiStatus, onAiKeyChange } from '../js/core/AiSettings.js';
-import { getLegalActions, ACTION } from '../js/core/ActionSpace.js';
+import { getLegalActions, describeAction, ACTION } from '../js/core/ActionSpace.js';
 import { HeuristicPolicy } from '../js/core/AiPolicy.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -6057,6 +6057,156 @@ await test('提示面板不会在 1.2 秒后把用户打开的页签顶回主菜
 // ============================================================
 //  3) 全卡牌数据解析覆盖率报告（不要求100%，用于持续发现未覆盖文本）
 // ============================================================
+
+// ============================================================
+//  5 项战斗修复的回归测试
+// ============================================================
+
+await test('① 先攻玩家最初回合：canUseAttack 判定不可用（界面据此置灰）', () => {
+  const gs = new GameState();
+  gs.phase = PHASE.BATTLE;
+  gs.firstPlayer = gs.player1;
+  gs.firstPlayerFirstTurnInProgress = true;
+  gs.currentPlayer = gs.player1;
+  const mon = { name:'测试', hp:100, maxHp:100, element:'colorless', energy:[], status:null, cannotAttackNext:false, costEliminated:false, attacks:[{name:'撞击',cost:[],damage:'20'}] };
+  const r1 = gs.canUseAttack(gs.player1, mon, 0);
+  assert.equal(r1.ok, false, '先攻首回合应不可用');
+  assert.equal(r1.reason, 'first_turn');
+  assert.match(r1.message, /最初回合/);
+  // 非首回合、能量足够 → 可用
+  gs.firstPlayerFirstTurnInProgress = false;
+  assert.equal(gs.canUseAttack(gs.player1, mon, 0).ok, true);
+  // 睡眠/麻痹/本回合禁止攻击 → 不可用
+  mon.status = 'sleep';
+  assert.equal(gs.canUseAttack(gs.player1, mon, 0).reason, 'asleep');
+  mon.status = 'paralysis';
+  assert.equal(gs.canUseAttack(gs.player1, mon, 0).reason, 'paralyzed');
+  mon.status = null;
+  mon.cannotAttackNext = true;
+  assert.equal(gs.canUseAttack(gs.player1, mon, 0).reason, 'cannot_attack_next');
+  mon.cannotAttackNext = false;
+  // 能量不足 → 不可用
+  const costly = { ...mon, attacks:[{name:'大火',cost:['火','火'],damage:'100'}] };
+  assert.equal(gs.canUseAttack(gs.player1, costly, 0).reason, 'energy');
+});
+
+await test('② 坚硬头锤：硬币正面后防护活到对手回合结束，期间免伤、到期恢复', async () => {
+  const TEXT2 = '抛掷1次硬币如果为正面，则在下一个对手的回合，这只宝可梦不受到招式的伤害和效果影响。';
+  const eff = parseEffect(TEXT2).effects;
+  // 解析要同时给出「防伤」与「防效」，且时长是下一个对手回合
+  const heads = eff[0]?.params?.heads || [];
+  assert.equal(eff[0]?.action, 'coin_flip');
+  assert.deepEqual(heads.map(e => e.action), ['prevent_damage', 'prevent_effect']);
+  assert.ok(heads.every(e => e.params.duration === 'next_opp_turn'));
+
+  const mkMon = (name, hp, element) => ({ name, cardId:name, hp, maxHp:hp, element, attacks:[], energy:[], status:null, ignore:[], tool:null, ability:null });
+  const gs = new GameState();
+  gs.phase = PHASE.BATTLE; gs.currentPlayer = gs.player1; gs.turn = 3;
+  gs.firstPlayer = gs.player1; gs.firstPlayerFirstTurnInProgress = false;
+  const rock = mkMon('大岩蛇', 120, 'fighting');
+  rock.attacks = [{ name:'坚硬头锤', cost:[], damage:'20', effects:eff }];
+  const mew = mkMon('超梦', 130, 'psychic');
+  mew.attacks = [{ name:'精神念力', cost:[], damage:'60', effects:[] }];
+  gs.player1.active = rock; gs.player2.active = mew;
+  gs.player1.deck = Array.from({length:30},(_,i)=>'a'+i);
+  gs.player2.deck = Array.from({length:30},(_,i)=>'b'+i);
+  gs.player1.prizes = ['a','b','c','d','e','f'];
+  gs.player2.prizes = ['a','b','c','d','e','f'];
+  const logs = [];
+  const engine = makeEngineWithEvents(gs).engine;
+  engine.cb.onLog = m => logs.push(m);
+
+  const realRandom = Math.random;
+  Math.random = () => 0;                       // 硬币正面
+  await engine.attack(0);                      // attack() 内部会自动结束回合
+  Math.random = realRandom;
+  assert.equal(rock.preventDamage, true);
+  assert.equal(rock.preventEffect, true);
+  assert.equal(rock.attackShieldArmed, true);
+  assert.equal(gs.currentPlayer, gs.player2, '攻击后回合应已交给对手');
+  assert.equal(rock.preventDamage, true, '自己回合结束后防护不能被清掉（原 bug）');
+
+  gs.phase = PHASE.BATTLE;
+  await engine.attack(0);                      // 对手攻击
+  assert.equal(rock.hp, 120, '防护期间不应受伤');
+  assert.ok(logs.some(l => String(l).includes('防止了伤害')), '应有「防止了伤害」日志');
+  assert.equal(rock.attackShieldArmed, false, '对手回合结束后防护应到期');
+  assert.equal(rock.preventDamage, false);
+
+  // 到期后再被打应正常掉血
+  gs.phase = PHASE.BATTLE;
+  gs.currentPlayer = gs.player2;
+  await engine.attack(0);
+  assert.equal(rock.hp, 60, `到期后应正常受伤，实际 ${rock.hp}`);
+});
+
+await test('③ 命中弱点记「效果绝佳」、被抵抗记「效果一般」', async () => {
+  const mkMon = (name, hp, element) => ({ name, cardId:name, hp, maxHp:hp, element, attacks:[], energy:[], status:null, ignore:[], tool:null, ability:null });
+  const run = async (defExtra) => {
+    const gs = new GameState();
+    gs.phase = PHASE.BATTLE; gs.currentPlayer = gs.player1; gs.turn = 3;
+    gs.firstPlayer = gs.player1; gs.firstPlayerFirstTurnInProgress = false;
+    const atk = mkMon('大岩蛇', 120, 'fighting');
+    atk.attacks = [{ name:'落石', cost:[], damage:'20', effects:[] }];
+    const def = mkMon('超梦', 130, 'psychic');
+    def.attacks = [{ name:'念力', cost:[], damage:'10', effects:[] }];
+    Object.assign(def, { weaknessMultiplier:2, resistanceValue:-30 }, defExtra);
+    gs.player1.active = atk; gs.player2.active = def;
+    gs.player1.deck = Array.from({length:30},(_,i)=>'a'+i);
+    gs.player2.deck = Array.from({length:30},(_,i)=>'b'+i);
+    gs.player1.prizes = ['a','b','c','d','e','f'];
+    gs.player2.prizes = ['a','b','c','d','e','f'];
+    const logs = [];
+    const engine = makeEngineWithEvents(gs).engine;
+    engine.cb.onLog = m => logs.push(m);
+    await engine.attack(0);
+    return { gs, logs, def };
+  };
+  // 弱点 = 攻击方属性(fighting) → 翻倍 + 日志
+  const weak = await run({ weakness:'fighting' });
+  assert.ok(weak.logs.some(l => String(l).includes('效果绝佳')), `弱点日志缺失: ${weak.logs.join(' | ')}`);
+  assert.equal(weak.def.hp, 130 - 40, '弱点伤害应翻倍（20 → 40）');
+  // 抵抗 = 攻击方属性 → -30 + 日志
+  const resist = await run({ resistance:'fighting' });
+  assert.ok(resist.logs.some(l => String(l).includes('效果一般')), `抵抗日志缺失: ${resist.logs.join(' | ')}`);
+});
+
+await test('④ 派帕的三明治：目标是「派帕的宝可梦」时回复 100 而非 30', async () => {
+  const TEXT4 = '回复自己的战斗宝可梦「30」HP。如果那只宝可梦是「派帕的宝可梦」的话，则回复的HP变为「100」。';
+  const eff = parseEffect(TEXT4).effects;
+  assert.equal(eff[0].action, 'heal');
+  assert.equal(eff[0].params.amount, 30);
+  assert.equal(eff[0].params.ifNamePrefix, '派帕的');
+  assert.equal(eff[0].params.amountThen, 100);
+
+  const run = async name => {
+    const gs = new GameState();
+    const pl = gs.player1;
+    pl.active = { name, cardId:name, hp: 20, maxHp: 150, element:'colorless', energy:[], attacks:[], status:null, ignore:[], tool:null, ability:null };
+    pl.bench = [];
+    await executeEffects(gs, pl, eff);
+    return pl.active.hp;
+  };
+  assert.equal(await run('派帕的藏饱栗鼠'), 120, '派帕的宝可梦应回复 100');
+  assert.equal(await run('藏饱栗鼠'), 50, '普通藏饱栗鼠应只回复 30');
+});
+
+await test('⑤ 竞技场动作文案区分「发动效果」与「打出卡」', () => {
+  const gs = new GameState();
+  gs.phase = PHASE.MAIN;
+  gs.currentPlayer = gs.player1;
+  // 竞技场需要有「可执行效果」才会出现在动作空间里（usage_condition / trainer_prerequisite 不算）
+  const stadium = { name:'深钵镇', cardId:'st-1', cardType:'stadium', trainerType:'stadium',
+    effects:[{ action:'heal', params:{ amount:10 } }], specialRules:[] };
+  gs.stadium = stadium;
+  gs.player1.stadiumUsedThisTurn = {};
+  const acts = getLegalActions(gs, new CardResolver(), gs.player1);
+  const act = acts.find(a => a.kind === 'activate_stadium');
+  assert.ok(act, `应存在发动竞技场动作：${acts.map(a => a.kind).join(',')}`);
+  const desc = describeAction(act);
+  assert.ok(desc.includes('发动竞技场效果'), `文案应含「发动竞技场效果」而非只写「发动竞技场」: ${desc}`);
+  assert.ok(desc.includes('深钵镇'));
+});
 
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [

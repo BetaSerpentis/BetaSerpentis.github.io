@@ -102,11 +102,25 @@ export class GameState {
 
   endTurn(){
     // 1. 清除结束回合玩家的每回合临时效果
+    //    例外：「在下一个对手的回合不受到招式的伤害和效果影响」（如大岩蛇「坚硬头锤」掷硬币正面）
+    //    生效窗口是**对手的下一个回合**，所以不能在自己回合结束时就清掉，
+    //    否则轮到对手时防护已经没了（曾因此被对手正常打伤）。
     for(const mon of[this.currentPlayer.active,...this.currentPlayer.bench]){
       if(!mon)continue;
-      mon.damageMod=0;mon.damageReceivedMod=0;mon.preventDamage=false;mon.preventEffect=false;
+      if(!mon.attackShieldArmed){mon.preventDamage=false;mon.preventEffect=false;}
+      mon.damageMod=0;mon.damageReceivedMod=0;
       mon.cannotAttackNext=false;mon.cannotRetreat=false;mon.ignore=[];
       mon.costEliminated=false;mon.abilityUsed=false;
+    }
+    // 1.1 对手身上「活到对手回合结束」的防护：刚结束的这个回合就是它的生效窗口 → 到期清除
+    {
+      const other=this.getOpponent(this.currentPlayer);
+      for(const mon of[other.active,...other.bench]){
+        if(!mon||!mon.attackShieldArmed)continue;
+        mon.attackShieldArmed=false;
+        mon.preventDamage=false;mon.preventEffect=false;
+        this.addLog(`${mon.name} 的招式防护已结束`);
+      }
     }
     // 1.5 「招式学习器」类道具：自己的回合结束时自动放入弃牌区
     //     （如「招式学习器 退化」：附着的回合结束就要进弃牌区，原实现漏了）
@@ -283,7 +297,7 @@ export class GameState {
     }
     return true;
   }
-  _removeSpecialConditions(mon){if(!mon)return;mon.status=null;mon.cannotAttackNext=false;mon.cannotRetreat=false;mon.preventDamage=false;mon.preventEffect=false;mon.damageMod=0;mon.damageReceivedMod=0;mon.ignore=[];mon.costEliminated=false;mon.retreatCostIncrease=0;mon.attackCostIncrease=0;}
+  _removeSpecialConditions(mon){if(!mon)return;mon.status=null;mon.cannotAttackNext=false;mon.cannotRetreat=false;mon.preventDamage=false;mon.preventEffect=false;mon.attackShieldArmed=false;mon.damageMod=0;mon.damageReceivedMod=0;mon.ignore=[];mon.costEliminated=false;mon.retreatCostIncrease=0;mon.attackCostIncrease=0;}
 
   retreat(pl,benchIndex,selectedEnergyIndices=null){if(pl.retreatUsed){this.addLog('本回合已撤退过');return false;}if(!pl.active||!pl.bench[benchIndex]){this.addLog('撤退目标不存在');return false;}
     const st=pl.active.status||'';if(st.includes('sleep')||st.includes('paralysis')||pl.active.cannotRetreat){this.addLog('无法撤退');return false;}
@@ -510,6 +524,24 @@ export class GameState {
       if(usageFailure)return {ok:false,reason:usageFailure.reason,ability:ab,zone:srcZone,message:usageFailure.message};
     }
     return {ok:true,ability:ab,zone:srcZone};}
+
+  /**
+   * 招式可用性（供界面置灰用；与 BattleEngine.attack 内的校验保持一致）。
+   * 只判断**确定性**条件，混乱是随机判定（50%）所以不置灰。
+   * 需求来源：先攻玩家最初回合不能使用招式，界面应像能量不足一样置灰，
+   * 而不是点下去才提示不可用。
+   */
+  canUseAttack(pl,mon,attackIndex=0){
+    if(!pl||!mon)return {ok:false,reason:'no_pokemon',message:'没有宝可梦'};
+    if(this.phase===PHASE.GAME_OVER||this.phase===PHASE.SETUP)return {ok:false,reason:'wrong_phase',message:'当前阶段不能使用招式'};
+    if(this.firstPlayerFirstTurnInProgress&&pl===this.firstPlayer)return {ok:false,reason:'first_turn',message:'先攻玩家的最初回合不能使用招式'};
+    const st=String(mon.status||'');
+    if(st.includes('sleep'))return {ok:false,reason:'asleep',message:'睡眠中无法使用招式'};
+    if(st.includes('paralysis'))return {ok:false,reason:'paralyzed',message:'麻痹中无法使用招式'};
+    if(mon.cannotAttackNext)return {ok:false,reason:'cannot_attack_next',message:'这个回合无法使用招式'};
+    if(!mon.costEliminated&&!this.checkEnergy(mon,attackIndex))return {ok:false,reason:'energy',message:'能量不足'};
+    return {ok:true};
+  }
 
   _abilityUsageFailure(pl,ability,source=null){
     for(const eff of ability?.effects||[]){
