@@ -1473,7 +1473,10 @@ const EXECUTORS = {
 
   // ===== 牌库附能 =====
   async attach_energy_from_deck(gs, pl, p) {
-    const slot = await _pickPokemonTarget(gs, pl, pl, { mode:'attach-energy', side:'self', allowActive:true, allowBench:true, prompt:'选择附能目标' });
+    // target:'self' = 「附于这只宝可梦身上」（招式效果，指使用者自己），不要再弹目标选择
+    const slot = p.target === 'self' && pl.active
+      ? 'active'
+      : await _pickPokemonTarget(gs, pl, pl, { mode:'attach-energy', side:'self', allowActive:true, allowBench:true, prompt:'选择附能目标' });
     const mon = _getMon(pl, slot);
     if (!mon) return;
     const selected = await _pickCardsFromZone(gs, pl, pl, pl.deck, p.count || 1, { source:'deck-energy', filter:card=>_isEnergyCard(gs, card, p.filter), allowFewer:!!p.allowFewer, allowEmpty:!!p.allowEmpty, maxCount:p.maxCount, minCount:p.minCount, optional:!!p.optional });

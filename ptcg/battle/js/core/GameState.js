@@ -407,7 +407,7 @@ export class GameState {
       }
       if(p.kind==='first_turn'){
         const raw=p.raw||'';
-        const isOwnFirstTurn=this.turn===1&&pl===this.firstPlayer || this.turn===2&&pl!==this.firstPlayer;
+        const isOwnFirstTurn=this._isOwnFirstTurn(pl);
         if(/后攻玩家/.test(raw)&&!(isOwnFirstTurn&&pl!==this.firstPlayer))return {ok:false,reason:'trainer_prerequisite',message:'使用前提未满足：只可在后攻玩家自己的最初回合使用'};
         if(!/后攻玩家/.test(raw)&&!isOwnFirstTurn)return {ok:false,reason:'trainer_prerequisite',message:'使用前提未满足：只可在自己的最初回合使用'};
       }
@@ -567,6 +567,12 @@ export class GameState {
    * 需求来源：先攻玩家最初回合不能使用招式，界面应像能量不足一样置灰，
    * 而不是点下去才提示不可用。
    */
+  /** 是否是该玩家**自己的最初回合**（回合 1 属于先攻方，回合 2 属于后攻方） */
+  _isOwnFirstTurn(pl){
+    if(!this.firstPlayer)return false;
+    return (this.turn===1&&pl===this.firstPlayer)||(this.turn===2&&pl!==this.firstPlayer);
+  }
+
   /**
    * 该招式是否带「即使是先攻玩家的最初回合也可使用」标签
    * （CBB6C-0301~0322 等卡面明确写了例外的招式）。
@@ -612,6 +618,8 @@ export class GameState {
       }
       if(eff.action!=='usage_condition')continue;
       if(p.kind==='own_pokemon_knocked_out_last_opponent_turn'&&!this.wasOwnPokemonKnockedOutLastOpponentTurn(pl))return {reason:'usage_condition',message:'使用前提未满足：上个对手的回合自己的宝可梦需被击倒'};
+      // 怒鹦哥ex「英武重抽」这类「只有在最初的自己的回合可使用1次」→ 不是最初回合就置灰
+      if(p.kind==='own_first_turn_only'&&!this._isOwnFirstTurn(pl))return {reason:'usage_condition',message:'只能在最初的自己的回合使用'};
       if(p.kind==='ability_name_once_per_turn'&&pl.abilityUsedThisTurn?.[`ability-name:${p.abilityName||ability.name}`])return {reason:'already_used',message:'这个名字的特性本回合已使用'};
       // 需求：像愿增猿「亢奋脑力」这种「若这只宝可梦身上附着了【恶】能量」的发动条件，未满足时应判定为不可用（按钮置灰），而不是点了才提示
       if(p.kind==='requires_attached_energy'){

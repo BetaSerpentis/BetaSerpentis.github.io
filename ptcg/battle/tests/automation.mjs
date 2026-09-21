@@ -6517,6 +6517,86 @@ await test('P1 抢先进化：后攻首回合刚出场也能进化（烈雀 151C
   assert.equal(gs3.evolve(gs3.player1, 0, { id:'evo', name:'大嘴雀', hp:90, stage:'1阶进化', evolvesFrom:'烈雀', element:'colorless', attacks:[] }, 'active'), false);
 });
 
+// ============================================================
+//  P2 批 1：空壳碎片归类 + 5 条高频残句建模
+// ============================================================
+
+const _covKinds = text => parseEffect(text).effects.filter(e => e.action === 'usage_condition').map(e => e.params.kind);
+
+await test('P2-1 空壳归类：只剩引导词且已有实质动作 → shell_fragment', () => {
+  // 对手手牌回牌库：抽卡等实质动作已解析，剩下的「然后，对手。」是空壳
+  const t = '对手将其所有的手牌放回牌库并重洗牌库。然后，对手从牌库上方抽取3张卡牌。';
+  const kinds = _covKinds(t);
+  assert.ok(kinds.includes('shell_fragment'), `应含 shell_fragment: ${kinds}`);
+  assert.ok(!kinds.includes('residual_sentence'), '不应再记成未建模');
+});
+
+await test('P2-1 保护条件：无其它实质动作时不得判成空壳（否则会藏住真问题）', () => {
+  // 这句本身没有可执行动作 → 必须仍算 residual_sentence
+  const kinds = _covKinds('若这只宝可梦在战斗场上，则。');
+  // 一个动作都没匹配上时走的是 generic_effect 分支（同样是「未建模」标记）
+  assert.ok(kinds.some(k => k === 'residual_sentence' || k === 'generic_effect'), `应保留未建模标记: ${kinds}`);
+  assert.ok(!kinds.includes('shell_fragment'), '没有其它动作时不能算空壳');
+});
+
+await test('P2-1 五条高频残句建模', () => {
+  // ① 不叠加说明 → 标注
+  const a = parseEffect('只要这只宝可梦在场上，自己的所有宝可梦，受到对手宝可梦的招式的伤害「-30」。这个效果，无论拥有这个特性的宝可梦有多少只，都不会叠加。').effects;
+  assert.ok(a.some(e => e.params?.kind === 'no_stack_note'));
+  assert.ok(!a.some(e => e.params?.kind === 'residual_sentence'), '不应残留');
+  // ② 只有最初回合可用 → 条件 + 实际效果
+  const b = parseEffect('只有在最初的自己的回合可以使用1次。将自己的手牌全部放于弃牌区，从牌库上方抽取6张卡牌。').effects;
+  assert.ok(b.some(e => e.params?.kind === 'own_first_turn_only'));
+  assert.ok(b.some(e => e.action === 'draw'));
+  // ③ 对手换位
+  const c = parseEffect('将这只宝可梦与备战宝可梦互换。然后，对手将其战斗宝可梦与备战宝可梦互换。').effects.filter(e => e.action === 'switch_pokemon');
+  assert.deepEqual(c.map(e => e.params.who), ['self', 'opponent']);
+  // ④ 对手手牌回牌库
+  const d = parseEffect('对手将其所有的手牌放回牌库并重洗牌库。然后，对手从牌库上方抽取3张卡牌。').effects;
+  assert.ok(d.some(e => e.action === 'shuffle_hand_to_deck' && e.params.who === 'opponent'));
+  // ⑤ 牌库选 1 张基本能量附于自身
+  const e5 = parseEffect('选择自己牌库中的1张基本能量，附着于这只宝可梦身上。并重洗牌库。').effects;
+  const at = e5.find(x => x.action === 'attach_energy_from_deck');
+  assert.ok(at, '应解析为 attach_energy_from_deck');
+  assert.equal(at.params.target, 'self');
+  assert.equal(at.params.filter, '基本能量');
+});
+
+await test('P2-1 「只有最初回合可用」在非最初回合会置灰', () => {
+  // 注意：canUseAbility 要求 ability.active === true，否则直接返回 not_active_ability
+  const ability = { name:'英武重抽', active:true, zone:'field', effects: parseEffect('只有在最初的自己的回合可以使用1次。将自己的手牌全部放于弃牌区，从牌库上方抽取6张卡牌。').effects };
+  const mk = () => ({ name:'怒鹦哥ex', cardId:'x', hp:200, maxHp:200, element:'colorless', energy:[], attacks:[], status:null, ignore:[], tool:null, ability, placedThisTurn:false });
+  // 自己的最初回合（先攻方 turn 1）→ 可用
+  const gs = new GameState();
+  gs.phase = PHASE.MAIN;
+  gs.firstPlayer = gs.player1;
+  gs.turn = 1;
+  const mon = mk();
+  gs.player1.active = mon;
+  gs.player1.bench = [];
+  assert.equal(gs.canUseAbility(gs.player1, mon, mon.ability, 'field').ok, true, '最初回合应可用');
+  // 到了后面的回合 → 应置灰
+  gs.turn = 5;
+  const r = gs.canUseAbility(gs.player1, mon, mon.ability, 'field');
+  assert.equal(r.ok, false, '非最初回合应不可用');
+  assert.match(String(r.message || ''), /最初的自己的回合/);
+});
+
+await test('P2-1 attach_energy_from_deck 带 target:self 时不弹目标选择', async () => {
+  const eff = parseEffect('选择自己牌库中的1张基本能量，附着于这只宝可梦身上。并重洗牌库。').effects.filter(x => x.action === 'attach_energy_from_deck');
+  const gs = new GameState();
+  const pl = gs.player1;
+  pl.active = { name:'自身', cardId:'m', hp:100, maxHp:100, element:'colorless', energy:[], attacks:[], status:null, ignore:[], tool:null, ability:null };
+  pl.bench = [];
+  pl.deck = ['e-fire', 'e-water'];
+  gs.cardResolver = fakeResolver({
+    'e-fire': { card:{ cardType:'energy', name:'基本火能量' }, info:{ name:'基本火能量', type:'energy' } },
+    'e-water': { card:{ cardType:'energy', name:'基本水能量' }, info:{ name:'基本水能量', type:'energy' } },
+  });
+  await executeEffects(gs, pl, eff);
+  assert.equal(pl.active.energy.length, 1, '能量应附到出战宝可梦身上（不经过目标选择）');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

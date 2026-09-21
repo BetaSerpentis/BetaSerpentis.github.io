@@ -284,6 +284,17 @@ const RULES = [
   { re: /(?:双方玩家)?在(?:每个)?自己的回合时[，,]?可使用1次/, act:'usage_condition', p:m=>trainerPrerequisite('once_per_turn', m[0]) },
   { re: /在这个回合[，,]?若已经使出了其他的["“”]?(.+?)["“”]?[，,]?则这个特性无法使用/, act:'usage_condition', p:m=>({ kind:'ability_name_once_per_turn', abilityName:m[1], raw:m[0] }) },
   { re: /在这个回合[，,]?若已经使用了其他的["“”「」]?(.+?)["“”「」]?[，,]?则无法使用这个特性/, act:'usage_condition', p:m=>({ kind:'ability_name_once_per_turn', abilityName:m[1], raw:m[0] }) },
+  // ===== P2 批 1：高频残句建模（措辞取自归一化后的残句原文）=====
+  // 「这个效果…不会叠加」纯属规则说明，标注即可（多条同类特性不叠加）
+  { re: /这个效果[，,]?无论拥有这个特性的宝可梦有多少只[，,]?都不会叠加/, act:'usage_condition', p:m=>({ kind:'no_stack_note', raw:m[0] }) },
+  // 怒鹦哥ex「英武重抽」：只能在自己的最初回合使用 → 由 _abilityUsageFailure 真正拦（置灰）
+  { re: /只有在最初的自己的回合可使用1次/, act:'usage_condition', p:m=>({ kind:'own_first_turn_only', raw:m[0] }) },
+  // 「然后，对手将其战斗宝可梦与备战宝可梦互换」→ 复用 switch_pokemon 的对手分支
+  { re: /然后[，,]?对手将其战斗宝可梦与备战宝可梦互换/, act:'switch_pokemon', p:()=>({ who:'opponent' }) },
+  // 「对手将其所有的手牌放回牌库」→ 复用 shuffle_hand_to_deck 的对手分支
+  { re: /对手将其所有的手牌放回牌库/, act:'shuffle_hand_to_deck', p:()=>({ who:'opponent' }) },
+  // 「从自己的牌库选择1张基本能量，附于这只宝可梦身上」→ 复用 attach_energy_from_deck（自选目标）
+  { re: /从(?:自己的)?牌库选择(?:1张|最多(\d+)张)基本能量[，,]?附于这只宝可梦身上/, act:'attach_energy_from_deck', p:m=>({ count:+(m[1]||1), filter:'基本能量', target:'self', allowFewer:true, allowEmpty:true }) },
   { re: /这张卡可在先攻玩家的最初回合使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('first_player_first_turn_supporter_exception', m[0]) },
   // 「即使是先攻玩家的最初回合也可使用」：卡面明确给出的例外，必须放行。
   // 否则引擎/界面会把它当普通卡一样拒绝 —— 玩家看到的是「明明写着能用却用不了」。
@@ -1786,6 +1797,23 @@ function stripTailNotes(rem) {
   return s;
 }
 
+/**
+ * 判断残留片段是否是「空壳」：只剩引导词/条件短语、没有谓语。
+ *
+ * 为什么需要它：效果文本被逐条规则吃掉后，常常剩下「然后，。」「在这种情况下，。」
+ * 「从自己的牌库选择。」这类碎片 —— 实质内容**已经**被解析成其它动作了。
+ * 把它们继续记成 residual_sentence 会让「未建模」这个指标失真。
+ *
+ * ⚠️ 调用方必须同时确认「本效果文本确实还有其它实质动作」，
+ *    否则整条效果没解析出来也会被当成空壳藏起来。
+ */
+function _isLeadOnlySeg(seg) {
+  const t = String(seg || '').trim().replace(/[。.]+$/, '');
+  const core = t.replace(/[，,。.；;：:！!？?、\s]/g, '');
+  if (core.length <= 6) return true;
+  return /(然后|在这种情况下|若希望，?可?|从自己的牌库选择|只要这张卡，被附于宝可梦身上，?就?|当这只宝可梦受到招式的伤害时，?自己|若这只宝可梦在战斗场上，?则?|若使用了，?则?|并且|而且|以及|则|的话)$/.test(t);
+}
+
 export function finalizeCoverage(effects, text, remaining, baseText) {
   if (remaining) {
     remaining = String(remaining).replace(/[\[\uFF3B]对战中，己方的[^\]\uFF3D]{0,40}只能使用1次。[\]\uFF3D]/g, '').replace(/^[,，。\s]+/, '').trim();
@@ -1813,8 +1841,12 @@ export function finalizeCoverage(effects, text, remaining, baseText) {
     // 便于后续从 kind='residual_sentence' 的 raw 中继续细化建模。
     const segs = String(remaining).split(/\n+|(?<=[。.;；])\s*/).map(x => x.trim()).filter(x => x.length > 2);
     const list = segs.length ? segs : [remaining];
+    // 只有在本效果文本确实解析出了其它实质动作时，才允许把碎片归为「空壳」；
+    // 否则整条效果没解析出来也会被误判成空壳，把问题藏起来。
+    const hasRealAction = effects.some(e => e.action !== 'usage_condition');
     for (const seg of list.slice(0, 12)) {
-      effects.push({ action: 'usage_condition', params: { kind: 'residual_sentence', raw: seg.slice(0, 120) } });
+      const kind = (hasRealAction && _isLeadOnlySeg(seg)) ? 'shell_fragment' : 'residual_sentence';
+      effects.push({ action: 'usage_condition', params: { kind, raw: seg.slice(0, 120) } });
     }
     return { effects, unparsed: '' };
   }
