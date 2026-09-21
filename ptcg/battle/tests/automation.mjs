@@ -6533,7 +6533,9 @@ await test('P2-1 空壳归类：只剩引导词且已有实质动作 → shell_f
 
 await test('P2-1 保护条件：无其它实质动作时不得判成空壳（否则会藏住真问题）', () => {
   // 这句本身没有可执行动作 → 必须仍算 residual_sentence
-  const kinds = _covKinds('若这只宝可梦在战斗场上，则。');
+  // 注意：原来用「若这只宝可梦在战斗场上，则。」做样本，但批 3 已把它建模成 requires_active 了，
+  // 这里换成真正没有任何可执行动作的空壳形状文本。
+  const kinds = _covKinds('若使用了，则。');
   // 一个动作都没匹配上时走的是 generic_effect 分支（同样是「未建模」标记）
   assert.ok(kinds.some(k => k === 'residual_sentence' || k === 'generic_effect'), `应保留未建模标记: ${kinds}`);
   assert.ok(!kinds.includes('shell_fragment'), '没有其它动作时不能算空壳');
@@ -6780,6 +6782,110 @@ await test('P2-3 执行：「先用后结束」的附能确实在结束回合前
   });
   await executeEffects(gs, pl, eff);
   assert.equal(pl.active.energy.length, 1, '能量应在回合结束前附着到宝可梦身上');
+});
+
+
+// ============================================================
+//  P2 批 3：条件前缀 / 条件加抽 / 定向回复 / 按奖赏卡张数抽牌
+// ============================================================
+
+await test('P2-3 「如果这只宝可梦在战斗场上」识别为发动前提', () => {
+  // 叶伊布GX「绿叶之息」真实卡面
+  const e = parseEffect('如果这只宝可梦在战斗场上的话，则在自己的回合可以使用1次。回复自己的身上附有能量的1只宝可梦「50」点HP。').effects;
+  assert.ok(e.some(x => x.params?.kind === 'requires_active'), '应识别为 requires_active');
+  const heal = e.find(x => x.action === 'heal');
+  assert.ok(heal, '应解析出定向回复');
+  assert.equal(heal.params.amount, 50);
+  assert.equal(heal.params.target, 'choose');
+  assert.equal(heal.params.requireEnergy, true);
+});
+
+await test('P2-3 「战斗场上」前提在备战区时真的置灰', () => {
+  const ability = { name:'绿叶之息', active:true, zone:'field',
+    effects: parseEffect('如果这只宝可梦在战斗场上的话，则在自己的回合可以使用1次。回复自己的身上附有能量的1只宝可梦「50」点HP。').effects };
+  const gs = new GameState();
+  gs.phase = PHASE.MAIN;
+  const pl = gs.player1;
+  const act = mon('战斗场上的', 'a1');
+  const bench = mon('备战区的', 'b1');
+  bench.ability = ability;
+  pl.active = act;
+  pl.bench = [bench];
+  // 来源在备战区 → 不可用
+  const r1 = gs.canUseAbility(pl, bench, bench.ability, 'bench');
+  assert.equal(r1.ok, false, `在备战区应不可用：${JSON.stringify(r1)}`);
+  assert.match(String(r1.message || ''), /战斗场上/);
+  // 换到战斗场 → 可用
+  const act2 = mon('战斗场上的', 'a2');
+  act2.ability = ability;
+  pl.active = act2;
+  pl.bench = [];
+  assert.equal(gs.canUseAbility(pl, act2, act2.ability, 'active').ok, true, '在战斗场上应可用');
+});
+
+await test('P2-3 「若在战斗场上则额外抽N张」：按来源位置决定是否加抽', async () => {
+  const eff = parseEffect('在自己的回合可以使用1次。从自己牌库上方抽取1张卡牌。如果这只宝可梦在战斗场上的话，则额外抽取1张卡牌。').effects;
+  const extra = eff.filter(x => x.action === 'draw' && x.params.requiresSourceActive);
+  assert.equal(extra.length, 1, '应解析出条件加抽');
+  assert.equal(extra[0].params.count, 1);
+
+  const build = (zone) => {
+    const gs = new GameState();
+    const pl = gs.player1;
+    pl.deck = ['d1','d2','d3','d4','d5'];
+    pl.hand = [];
+    pl.active = mon('来源', 's1');
+    pl.bench = [];
+    const src = zone === 'active' ? pl.active : mon('后排', 's2');
+    return { gs, pl, src, effects: extra.map(e => ({ ...e, params:{ ...e.params }, source:src, sourceZone:zone })) };
+  };
+  let c = build('active');
+  await executeEffects(c.gs, c.pl, c.effects);
+  assert.equal(c.pl.hand.length, 1, '在战斗场上应额外抽 1 张');
+  c = build('bench');
+  await executeEffects(c.gs, c.pl, c.effects);
+  assert.equal(c.pl.hand.length, 0, '不在战斗场上应不抽');
+});
+
+await test('P2-3 定向回复：只能选附有能量的宝可梦', async () => {
+  const eff = parseEffect('回复自己的身上附有能量的1只宝可梦「50」点HP。').effects;
+  assert.equal(eff[0].action, 'heal');
+  const gs = new GameState();
+  const pl = gs.player1;
+  const act = mon('无能量的', 'a1');   // 60/60，没有能量 → 不能被选
+  const benchE = mon('有能量的', 'b1');
+  benchE.energy = [{ cardId:'e', name:'基本草能量' }];
+  benchE.hp = 20;                       // 受伤，便于验证回复
+  pl.active = act;
+  pl.bench = [benchE];
+  await executeEffects(gs, pl, eff);
+  assert.equal(act.hp, act.maxHp, '无能量的宝可梦不应被选中（血量不变）');
+  assert.equal(benchE.hp, 60, '应回复 50 点（20 → 60，上限 60）');
+});
+
+await test('P2-3 按剩余奖赏卡张数抽牌：抽取方是「对手自己」', async () => {
+  const eff = parseEffect('对手将其所有的手牌放回牌库并重洗牌库。然后，对手从牌库上方抽取与对手剩余奖赏卡张数相同数量的卡牌。').effects;
+  const d = eff.find(x => x.action === 'draw');
+  assert.equal(d.params.who, 'opponent');
+  assert.equal(d.params.countFrom, 'prizes');
+  assert.ok(eff.some(x => x.action === 'shuffle_hand_to_deck' && x.params.who === 'opponent'), '前半句也应解析');
+
+  const gs = new GameState();
+  const pl = gs.player1, opp = gs.player2;
+  opp.prizes = ['p1','p2','p3'];
+  opp.hand = [];
+  opp.deck = ['d1','d2','d3','d4','d5','d6'];
+  await executeEffects(gs, pl, [d]);
+  assert.equal(opp.hand.length, 3, '对手应按自己的剩余奖赏卡（3 张）抽 3 张');
+  assert.equal(pl.hand.length, 0, '不应影响到发起方手牌');
+});
+
+await test('P2-3 顺带措辞：甲贺忍蛙BREAK「巨大飞水手里剑」', () => {
+  const e = parseEffect('选择自己手牌中的1张【水】能量，放于弃牌区。然后，选择对手的1只宝可梦，放置6个伤害指示物。如果这只宝可梦在战斗场上的话，则在自己的回合可以使用1次这个特性。').effects;
+  const disc = e.find(x => x.action === 'discard_hand');
+  assert.ok(disc && disc.params.filter === '【水】能量', '应解析出手牌弃能量');
+  const dp = e.find(x => x.action === 'damage_place');
+  assert.ok(dp && dp.params.count === 6 && dp.params.target === 'opponent_any', '应解析出放置 6 个指示物');
 });
 
 await test('全卡牌效果文本解析覆盖率报告', () => {

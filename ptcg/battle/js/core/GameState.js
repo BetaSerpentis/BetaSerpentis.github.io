@@ -620,6 +620,8 @@ export class GameState {
       if(p.kind==='own_pokemon_knocked_out_last_opponent_turn'&&!this.wasOwnPokemonKnockedOutLastOpponentTurn(pl))return {reason:'usage_condition',message:'使用前提未满足：上个对手的回合自己的宝可梦需被击倒'};
       // 怒鹦哥ex「英武重抽」这类「只有在最初的自己的回合可使用1次」→ 不是最初回合就置灰
       if(p.kind==='own_first_turn_only'&&!this._isOwnFirstTurn(pl))return {reason:'usage_condition',message:'只能在最初的自己的回合使用'};
+      // 「如果这只宝可梦在战斗场上的话，则…」：来源不在战斗场就不能使用
+      if(p.kind==='requires_active'&&source&&pl.active!==source)return {reason:'usage_condition',message:'发动条件未满足：这只宝可梦需在战斗场上'};
       if(p.kind==='ability_name_once_per_turn'&&pl.abilityUsedThisTurn?.[`ability-name:${p.abilityName||ability.name}`])return {reason:'already_used',message:'这个名字的特性本回合已使用'};
       // 需求：像愿增猿「亢奋脑力」这种「若这只宝可梦身上附着了【恶】能量」的发动条件，未满足时应判定为不可用（按钮置灰），而不是点了才提示
       if(p.kind==='requires_attached_energy'){

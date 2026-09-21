@@ -672,7 +672,23 @@ const EXECUTORS = {
   },
 
   // ===== 抽卡 =====
-  draw(gs, pl, p) {
+  draw(gs, pl, p, eff) {
+    // ③ 「若这只宝可梦在战斗场上，则额外抽出N张卡」：
+    //    特性执行时每个 effect 都带 source / sourceZone（见 BattleEngine.useAbility），
+    //    用它判断来源是否在战斗场；拿不到来源信息时按「不额外抽」保守处理。
+    if (p.requiresSourceActive) {
+      const src = eff?.source;
+      const onActive = eff?.sourceZone === 'active' || (!!src && pl.active === src);
+      if (!onActive) { gs.addLog('（来源不在战斗场上，不额外抽卡）'); return; }
+    }
+    // 「对手从牌库抽出与对手剩余奖赏卡张数相同数量的卡牌」：抽取方是对手，张数取自对手自己的剩余奖赏卡
+    if (p.who === 'opponent') {
+      const opp = _opponent(gs, pl);
+      const n = p.countFrom === 'prizes' ? (opp.prizes ? opp.prizes.length : 0) : (p.count || 1);
+      opp.draw(n);
+      gs.addLog(`${opp.name} 抽了 ${n} 张卡（其剩余奖赏卡 ${opp.prizes ? opp.prizes.length : 0} 张）`);
+      return;
+    }
     // 条件改写：「莉莉艾的决心」——若自己的剩余奖赏卡为 6 张，则抽取张数由 6 变为 8。
     const ownPrizes = pl.prizes ? pl.prizes.length : 0;
     const boosted = p.ownPrizesExactly != null && ownPrizes === p.ownPrizesExactly;
@@ -1152,8 +1168,16 @@ const EXECUTORS = {
   },
 
   // ===== 恢复HP =====
-  heal(gs, pl, p, eff) {
-    const mon = pl.active;
+  async heal(gs, pl, p, eff) {
+    // 「恢复自己的身上附着能量的1只宝可梦「N」点HP」→ 需要选目标（且目标必须附有能量）
+    let mon = pl.active;
+    if (p.target === 'choose') {
+      const slot = await _pickPokemonTarget(gs, pl, pl, {
+        mode:'heal', side:'self', allowActive:true, allowBench:true, prompt:'选择要回复的宝可梦',
+        slotFilter: s => !p.requireEnergy || (_getMon(pl, s)?.energy?.length || 0) > 0,
+      });
+      mon = _getMon(pl, slot) || pl.active;
+    }
     if (!mon) return;
     const opp = _opponent(gs, pl);
     if ((gs._passiveEffectsFor?.(opp.active, 'block_heal') || []).some(e => ['both_field', 'opponent_field', 'opponent_bench'].includes(e.params?.target))) { gs.addLog('无法回复HP'); return; }
