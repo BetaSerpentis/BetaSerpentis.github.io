@@ -6375,6 +6375,31 @@ await test('BattleEngine.startGame：依对手卡组注入计划并记入日志'
   assert.ok(logs.some(l => String(l).includes('卡组风格')), `应有卡组风格日志: ${logs.join(' | ')}`);
 });
 
+await test('卡组画像随所选卡组动态变化（不是只认内置两套）', () => {
+  // 两套**内容不同**的卡组：用 fakeDeckStorage 模拟 localStorage 里的 ptcg 卡组，
+  // 由真实 DeckSource 读取后各自建画像 —— 标签应不同（证明是按所选卡组动态推断）。
+  const cards = {
+    BASIC: { card: { cardType:'pokemon', stage:'基础', name:'妙蛙种子' }, info:{ name:'妙蛙种子', number:1, type:'pokemon' } },
+    ACCEL: { card: { cardType:'trainer', trainerType:'item', name:'填能卡', effects:[{ action:'attach_energy_from_deck' }] }, info:{ name:'填能卡', number:null, type:'item' } },
+    FLOOD: { card: { cardType:'trainer', trainerType:'item', name:'铺场卡', effects:[{ action:'search_deck_to_bench' }] }, info:{ name:'铺场卡', number:null, type:'item' } },
+  };
+  const mk = (name, fillId) => ({
+    id: name, name, coverCardId: 'BASIC',
+    cards: [{ id:'BASIC', quantity:4 }, { id:fillId, quantity:4 }, { id:'BASIC', quantity:52 }],
+  });
+  const resolver = fakeResolver(cards);
+  const loaded = new DeckSource(resolver, { storage: fakeDeckStorage([mk('A-填能','ACCEL'), mk('B-铺场','FLOOD')]) }).load();
+  assert.equal(loaded.source, 'ptcg', '应从 localStorage(ptcg) 读取卡组');
+  assert.equal(loaded.decks.length, 2);
+  const labels = loaded.decks.map(d => buildDeckPlan(expandDeck(d), resolver).label);
+  assert.notEqual(labels[0], labels[1], `两套不同卡组应得到不同画像，实际都是 ${labels[0]}`);
+  assert.ok(labels.includes('填能加速') || labels.includes('一击爆发'), `填能卡组应体现填能倾向: ${labels.join('/')}`);
+  assert.ok(labels.includes('铺场展开'), `铺场卡组应识别为铺场展开: ${labels.join('/')}`);
+  // 本地没有任何卡组时，才回退内置两套
+  const fallback = new DeckSource(resolver, { storage: fakeDeckStorage([]) }).load();
+  assert.equal(fallback.source, 'builtin', '无本地卡组时才回退内置');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',
