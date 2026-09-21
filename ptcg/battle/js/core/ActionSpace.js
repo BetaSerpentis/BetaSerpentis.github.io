@@ -287,8 +287,10 @@ export function getLegalActions(gs, resolver, player = gs.currentPlayer) {
     const st = String(active.status || '');
     const statusBlocked = st.includes('sleep') || st.includes('paralysis');
     const firstTurnBlock = gs.firstPlayerFirstTurnInProgress && player === gs.firstPlayer;
-    if (!statusBlocked && !firstTurnBlock && !active.cannotAttackNext) {
+    if (!statusBlocked && !active.cannotAttackNext) {
       (active.attacks || []).forEach((move, i) => {
+        // 先攻首回合整体不能用招式，但**卡面写明例外的招式**要照常产出候选
+        if (firstTurnBlock && !gs._attackAllowsFirstTurn?.(active, i)) return;
         const canPay = active.costEliminated || (gs.checkEnergy ? gs.checkEnergy(active, i) : false);
         if (!canPay) return;
         const { damage, mayVary } = estimateAttackDamage(gs, active, opp.active, move, player);

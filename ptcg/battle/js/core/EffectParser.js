@@ -285,6 +285,14 @@ const RULES = [
   { re: /在这个回合[，,]?若已经使出了其他的["“”]?(.+?)["“”]?[，,]?则这个特性无法使用/, act:'usage_condition', p:m=>({ kind:'ability_name_once_per_turn', abilityName:m[1], raw:m[0] }) },
   { re: /在这个回合[，,]?若已经使用了其他的["“”「」]?(.+?)["“”「」]?[，,]?则无法使用这个特性/, act:'usage_condition', p:m=>({ kind:'ability_name_once_per_turn', abilityName:m[1], raw:m[0] }) },
   { re: /这张卡可在先攻玩家的最初回合使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('first_player_first_turn_supporter_exception', m[0]) },
+  // 「即使是先攻玩家的最初回合也可使用」：卡面明确给出的例外，必须放行。
+  // 否则引擎/界面会把它当普通卡一样拒绝 —— 玩家看到的是「明明写着能用却用不了」。
+  // 实测：大姐姐 / 丹瑜 共 12 张支援者属于这一类（原文写「这张卡牌…也可以使用」）。
+  { re: /这张卡[，,]?即使是先攻玩家的最初回合也可以?使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('first_player_first_turn_supporter_exception', m[0]) },
+  // 招式例外（CBB6C-0301~0322 等 22 张）：把标记挂在**招式**上，供引擎与界面放行。
+  { re: /这个招式[，,]?即使是先攻玩家的最初回合也可使用/, act:'usage_condition', p:m=>({ kind:'attack_first_turn_ok', raw:m[0] }) },
+  // 烈雀「抢先进化」：后攻玩家的最初回合，即使刚出场也能进化。
+  { re: /这只宝可梦[，,]?若是后攻玩家的最初回合[，,]?则即使刚刚出场也可进行进化/, act:'usage_condition', p:m=>({ kind:'evolve_on_first_turn_going_second', raw:m[0] }) },
   { re: /这张卡(?:只可|只能)在.+?最初回合使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('first_turn', m[0]) },
   { re: /这张卡只可在对手剩余奖赏卡的张数为(\d+)张以下时使用/, act:'trainer_prerequisite', p:m=>({ kind:'opponent_prizes_at_most', raw:m[0], count:+m[1] }) },
   { re: /(?:这张卡)?只可在后攻玩家自己的最初回合使用1次/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('first_turn', m[0]) },

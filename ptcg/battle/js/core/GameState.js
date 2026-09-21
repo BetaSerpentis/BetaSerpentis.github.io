@@ -322,7 +322,10 @@ export class GameState {
   evolve(pl,hi,cd,slot){const t=slot==='active'?pl.active:pl.bench[parseInt(slot.replace('bench-',''))];
     if(!t){this.addLog('目标不存在');return false;}
     if(!cd?.evolvesFrom||t.name!==cd.evolvesFrom){this.addLog(`${t.name} 不能进化为 ${cd?.name||'?'}`);return false;}
-    if(t.placedThisTurn||t.evolvedThisTurn){this.addLog(`${t.name} 本回合刚出场或已进化，下回合才能进化`);return false;}
+    // 例外：「抢先进化」类特性（如烈雀 151C-021）允许后攻玩家在最初回合进化刚出场的宝可梦；
+    // 但「本回合已进化过」仍然不允许再进化一次。
+    const firstTurnEvo=t.placedThisTurn&&this._canEvolveOnFirstTurn(pl,t);
+    if((t.placedThisTurn&&!firstTurnEvo)||t.evolvedThisTurn){this.addLog(`${t.name} 本回合刚出场或已进化，下回合才能进化`);return false;}
     const dmg=t.maxHp-t.hp;
     const newCardId=pl.hand[hi];   // 需求：进化后更新 cardId，立绘才会换成进化后的形象
     pl.hand.splice(hi,1);
@@ -564,10 +567,31 @@ export class GameState {
    * 需求来源：先攻玩家最初回合不能使用招式，界面应像能量不足一样置灰，
    * 而不是点下去才提示不可用。
    */
+  /**
+   * 该招式是否带「即使是先攻玩家的最初回合也可使用」标签
+   * （CBB6C-0301~0322 等卡面明确写了例外的招式）。
+   */
+  _attackAllowsFirstTurn(mon,attackIndex=0){
+    const effs=mon?.attacks?.[attackIndex]?.effects||[];
+    return effs.some(e=>e.action==='usage_condition'&&e.params?.kind==='attack_first_turn_ok');
+  }
+
+  /**
+   * 该宝可梦是否可在「后攻玩家的最初回合」即使刚出场也进化
+   * （烈雀 151C-021「抢先进化」这类特性）。
+   */
+  _canEvolveOnFirstTurn(pl,mon){
+    if(!mon||!this.firstPlayer)return false;
+    if(pl===this.firstPlayer)return false;                 // 只对后攻方生效
+    if(!this.firstPlayerFirstTurnInProgress)return false;
+    return (mon.ability?.effects||[]).some(e=>e.action==='usage_condition'&&e.params?.kind==='evolve_on_first_turn_going_second');
+  }
+
   canUseAttack(pl,mon,attackIndex=0){
     if(!pl||!mon)return {ok:false,reason:'no_pokemon',message:'没有宝可梦'};
     if(this.phase===PHASE.GAME_OVER||this.phase===PHASE.SETUP)return {ok:false,reason:'wrong_phase',message:'当前阶段不能使用招式'};
-    if(this.firstPlayerFirstTurnInProgress&&pl===this.firstPlayer)return {ok:false,reason:'first_turn',message:'先攻玩家的最初回合不能使用招式'};
+    // 例外：卡面写着「这个招式，即使是先攻玩家的最初回合也可使用」的招式要放行
+    if(this.firstPlayerFirstTurnInProgress&&pl===this.firstPlayer&&!this._attackAllowsFirstTurn(mon,attackIndex))return {ok:false,reason:'first_turn',message:'先攻玩家的最初回合不能使用招式'};
     const st=String(mon.status||'');
     if(st.includes('sleep'))return {ok:false,reason:'asleep',message:'睡眠中无法使用招式'};
     if(st.includes('paralysis'))return {ok:false,reason:'paralyzed',message:'麻痹中无法使用招式'};

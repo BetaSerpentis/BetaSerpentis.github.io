@@ -428,11 +428,16 @@ export class BattleEngine {
 
     if (gs.phase !== PHASE.BATTLE) { this.cb.onLog?.('非战斗阶段'); return false; }
     if (gs.firstPlayerFirstTurnInProgress && atk === gs.firstPlayer) {
-      const msg = '先攻玩家最初回合不能攻击';
-      gs.addLog?.(msg);
-      this.cb.onLog?.(msg);
-      this.cb.onFieldUpdate?.();
-      return false;
+      // 例外：卡面写着「这个招式，即使是先攻玩家的最初回合也可使用」的招式要放行
+      const idx = Number.isInteger(attackIndex) ? attackIndex : 0;
+      const allowed = gs._attackAllowsFirstTurn?.(atk.active, idx);
+      if (!allowed) {
+        const msg = '先攻玩家最初回合不能攻击';
+        gs.addLog?.(msg);
+        this.cb.onLog?.(msg);
+        this.cb.onFieldUpdate?.();
+        return false;
+      }
     }
     if (!atk.active) { this.cb.onLog?.('无战斗宝可梦'); return false; }
     const status = atk.active.status || '';

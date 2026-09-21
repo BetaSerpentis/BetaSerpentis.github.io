@@ -6400,6 +6400,123 @@ await test('卡组画像随所选卡组动态变化（不是只认内置两套�
   assert.equal(fallback.source, 'builtin', '无本地卡组时才回退内置');
 });
 
+// ============================================================
+//  P1：卡面写明「即使是先攻玩家的最初回合也可使用」的例外
+// ============================================================
+
+const ATTACK_FIRST_TURN_EXC = '这个招式，即使是先攻玩家的最初回合也可使用。';
+const SUPPORTER_FIRST_TURN_EXC = '这张卡牌，即使是先攻玩家的最初回合也可以使用。从自己的牌库上方抽取2张卡牌。';
+const EVOLVE_FIRST_TURN_EXC = '这只宝可梦，如果是后攻玩家的最初回合的话，则即使刚刚出场也可进行进化。';
+
+await test('P1 解析：三处「首回合例外」措辞都能识别', () => {
+  const a = parseEffect(ATTACK_FIRST_TURN_EXC).effects;
+  assert.equal(a[0].action, 'usage_condition');
+  assert.equal(a[0].params.kind, 'attack_first_turn_ok');
+  const s = parseEffect(SUPPORTER_FIRST_TURN_EXC).effects;
+  assert.equal(s[0].action, 'trainer_prerequisite');
+  assert.equal(s[0].params.kind, 'first_player_first_turn_supporter_exception', '复用已有的支援者例外机制');
+  assert.ok(s.some(e => e.action === 'draw'), '抽卡效果仍要保留');
+  const ev = parseEffect(EVOLVE_FIRST_TURN_EXC).effects;
+  assert.equal(ev[0].params.kind, 'evolve_on_first_turn_going_second');
+});
+
+await test('P1 招式例外：首回合该招可用、普通招仍置灰（引擎与枚举一致）', async () => {
+  const mk = (name, hp = 100) => ({
+    name, cardId:name, hp, maxHp:hp, element:'colorless', energy:[], attacks:[], status:null,
+    ignore:[], tool:null, ability:null, placedThisTurn:false, evolvedThisTurn:false,
+  });
+  const gs = new GameState();
+  gs.phase = PHASE.BATTLE;
+  gs.firstPlayer = gs.player1;
+  gs.firstPlayerFirstTurnInProgress = true;
+  gs.currentPlayer = gs.player1;
+  const mon = mk('例外宝可梦');
+  mon.attacks = [
+    { name:'普通招式', cost:[], damage:'20', effects:[] },
+    { name:'例外招式', cost:[], damage:'20', effects: parseEffect(ATTACK_FIRST_TURN_EXC).effects },
+  ];
+  gs.player1.active = mon;
+  gs.player2.active = mk('对手');
+
+  assert.equal(gs.canUseAttack(gs.player1, mon, 0).ok, false, '普通招式应置灰');
+  assert.equal(gs.canUseAttack(gs.player1, mon, 1).ok, true, '例外招式应可用');
+
+  gs.player1.deck = Array.from({length:30},(_,i)=>'a'+i);
+  gs.player2.deck = Array.from({length:30},(_,i)=>'b'+i);
+  gs.player1.prizes = ['a','b','c','d','e','f'];
+  gs.player2.prizes = ['a','b','c','d','e','f'];
+  const engine = makeEngineWithEvents(gs).engine;
+  assert.equal(await engine.attack(1), true, '引擎应放行例外招式');
+  assert.ok(gs.player2.active.hp < 100, '例外招式应造成伤害');
+
+  // ActionSpace 也要产出例外招式，否则 AI 首回合什么都做不了
+  const gs2 = new GameState();
+  gs2.phase = PHASE.BATTLE;
+  gs2.firstPlayer = gs2.player1;
+  gs2.firstPlayerFirstTurnInProgress = true;
+  gs2.currentPlayer = gs2.player1;
+  const mon2 = mk('例外宝可梦');
+  mon2.attacks = mon.attacks;
+  gs2.player1.active = mon2;
+  gs2.player2.active = mk('对手');
+  const atks = getLegalActions(gs2, null, gs2.player1).filter(a => a.kind === 'attack');
+  assert.equal(atks.length, 1);
+  assert.equal(atks[0].params.attackIndex, 1, '只应产出例外招式');
+});
+
+await test('P1 支援者例外：卡面写明例外时首回合可打出', () => {
+  const gs = new GameState();
+  gs.phase = PHASE.MAIN;
+  gs.firstPlayer = gs.player1;
+  gs.firstPlayerFirstTurnInProgress = true;
+  gs.currentPlayer = gs.player1;
+  const exc = { name:'丹瑜', cardType:'trainer', trainerType:'supporter', effects: parseEffect(SUPPORTER_FIRST_TURN_EXC).effects };
+  assert.equal(gs.canUseTrainer(gs.player1, exc).ok, true, '应放行');
+  const plain = { name:'普通支援者', cardType:'trainer', trainerType:'supporter', effects: parseEffect('从自己的牌库上方抽取2张卡牌。').effects };
+  assert.equal(gs.canUseTrainer(gs.player1, plain).ok, false, '普通支援者仍不可用');
+});
+
+await test('P1 抢先进化：后攻首回合刚出场也能进化（烈雀 151C-021）', () => {
+  const mk = name => ({
+    name, cardId:name, hp:60, maxHp:60, element:'colorless', energy:[], attacks:[], status:null,
+    ignore:[], tool:null, ability:null, placedThisTurn:true, evolvedThisTurn:false,
+  });
+  // 后攻方 + 有「抢先进化」特性 → 放行
+  const gs = new GameState();
+  gs.phase = PHASE.MAIN;
+  gs.firstPlayer = gs.player1;
+  gs.firstPlayerFirstTurnInProgress = true;
+  gs.currentPlayer = gs.player2;
+  const sp = mk('烈雀');
+  sp.ability = { name:'抢先进化', effects: parseEffect(EVOLVE_FIRST_TURN_EXC).effects };
+  gs.player2.active = sp;
+  gs.player2.hand = ['evo'];
+  assert.equal(gs.evolve(gs.player2, 0, { id:'evo', name:'大嘴雀', hp:90, stage:'1阶进化', evolvesFrom:'烈雀', element:'colorless', attacks:[] }, 'active'), true);
+  assert.equal(gs.player2.active.name, '大嘴雀');
+
+  // 对照 1：没有该特性 → 仍被拒绝
+  const gs2 = new GameState();
+  gs2.phase = PHASE.MAIN;
+  gs2.firstPlayer = gs2.player1;
+  gs2.firstPlayerFirstTurnInProgress = true;
+  gs2.currentPlayer = gs2.player2;
+  gs2.player2.active = mk('普通基础');
+  gs2.player2.hand = ['evo'];
+  assert.equal(gs2.evolve(gs2.player2, 0, { id:'evo', name:'普通进化', hp:90, stage:'1阶进化', evolvesFrom:'普通基础', element:'colorless', attacks:[] }, 'active'), false);
+
+  // 对照 2：先攻方不享受该例外（规则只给后攻方）
+  const gs3 = new GameState();
+  gs3.phase = PHASE.MAIN;
+  gs3.firstPlayer = gs3.player1;
+  gs3.firstPlayerFirstTurnInProgress = true;
+  gs3.currentPlayer = gs3.player1;
+  const sp3 = mk('烈雀');
+  sp3.ability = { name:'抢先进化', effects: parseEffect(EVOLVE_FIRST_TURN_EXC).effects };
+  gs3.player1.active = sp3;
+  gs3.player1.hand = ['evo'];
+  assert.equal(gs3.evolve(gs3.player1, 0, { id:'evo', name:'大嘴雀', hp:90, stage:'1阶进化', evolvesFrom:'烈雀', element:'colorless', attacks:[] }, 'active'), false);
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',
