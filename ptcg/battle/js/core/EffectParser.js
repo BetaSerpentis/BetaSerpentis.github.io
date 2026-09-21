@@ -363,7 +363,10 @@ const RULES = [
   // 「招式学习器」类道具：回合结束时自动进弃牌区（元数据，真正的丢弃在 GameState.endTurn 里执行）。
   // 必须放在 end_turn 规则之前，否则会被 /自己的回合结束/ 误解析为「结束回合」。
   { re: /放(?:置)?于宝可梦身上的这张卡(?:牌)?[，,]?(?:将)?在自己的回合结束时被(?:丢到弃牌区|放于弃牌区)/, act:'tool_end_of_turn_discard', p:()=>({}) },
-  { re: /自己的回合结束(?!时)/, act:'end_turn', p:()=>({}) },
+  // ⚠️ 必须排除「在下一个自己的回合**结束前**」这类时间状语：
+  //    原文「在下一个自己的回合结束前，受到这个招式影响的宝可梦的弱点变为…」只是限定持续时间，
+  //    误匹配成 end_turn 会让玩家一用这个招式就立刻结束回合（实测 5 张卡中招）。
+  { re: /自己的回合结束(?!时|前)/, act:'end_turn', p:()=>({}) },
 
   // 掷硬币 heads 变体（位于普通“掷N次硬币”之前，先整段命中）
   { re: /掷1次硬币若为正面，则将(?:自己的|自己)?牌库中的1张物品，在给对手看过后，加入手牌。并且重洗牌库/, act:'coin_flip', p:()=>({count:1,heads:[{action:'search_deck_to_hand',params:{count:1,filter:'物品'}}]}) },
@@ -1639,12 +1642,16 @@ export function parseEffect(text) {
   text = normalizeCn(norm(text));
   const effects = [];
   let remaining = text;
-  // 记录每个命中片段在**原始文本**中的位置。
+  // 记录每个命中片段在**归一化文本**中的位置。
   // 原实现按 RULES 表的顺序 push，导致动作顺序变成「规则表顺序」而不是卡面书写顺序，
   // 对先后关系敏感的效果会彻底跑错。典型：「莉莉艾的决心」原文是
   // 「先将手牌全部放回牌库并重洗。然后抽6张」，却解析成先抽6张再把（含刚抽到的）手牌洗回牌库。
-  // 这里在删除片段的同时维护 remaining 起点在原文中的绝对下标，最后按位置排序。
-  let front = 0; // remaining[0] 在原文中的绝对下标
+  //
+  // ⚠️ 位置不能用「front + 相对下标」表达：删掉命中片段后 remaining 是**多段拼接**，
+  //    单一 front 偏移无法表达「中间被挖掉」，遇到「A。B。C。然后D」这类文本会系统性低估
+  //    后半段的位置，把 B/C 排到 A 前面（实测「并且重洗牌库」在文末却得到 _pos=2）。
+  //    这里改为维护与 remaining 等长的**绝对下标映射** posMap，逐字符记录它在原文中的位置。
+  let posMap = Array.from({ length: remaining.length }, (_, i) => i);
   for (let pass = 0; pass < 40; pass++) {
     let changed = false;
     for (const rule of RULES) {
@@ -1653,15 +1660,18 @@ export function parseEffect(text) {
         const params = rule.p(m);
         if (params === null || params === undefined) continue; // 条件不满足，跳过此规则
         const idx = remaining.indexOf(m[0]);
-        effects.push({ action: rule.act, params, _pos: front + idx });
+        effects.push({ action: rule.act, params, _pos: posMap[idx] ?? 0 });
         // 与旧行为完全一致地删除首个命中片段，再剥掉剩余文本的前导标点/空白
-        const next = remaining.slice(0, idx) + remaining.slice(idx + m[0].length);
+        let next = remaining.slice(0, idx) + remaining.slice(idx + m[0].length);
+        let nextMap = posMap.slice(0, idx).concat(posMap.slice(idx + m[0].length));
         const headRun = next.match(/^[,，。\s]+/);
         const head = headRun ? headRun[0].length : 0;
-        // 注意：命中片段之前的文本仍留在 remaining 里，其绝对起点不变，
-        // 只有被剥掉的前导标点/空白会让起点右移，因此这里只能 += head。
-        front = front + head;
-        remaining = next.slice(head).trim();
+        if (head) { next = next.slice(head); nextMap = nextMap.slice(head); }
+        // 与旧行为一致地去掉尾部空白（只影响长度，不影响已有字符的下标）
+        const tail = next.length - next.replace(/\s+$/, '').length;
+        if (tail) { next = next.slice(0, next.length - tail); nextMap = nextMap.slice(0, nextMap.length - tail); }
+        remaining = next;
+        posMap = nextMap;
         changed = true;
         break;
       }
@@ -1670,6 +1680,18 @@ export function parseEffect(text) {
   }
   // 按卡面文本顺序重排真实动作（finalizeCoverage 追加的残余元数据仍排在最后）
   effects.sort((a, b) => a._pos - b._pos);
+  // 「如果使用了，则自己的回合结束」是**结算到尾部的后果**，不是序列中的一步：
+  // 执行端的 end_turn 会立刻调用 gs.endTurn()（切到对手回合），若排在中间，
+  // 它后面的效果就会在已经切换过的回合里执行（实测 CS5bC-114 / CS5DC-113 / CSVH2aC-007
+  // 这类「先用后结束」的卡会把附能放到对手回合去）。
+  // 全卡池含 end_turn 的卡都是这种写法，故统一稳定移到动作序列末尾。
+  if (effects.some(e => e.action === 'end_turn')) {
+    const endTurns = effects.filter(e => e.action === 'end_turn');
+    const rest = effects.filter(e => e.action !== 'end_turn');
+    effects.length = 0;
+    for (const e of rest) effects.push(e);
+    for (const e of endTurns) effects.push(e); // 多个时保持原有相对顺序
+  }
   for (const e of effects) delete e._pos;
   // 条件改写句合并：把 action_count_override 并入它的目标动作。
   // 这样执行端只需在目标动作里读条件参数，不必处理“改写发生在动作之后”的时序问题。

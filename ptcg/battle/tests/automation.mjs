@@ -6731,6 +6731,57 @@ await test('P2-2 ③ 招式版（残影斩）：标记撑到对手回合结束�
   assert.ok(!pl.active.damageFlipShieldArmed, '对手回合结束后应清除');
 });
 
+
+// ============================================================
+//  P2 批 3 前置：动作顺序位置簿记修复 + end_turn 语义修正
+// ============================================================
+
+await test('P2-3 顺序：「…自己的回合结束前」不得被误判为 end_turn', () => {
+  // 原文只是限定弱点改变的持续时间，误匹配会让玩家一用这个招式就立刻结束回合
+  const e = parseEffect('在下一个自己的回合结束前，受到这个招式影响的宝可梦的弱点变为【雷】属性。').effects;
+  assert.ok(!e.some(x => x.action === 'end_turn'), `不应有 end_turn：${JSON.stringify(e.map(x => x.action))}`);
+});
+
+await test('P2-3 顺序：end_turn 必须排在动作序列末尾（先用后结束）', () => {
+  const e = parseEffect('这张卡牌，只有在后攻玩家的最初回合才可使用，如果使用了，则自己的回合结束。选择自己牌库中的1张基本能量，附着于自己的宝可梦身上。并重洗牌库。').effects;
+  const real = e.filter(x => x.action !== 'usage_condition').map(x => x.action);
+  assert.equal(real[real.length - 1], 'end_turn', `end_turn 应在最后：${real}`);
+  assert.ok(real.indexOf('attach_energy_from_deck') >= 0 && real.indexOf('attach_energy_from_deck') < real.indexOf('end_turn'),
+    `附能必须在结束回合之前：${real}`);
+});
+
+await test('P2-3 顺序：动作顺序恢复为卡面书写顺序（先附能再抽卡）', () => {
+  // CSV8C-242 原文：「…附着于这只宝可梦身上。然后，从自己牌库上方抽取1张卡牌。」
+  const e = parseEffect('在自己的回合可以使用1次。选择自己手牌中的1张「基本【草】能量」，附着于这只宝可梦身上。然后，从自己牌库上方抽取1张卡牌。').effects;
+  const real = e.filter(x => x.action !== 'usage_condition').map(x => x.action);
+  assert.deepEqual(real, ['attach_energy_from_hand', 'draw'], `应为「先附能再抽卡」：${real}`);
+});
+
+await test('P2-3 顺序：先选牌再重洗牌库（不是先洗再选）', () => {
+  // 大钳蟹「引潮」（151C-098）真实卡面：「抛掷1次硬币如果为正面，则选择自己牌库中最多2张
+  // 「基本【水】能量」，附着于这只宝可梦身上。并重洗牌库。」
+  const e = parseEffect('抛掷1次硬币如果为正面，则选择自己牌库中最多2张「基本【水】能量」，附着于这只宝可梦身上。并重洗牌库。').effects;
+  const real = e.filter(x => x.action !== 'usage_condition').map(x => x.action);
+  assert.deepEqual(real, ['coin_flip', 'attach_energy_from_deck', 'shuffle_deck'], `应「先选牌再重洗」：${real}`);
+  assert.ok(real.indexOf('attach_energy_from_deck') < real.indexOf('shuffle_deck'), '附能必须在重洗之前');
+});
+
+await test('P2-3 执行：「先用后结束」的附能确实在结束回合前生效', async () => {
+  const eff = parseEffect('这张卡牌，只有在后攻玩家的最初回合才可使用，如果使用了，则自己的回合结束。选择自己牌库中的1张基本能量，附着于自己的宝可梦身上。并重洗牌库。').effects;
+  const gs = new GameState();
+  const pl = gs.player1, opp = gs.player2;
+  gs.currentPlayer = pl;
+  gs.phase = PHASE.MAIN;
+  pl.active = mon('受试者', 'm1');
+  pl.bench = [];
+  pl.deck = ['basic-e'];
+  gs.cardResolver = fakeResolver({
+    'basic-e': { card:{ cardType:'energy', name:'基本能量' }, info:{ name:'基本能量', type:'energy' } },
+  });
+  await executeEffects(gs, pl, eff);
+  assert.equal(pl.active.energy.length, 1, '能量应在回合结束前附着到宝可梦身上');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',
