@@ -12,11 +12,21 @@
 //   choosePokemonPick(pick)          → 应答 waitForPokemonPick（选目标宝可梦）
 
 import { ACTION } from './ActionSpace.js';
+import { NEUTRAL_PLAN } from './DeckPlan.js';
 import { derivePickBounds } from './GameState.js';
 import { getAiApiKey, getAiSettings, normalizeAiModelName, AI_ENDPOINT, AI_DEFAULT_MODEL } from './AiSettings.js';
 import { serializeBattleState, formatActionList, buildLlmMessages, extractActionId } from './StateSerializer.js';
 
 /** 「准备类」动作：做完它们再攻击（攻击会立刻结束回合，所以顺序很关键） */
+/**
+ * 训练家效果的「基础分」：取代原来按卡面描述关键词（抽|检索|球…）猜分的做法。
+ * 数值与旧的关键词加分大致对齐（命中关键词 +20、否则 +5），但改为按效果语义判定。
+ */
+const TRAINER_CLASS_BASE = {
+  draw: 15, search: 15, accel: 15, flood: 12, spread: 12, disrupt: 10,
+  heal: 8, switch: 6, protect: 6, retreat: 5,
+};
+
 const PREP_KINDS = new Set([
   ACTION.ATTACH_ENERGY,
   ACTION.EVOLVE,
@@ -26,10 +36,22 @@ const PREP_KINDS = new Set([
 ]);
 
 export class HeuristicPolicy {
-  constructor(engine, player = null) {
+  constructor(engine, player = null, options = {}) {
     this.engine = engine;
     this.gs = engine.gs;
     this.player = player || engine.gs.player2;
+    // L2：计划权重。默认中性（全 0）→ 行为与改造前一致，便于回归对比。
+    this.plan = options.plan || NEUTRAL_PLAN;
+  }
+
+  /** 注入卡组画像（由 BattleEngine.startGame 依对手卡组构建） */
+  setPlan(plan) {
+    this.plan = plan || NEUTRAL_PLAN;
+    return this.plan;
+  }
+
+  get weights() {
+    return (this.plan && this.plan.weights) || NEUTRAL_PLAN.weights;
   }
 
   /** 给动作打分（数值越大越优先） */
@@ -37,44 +59,57 @@ export class HeuristicPolicy {
     let score = action.priority || 0;
     const f = action.facts || {};
     const me = this.player;
+    const w = this.weights;
     switch (action.kind) {
       case ACTION.PUT_ACTIVE:
         score += (f.hp || 0) * 0.05;
         break;
       case ACTION.PUT_BENCH:
-        // 起手尽量铺 3 只后备
-        score += Math.max(0, 3 - (me.bench || []).length) * 25;
+        // 起手尽量铺 3 只后备；铺场型卡组额外加权
+        score += Math.max(0, 3 - (me.bench || []).length) * 25 + (w.PUT_BENCH || 0);
         break;
       case ACTION.CONFIRM_SETUP:
         score -= Math.max(0, 3 - (me.bench || []).length) * 20;
         break;
       case ACTION.EVOLVE:
-        score += 15 + Math.min(40, (f.hp || 0) * 0.05);
+        score += 15 + Math.min(40, (f.hp || 0) * 0.05) + (w.EVOLVE || 0);
         break;
       case ACTION.ATTACH_ENERGY:
         if (f.enablesAttack) score += 45;
         if (action.params?.targetSlot === 'active') score += 12;
+        score += (w.ATTACH_ENERGY || 0);
         break;
       case ACTION.USE_ABILITY:
-        score += 12;
+        score += 12 + (w.USE_ABILITY || 0);
         break;
-      case ACTION.USE_TRAINER:
-        score += /抽|检索|搜索|博士|研究|莉莉艾|裁判|球/.test(action.desc) ? 20 : 5;
+      case ACTION.USE_TRAINER: {
+        // 按这张卡的**效果分类**给基础分（原来是对描述做关键词正则），
+        // 再叠加本卡组计划对这类效果的偏好 —— 解决「有效果就放」。
+        const classes = f.effectClasses || [];
+        const bases = classes.map(c => TRAINER_CLASS_BASE[c] || 0);
+        const base = bases.length ? Math.max(...bases) : 5;
+        let bonus = w.USE_TRAINER || 0;
+        const classW = w.trainerClass || {};
+        for (const c of classes) bonus += classW[c] || 0;
+        score += base + bonus;
         break;
+      }
       case ACTION.ACTIVATE_STADIUM:
-        score += 3;
+        score += 3 + (w.ACTIVATE_STADIUM || 0);
         break;
       case ACTION.ATTACK:
         score += Math.min(60, (f.damage || 0) * 0.35);
         if (f.canKO) score += 70;
         score += (f.prizes || 0) * 15;
         if (f.mayVary) score -= 5;
+        score += (w.ATTACK || 0);
         break;
       case ACTION.RETREAT: {
         const activeRatio = f.activeMaxHp ? (f.activeHp || 0) / f.activeMaxHp : 1;
         const incomingRatio = f.incomingMaxHp ? (f.incomingHp || 0) / f.incomingMaxHp : 1;
         // 只在「战斗宝可梦濒危且后备更健康」时撤退
         score += (activeRatio <= 0.4 && incomingRatio > activeRatio + 0.2) ? 35 : -40;
+        score += (w.RETREAT || 0);
         break;
       }
       default:

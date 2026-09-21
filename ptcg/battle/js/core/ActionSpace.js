@@ -12,6 +12,7 @@
 // 每执行一个动作后必须重新枚举（AI 回合是「执行一个 → 重算 → 再选」的循环）。
 
 import { PHASE } from './GameState.js';
+import { classifyEffects } from './DeckPlan.js';
 
 export const ACTION = {
   MULLIGAN: 'mulligan',
@@ -221,8 +222,11 @@ export function getLegalActions(gs, resolver, player = gs.currentPlayer) {
       const type = cd.trainerType || 'item';
       const affordable = discardCostFeasible(player, idx, cd);
       if (legal.ok && affordable) {
+        // 带上这张卡的效果分类（draw/search/accel/flood/spread/disrupt…），
+        // 让策略按「这套牌需要什么」打分，而不是靠卡面描述里的关键词猜。
+        const effectClasses = classifyEffects(cd.effects || []);
         push(ACTION.USE_TRAINER, { handIndex: idx, targetSlot: null },
-          `使用${trainerTypeLabel(type)} ${cardLabel(cd, id)}`, { trainerType: type });
+          `使用${trainerTypeLabel(type)} ${cardLabel(cd, id)}`, { trainerType: type, effectClasses });
       } else if (type === 'tool') {
         // 道具需要目标宝可梦
         for (const { slot, mon } of slots) {

@@ -17,6 +17,7 @@ import { DeckSource, PTCG_DECKS_STORAGE_KEY } from '../js/core/DeckSource.js';
 import { TEST_DECKS, expandDeck } from '../js/data/decks.js';
 import { AI_STORAGE_KEYS, getAiApiKey, hasAiApiKey, getAiSettings, describeAiStatus, onAiKeyChange } from '../js/core/AiSettings.js';
 import { getLegalActions, describeAction, ACTION } from '../js/core/ActionSpace.js';
+import { classifyEffects, buildDeckPlan, NEUTRAL_PLAN } from '../js/core/DeckPlan.js';
 import { HeuristicPolicy } from '../js/core/AiPolicy.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -6279,6 +6280,99 @@ await test('② 备战区已满：巢穴球与深钵镇不可使用（不能空�
   full2.currentPlayer = full2.player1;
   fill(full2.player1, 5);
   assert.equal(full2.canUseTrainer(full2.player1, mixed).ok, true, '混合效果不应被备战区满误拦');
+});
+
+// ============================================================
+//  L1 卡组画像 + L2 计划权重（让 AI 按卡组玩法操作）
+// ============================================================
+
+await test('DeckPlan.classifyEffects：按效果语义分类（含嵌套）', () => {
+  assert.deepEqual(classifyEffects([{ action:'draw' }]), ['draw']);
+  assert.deepEqual(classifyEffects([{ action:'attach_energy_from_deck' }]), ['accel']);
+  assert.deepEqual(classifyEffects([{ action:'search_deck_to_bench' }]), ['flood']);
+  assert.deepEqual(classifyEffects([{ action:'damage_bench' }]), ['spread']);
+  // coin_flip 的 heads / trigger 的 effects 要递归进去
+  assert.ok(classifyEffects([{ action:'coin_flip', params:{ heads:[{ action:'damage_bench' }] } }]).includes('spread'));
+  assert.ok(classifyEffects([{ action:'trigger', params:{ effects:[{ action:'attach_energy_from_hand' }] } }]).includes('accel'));
+  // 纯元数据不算分类
+  assert.deepEqual(classifyEffects([{ action:'usage_condition' }, { action:'shuffle_deck' }]), []);
+  assert.deepEqual(classifyEffects(null), []);
+});
+
+await test('DeckPlan.buildDeckPlan：从卡组构成推断原型并给出证据', () => {
+  const res = map => ({ getCard: id => map[id] || null });
+  const accel = res({ t:{ cardType:'trainer', name:'填能卡', effects:[{ action:'attach_energy_from_deck' }] } });
+  const pAccel = buildDeckPlan(['t','t','t','t'], accel);
+  assert.equal(pAccel.archetype, 'accel');
+  assert.ok(pAccel.evidence.some(e => e.includes('填能')), pAccel.evidence.join('|'));
+
+  const flood = res({ t:{ cardType:'trainer', name:'铺场卡', effects:[{ action:'search_deck_to_bench' }] } });
+  assert.equal(buildDeckPlan(['t','t','t'], flood).archetype, 'flood');
+
+  const spreadMap = { t:{ cardType:'trainer', name:'铺伤卡', effects:[{ action:'damage_bench' }] } };
+  assert.equal(buildDeckPlan(['t','t'], res(spreadMap)).archetype, 'spread');
+
+  // 高伤 + 填能 → 一击爆发
+  const burst = res({
+    p:{ cardType:'pokemon', name:'大威力', stage:'2阶进化', attacks:[{ name:'重击', damage:250, effects:[] }] },
+    t:{ cardType:'trainer', name:'填能卡', effects:[{ action:'attach_energy_from_deck' }] },
+  });
+  assert.equal(buildDeckPlan(['p','p','t','t'], burst).archetype, 'burst');
+
+  // 空卡组 / 无法解析 → 通用兜底
+  assert.equal(buildDeckPlan([], res({})).archetype, 'generic');
+  const generic = buildDeckPlan(['x'], { getCard: () => { throw new Error('boom'); } });
+  assert.equal(generic.archetype, 'generic', 'resolver 抛错也要兜底');
+});
+
+await test('计划权重改变训练家取舍（不再「有效果就放」）', () => {
+  const gs = new GameState();
+  gs.player2.bench = [];
+  const engine = { gs };
+  const policy = new HeuristicPolicy(engine, gs.player2);
+  const floodTrainer = { kind:ACTION.USE_TRAINER, priority:45, desc:'铺场卡', facts:{ trainerType:'item', effectClasses:['flood'] } };
+  const drawTrainer = { kind:ACTION.USE_TRAINER, priority:45, desc:'抽牌卡', facts:{ trainerType:'supporter', effectClasses:['draw'] } };
+  const acts = [floodTrainer, drawTrainer];
+
+  // 中性计划：抽牌类基础分高于铺场类（保持原有偏好顺序）
+  policy.setPlan(NEUTRAL_PLAN);
+  const nDraw = policy.scoreAction(drawTrainer, acts);
+  const nFlood = policy.scoreAction(floodTrainer, acts);
+  assert.ok(nDraw > nFlood, `中性时抽牌应高于铺场: ${nDraw} vs ${nFlood}`);
+
+  // 铺场型卡组：铺场卡应被抬到抽牌卡之上
+  const res = { getCard: () => ({ cardType:'trainer', name:'铺场卡', effects:[{ action:'search_deck_to_bench' }] }) };
+  policy.setPlan(buildDeckPlan(['t','t','t'], res));
+  const fFlood = policy.scoreAction(floodTrainer, acts);
+  const fDraw = policy.scoreAction(drawTrainer, acts);
+  assert.ok(fFlood > nFlood, `铺场计划应提升铺场卡得分: ${fFlood} vs ${nFlood}`);
+  assert.ok(fFlood > fDraw, `铺场计划下铺场卡应优于抽牌卡: ${fFlood} vs ${fDraw}`);
+
+  // 能 KO 时攻击仍然优先（无准备动作时）
+  const koAtk = { kind:ACTION.ATTACK, priority:80, desc:'攻击', facts:{ damage:250, canKO:true, prizes:2 } };
+  const burstPlan = buildDeckPlan(['p','p','t','t'], {
+    getCard: id => (id === 'p'
+      ? { cardType:'pokemon', name:'大威力', stage:'2阶进化', attacks:[{ name:'重击', damage:250, effects:[] }] }
+      : { cardType:'trainer', name:'填能卡', effects:[{ action:'attach_energy_from_deck' }] }),
+  });
+  policy.setPlan(burstPlan);
+  assert.ok(policy.scoreAction(koAtk, [koAtk]) > policy.scoreAction(floodTrainer, [koAtk]), 'KO 攻击应最高');
+});
+
+await test('BattleEngine.startGame：依对手卡组注入计划并记入日志', () => {
+  const gs = new GameState();
+  const logs = [];
+  const resolver = fakeResolver({
+    'accel-1': { card: { cardType:'trainer', name:'填能卡', effects:[{ action:'attach_energy_from_deck' }] }, info:{ name:'填能卡', type:'trainer' } },
+    'basic-1': { card: { cardType:'pokemon', name:'基础兽', stage:'基础', hp:60, attacks:[] }, info:{ name:'基础兽', type:'pokemon' } },
+  });
+  const engine = new BattleEngine(gs, resolver, { onLog: m => logs.push(m), onPhaseChange: () => {}, onFieldUpdate: () => {}, aiMode:'heuristic' });
+  const deck = ['basic-1','accel-1','accel-1','accel-1'];
+  engine.startGame([...deck], [...deck]);
+  assert.ok(engine._aiPlan, '应构建出计划');
+  assert.equal(engine._aiPlan.archetype, 'accel');
+  assert.equal(engine._aiPolicy.plan.archetype, 'accel', '计划应注入到策略');
+  assert.ok(logs.some(l => String(l).includes('卡组风格')), `应有卡组风格日志: ${logs.join(' | ')}`);
 });
 
 await test('全卡牌效果文本解析覆盖率报告', () => {

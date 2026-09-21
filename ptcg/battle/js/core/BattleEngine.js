@@ -2,6 +2,7 @@
 import { PHASE } from './GameState.js';
 import { executeEffects, payDiscardCostFromHand } from './EffectExecutor.js';
 import { getLegalActions, describeAction, ACTION } from './ActionSpace.js';
+import { buildDeckPlan } from './DeckPlan.js';
 import { createAiPolicy } from './AiPolicy.js';
 
 const EFF_NAMES = {
@@ -151,6 +152,15 @@ export class BattleEngine {
 
   startGame(p1Deck, p2Deck) {
     this.gs.init(p1Deck, p2Deck);
+    // L1：从对手（AI）自己的卡组推断玩法画像，让 AI 按「这套牌想怎么打」取舍。
+    // 只看自己的卡组，不存在作弊问题。
+    try {
+      this._aiPlan = buildDeckPlan(p2Deck, this.resolver);
+      this._aiPolicy?.setPlan?.(this._aiPlan);
+      this.cb.onLog?.(`对手的卡组风格：${this._aiPlan.label}（${this._aiPlan.evidence.join('、') || '无特征'}）`);
+    } catch (e) {
+      this._aiPlan = null;   // 推断失败 → 策略保持中性，不影响对局
+    }
     this.cb.onPhaseChange?.(PHASE.SETUP);
   }
 
