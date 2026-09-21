@@ -608,6 +608,17 @@ function _applyAttackShield(gs, mon, { damage = false, effect = false, duration 
   }
 }
 
+/**
+ * 判断宝可梦是否会因再放置 count 个伤害指示物而被昏厥。
+ * 用于「（对会被【昏厥】的宝可梦，无法使用这个特性。）」这类卡面明文限制：
+ * 卡面括号在归一化时会被剥掉，所以不去解析那句话，而是让**执行端**排除会被打死的目标，
+ * 取得同样的规则效果。
+ */
+function _wouldBeKnockedOutByCounters(mon, count) {
+  if (!mon || !count) return false;
+  return (mon.hp ?? 0) <= count * 10;
+}
+
 function _applyDamageToPokemon(gs, owner, mon, amount, logSuffix = '受到', options = {}) {
   if (!mon || !amount) return false;
   if (options.source === 'attack' && gs.isBenchProtectedFromOpponentAttack?.(owner, mon, 'damage')) { gs.addLog(`${mon.name} 防止了备战伤害`); return false; }
@@ -669,7 +680,21 @@ const EXECUTORS = {
     pl.draw(n);
     gs.addLog(boosted ? `抽了 ${n} 张卡（剩余奖赏卡 ${ownPrizes} 张）` : `抽了 ${n} 张卡`);
   },
-  draw_until(gs, pl, p) { const t = p.target || 6; while (pl.hand.length < t && pl.deck.length > 0) pl.draw(1); gs.addLog(`抽卡至 ${t} 张`); },
+  async draw_until(gs, pl, p) {
+    const t = p.target || 6;
+    // ① 「若希望，在抽出卡牌前，可将任意数量的自己的手牌丢到弃牌区」
+    //    只在有 UI（人类玩家）时询问；AI 走自动路径会「全弃」，对「抽到 N 张」只有坏处，故直接跳过。
+    if (p.preDiscardAny && gs._onPendingPick && pl.hand.length > 0) {
+      const sel = await _pickCardsFromZone(gs, pl, pl, pl.hand, pl.hand.length, {
+        source:'pre-draw-discard', prompt:'可先弃掉任意数量手牌（也可以不选）',
+        allowFewer:true, allowEmpty:true, maxCount:pl.hand.length, minCount:0, optional:true,
+      });
+      for (const item of sel.sort((a, b) => b.index - a.index)) pl.discard.push(pl.hand.splice(item.index, 1)[0]);
+      if (sel.length) gs.addLog(`抽卡前弃掉 ${sel.length} 张手牌`);
+    }
+    while (pl.hand.length < t && pl.deck.length > 0) pl.draw(1);
+    gs.addLog(`抽卡至 ${t} 张`);
+  },
   // 相对抽卡：直到自己的手牌比对手多 delta 张
   draw_until_opp_hand_plus(gs, pl, p) { const opp = _opponent(gs, pl); const target = (opp.hand?.length || 0) + (p.delta || 1); while (pl.hand.length < target && pl.deck.length > 0) pl.draw(1); gs.addLog(`抽卡至比对手多 ${p.delta || 1} 张`); },
   // 弃 N 张手牌抽 N*mult（亚洛）
@@ -1460,7 +1485,9 @@ const EXECUTORS = {
     const allowBench = p.target !== 'active';
     const slot = await _pickPokemonTarget(gs, pl, pl, {
       mode:'attach-energy', side:'self', allowActive, allowBench, prompt:'选择附能目标',
+      // ② 卡面写明「对会被【昏厥】的宝可梦，无法使用这个特性」→ 排除会因指示物被昏厥的目标
       slotFilter: candidateSlot => _monMatchesType(_getMon(pl, candidateSlot), p.targetType)
+        && !_wouldBeKnockedOutByCounters(_getMon(pl, candidateSlot), p.damageCountersOnAttachedTarget)
     });
     const mon = _getMon(pl, slot);
     if (!mon) return;
@@ -1476,12 +1503,17 @@ const EXECUTORS = {
     // target:'self' = 「附于这只宝可梦身上」（招式效果，指使用者自己），不要再弹目标选择
     const slot = p.target === 'self' && pl.active
       ? 'active'
-      : await _pickPokemonTarget(gs, pl, pl, { mode:'attach-energy', side:'self', allowActive:true, allowBench:true, prompt:'选择附能目标' });
+      : await _pickPokemonTarget(gs, pl, pl, { mode:'attach-energy', side:'self', allowActive:true, allowBench:true, prompt:'选择附能目标',
+          // ② 同弃牌区版：排除会因指示物被昏厥的目标
+          slotFilter: candidateSlot => !_wouldBeKnockedOutByCounters(_getMon(pl, candidateSlot), p.damageCountersOnAttachedTarget)
+        });
     const mon = _getMon(pl, slot);
     if (!mon) return;
     const selected = await _pickCardsFromZone(gs, pl, pl, pl.deck, p.count || 1, { source:'deck-energy', filter:card=>_isEnergyCard(gs, card, p.filter), allowFewer:!!p.allowFewer, allowEmpty:!!p.allowEmpty, maxCount:p.maxCount, minCount:p.minCount, optional:!!p.optional });
     if (!selected.length) { gs._shuffle(pl.deck); return; }
     for (const item of selected.sort((a,b)=>b.index-a.index)) mon.energy.push(pl.deck.splice(item.index, 1)[0]);
+    // ② 「然后，在被附着的宝可梦身上放置N个伤害指示物」
+    if (p.damageCountersOnAttachedTarget) _applyDamageToPokemon(gs, pl, mon, p.damageCountersOnAttachedTarget * 10);
     gs._shuffle(pl.deck);
     gs.addLog(`从牌库附能 ${selected.length} 张`);
   },
@@ -1676,6 +1708,19 @@ const EXECUTORS = {
   // duration='next_opp_turn' 时（如大岩蛇「坚硬头锤」）：生效窗口是**对手的下一个回合**，
   // 用 attackShieldArmed 标记它，让 GameState.endTurn 在自己回合结束时不要清掉，
   // 改由对手回合结束时清除（见 GameState.endTurn 的 1 / 1.1 两段）。
+  // ③ 招式版伤害硬币护盾（残影斩）：在下一个对手的回合，每次受到招式伤害都要重掷硬币
+  attack_damage_flip_shield(gs, pl, p) {
+    const mon = pl.active;
+    if (!mon) return;
+    mon.damageFlipShieldArmed = true;
+    if (p?.duration === 'next_opp_turn') {
+      mon.attackShieldArmed = true; // 复用「撑过自己回合结束、对手回合结束时清除」的既有语义
+      gs.addLog(`${mon.name} 在下一个对手的回合受到招式伤害时会抛掷硬币`);
+    }
+  },
+  // ③ 特性版（被动）：这里故意什么都不做，由 BattleEngine 结算伤害时读取标记。
+  //    写成空实现是为了避免执行层把它记为「[未实现]」。
+  coin_flip_damage_shield() {},
   prevent_damage(gs, pl, p) {
     _applyAttackShield(gs, pl.active, { damage: true, duration: p?.duration });
   },

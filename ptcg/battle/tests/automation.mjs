@@ -6597,6 +6597,140 @@ await test('P2-1 attach_energy_from_deck 带 target:self 时不弹目标选择',
   assert.equal(pl.active.energy.length, 1, '能量应附到出战宝可梦身上（不经过目标选择）');
 });
 
+
+// ============================================================
+//  P2 批 2：① 抽卡前可选弃牌  ② 附能后放指示物  ③ 受击抛硬币免伤
+// ============================================================
+
+await test('P2-2 ① 「抽卡前可选弃牌」并入抽卡动作', () => {
+  const e = parseEffect('从牌库上方抽取卡牌，直到自己的手牌变为5张为止。若希望，在抽取卡牌前，可将任意数量的自己的手牌放于弃牌区。').effects;
+  const d = e.find(x => x.action === 'draw_until');
+  assert.ok(d, '应解析出 draw_until');
+  assert.equal(d.params.preDiscardAny, true, '应带上「抽卡前可选弃牌」参数');
+  assert.ok(!e.some(x => x.params?.kind === 'residual_sentence'), '不应残留未建模标记');
+});
+
+await test('P2-2 ① 无 UI（AI 路径）时不做可选弃牌，只正常抽到 5 张', () => {
+  const eff = parseEffect('从牌库上方抽取卡牌，直到自己的手牌变为5张为止。若希望，在抽取卡牌前，可将任意数量的自己的手牌放于弃牌区。').effects;
+  const gs = new GameState();
+  const pl = gs.player1;
+  pl.hand = ['keep1', 'keep2'];
+  pl.deck = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6'];
+  pl.discard = [];
+  return executeEffects(gs, pl, eff).then(() => {
+    assert.equal(pl.discard.length, 0, 'AI 路径不应弃掉手牌');
+    assert.equal(pl.hand.length, 5, '应抽到 5 张');
+    assert.deepEqual(pl.hand.slice(0, 2), ['keep1', 'keep2'], '原有手牌应保留');
+  });
+});
+
+await test('P2-2 ② 「在被附着的宝可梦身上放置N个指示物」并入附能动作（两种来源）', () => {
+  const a = parseEffect('选择自己弃牌区中的1张「基本【超】能量」，附着于自己的【超】宝可梦身上。然后，在被附着的宝可梦身上放置2个伤害指示物。').effects;
+  const at = a.find(x => x.action === 'attach_energy_from_discard');
+  assert.ok(at, '应解析出 attach_energy_from_discard');
+  assert.equal(at.params.damageCountersOnAttachedTarget, 2);
+  assert.ok(!a.some(x => x.action === 'action_count_override'), '不应留下未合并的改写句');
+
+  // 牌库来源：用**真实完整卡面**（CS3DC-093「一击能量」系）。
+  // 前面那句「在自己的回合可以使用1次。」会让位置排序把改写句排到附能动作之前，
+  // 只测截断文本会漏掉这个坑（曾经就因此假通过）。
+  const b = parseEffect('在自己的回合可以使用1次。选择自己牌库中的1张「一击能量」，附着于自己的「一击」宝可梦身上。并重洗牌库。然后，在被附着的宝可梦身上放置2个伤害指示物。').effects;
+  const bt = b.find(x => x.action === 'attach_energy_from_deck');
+  assert.ok(bt, '应解析出 attach_energy_from_deck');
+  assert.equal(bt.params.damageCountersOnAttachedTarget, 2, '跨过 shuffle_deck 仍应合并成功');
+  assert.ok(!b.some(x => x.action === 'action_count_override'), '不应留下未合并的改写句');
+});
+
+await test('P2-2 ② 执行：附能后目标真的掉 20 血', async () => {
+  const eff = parseEffect('选择自己弃牌区中的1张「基本【超】能量」，附着于自己的【超】宝可梦身上。然后，在被附着的宝可梦身上放置2个伤害指示物。')
+    .effects.filter(x => x.action === 'attach_energy_from_discard');
+  const gs = new GameState();
+  const pl = gs.player1;
+  pl.active = mon('受试者', 'm1');
+  pl.active.element = 'psychic'; // 原文本限定「【超】宝可梦」，过滤是生效的
+  pl.bench = [];
+  pl.discard = ['psy-e'];
+  gs.cardResolver = fakeResolver({
+    'psy-e': { card:{ cardType:'energy', name:'基本【超】能量' }, info:{ name:'基本【超】能量', type:'energy' } },
+  });
+  await executeEffects(gs, pl, eff);
+  assert.equal(pl.active.energy.length, 1, '能量应附着成功');
+  assert.equal(pl.active.hp, 40, '应再放置 2 个伤害指示物（60 - 20 = 40）');
+});
+
+await test('P2-2 ③ 硬币免伤（特性版）：正面完全不掉血、反面正常掉血', async () => {
+  const abilityEffects = parseEffect('当这只宝可梦受到招式的伤害时，自己抛掷1次硬币。如果为正面，则这只宝可梦不受到该伤害。').effects;
+  const build = () => {
+    const gs = new GameState();
+    const pl = gs.player1, opp = gs.player2;
+    gs.currentPlayer = pl;
+    gs.phase = PHASE.BATTLE;
+    // 伤害 30 < 60 HP：避免打昏厥后「后排升前排」，让断言始终看在同一个对象上
+    pl.active = mon('攻击方', 'a1', [{ name:'重击', damage:30, cost:[] }]);
+    opp.active = mon('防御方', 'd1');
+    opp.active.ability = { name:'硬币护盾', effects: abilityEffects };
+    pl.energyAttached = true;
+    return { gs, pl, opp, engine: makeEngine(gs) };
+  };
+  const saved = Math.random;
+  try {
+    // coin_flip 约定：Math.random() < 0.5 为正面
+    let c = build();
+    Math.random = () => 0;
+    assert.equal(await c.engine.attack(0), true);
+    assert.equal(c.opp.active.hp, c.opp.active.maxHp, '正面应完全不掉血');
+
+    c = build();
+    Math.random = () => 0.99;
+    assert.equal(await c.engine.attack(0), true);
+    assert.ok(c.opp.active.hp < c.opp.active.maxHp, '反面应正常受伤');
+  } finally { Math.random = saved; }
+});
+
+await test('P2-2 ③ 硬币免伤是「自身限定」：队友的同名特性保护不了自己', async () => {
+  const abilityEffects = parseEffect('当这只宝可梦受到招式的伤害时，自己抛掷1次硬币。如果为正面，则这只宝可梦不受到该伤害。').effects;
+  const gs = new GameState();
+  const pl = gs.player1, opp = gs.player2;
+  gs.currentPlayer = pl;
+  gs.phase = PHASE.BATTLE;
+  pl.active = mon('攻击方', 'a1', [{ name:'重击', damage:30, cost:[] }]);
+  opp.active = mon('前排', 'd1');
+  opp.bench = [mon('后排', 'd2')];
+  // 特性在备战区的队友身上
+  opp.bench[0].ability = { name:'硬币护盾', effects: abilityEffects };
+  pl.energyAttached = true;
+  const engine = makeEngine(gs);
+  const saved = Math.random;
+  try {
+    Math.random = () => 0; // 正面
+    assert.equal(await engine.attack(0), true);
+    assert.ok(opp.active.hp < opp.active.maxHp, '特性写的是「这只宝可梦」，不应保护前排的队友');
+  } finally { Math.random = saved; }
+});
+
+await test('P2-2 ③ 招式版（残影斩）：标记撑到对手回合结束，之后失效', () => {
+  const eff = parseEffect('在下一个对手的回合，这只宝可梦受到招式的伤害时，自己抛掷1次硬币。如果为正面，则这只宝可梦不受到该伤害影响。').effects;
+  assert.equal(eff.length, 1, '应只有一个动作');
+  assert.equal(eff[0].action, 'attack_damage_flip_shield');
+  assert.equal(eff[0].params.duration, 'next_opp_turn');
+
+  const gs = new GameState();
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('残影使用者', 'm1');
+  opp.active = mon('对手', 'o1');
+  gs.currentPlayer = pl;
+  executeEffects(gs, pl, eff);
+  assert.equal(pl.active.damageFlipShieldArmed, true, '应设置免伤标记');
+  assert.equal(pl.active.attackShieldArmed, true, '应撑过自己回合结束');
+  // 自己回合结束（生效窗口 = 下一个对手回合）→ 标记保留
+  gs.currentPlayer = pl;
+  gs.endTurn();
+  assert.equal(pl.active.damageFlipShieldArmed, true, '自己回合结束时不应清除');
+  // 对手回合结束 → 生效窗口已过，清除
+  gs.endTurn();
+  assert.ok(!pl.active.damageFlipShieldArmed, '对手回合结束后应清除');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

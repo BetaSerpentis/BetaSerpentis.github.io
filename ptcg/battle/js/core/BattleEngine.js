@@ -512,6 +512,17 @@ export class BattleEngine {
       damage = 0;
     }
 
+    // ③ 「受到招式的伤害时抛掷硬币，正面则不受到该伤害」：
+    //    特性版常驻（每次受击都重掷）、招式版（残影斩）只在下一个对手回合有效。
+    if (damage > 0 && (gs.hasAbilityDamageFlipShield?.(def.active) || def.active.damageFlipShieldArmed)) {
+      const heads = Math.random() < 0.5;
+      this.cb.onLog?.(`${def.active.name} 抛掷硬币：${heads ? '正面' : '反面'}`);
+      if (heads) {
+        this.cb.onLog?.(`${def.active.name} 不受到该伤害`);
+        damage = 0;
+      }
+    }
+
     // Apply attack damage. 幸存锻炼器 is intentionally scoped to this direct
     // BattleEngine.attack path: full-HP attached Pokemon that would be KO'd by
     // opponent attack damage survives at 10 HP and discards the exact tool card.

@@ -383,6 +383,11 @@ const RULES = [
   { re: /掷硬币直到出现反面[，,]?造成正面(?:出现的)?次数[×x](\d+)伤害/, act:'coin_flip_until_tails', p:m=>({damage_per:+m[1]}) },
   { re: /掷硬币直到出现反面[，,]?追加造成正面(?:出现的)?次数[×x](\d+)伤害/, act:'coin_flip_until_tails', p:m=>({damage_per:+m[1]}) },
   { re: /掷(\d+)次硬币[，,]?造成正面(?:出现的)?次数[×x](\d+)伤害/, act:'coin_flip_damage', p:m=>({count:+m[1],damage_per:+m[2]}) },
+  // ===== P2 批 2 ③：受到招式伤害时抛硬币免伤 =====
+  // 招式版（残影斩）：「在下一个对手的回合」→ 只用 attackShieldArmed 撑到对手回合结束
+  { re: /在下个对手的回合[，,]?这只宝可梦受到招式的伤害时[，,]?自己(?:抛)?掷1次硬币[。.]?(?:如果|若)为正面[，,]?则这只宝可梦不会受到该伤害(?:影响)?/, act:'attack_damage_flip_shield', p:()=>({duration:'next_opp_turn'}) },
+  // 特性版：常驻被动，BattleEngine 每次结算伤害时都重掷（必须排在泛用 /掷1次硬币/ 之前，否则会被它先吃掉左侧文本）
+  { re: /当这只宝可梦受到招式的伤害时[，,]?自己(?:抛)?掷1次硬币[。.]?(?:如果|若)为正面[，,]?则这只宝可梦不会受到该伤害(?:影响)?/, act:'coin_flip_damage_shield', p:()=>({}) },
   { re: /掷(\d+)次硬币/, act:'coin_flip', p:m=>({count:+m[1]}) },
   { re: /掷1次硬币/, act:'coin_flip', p:()=>({count:1}) },
 
@@ -437,6 +442,11 @@ const RULES = [
   // 改写句本身不是独立动作，这里先记为 action_count_override，
   // 再由 parseEffect 末尾合并到前一条同类动作的 params 上（例：「莉莉艾的决心」）。
   { re: /若自己的剩余奖赏卡张数为(\d+)张[，,]?则抽出的张数变为(\d+)张/, act:'action_count_override', p:m=>({ targets:['shuffle_hand_to_deck','draw'], set:{ ownPrizesExactly:+m[1], countThen:+m[2] }, raw:m[0] }) },
+  // ===== P2 批 2 ①②：同样是「并入前面最近动作」的改写句 =====
+  // ①「若希望，在抽出卡牌前，可将任意数量的自己的手牌丢到弃牌区」→ 交给抽卡动作先做可选弃牌
+  { re: /若希望[，,]?在抽出卡牌前[，,]?可将任意数量的自己的手牌(?:丢到|放于)弃牌区/, act:'action_count_override', p:m=>({ targets:['draw_until','draw'], set:{ preDiscardAny:true }, raw:m[0] }) },
+  // ②「然后，在被附着的宝可梦身上放置N个伤害指示物」→ 并入前面的附能动作（执行端已有该参数）
+  { re: /然后[，,]?在被附着的宝可梦身上放置(\d+)个伤害指示物/, act:'action_count_override', p:m=>({ targets:['attach_energy_from_discard','attach_energy_from_deck'], set:{ damageCountersOnAttachedTarget:+m[1] }, raw:m[0] }) },
 
   // ===== HP恢复 =====
   // 条件回复量：如「派帕的三明治」——若是「派帕的宝可梦」则回复量由 30 变为 100
@@ -1661,26 +1671,41 @@ export function parseEffect(text) {
   // 按卡面文本顺序重排真实动作（finalizeCoverage 追加的残余元数据仍排在最后）
   effects.sort((a, b) => a._pos - b._pos);
   for (const e of effects) delete e._pos;
-  // 条件改写句合并：把 action_count_override 并入它前面最近的目标动作。
+  // 条件改写句合并：把 action_count_override 并入它的目标动作。
   // 这样执行端只需在目标动作里读条件参数，不必处理“改写发生在动作之后”的时序问题。
-  const merged = [];
-  for (const e of effects) {
-    if (e.action === 'action_count_override') {
-      const tgts = (e.params && e.params.targets) || [];
-      let done = false;
-      for (let i = merged.length - 1; i >= 0; i--) {
-        if (tgts.includes(merged[i].action)) {
-          merged[i].params = { ...merged[i].params, ...(e.params.set || {}) };
-          done = true;
-          break;
-        }
+  //
+  // ⚠️ 必须**独立成一轮**（先定位全部改写句，再回头找目标），不能用单趟顺序扫描：
+  //    位置排序在个别文本上不精确（remaining 是多段拼接，前端下标模型会低估前缀被删后的位移），
+  //    目标动作可能被排到改写句**之后**，单趟扫描走到改写句时它的目标还没进入结果数组，
+  //    于是前后都找不到 → 改写句被当成孤儿留下。实测有 7 张卡（CS3DC-093 等「一击能量」系）
+  //    正是这样漏掉的。
+  const overrideIdx = [];
+  for (let i = 0; i < effects.length; i++) if (effects[i].action === 'action_count_override') overrideIdx.push(i);
+  if (overrideIdx.length) {
+    const drop = new Set();
+    for (const oi of overrideIdx) {
+      const ov = effects[oi];
+      const tgts = (ov.params && ov.params.targets) || [];
+      const set = (ov.params && ov.params.set) || {};
+      let before = -1, after = -1;
+      for (let i = 0; i < effects.length; i++) {
+        if (i === oi || !tgts.includes(effects[i].action)) continue;
+        if (i < oi) before = i; else if (after < 0) after = i;
       }
-      if (!done) merged.push(e); // 找不到目标时保留原样，执行端会记为未实现而不是静默丢弃
-      continue;
+      const target = before >= 0 ? before : after; // 优先并入前一个目标动作，其次后一个
+      if (target >= 0) {
+        effects[target].params = { ...effects[target].params, ...set };
+        drop.add(oi);
+      }
+      // 找不到目标时保留原样，执行端会记为未实现而不是静默丢弃
     }
-    merged.push(e);
+    if (drop.size) {
+      const kept = effects.filter((_, i) => !drop.has(i));
+      effects.length = 0;
+      for (const e of kept) effects.push(e);
+    }
   }
-  const out = finalizeCoverage(merged, text, remaining);
+  const out = finalizeCoverage(effects, text, remaining);
   sanitizeFilters(out.effects);
   return out;
 }

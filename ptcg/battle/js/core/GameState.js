@@ -121,7 +121,7 @@ export class GameState {
     //    否则轮到对手时防护已经没了（曾因此被对手正常打伤）。
     for(const mon of[this.currentPlayer.active,...this.currentPlayer.bench]){
       if(!mon)continue;
-      if(!mon.attackShieldArmed){mon.preventDamage=false;mon.preventEffect=false;}
+      if(!mon.attackShieldArmed){mon.preventDamage=false;mon.preventEffect=false;mon.damageFlipShieldArmed=false;}
       mon.damageMod=0;mon.damageReceivedMod=0;
       mon.cannotAttackNext=false;mon.cannotRetreat=false;mon.ignore=[];
       mon.costEliminated=false;mon.abilityUsed=false;
@@ -132,7 +132,7 @@ export class GameState {
       for(const mon of[other.active,...other.bench]){
         if(!mon||!mon.attackShieldArmed)continue;
         mon.attackShieldArmed=false;
-        mon.preventDamage=false;mon.preventEffect=false;
+        mon.preventDamage=false;mon.preventEffect=false;mon.damageFlipShieldArmed=false;
         this.addLog(`${mon.name} 的招式防护已结束`);
       }
     }
@@ -838,6 +838,16 @@ export class GameState {
     if(card)return card.cardType==='pokemon'&&(!card.evolvesFrom)&&(!card.stage||card.stage==='基础');
     return !mon?.evolvesFrom&&(!mon?.stage||mon.stage==='基础'||mon.stage==='basic');}
   _enabledAbilityEffects(mon){return mon?.ability?.effects||[];}
+  /**
+   * ③ 「当这只宝可梦受到招式的伤害时，抛掷硬币；正面则不受到该伤害」——**自身**限定特性。
+   * 注意不能用 _hasPassive / _passiveEffectsFor：那两个是**全场**搜索（用于光环类特性），
+   * 而卡面写的是「这只宝可梦」，套到队友身上就错了。
+   */
+  hasAbilityDamageFlipShield(mon){
+    if(!mon||!mon.ability?.effects?.length)return false;
+    if(this.isAbilityDisabled?.(mon))return false;
+    return (this._enabledAbilityEffects(mon)||[]).some(e=>e.action==='coin_flip_damage_shield');
+  }
   // 统一被动查询入口：返回 mon 所属阵营场上所有来源的某 action 生效效果（已跳过 disabled）
   _passiveEffectsFor(mon,action){
     const owner=[this.player1,this.player2].find(pl=>this.getPokemonInPlay(pl).includes(mon));
