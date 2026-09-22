@@ -90,6 +90,24 @@ export async function executeEffects(gs, player, effects, options = {}) {
   }
 }
 
+/**
+ * 附能后发出 energy_attached 事件，供「每次将【X】能量附着于这只宝可梦身上时」这类触发式效果。
+ * 约定：
+ *   · 只有「附着」才发事件；**能量在宝可梦之间移动不算附着**（那些地方不调本函数）
+ *   · fromHand 必须如实传 —— 卡面写「从自己的手牌将…附着」的特性只认 fromHand:true
+ *   · 逐张发一次，多张附能触发多次（与卡面「每次…时」一致）
+ *   · 卡名要经过 resolver 解析：牌库/弃牌区里存的是卡 id，直接比较会漏（能量筛选条件用得上）
+ */
+function _emitEnergyAttached(gs, owner, mon, cards, fromHand) {
+  if (!mon || !cards || !cards.length) return;
+  for (const c of cards) {
+    const resolved = (c && typeof c === 'object') ? c : (gs?.cardResolver?.getCard?.(c) || null);
+    const name = resolved?.name || (typeof c === 'string' ? c : '') || '';
+    try { gs.emitTriggerEvent?.('energy_attached', { target: mon, owner, fromHand: !!fromHand, cardName: String(name) }); }
+    catch (e) { /* 触发失败不影响附能本身 */ }
+  }
+}
+
 /** 道具显示名（与 GameState._toolLabel 同义，这里是模块级实现，供执行器使用） */
 function _toolLabelOf(gs, tool) {
   if (!tool) return '道具';
@@ -904,6 +922,7 @@ const EXECUTORS = {
       const mon = _getMon(pl, slot);
       if (mon) {
         for (const card of rest) mon.energy.push(_energyStateFor(gs, card));
+        _emitEnergyAttached(gs, pl, mon, rest, false);
         gs.addLog(`${mon.name} 身上附着了 ${rest.length} 张能量`);
       } else {
         pl.hand.push(...rest);
@@ -1575,6 +1594,7 @@ const EXECUTORS = {
     const mon = _getMon(pl, slot);
     if (!mon) return;
     for (const item of selected.sort((a,b)=>b.index-a.index)) mon.energy.push(pl.hand.splice(item.index, 1)[0]);
+    _emitEnergyAttached(gs, pl, mon, selected.map(x => x.card), true);
     gs.addLog(`从手牌附能 ${selected.length} 张`);
   },
 
@@ -1614,6 +1634,7 @@ const EXECUTORS = {
     const selected = await _pickCardsFromZone(gs, pl, pl, pl.discard, p.count || 1, { source:'discard-energy', filter:card=>_isEnergyCard(gs, card, p.filter), allowFewer:!!p.allowFewer, allowEmpty:!!p.allowEmpty, maxCount:p.maxCount, minCount:p.minCount, optional:!!p.optional });
     if (!selected.length) return;
     for (const item of selected.sort((a,b)=>b.index-a.index)) mon.energy.push(pl.discard.splice(item.index, 1)[0]);
+    _emitEnergyAttached(gs, pl, mon, selected.map(x => x.card), false);
     if (p.damageCountersOnAttachedTarget) _applyDamageToPokemon(gs, pl, mon, p.damageCountersOnAttachedTarget * 10);
     gs.addLog(`从弃牌区附能 ${selected.length} 张`);
   },
@@ -1636,6 +1657,7 @@ const EXECUTORS = {
     const selected = await _pickCardsFromZone(gs, pl, pl, pl.deck, p.count || 1, { source:'deck-energy', filter:card=>_isEnergyCard(gs, card, p.filter), allowFewer:!!p.allowFewer, allowEmpty:!!p.allowEmpty, maxCount:p.maxCount, minCount:p.minCount, optional:!!p.optional });
     if (!selected.length) { gs._shuffle(pl.deck); return; }
     for (const item of selected.sort((a,b)=>b.index-a.index)) mon.energy.push(pl.deck.splice(item.index, 1)[0]);
+    _emitEnergyAttached(gs, pl, mon, selected.map(x => x.card), false);
     // ② 「然后，在被附着的宝可梦身上放置N个伤害指示物」
     if (p.damageCountersOnAttachedTarget) _applyDamageToPokemon(gs, pl, mon, p.damageCountersOnAttachedTarget * 10);
     gs._shuffle(pl.deck);

@@ -7742,6 +7742,66 @@ await test('K1 修：备战区昏厥同样处理（放逐区判定 + 身上卡�
   assert.deepEqual(gs3.player2.discard, []);
 });
 
+
+// ============================================================
+//  K2 附能事件覆盖所有附能路径（手牌 / 弃牌区 / 牌库）
+// ============================================================
+
+const VENUSAUR_EV = '在自己的回合，如果这只宝可梦在战斗场上的话，则每次从自己的手牌将【草】能量附着于这只宝可梦身上时，可使用1次。选择对手的1只备战宝可梦，将其与战斗宝可梦互换。';
+
+async function evSetup() {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  gs.phase = PHASE.MAIN;
+  const pl = gs.player1, opp = gs.player2;
+  const holder = mon('持有者', 'h1');
+  holder.ability = { name:'光辉蔓藤', active:true, zone:'field', effects: parseEffect(VENUSAUR_EV).effects };
+  pl.active = holder;
+  pl.bench = [];
+  opp.active = mon('敌前', 'o1');
+  opp.bench = [mon('敌后', 'o2')];
+  gs.cardResolver = fakeResolver({
+    'e1': { card:{ cardType:'energy', name:'基本【草】能量' }, info:{ name:'基本【草】能量', type:'energy' } },
+    'f1': { card:{ cardType:'energy', name:'基本【火】能量' }, info:{ name:'基本【火】能量', type:'energy' } },
+  });
+  return { gs, pl, opp, holder };
+}
+
+await test('K2 从手牌附能会发出 energy_attached（fromHand=true）并触发符合条件的特性', async () => {
+  const { gs, pl, opp, holder } = await evSetup();
+  pl.hand = ['e1'];
+  await executeEffects(gs, pl, [{ action:'attach_energy_from_hand', params:{ count:1, filter:'基本能量', target:'self', allowFewer:true, allowEmpty:true } }]);
+  await new Promise(r => setTimeout(r, 5));
+  assert.equal(holder.energy.length, 1, '能量应附着成功');
+  assert.equal(opp.active.name, '敌后', '「从手牌附草能量」应触发换位');
+});
+
+await test('K2 从牌库附能也发事件，但 fromHand=false 不会触发「从手牌」类特性', async () => {
+  const { gs, pl, opp, holder } = await evSetup();
+  pl.deck = ['e1'];
+  await executeEffects(gs, pl, [{ action:'attach_energy_from_deck', params:{ count:1, filter:'基本能量', target:'self', allowFewer:true, allowEmpty:true } }]);
+  await new Promise(r => setTimeout(r, 5));
+  assert.equal(holder.energy.length, 1, '能量应附着成功');
+  assert.equal(opp.active.name, '敌前', '卡面写「从自己的手牌」，牌库附能不应触发');
+});
+
+await test('K2 从弃牌区附能同样发事件（fromHand=false）', async () => {
+  const { gs, pl, opp, holder } = await evSetup();
+  pl.discard = ['e1'];
+  await executeEffects(gs, pl, [{ action:'attach_energy_from_discard', params:{ count:1, filter:'基本能量', target:'self', allowFewer:true, allowEmpty:true } }]);
+  await new Promise(r => setTimeout(r, 5));
+  assert.equal(holder.energy.length, 1, '能量应附着成功');
+  assert.equal(opp.active.name, '敌前', '弃牌区附能不属于「从手牌」');
+});
+
+await test('K2 非目标属性不会触发（能量筛选条件生效）', async () => {
+  const { gs, pl, opp } = await evSetup();
+  pl.hand = ['f1'];
+  await executeEffects(gs, pl, [{ action:'attach_energy_from_hand', params:{ count:1, filter:'基本能量', target:'self', allowFewer:true, allowEmpty:true } }]);
+  await new Promise(r => setTimeout(r, 5));
+  assert.equal(opp.active.name, '敌前', '附火能量不应触发草能量的特性');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',
