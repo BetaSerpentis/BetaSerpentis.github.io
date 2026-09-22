@@ -1,4 +1,4 @@
-#eff1 hash=1ed62e45654d3c7c
+#eff1 hash=57546e3ce744ab23
 151C-001	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-002	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-003	ability		0	usage_condition	{"kind":"requires_active"}
@@ -579,9 +579,8 @@
 30thC-148	ability		0	trigger	{"event":"card_played","effect":{"action":"draw_until","params":{"target":7}},"effects":[{"action":"draw_until","params":{"target":7}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"可使用1次。"}}],"optional":false}
 30thC-148	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"若希望，可以将这只宝可梦以及放置于其身上的所有卡牌以任意顺序重新排列，放回自己的牌库下方。"}
 30thC-149	ability		0	trigger	{"event":"card_played","effect":{"action":"damage_place","params":{"target":"opponent_any","count":1}},"effects":[{"action":"damage_place","params":{"target":"opponent_any","count":1}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"可使用1次。"}}],"optional":false}
-30thC-149	attack	1	0	inflict_status	{"statuses":["poison"]}
-30thC-149	attack	1	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为2个"}
-30thC-149	attack	1	2	usage_condition	{"kind":"residual_sentence","raw":"在宝可梦检查时，。"}
+30thC-149	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":2}
+30thC-149	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"在宝可梦检查时，。"}
 30thC-150	ability		0	ko_to_lost_zone	{"scope":"opponent"}
 30thC-150	ability		1	usage_condition	{"kind":"attachments_to_discard"}
 30thC-150	attack	1	0	look_at	{"target":"opponent_hand"}
@@ -2256,8 +2255,7 @@ CS1.5C-026	attack	2	0	damage_place	{"target":"opponent_bench","count":5}
 CS1.5C-027	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
 CS1.5C-027	attack	1	1	shuffle_deck	{}
 CS1.5C-028	ability		0	ability_nullify	{"scope":"opponent_field","duration":"while_active","exceptAbilityNames":["化学变化气体"],"sourceZone":"field"}
-CS1.5C-028	attack	1	0	inflict_status	{"statuses":["poison"]}
-CS1.5C-028	attack	1	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为4个"}
+CS1.5C-028	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":4}
 CS1.5C-029	ability		0	usage_condition	{"kind":"once_per_turn","raw":"则可使用1次"}
 CS1.5C-029	ability		1	search_deck_to_hand	{"filter":"伽勒尔 喵头目","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CS1.5C-029	ability		2	shuffle_deck	{}
@@ -2306,8 +2304,7 @@ CS1.5C-066	attack	1	0	conditional_damage_mod	{"amount":20,"condition":"own_disca
 CS1.5C-067	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
 CS1.5C-067	attack	1	1	shuffle_deck	{}
 CS1.5C-068	ability		0	ability_nullify	{"scope":"opponent_field","duration":"while_active","exceptAbilityNames":["化学变化气体"],"sourceZone":"field"}
-CS1.5C-068	attack	1	0	inflict_status	{"statuses":["poison"]}
-CS1.5C-068	attack	1	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为4个"}
+CS1.5C-068	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":4}
 CS1.5C-069	ability		0	usage_condition	{"kind":"once_per_turn","raw":"则可使用1次"}
 CS1.5C-069	ability		1	search_deck_to_hand	{"filter":"伽勒尔 喵头目","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CS1.5C-069	ability		2	shuffle_deck	{}
@@ -2981,8 +2978,7 @@ CS1bC-055	attack	1	0	conditional_damage_mod	{"amount":40,"condition":"self_energ
 CS1bC-055	attack	1	1	attach_energy_from_discard	{"filter":"【火】能量","target":"active","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CS1bC-055	attack	1	2	usage_condition	{"kind":"residual_sentence","raw":"若希望，可在造成伤害后，。"}
 CS1bC-057	attack	1	0	mill	{"target":"opponent","count":1}
-CS1bC-058	attack	1	0	inflict_status	{"statuses":["poison"]}
-CS1bC-058	attack	1	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为3个"}
+CS1bC-058	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":3}
 CS1bC-059	ability		0	trigger	{"event":"card_played","effect":{"action":"damage_place","params":{"target":"opponent_any","count":1}},"effects":[{"action":"damage_place","params":{"target":"opponent_any","count":1}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"可使用1次。"}}],"optional":false}
 CS1bC-059	attack	1	0	coin_flip	{"count":1,"fail_on_tails":true}
 CS1bC-060	attack	1	0	switch_pokemon	{"who":"self"}
@@ -3927,8 +3923,7 @@ CS3DC-089	ability		0	block_status	{"status":"sleep","target":"self"}
 CS3DC-089	attack	1	0	conditional_damage_mod	{"condition":"custom","conditionText":"对手的战斗宝可梦身上附着特殊能量","amount":80,"mode":"fixed"}
 CS3DC-090	attack	1	0	draw	{"count":3}
 CS3DC-090	attack	2	0	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】"}
-CS3DC-091	attack	1	0	inflict_status	{"statuses":["poison"]}
-CS3DC-091	attack	1	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为12个"}
+CS3DC-091	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":12}
 CS3DC-093	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CS3DC-093	ability		1	attach_energy_from_deck	{"filter":"一击能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false,"damageCountersOnAttachedTarget":2}
 CS3DC-093	ability		2	shuffle_deck	{}
@@ -4008,8 +4003,7 @@ CS3DC-180	attack	1	0	cannot_retreat	{"target":"opponent","duration":"next_opp_tu
 CS3DC-180	attack	2	0	cannot_attack_next	{"move":"冲天飓风"}
 CS3DC-181	ability		0	prevent_effect	{"source":"ability"}
 CS3DC-181	attack	1	0	cannot_attack_next	{"move":"超极巨飓风呼啸"}
-CS3DC-182	attack	1	0	inflict_status	{"statuses":["poison"]}
-CS3DC-182	attack	1	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为12个"}
+CS3DC-182	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":12}
 CS3DC-183	ability		0	prevent_effect	{"source":"ability"}
 CS3DC-183	attack	1	0	cannot_attack_next	{"move":"超极巨飓风呼啸"}
 CS3aC-001	attack	1	0	heal	{"amount":30,"target":"self"}
@@ -4137,8 +4131,7 @@ CS3aC-080	ability		0	block_status	{"status":"sleep","target":"self"}
 CS3aC-080	attack	1	0	conditional_damage_mod	{"condition":"custom","conditionText":"对手的战斗宝可梦身上附着特殊能量","amount":80,"mode":"fixed"}
 CS3aC-081	attack	1	0	draw	{"count":3}
 CS3aC-081	attack	2	0	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】"}
-CS3aC-082	attack	1	0	inflict_status	{"statuses":["poison"]}
-CS3aC-082	attack	1	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为12个"}
+CS3aC-082	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":12}
 CS3aC-083	ability		0	trigger	{"event":"knocked_out","effect":{"action":"damage_place","params":{"target":"attacker","count":6}},"effects":[{"action":"damage_place","params":{"target":"attacker","count":6}}],"optional":false}
 CS3aC-083	attack	1	0	inflict_status	{"statuses":["poison"]}
 CS3aC-085	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
@@ -5048,8 +5041,7 @@ CS4DaC-257	ability		4	usage_condition	{"kind":"residual_sentence","raw":"若为�
 CS4DaC-257	ability		5	usage_condition	{"kind":"shell_fragment","raw":"若为反面，则。"}
 CS4DaC-258	attack	1	0	draw	{"count":3}
 CS4DaC-258	attack	2	0	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】"}
-CS4DaC-259	attack	1	0	inflict_status	{"statuses":["poison"]}
-CS4DaC-259	attack	1	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为12个"}
+CS4DaC-259	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":12}
 CS4DaC-260	ability		0	trigger	{"event":"knocked_out","effect":{"action":"damage_place","params":{"target":"attacker","count":6}},"effects":[{"action":"damage_place","params":{"target":"attacker","count":6}}],"optional":false}
 CS4DaC-260	attack	1	0	inflict_status	{"statuses":["poison"]}
 CS4DaC-262	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
@@ -5063,8 +5055,7 @@ CS4DaC-266	attack	1	1	cannot_attack_next	{"target":"opponent"}
 CS4DaC-266	attack	2	0	conditional_damage_mod	{"amount":90,"condition":"opponent_active_has_damage"}
 CS4DaC-267	attack	1	0	switch_pokemon	{"who":"opponent"}
 CS4DaC-267	attack	1	1	damage_place	{"target":"opponent_active","count":30}
-CS4DaC-269	attack	1	0	inflict_status	{"statuses":["poison"]}
-CS4DaC-269	attack	1	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为4个"}
+CS4DaC-269	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":4}
 CS4DaC-271	attack	1	0	coin_flip	{"count":1,"fail_on_tails":true}
 CS4DaC-272	ability		0	ability_discard_cost	{"count":1,"zone":"hand","raw":"若将自己的1张手牌丢到弃牌区，则可使用1次"}
 CS4DaC-272	ability		1	draw	{"count":2}
@@ -5369,8 +5360,7 @@ CS4aC-083	attack	1	0	conditional_damage_mod	{"amount":50,"condition":"opponent_p
 CS4aC-084	attack	1	0	cannot_retreat	{"target":"opponent","duration":"next_opp_turn"}
 CS4aC-084	attack	2	0	conditional_damage_mod	{"amount":80,"condition":"self_has_damage"}
 CS4aC-085	ability		0	trigger	{"event":"evolved","effect":{"action":"switch_pokemon","params":{"who":"opponent"}},"effects":[{"action":"switch_pokemon","params":{"who":"opponent"}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"可使用1次。"}}],"optional":false}
-CS4aC-087	attack	1	0	inflict_status	{"statuses":["poison"]}
-CS4aC-087	attack	1	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为4个"}
+CS4aC-087	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":4}
 CS4aC-088	attack	1	0	search_deck_to_bench	{"filter":"【基础】宝可梦","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CS4aC-088	attack	1	1	shuffle_deck	{}
 CS4aC-088	attack	2	0	inflict_status	{"statuses":["poison"]}
@@ -5919,8 +5909,7 @@ CS5DC-004	attack	2	0	damage_bench	{"target":"self_1","damage":30,"zone":"bench"}
 CS5DC-005	attack	2	0	shuffle_deck	{}
 CS5DC-005	attack	2	1	usage_condition	{"kind":"residual_sentence","raw":"从自己的牌库选择任意张\\"刺尾虫\\"\\"甲壳茧\\"\\"狩猎凤蝶\\"\\"盾甲茧\\"\\"毒粉蛾\\"，在给对手看过后，加入手牌。"}
 CS5DC-006	attack	1	0	prevent_damage	{"source":"attack"}
-CS5DC-007	attack	1	0	inflict_status	{"statuses":["poison","confusion"]}
-CS5DC-007	attack	1	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为8个"}
+CS5DC-007	attack	1	0	inflict_status	{"statuses":["poison","confusion"],"poisonCounters":8}
 CS5DC-008	attack	1	0	inflict_status	{"statuses":["sleep"]}
 CS5DC-009	attack	1	0	inflict_status	{"statuses":["poison"]}
 CS5DC-009	attack	2	0	damage_bench	{"target":"opponent_1","damage":60}
@@ -6216,8 +6205,7 @@ CS5aC-071	attack	1	0	inflict_status	{"statuses":["poison"]}
 CS5aC-072	attack	1	0	conditional_damage_mod	{"amount":30,"condition":"opponent_retreat_cost","mode":"per_unit"}
 CS5aC-072	attack	2	0	inflict_status	{"statuses":["poison"]}
 CS5aC-073	attack	1	0	coin_flip_until_tails	{"damage_per":10}
-CS5aC-074	attack	1	0	inflict_status	{"statuses":["poison"]}
-CS5aC-074	attack	1	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为5个"}
+CS5aC-074	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":5}
 CS5aC-074	attack	2	0	cannot_retreat	{"target":"opponent","duration":"next_opp_turn"}
 CS5aC-076	attack	1	0	coin_flip	{"count":2}
 CS5aC-076	attack	1	1	look_at	{"target":"opponent_hand"}
@@ -6395,8 +6383,7 @@ CS5bC-015	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的
 CS5bC-015	ability		1	draw_until	{"target":6}
 CS5bC-015	attack	1	0	heal	{"amount":30,"target":"self"}
 CS5bC-016	attack	1	0	prevent_damage	{"source":"attack"}
-CS5bC-017	attack	1	0	inflict_status	{"statuses":["poison","confusion"]}
-CS5bC-017	attack	1	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为8个"}
+CS5bC-017	attack	1	0	inflict_status	{"statuses":["poison","confusion"],"poisonCounters":8}
 CS5bC-019	attack	1	0	inflict_status	{"statuses":["sleep"]}
 CS5bC-019	attack	2	0	usage_condition	{"kind":"generic_effect","raw":"这个招式，只有在上一个自己的回合，这只宝可梦使用了\\"孢子弹\\"的情况下才可使用。"}
 CS5bC-020	attack	1	0	inflict_status	{"statuses":["sleep"]}
@@ -7255,8 +7242,7 @@ CS6bC-088	attack	2	0	inflict_status	{"statuses":["poison","confusion"]}
 CS6bC-089	ability		0	usage_condition	{"kind":"generic_effect","raw":"这只宝可梦使用招式所需能量会减少与对手场上\\"一击\\"\\"连击\\"\\"汇流\\"宝可梦数量相同数量的【无】能量。"}
 CS6bC-089	attack	1	0	damage_bench	{"target":"self_1","damage":60}
 CS6bC-090	ability		0	usage_condition	{"kind":"vstar_usage_note","raw":"在自己的回合时可使用。。。[对战中，己方的【VSTAR】力量只能使用1次。]"}
-CS6bC-090	ability		1	inflict_status	{"statuses":["poison","paralysis"]}
-CS6bC-090	ability		2	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为3个"}
+CS6bC-090	ability		1	inflict_status	{"statuses":["poison","paralysis"],"poisonCounters":3}
 CS6bC-090	attack	1	0	conditional_damage_mod	{"amount":10,"condition":"self_damage_counters","mode":"reduce"}
 CS6bC-091	attack	1	0	coin_flip_damage	{"count":3,"damage_per":10}
 CS6bC-092	attack	1	0	coin_flip_damage	{"count":3,"damage_per":40}
@@ -7265,9 +7251,8 @@ CS6bC-094	attack	1	1	discard_energy	{"target":"opponent","count":1}
 CS6bC-095	ability		0	trigger	{"event":"evolved","effect":{"action":"discard_opponent_hand_random","params":{"count":1}},"effects":[{"action":"discard_opponent_hand_random","params":{"count":1}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"以及这只宝可梦在战斗场上受到对手的招式的伤害而【昏厥】时，各可使用1次。"}}],"optional":false}
 CS6bC-095	attack	1	0	self_damage	{"amount":30}
 CS6bC-096	attack	2	0	self_damage	{"amount":30}
-CS6bC-098	attack	1	0	inflict_status	{"statuses":["poison"]}
-CS6bC-098	attack	1	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为8个"}
-CS6bC-098	attack	1	2	usage_condition	{"kind":"shell_fragment","raw":"在这个回合，若这只宝可梦从\\"垃垃藻\\"进化而来，则。"}
+CS6bC-098	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":8}
+CS6bC-098	attack	1	1	usage_condition	{"kind":"shell_fragment","raw":"在这个回合，若这只宝可梦从\\"垃垃藻\\"进化而来，则。"}
 CS6bC-099	attack	1	0	attach_energy_from_deck	{"filter":"【恶】能量","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CS6bC-099	attack	1	1	shuffle_deck	{}
 CS6bC-100	attack	1	0	inflict_status	{"statuses":["poison"]}
@@ -7367,8 +7352,7 @@ CS6bC-161	attack	2	0	usage_condition	{"kind":"vstar_power_once","raw":"[对战�
 CS6bC-161	attack	2	1	usage_condition	{"kind":"residual_sentence","raw":"这只宝可梦，在离开场上之前都拥有效果为\\"对手场上的『宝可梦V』（除『化石翼龙VSTAR』外）的特性，全部消除。"}
 CS6bC-161	attack	2	2	usage_condition	{"kind":"residual_sentence","raw":"\\"的特性。"}
 CS6bC-162	ability		0	usage_condition	{"kind":"vstar_usage_note","raw":"在自己的回合时可使用。。。[对战中，己方的【VSTAR】力量只能使用1次。]"}
-CS6bC-162	ability		1	inflict_status	{"statuses":["poison","paralysis"]}
-CS6bC-162	ability		2	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为3个"}
+CS6bC-162	ability		1	inflict_status	{"statuses":["poison","paralysis"],"poisonCounters":3}
 CS6bC-162	attack	1	0	conditional_damage_mod	{"amount":10,"condition":"self_damage_counters","mode":"reduce"}
 CS6bC-163	attack	1	0	cannot_attack_next	{"duration":"next_self_turn"}
 CS6bC-163	attack	2	0	peek_and_keep	{"peek":12,"keep":1}
@@ -8028,8 +8012,7 @@ CSM1DC-115	attack	2	0	coin_flip_status	{"count":1,"statuses":["paralysis"]}
 CSM1DC-116	ability		0	trigger	{"event":"card_played","effect":{"action":"search_deck_to_hand","params":{"filter":"基本能量","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}},"effects":[{"action":"search_deck_to_hand","params":{"filter":"基本能量","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}},{"action":"shuffle_deck","params":{}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"可使用1次。"}}],"optional":false}
 CSM1DC-117	attack	2	0	coin_flip_damage	{"count":4,"damage_per":10}
 CSM1DC-118	attack	1	0	coin_flip_damage	{"count":4,"damage_per":30}
-CSM1DC-118	attack	2	0	inflict_status	{"statuses":["poison"]}
-CSM1DC-118	attack	2	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为10个"}
+CSM1DC-118	attack	2	0	inflict_status	{"statuses":["poison"],"poisonCounters":10}
 CSM1DC-118	attack	3	0	prevent_damage_effect	{"duration":"next_opp_turn"}
 CSM1DC-118	attack	3	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM1DC-119	attack	1	0	heal	{"amount":10,"target":"self"}
@@ -8749,8 +8732,7 @@ CSM1bC-012	attack	1	0	conditional_damage_mod	{"amount":20,"condition":"counter",
 CSM1bC-013	ability		0	trigger	{"event":"card_played","effect":{"action":"shuffle_deck","params":{}},"effects":[{"action":"shuffle_deck","params":{}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"可使用1次。"}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"将自己的牌库中最多3张基本能量，丢到弃牌区。"}}],"optional":false}
 CSM1bC-013	attack	1	0	attach_energy_from_discard	{"filter":"基本能量","target":"any","count":2,"maxCount":2,"minCount":2,"allowFewer":false,"allowEmpty":false}
 CSM1bC-014	ability		0	prevent_damage	{"source":"attack"}
-CSM1bC-014	attack	1	0	inflict_status	{"statuses":["poison"]}
-CSM1bC-014	attack	1	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为3个"}
+CSM1bC-014	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":3}
 CSM1bC-014	attack	2	0	inflict_status	{"statuses":["paralysis"]}
 CSM1bC-014	attack	2	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM1bC-015	attack	1	0	inflict_status	{"statuses":["poison","sleep"]}
@@ -10093,8 +10075,7 @@ CSM2DC-110	attack	2	0	conditional_damage_mod	{"condition":"custom","conditionTex
 CSM2DC-111	attack	2	0	conditional_damage_mod	{"condition":"opponent_active_status","status":"poison","amount":50,"mode":"fixed"}
 CSM2DC-112	attack	2	0	heal	{"amount":"as_attack_damage"}
 CSM2DC-113	ability		0	trigger	{"event":"evolved","effect":{"action":"prevent_damage_effect","params":{"source":"attack"}},"effects":[{"action":"prevent_damage_effect","params":{"source":"attack"}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"可使用1次。"}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"在下个对手的回合结束前，这只宝可梦，。"}}],"optional":false}
-CSM2DC-113	attack	1	0	inflict_status	{"statuses":["poison"]}
-CSM2DC-113	attack	1	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为4个"}
+CSM2DC-113	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":4}
 CSM2DC-114	attack	1	0	shuffle_deck	{}
 CSM2DC-114	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"将自己的牌库中最多3张【水】或【超】能量，附于自己的1只备战宝可梦身上。"}
 CSM2DC-115	ability		0	trigger	{"event":"card_played","effect":{"action":"recover_from_discard","params":{"filter":"支援者","target":"deck","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}},"effects":[{"action":"recover_from_discard","params":{"filter":"支援者","target":"deck","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"可使用1次。"}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"上方。"}}],"optional":false}
@@ -10837,12 +10818,10 @@ CSM2bC-029	attack	2	0	coin_flip	{"count":1}
 CSM2bC-029	attack	2	1	usage_condition	{"kind":"counters_to_hp_act","raw":"若为正面，则在对手战斗宝可梦身上放置伤害指示物，直到其剩余HP变为\\"10\\"点"}
 CSM2bC-031	ability		0	usage_condition	{"kind":"generic_effect","raw":"对手场上的\\"宝可梦道具\\"的效果，全部消除。"}
 CSM2bC-031	attack	1	0	conditional_damage_mod	{"amount":20,"condition":"opponent_retreat_cost","mode":"per_unit"}
-CSM2bC-032	attack	1	0	inflict_status	{"statuses":["poison"]}
-CSM2bC-032	attack	1	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为8个"}
+CSM2bC-032	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":8}
 CSM2bC-032	attack	2	0	heal	{"amount":100,"target":"self"}
-CSM2bC-032	attack	3	0	inflict_status	{"statuses":["poison","paralysis"]}
-CSM2bC-032	attack	3	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为15个"}
-CSM2bC-032	attack	3	2	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
+CSM2bC-032	attack	3	0	inflict_status	{"statuses":["poison","paralysis"],"poisonCounters":15}
+CSM2bC-032	attack	3	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM2bC-033	attack	1	0	look_at	{"target":"opponent_hand"}
 CSM2bC-033	attack	1	1	conditional_damage_mod	{"amount":50,"condition":"last_processed_kind","kind":"训练家"}
 CSM2bC-033	attack	2	0	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
@@ -11093,18 +11072,14 @@ CSM2bC-159	attack	1	2	usage_condition	{"kind":"shell_fragment","raw":"在这个�
 CSM2bC-159	attack	1	3	usage_condition	{"kind":"residual_sentence","raw":"若使出了\\"阿杏\\"，则在下个对手的回合，这只宝可梦。"}
 CSM2bC-159	attack	2	0	shuffle_hand_to_deck	{"who":"self","draw_count":10}
 CSM2bC-159	attack	2	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
-CSM2bC-160	attack	1	0	inflict_status	{"statuses":["poison"]}
-CSM2bC-160	attack	1	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为8个"}
+CSM2bC-160	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":8}
 CSM2bC-160	attack	2	0	heal	{"amount":100,"target":"self"}
-CSM2bC-160	attack	3	0	inflict_status	{"statuses":["poison","paralysis"]}
-CSM2bC-160	attack	3	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为15个"}
-CSM2bC-160	attack	3	2	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
-CSM2bC-161	attack	1	0	inflict_status	{"statuses":["poison"]}
-CSM2bC-161	attack	1	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为8个"}
+CSM2bC-160	attack	3	0	inflict_status	{"statuses":["poison","paralysis"],"poisonCounters":15}
+CSM2bC-160	attack	3	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
+CSM2bC-161	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":8}
 CSM2bC-161	attack	2	0	heal	{"amount":100,"target":"self"}
-CSM2bC-161	attack	3	0	inflict_status	{"statuses":["poison","paralysis"]}
-CSM2bC-161	attack	3	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为15个"}
-CSM2bC-161	attack	3	2	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
+CSM2bC-161	attack	3	0	inflict_status	{"statuses":["poison","paralysis"],"poisonCounters":15}
+CSM2bC-161	attack	3	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM2bC-162	attack	1	0	look_at	{"target":"opponent_hand"}
 CSM2bC-162	attack	1	1	conditional_damage_mod	{"amount":50,"condition":"last_processed_kind","kind":"训练家"}
 CSM2bC-162	attack	2	0	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
@@ -11874,8 +11849,7 @@ CSMPiC-048	attack	2	0	heal	{"amount":30,"target":"self"}
 CSMPiC-048	attack	3	0	ignore	{"what":"opponent_effects"}
 CSMPiC-048	attack	3	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSMPjC-001	ability		0	prevent_damage	{"source":"attack"}
-CSMPjC-001	attack	1	0	inflict_status	{"statuses":["poison"]}
-CSMPjC-001	attack	1	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为3个"}
+CSMPjC-001	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":3}
 CSMPjC-001	attack	2	0	inflict_status	{"statuses":["paralysis"]}
 CSMPjC-001	attack	2	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSMPjC-002	ability		0	trigger	{"event":"knocked_out","effect":{"action":"coin_flip","params":{"count":1}},"effects":[{"action":"coin_flip","params":{"count":1}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"若为正面，则这只宝可梦不会【昏厥】，而是以剩余HP为\\"10\\"点的状态留在场上。"}}],"optional":false}
@@ -12346,8 +12320,7 @@ CSV10C-123	attack	1	0	shuffle_deck	{}
 CSV10C-123	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"选择自己最多2只【恶】宝可梦，从自己的牌库选择从被选择的宝可梦进化而来的卡牌各1张，各放置于其身上进行进化。"}
 CSV10C-124	attack	1	0	conditional_damage_mod	{"condition":"custom","conditionText":"自己的备战区中有名字中带有\\"尼多王\\"的宝可梦","amount":120,"mode":"fixed"}
 CSV10C-126	attack	2	0	conditional_damage_mod	{"amount":60,"condition":"opponent_active_has_damage"}
-CSV10C-127	attack	1	0	inflict_status	{"statuses":["poison"]}
-CSV10C-127	attack	1	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为8个"}
+CSV10C-127	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":8}
 CSV10C-128	attack	1	0	inflict_status	{"statuses":["poison"]}
 CSV10C-129	ability		0	trigger	{"event":"evolved","effect":{"action":"damage_place","params":{"target":"opponent_any","count":2}},"effects":[{"action":"damage_place","params":{"target":"opponent_any","count":2}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"可使用1次。"}}],"optional":false}
 CSV10C-129	attack	1	0	inflict_status	{"statuses":["confusion"]}
@@ -12489,8 +12462,7 @@ CSV10C-242	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己�
 CSV10C-242	ability		1	search_deck_to_hand	{"filter":"宝可梦","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSV10C-242	ability		2	shuffle_deck	{}
 CSV10C-242	attack	1	0	conditional_damage_mod	{"amount":40,"mode":"per_unit","condition":"own_bench_name_count","name":"的【2阶进化】"}
-CSV10C-243	attack	1	0	inflict_status	{"statuses":["poison"]}
-CSV10C-243	attack	1	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为8个"}
+CSV10C-243	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":8}
 CSV10C-244	ability		0	trigger	{"event":"evolved","effect":{"action":"usage_condition","params":{"kind":"generic_effect","raw":"可使用1次。给对手的2只宝可梦身上各放置2个伤害指示物。"}},"effects":[{"action":"usage_condition","params":{"kind":"generic_effect","raw":"可使用1次。给对手的2只宝可梦身上各放置2个伤害指示物。"}}],"optional":false}
 CSV10C-244	attack	1	0	usage_condition	{"kind":"attachments_to_discard"}
 CSV10C-244	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"若希望，可以将这只宝可梦放回手牌。"}
@@ -12532,8 +12504,7 @@ CSV10C-268	attack	1	0	discard_energy_for_damage	{"source":"field","count":2,"amo
 CSV10C-269	attack	1	0	draw_until	{"target":6}
 CSV10C-269	attack	1	1	usage_condition	{"kind":"shell_fragment","raw":"若希望，可以。"}
 CSV10C-269	attack	2	0	discard_energy	{"target":"self","count":"all"}
-CSV10C-270	attack	1	0	inflict_status	{"statuses":["poison"]}
-CSV10C-270	attack	1	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为8个"}
+CSV10C-270	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":8}
 CSV10C-271	ability		0	trigger	{"event":"evolved","effect":{"action":"usage_condition","params":{"kind":"generic_effect","raw":"可使用1次。给对手的2只宝可梦身上各放置2个伤害指示物。"}},"effects":[{"action":"usage_condition","params":{"kind":"generic_effect","raw":"可使用1次。给对手的2只宝可梦身上各放置2个伤害指示物。"}}],"optional":false}
 CSV10C-271	attack	1	0	usage_condition	{"kind":"attachments_to_discard"}
 CSV10C-271	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"若希望，可以将这只宝可梦放回手牌。"}
@@ -12697,8 +12668,7 @@ CSV1C-086	attack	1	0	usage_condition	{"kind":"look_reorder_deck_top","raw":"查�
 CSV1C-086	attack	2	0	conditional_damage_mod	{"condition":"custom","conditionText":"对手的手牌在3张及以下","amount":120,"mode":"fixed"}
 CSV1C-088	attack	1	0	search_deck_to_hand	{"filter":null,"count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CSV1C-088	attack	1	1	shuffle_deck	{}
-CSV1C-088	attack	2	0	inflict_status	{"statuses":["poison"]}
-CSV1C-088	attack	2	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为6个"}
+CSV1C-088	attack	2	0	inflict_status	{"statuses":["poison"],"poisonCounters":6}
 CSV1C-090	attack	2	0	self_damage	{"amount":30}
 CSV1C-091	ability		0	passive_damage_mod	{"target":"own_field","amount":30}
 CSV1C-091	ability		1	usage_condition	{"kind":"residual_sentence","raw":"自己【基础】宝可梦所使用的招式，。"}
@@ -12770,8 +12740,7 @@ CSV1C-143	attack	1	0	usage_condition	{"kind":"look_reorder_deck_top","raw":"查�
 CSV1C-143	attack	2	0	conditional_damage_mod	{"condition":"custom","conditionText":"对手的手牌在3张及以下","amount":120,"mode":"fixed"}
 CSV1C-144	attack	1	0	search_deck_to_hand	{"filter":null,"count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CSV1C-144	attack	1	1	shuffle_deck	{}
-CSV1C-144	attack	2	0	inflict_status	{"statuses":["poison"]}
-CSV1C-144	attack	2	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为6个"}
+CSV1C-144	attack	2	0	inflict_status	{"statuses":["poison"],"poisonCounters":6}
 CSV1C-145	attack	1	0	damage_bench	{"target":"opponent_N","count":3,"damage":30}
 CSV1C-145	attack	2	0	switch_pokemon	{"who":"self"}
 CSV1C-153	ability		0	usage_condition	{"kind":"opp_retreat_up_passive","raw":"对手战斗宝可梦【撤退】所需能量，就会增加1个"}
@@ -13132,8 +13101,7 @@ CSV3C-076	attack	1	0	move_energy	{"source":"self","dest":"bench"}
 CSV3C-077	ability		0	trigger	{"event":"attacked_damage","effect":{"action":"usage_condition","params":{"kind":"generic_effect","raw":"选择使用了招式的宝可梦身上附着的1个能量，丢到弃牌区。"}},"effects":[{"action":"usage_condition","params":{"kind":"generic_effect","raw":"选择使用了招式的宝可梦身上附着的1个能量，丢到弃牌区。"}}],"optional":false}
 CSV3C-077	attack	1	0	coin_flip_damage	{"count":1,"damage":80}
 CSV3C-079	ability		0	trigger	{"event":"knocked_out","effect":{"action":"coin_flip","params":{"count":1}},"effects":[{"action":"coin_flip","params":{"count":1}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"自己。"}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"若为正面，则对手无法拿取奖赏卡。"}}],"optional":false}
-CSV3C-079	attack	1	0	inflict_status	{"statuses":["poison"]}
-CSV3C-079	attack	1	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为6个"}
+CSV3C-079	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":6}
 CSV3C-080	ability		0	ability_nullify	{"scope":"opponent_field","duration":"while_active","exceptAbilityNames":["宝可梦【ex】"],"sourceZone":"field"}
 CSV3C-080	attack	1	0	damage_place	{"target":"opponent_bench","count":2}
 CSV3C-082	ability		0	trigger	{"event":"entered_active","effect":{"action":"switch_pokemon","params":{"who":"opponent"}},"effects":[{"action":"switch_pokemon","params":{"who":"opponent"}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"可使用1次。"}}],"optional":false}
@@ -13549,10 +13517,8 @@ CSV5C-056	attack	1	0	heal	{"amount":60}
 CSV5C-056	attack	2	0	usage_condition	{"kind":"generic_effect","raw":"给身上放置有伤害指示物的对手所有的备战宝可梦身上，各放置3个伤害指示物。"}
 CSV5C-057	attack	1	0	coin_flip_damage	{"count":1,"damage":30}
 CSV5C-058	attack	2	0	conditional_damage_mod	{"condition":"opponent_prizes","count":4,"amount":120,"mode":"fixed"}
-CSV5C-059	attack	1	0	coin_flip_status	{"count":1,"statuses":["poison"]}
-CSV5C-059	attack	1	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为2个"}
-CSV5C-060	attack	2	0	coin_flip_status	{"count":1,"statuses":["poison"]}
-CSV5C-060	attack	2	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为2个"}
+CSV5C-059	attack	1	0	coin_flip_status	{"count":1,"statuses":["poison"],"poisonCounters":2}
+CSV5C-060	attack	2	0	coin_flip_status	{"count":1,"statuses":["poison"],"poisonCounters":2}
 CSV5C-062	attack	1	0	mill	{"target":"opponent","count":2}
 CSV5C-062	attack	2	0	cannot_attack_next	{"duration":"next_self_turn"}
 CSV5C-063	attack	1	0	recover_from_discard	{"filter":"\\"基本【钢】能量\\"","target":"hand","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
@@ -14524,8 +14490,7 @@ CSV8C-123	attack	2	0	cannot_attack_next	{"duration":"next_self_turn"}
 CSV8C-124	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CSV8C-124	ability		1	draw_until	{"target":8}
 CSV8C-124	ability		2	usage_condition	{"kind":"shell_fragment","raw":"在这个回合，若从手牌使出了\\"阿杏的秘招\\"，则。"}
-CSV8C-124	attack	1	0	inflict_status	{"statuses":["poison"]}
-CSV8C-124	attack	1	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为2个"}
+CSV8C-124	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":2}
 CSV8C-125	attack	1	0	coin_flip_until_tails	{"damage_per":10}
 CSV8C-126	attack	1	0	conditional_damage_mod	{"condition":"custom","conditionText":"自己的备战区中有\\"大狼犬\\"","amount":90,"mode":"fixed"}
 CSV8C-126	attack	2	0	cannot_retreat	{"target":"opponent","duration":"next_opp_turn"}

@@ -8311,6 +8311,54 @@ await test('z damage_place 支持按计数来源放置伤害指示物', async ()
   assert.equal(opp.active.hp, 200 - 30, '3 张弃牌区宝可梦 → 3 个指示物 → 30 伤害');
 });
 
+
+// ============================================================
+//  poison：「因这个【中毒】而放置的伤害指示物数量变为N个」
+// ============================================================
+
+const POISON8 = '使对手的战斗宝可梦陷入【中毒】状态。因这个【中毒】而放置的伤害指示物数量变为8个。';
+
+await test('poison 指示物数并入前面的施加状态动作', () => {
+  const e = parseEffect(POISON8).effects;
+  assert.equal(e.length, 1, `应只剩一个动作（实际 ${JSON.stringify(e.map(x => x.action))}）`);
+  assert.equal(e[0].action, 'inflict_status');
+  assert.deepEqual(e[0].params.statuses, ['poison']);
+  assert.equal(e[0].params.poisonCounters, 8);
+  assert.ok(!e.some(x => x.params?.kind === 'poison_counters_set'), '不应再是未生效的标记');
+});
+
+await test('poison Checkup 按 N 个指示物结算，默认仍是 1 个', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('我', 'a1');
+  opp.active = mon('敌', 'o1');
+  opp.active.hp = 200; opp.active.maxHp = 200;
+  await executeEffects(gs, pl, parseEffect(POISON8).effects);
+  assert.equal(opp.active.poisonCounters, 8, '应记下 8 个指示物');
+  gs.currentPlayer = pl;
+  gs.endTurn();
+  await new Promise(r => setTimeout(r, 10));
+  assert.equal(opp.active.hp, 120, '8 个指示物 = 80 伤害');
+});
+
+await test('poison 状态被清除后，重新中毒回到默认 1 个指示物', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('我', 'a1');
+  opp.active = mon('敌', 'o1');
+  opp.active.hp = 200; opp.active.maxHp = 200;
+  await executeEffects(gs, pl, parseEffect(POISON8).effects);
+  gs._removeSpecialConditions(opp.active);
+  assert.equal(opp.active.poisonCounters, null, '清除状态应同时清掉指示物数');
+  opp.active.status = 'poison'; // 重新中毒（没有「变为N个」的效果）
+  gs.currentPlayer = opp;
+  gs.endTurn();
+  await new Promise(r => setTimeout(r, 10));
+  assert.equal(opp.active.hp, 190, '重新中毒回到 1 个指示物 = 10 伤害');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

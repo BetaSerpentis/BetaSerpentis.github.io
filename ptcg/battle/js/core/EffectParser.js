@@ -1696,7 +1696,8 @@ const RULES = [
   { re: /双方玩家，每次在自己的回合有1次机会，可将自己的手牌全部放回牌库。在这种情况下，可。若使用了这个效果，/, act:'usage_condition', p:m=>trainerPrerequisite('hand_back_opt_then', m[0]) },
   { re: /将(?:自己的|自己)?弃牌区中的(\d+)张【(.+?)】能量，以任意方式附于自己的宝可梦身上/, act:'attach_energy_from_discard', p:m=>withCount({filter:`【${m[2]}】能量`,target:'any'},m[1],false) },
   { re: /若追加附着1个能量，则从自己的牌库抽出卡牌，直到自己的手牌变为(\d+)张为止/, act:'usage_condition', p:m=>trainerPrerequisite('draw_until_extra_energy', m[0]) },
-  { re: /因这个【中毒】而放置的伤害指示物数量变为(\d+)个/, act:'usage_condition', p:m=>trainerPrerequisite('poison_counters_set', m[0]) },
+  // 升级：原为未建模标记 → 并入前面的「施加特殊状态」动作，让这次中毒每次检查放 N 个指示物
+  { re: /因这个【中毒】而放置的伤害指示物数量变为(\d+)个/, act:'action_count_override', p:m=>({ targets:['inflict_status','inflict_status_self','inflict_status_both','coin_flip_status','coin_flip'], set:{ poisonCounters:+m[1] }, raw:m[0] }) },
   { re: /将(?:自己的|自己)?手牌中任意数量的["“"]([^"“"]+)["“"]卡给对手查看，造成其(?:张数|数量)[×x](\d+)伤害。然后，将给对手查看过的["“"]([^"“"]+)["“"]卡放回牌库/, act:'reveal_hand_for_damage', p:m=>({ filter:m[1], per:+m[2], returnToDeck:true }) },
   // ===== P29（2026-09）：前缀簇第四波 =====
   { re: /从自己的牌库选择，名字中带有["“"]([^"“"]+)["“"]的，且名字各不同的(.+?)最多(\d+)张，在给对手看过后，加入手牌/, act:'usage_condition', p:m=>trainerPrerequisite('search_distinct_ball_items', m[0]) },

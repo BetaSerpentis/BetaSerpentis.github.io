@@ -148,7 +148,8 @@ export class GameState {
     for(const pl of [this.player1, this.player2]){
       const mon=pl.active;
       if(!mon||!mon.status)continue;
-      if(mon.status.includes('poison')){let pd=10;for(const {params:q} of this._passiveEffectsFor(this.getOpponent(pl).active,'poison_damage_increase')){pd+=(q.amount||0)*10;}mon.hp-=pd;this.addLog(`${mon.name} 中毒 -${pd}`);}
+      // 「因这个【中毒】而放置的伤害指示物数量变为N个」→ 每次检查放 N 个指示物（默认 1 个 = 10 点）
+      if(mon.status.includes('poison')){let pd=10*(mon.poisonCounters||1);for(const {params:q} of this._passiveEffectsFor(this.getOpponent(pl).active,'poison_damage_increase')){pd+=(q.amount||0)*10;}mon.hp-=pd;this.addLog(`${mon.name} 中毒 -${pd}${mon.poisonCounters>1?`（${mon.poisonCounters}个指示物）`:''}`);}
       if(mon.status.includes('burn')){
         if(Math.random()<0.5){mon.status=mon.status.split(',').filter(s=>s!=='burn').join(',')||null;this.addLog(`${mon.name} 灼伤恢复`);}
         else{mon.hp-=20;this.addLog(`${mon.name} 灼伤 -20`);}
@@ -335,7 +336,7 @@ export class GameState {
     }
     return true;
   }
-  _removeSpecialConditions(mon){if(!mon)return;mon.status=null;mon.cannotAttackNext=false;mon.cannotRetreat=false;mon.preventDamage=false;mon.preventEffect=false;mon.attackShieldArmed=false;mon.damageMod=0;mon.damageReceivedMod=0;mon.ignore=[];mon.costEliminated=false;mon.retreatCostIncrease=0;mon.attackCostIncrease=0;}
+  _removeSpecialConditions(mon){if(!mon)return;mon.status=null;mon.poisonCounters=null;mon.cannotAttackNext=false;mon.cannotRetreat=false;mon.preventDamage=false;mon.preventEffect=false;mon.attackShieldArmed=false;mon.damageMod=0;mon.damageReceivedMod=0;mon.ignore=[];mon.costEliminated=false;mon.retreatCostIncrease=0;mon.attackCostIncrease=0;}
 
   retreat(pl,benchIndex,selectedEnergyIndices=null){if(pl.retreatUsed){this.addLog('本回合已撤退过');return false;}if(!pl.active||!pl.bench[benchIndex]){this.addLog('撤退目标不存在');return false;}
     const st=pl.active.status||'';if(st.includes('sleep')||st.includes('paralysis')||pl.active.cannotRetreat){this.addLog('无法撤退');return false;}

@@ -505,11 +505,15 @@ function _makeBenchPokemonFromCard(gs, cid) {
 
 // === 辅助 ===
 function _opponent(gs, pl) { return pl === gs.player1 ? gs.player2 : gs.player1; }
-function _applyStatus(mon, statuses) {
+function _applyStatus(mon, statuses, extra = null) {
   if (!mon || !statuses || !statuses.length) return;
   const cur = mon.status ? mon.status.split(',') : [];
   for (const s of statuses) { if (!cur.includes(s)) cur.push(s); }
   mon.status = cur.join(',') || null;
+  // 「因这个【中毒】而放置的伤害指示物数量变为N个」：记在这次中毒上，Checkup 时按 N 个结算
+  if (extra && extra.poisonCounters && statuses.includes('poison')) {
+    mon.poisonCounters = +extra.poisonCounters;
+  }
 }
 function _getMon(pl, slot) {
   if (slot === 'active') return pl.active;
@@ -1506,10 +1510,10 @@ const EXECUTORS = {
   inflict_status(gs, pl, p) {
     if (!_conditionSatisfied(gs, pl, p.condition)) return;
     const target = (p.target === 'attacker') ? pl.active : _opponent(gs, pl).active;
-    if (target && p.statuses) { if (gs._hasPassive?.(target, 'block_special_condition')) { gs.addLog('目标免疫特殊状态'); return; } const applied = (p.statuses||[]).filter(s => !(gs._passiveEffectsFor?.(target, 'block_status')||[]).some(e => e.params?.status === s)); if (!applied.length) { gs.addLog('目标免疫该状态'); return; } _applyStatus(target, applied); gs.addLog(`对手 ${applied.join('、')}`); }
+    if (target && p.statuses) { if (gs._hasPassive?.(target, 'block_special_condition')) { gs.addLog('目标免疫特殊状态'); return; } const applied = (p.statuses||[]).filter(s => !(gs._passiveEffectsFor?.(target, 'block_status')||[]).some(e => e.params?.status === s)); if (!applied.length) { gs.addLog('目标免疫该状态'); return; } _applyStatus(target, applied, p); gs.addLog(`对手 ${applied.join('、')}`); }
   },
   inflict_status_self(gs, pl, p) {
-    if (pl.active && p.statuses) { if (gs._hasPassive?.(pl.active, 'block_special_condition')) { gs.addLog('自身免疫特殊状态'); return; } const applied = (p.statuses||[]).filter(s => !(gs._passiveEffectsFor?.(pl.active, 'block_status')||[]).some(e => e.params?.status === s)); if (!applied.length) { gs.addLog('自身免疫该状态'); return; } _applyStatus(pl.active, applied); gs.addLog(`陷入 ${applied.join('、')}`); }
+    if (pl.active && p.statuses) { if (gs._hasPassive?.(pl.active, 'block_special_condition')) { gs.addLog('自身免疫特殊状态'); return; } const applied = (p.statuses||[]).filter(s => !(gs._passiveEffectsFor?.(pl.active, 'block_status')||[]).some(e => e.params?.status === s)); if (!applied.length) { gs.addLog('自身免疫该状态'); return; } _applyStatus(pl.active, applied, p); gs.addLog(`陷入 ${applied.join('、')}`); }
   },
   inflict_status_both(gs, pl, p) {
     const opp = _opponent(gs, pl);
