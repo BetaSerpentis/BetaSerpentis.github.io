@@ -88,6 +88,12 @@ export async function executeEffects(gs, player, effects, options = {}) {
   }
 }
 
+/** 道具显示名（与 GameState._toolLabel 同义，这里是模块级实现，供执行器使用） */
+function _toolLabelOf(gs, tool) {
+  if (!tool) return '道具';
+  return tool.name || (typeof tool === 'string' ? tool : '道具');
+}
+
 /** 返回宝可梦在己方场上的槽位名（'active' / 'bench-N'），不在场上返回 null */
 function _slotOfMon(pl, mon) {
   if (!pl || !mon) return null;
@@ -536,6 +542,22 @@ function _isOwnFirstTurn(gs, player) {
 }
 
 let _emitDepth = 0;
+/**
+ * 触发式效果的「附加条件」判定（卡面里「如果…的话，则…」那半句）。
+ * 目前支持三类，都是回合结束道具用到的：
+ *   damage_counters_at_least / has_special_condition / hp_at_most_with_counters
+ */
+function _triggerConditionMet(gs, mon, cond) {
+  if (!cond) return true;
+  const counters = Math.max(0, (mon.maxHp || 0) - (mon.hp || 0));
+  switch (cond.kind) {
+    case 'damage_counters_at_least': return counters >= (cond.count || 0) * 10;
+    case 'has_special_condition': return !!mon.status;
+    case 'hp_at_most_with_counters': return counters > 0 && (mon.hp || 0) <= (cond.hp || 0);
+    default: return true;
+  }
+}
+
 function _shouldTrigger(event, mon, payload, ownerPl) {
   switch (event) {
     case 'attacked_damage':
@@ -558,8 +580,12 @@ function _emitTriggers(gs, event, payload = {}) {
         const toolEffects = Array.isArray(mon.tool?.effects) ? mon.tool.effects : [];
         const effects = [...abilityEffects, ...toolEffects];
         for (const eff of effects) {
-          if (toolEffects.includes(eff) && mon !== pl.active) continue;
+          // 道具触发默认只对出战宝可梦生效（卡面写「在战斗场上」）；
+          // anyPosition 用于卡面只写「身上放有这张卡牌的宝可梦」的一族（文柚果等）
+          if (toolEffects.includes(eff) && mon !== pl.active && !eff.params?.anyPosition) continue;
           if (eff.action !== 'trigger' || eff.params?.event !== event) continue;
+          // 卡面「如果…的话」的附加条件不满足则不触发
+          if (!_triggerConditionMet(gs, mon, eff.params?.condition)) continue;
           // 依次执行全部内层效果（兼容旧的单 effect 结构）
           const innerList = Array.isArray(eff.params?.effects) && eff.params.effects.length
             ? eff.params.effects
@@ -572,7 +598,9 @@ function _emitTriggers(gs, event, payload = {}) {
             const execPl = (inner.params?.target === 'attacker' && payload.source)
               ? ([gs.player1, gs.player2].find(p => p.active === payload.source || p.bench?.includes(payload.source)) || pl)
               : pl;
-            try { Promise.resolve(fn(gs, execPl, inner.params || {}, eff)).catch(() => {}); } catch (e) { /* 忽略触发式执行错误 */ }
+            // triggerSource：内层效果需要知道「是哪只宝可梦触发的」（heal target:'trigger_source' 等）
+            const innerParams = { ...(inner.params || {}), triggerSource: mon };
+            try { Promise.resolve(fn(gs, execPl, innerParams, eff)).catch(() => {}); } catch (e) { /* 忽略触发式执行错误 */ }
           }
         }
       }
@@ -1196,6 +1224,8 @@ const EXECUTORS = {
   async heal(gs, pl, p, eff) {
     // 「恢复自己的身上附着能量的1只宝可梦「N」点HP」→ 需要选目标（且目标必须附有能量）
     let mon = pl.active;
+    // 触发式效果：目标是「触发的持有者」（文柚果等道具可能挂在备战宝可梦身上）
+    if (p.target === 'trigger_source' && p.triggerSource) mon = p.triggerSource;
     if (p.target === 'previous_switched') {
       // F 玛奥&水莲：「回复被换到备战区的宝可梦N点HP」
       const rec = gs._switchToBench;
@@ -1923,9 +1953,19 @@ const EXECUTORS = {
     gs.addLog(`对手下回合无法使用${p.what === 'item' ? '物品' : (p.what || '指定卡')}`);
   },
 
+  /** 「然后，将这张卡牌放于弃牌区」——触发式道具在触发后自弃（如文柚果/木子果/应急果冻） */
+  discard_self_tool(gs, pl, p) {
+    const mon = p?.triggerSource || pl.active;
+    if (!mon || !mon.tool) return;
+    (pl.discard = pl.discard || []).push(_toolCardValue(mon.tool));
+    gs.addLog(`${mon.name} 身上的「${_toolLabelOf(gs, mon.tool)}」被放入弃牌区`);
+    mon.tool = null;
+  },
+
   // ===== 特殊状态全恢复 =====
   heal_status(gs, pl, p) {
-    const target = p.target === 'opponent' ? _opponent(gs, pl).active : pl.active;
+    const target = p.target === 'trigger_source' && p.triggerSource ? p.triggerSource
+      : (p.target === 'opponent' ? _opponent(gs, pl).active : pl.active);
     if (target) { gs._removeSpecialConditions?.(target); gs.addLog('特殊状态全部恢复'); }
   },
 

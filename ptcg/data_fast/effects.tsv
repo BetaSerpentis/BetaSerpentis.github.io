@@ -1,4 +1,4 @@
-#eff1 hash=b39a5436738d752d
+#eff1 hash=af7f96eeca9c073d
 151C-001	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-002	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-003	ability		0	usage_condition	{"kind":"requires_active"}
@@ -23042,14 +23042,14 @@ SVP-287	trainer		0	tool_effect_nullify	{"scope":"both_field"}
 SVP-NaN1	trainer		0	usage_condition	{"kind":"generic_effect","raw":"双方所有\\"可达鸭\\"的【撤退】所需能量，各减少1个。"}
 SVP-NaN30	trainer		0	usage_condition	{"kind":"generic_effect","raw":"双方所有\\"可达鸭\\"的【撤退】所需能量，各减少1个。"}
 CS1DC-185	trainer		0	max_hp_mod	{"amount":30,"target":"self"}
-CS1DC-186	trainer		0	usage_condition	{"kind":"generic_effect","raw":"在双方的回合结束时，若身上放有这张卡的宝可梦身上放置有3个以上（包含3个）伤害指示物，则恢复该宝可梦\\"30\\"HP。然后，将这张卡丢到弃牌区。"}
+CS1DC-186	trainer		0	trigger	{"event":"checkup","anyPosition":true,"condition":{"kind":"damage_counters_at_least","count":3},"effects":[{"action":"heal","params":{"amount":30,"target":"trigger_source"}},{"action":"discard_self_tool","params":{}}]}
 CS1DC-187	trainer		0	passive_damage_mod	{"target":"self","amount":10}
 CS1DC-188	trainer		0	draw_until	{"target":7}
 CS1DC-189	trainer		0	retreat_cost_reduce	{"amount":2,"target":"self"}
 CS1DC-190	trainer		0	inflict_status	{"statuses":["burn"],"target":"attacker"}
-CS1DC-191	trainer		0	usage_condition	{"kind":"generic_effect","raw":"在双方的回合结束时，身上放有这张卡的宝可梦处于特殊状态，则恢复该宝可梦的所有特殊状态。然后，将这张卡丢到弃牌区。"}
+CS1DC-191	trainer		0	trigger	{"event":"checkup","anyPosition":true,"condition":{"kind":"has_special_condition"},"effects":[{"action":"heal_status","params":{"target":"trigger_source"}},{"action":"discard_self_tool","params":{}}]}
 CS1aC-125	trainer		0	max_hp_mod	{"amount":30,"target":"self"}
-CS1aC-126	trainer		0	usage_condition	{"kind":"generic_effect","raw":"在双方的回合结束时，若身上放有这张卡的宝可梦身上放置有3个以上（包含3个）伤害指示物，则恢复该宝可梦\\"30\\"HP。然后，将这张卡丢到弃牌区。"}
+CS1aC-126	trainer		0	trigger	{"event":"checkup","anyPosition":true,"condition":{"kind":"damage_counters_at_least","count":3},"effects":[{"action":"heal","params":{"amount":30,"target":"trigger_source"}},{"action":"discard_self_tool","params":{}}]}
 CS1aC-127	trainer		0	draw_until	{"target":7}
 CS1aC-128	trainer		0	mill	{"target":"opponent","count":2}
 CS1aC-216	trainer		0	max_hp_mod	{"amount":30,"target":"self"}
@@ -23057,7 +23057,7 @@ CS1bC-126	trainer		0	passive_damage_mod	{"target":"self","amount":10}
 CS1bC-127	trainer		0	prevent_effect	{"target":"own_field","source":"attack"}
 CS1bC-128	trainer		0	retreat_cost_reduce	{"amount":2,"target":"self"}
 CS1bC-129	trainer		0	inflict_status	{"statuses":["burn"],"target":"attacker"}
-CS1bC-130	trainer		0	usage_condition	{"kind":"generic_effect","raw":"在双方的回合结束时，身上放有这张卡的宝可梦处于特殊状态，则恢复该宝可梦的所有特殊状态。然后，将这张卡丢到弃牌区。"}
+CS1bC-130	trainer		0	trigger	{"event":"checkup","anyPosition":true,"condition":{"kind":"has_special_condition"},"effects":[{"action":"heal_status","params":{"target":"trigger_source"}},{"action":"discard_self_tool","params":{}}]}
 CS1bC-196	trainer		0	prevent_effect	{"target":"own_field","source":"attack"}
 CS1bC-197	trainer		0	retreat_cost_reduce	{"amount":2,"target":"self"}
 CS2.1C-005	trainer		0	prevent_effect	{"target":"own_field","source":"attack"}
@@ -23147,7 +23147,7 @@ CS5bC-119	trainer		0	passive_damage_mod	{"target":"self","amount":30,"defenderRu
 CS5bC-120	trainer		0	usage_condition	{"kind":"tool_immune_supporter","raw":"身上放有这张卡的\\"宝可梦【VSTAR】・【VMAX】\\"，当对手从手牌使出支援者时，不受其效果影响"}
 CS5bC-176	trainer		0	passive_damage_mod	{"target":"self","amount":30,"defenderRule":"宝可梦V"}
 CS5bC-177	trainer		0	usage_condition	{"kind":"tool_immune_supporter","raw":"身上放有这张卡的\\"宝可梦【VSTAR】・【VMAX】\\"，当对手从手牌使出支援者时，不受其效果影响"}
-CS6.5C-064	trainer		0	usage_condition	{"kind":"generic_effect","raw":"在双方的回合结束时，若身上放有这张卡的宝可梦的剩余HP在\\"30\\"点以下（包含30点）且身上放置有伤害指示物，则恢复该宝可梦\\"120\\"HP。然后，将这张卡丢到弃牌区。"}
+CS6.5C-064	trainer		0	trigger	{"event":"checkup","anyPosition":true,"condition":{"kind":"hp_at_most_with_counters","hp":30},"effects":[{"action":"heal","params":{"amount":120,"target":"trigger_source"}},{"action":"discard_self_tool","params":{}}]}
 CS6.5C-065	trainer		0	prevent_damage	{"source":"attack"}
 CS6.5C-066	trainer		0	usage_condition	{"kind":"vstar_tool_ability","raw":"身上放有这张卡的\\"宝可梦V\\"，可使用这个【VSTAR】力量"}
 CS6.5C-066	trainer		1	search_deck_to_hand	{"filter":null,"count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
@@ -23243,12 +23243,12 @@ CSM2aC-135	toolattack	巨龙燃烧GX	1	usage_condition	{"kind":"gx_once_per_game
 CSM2aC-135	toolattack	巨龙燃烧GX	2	usage_condition	{"kind":"residual_sentence","raw":"区，造成其张数×80伤害。"}
 CSM2aC-136	trainer		0	usage_condition	{"kind":"generic_effect","raw":"身上放有这张卡的\\"究极异兽\\"使用的招式，给对手战斗宝可梦造成的伤害，会因自己已经获得的每张奖赏卡而\\"+10\\"。"}
 CSM2aC-137	trainer		0	usage_condition	{"kind":"generic_effect","raw":"身上放有这张卡的【撤退】所需能量为4个的宝可梦的最大HP提高\\"50\\"点。"}
-CSM2aC-138	trainer		0	damage_received_mod	{"amount":-70,"target":"self"}
-CSM2aC-138	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"放置于宝可梦身上的这张卡，将在对手的回合结束时被丢到弃牌区。"}
+CSM2aC-138	trainer		0	tool_opponent_turn_end_discard	{}
+CSM2aC-138	trainer		1	damage_received_mod	{"amount":-70,"target":"self"}
 CSM2aC-139	trainer		0	retreat_cost_reduce	{"amount":1,"target":"self"}
 CSM2aC-139	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"当这张卡，要被从场上丢到弃牌区时，不会被丢到弃牌区，而是被放回手牌。"}
-CSM2aC-191	trainer		0	damage_received_mod	{"amount":-70,"target":"self"}
-CSM2aC-191	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"放置于宝可梦身上的这张卡，将在对手的回合结束时被丢到弃牌区。"}
+CSM2aC-191	trainer		0	tool_opponent_turn_end_discard	{}
+CSM2aC-191	trainer		1	damage_received_mod	{"amount":-70,"target":"self"}
 CSM2aC-192	trainer		0	retreat_cost_reduce	{"amount":1,"target":"self"}
 CSM2aC-192	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"当这张卡，要被从场上丢到弃牌区时，不会被丢到弃牌区，而是被放回手牌。"}
 CSM2bC-132	trainer		0	usage_condition	{"kind":"generic_effect","raw":"身上放有这张卡的宝可梦，不会受到对手宝可梦的特性效果影响。"}
@@ -23262,8 +23262,8 @@ CSM2bC-134	toolattack	冲刺攻击GX	1	usage_condition	{"kind":"gx_once_per_game
 CSM2bC-135	trainer		0	extra_prize	{"count":1}
 CSM2bC-135	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"当自己的剩余奖赏卡张数为6张时，因身上放有这张卡的\\"究极异兽\\"的招式的伤害，而导致对手战斗场上的\\"宝可梦GX・EX\\"【昏厥】时，。"}
 CSM2bC-191	trainer		0	attack_cost_reduction	{"target":"self","type":"colorless","amount":1}
-CSM2cC-133	trainer		0	damage_place	{"target":"attacker","count":10}
-CSM2cC-133	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"放置于宝可梦身上的这张卡，将在对手的回合结束时被丢到弃牌区。"}
+CSM2cC-133	trainer		0	tool_opponent_turn_end_discard	{}
+CSM2cC-133	trainer		1	damage_place	{"target":"attacker","count":10}
 CSM2cC-133	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"身上放有这张卡的宝可梦，在战斗场上受到对手宝可梦的\\"180\\"点以上（包含180）的招式的伤害时，。"}
 CSM2cC-134	trainer		0	usage_condition	{"kind":"tool_hp_bench_cond","raw":"身上放有这张卡的\\"宝可梦GX\\"，最大HP会提高\\"20\\"点，并且只要处于备战区，就"}
 CSM2cC-134	trainer		1	prevent_damage	{"source":"attack"}
@@ -23274,8 +23274,8 @@ CSM2cC-135	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"【无�
 CSM2cC-135	toolattack	俯冲轰裂撞GX	0	prevent_damage_effect	{"duration":"next_opp_turn"}
 CSM2cC-135	toolattack	俯冲轰裂撞GX	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM2cC-136	trainer		0	prevent_damage	{"source":"attack"}
-CSM2cC-190	trainer		0	damage_place	{"target":"attacker","count":10}
-CSM2cC-190	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"放置于宝可梦身上的这张卡，将在对手的回合结束时被丢到弃牌区。"}
+CSM2cC-190	trainer		0	tool_opponent_turn_end_discard	{}
+CSM2cC-190	trainer		1	damage_place	{"target":"attacker","count":10}
 CSM2cC-190	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"身上放有这张卡的宝可梦，在战斗场上受到对手宝可梦的\\"180\\"点以上（包含180）的招式的伤害时，。"}
 CSMAC-010	trainer		0	passive_damage_mod	{"target":"self","amount":30,"defenderRule":"宝可梦GX・EX"}
 CSMPcC-018	trainer		0	usage_condition	{"kind":"retreat_energy_to_hand","raw":"身上放有这张卡的宝可梦【撤退】时，其【撤退】所需能量不会被丢到弃牌区，而是会被放回手牌"}

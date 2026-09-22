@@ -138,16 +138,6 @@ export class GameState {
         this.addLog(`${mon.name} 的招式防护已结束`);
       }
     }
-    // 1.5 「招式学习器」类道具：自己的回合结束时自动放入弃牌区
-    //     （如「招式学习器 退化」：附着的回合结束就要进弃牌区，原实现漏了）
-    for(const mon of[this.currentPlayer.active,...this.currentPlayer.bench]){
-      if(!mon?.tool)continue;
-      const toolEffects=Array.isArray(mon.tool.effects)?mon.tool.effects:[];
-      if(!toolEffects.some(e=>e.action==='tool_end_of_turn_discard'))continue;
-      this.currentPlayer.discard.push(this._toolCardValue(mon.tool));
-      this.addLog(`${mon.name} 身上的「${this._toolLabel(mon.tool)}」被放入弃牌区`);
-      mon.tool=null;
-    }
     // 1.6 清除「反射屏障」类反伤标记：只在“下个对手回合”有效，
     //     所以对手回合结束时（currentPlayer 不是标记所有者）清除
     for(const pl of[this.player1,this.player2]){
@@ -168,6 +158,21 @@ export class GameState {
       if(mon.hp<=0){this.knockout(pl);}
     }
     this.emitTriggerEvent('checkup',{});
+    // 1.5' 「回合结束时自动弃置」类道具：
+    //   - 自己的回合结束时（招式学习器类，action=tool_end_of_turn_discard）→ 结束回合的这一方
+    //   - 对手的回合结束时（金属核心屏障/巨型炸弹，tool_opponent_turn_end_discard）→ 另一方
+    // ⚠️ 必须放在 checkup **之后**：文柚果/木子果/应急果冻 是「双方的回合结束时」触发的，
+    //    先弃卡就再也触发不了了（原实现把这段放在 checkup 之前，属于顺序错误）。
+    for(const [owner,marker] of [[this.currentPlayer,'tool_end_of_turn_discard'],[this.getOpponent(this.currentPlayer),'tool_opponent_turn_end_discard']]){
+      for(const mon of[owner.active,...(owner.bench||[])]){
+        if(!mon?.tool)continue;
+        const toolEffects=Array.isArray(mon.tool.effects)?mon.tool.effects:[];
+        if(!toolEffects.some(e=>e.action===marker))continue;
+        owner.discard.push(this._toolCardValue(mon.tool));
+        this.addLog(`${mon.name} 身上的「${this._toolLabel(mon.tool)}」被放入弃牌区`);
+        mon.tool=null;
+      }
+    }
     if(this.firstPlayerFirstTurnInProgress&&this.currentPlayer===this.firstPlayer)this.firstPlayerFirstTurnInProgress=false;
     this.currentPlayer.supporterUsed=false;this.currentPlayer.energyAttached=false;this.currentPlayer.retreatUsed=false;this.currentPlayer.stadiumPlayedThisTurn=false;this.currentPlayer.abilityUsedThisTurn={};this.currentPlayer.stadiumUsedThisTurn={};this.currentPlayer.turnAttackModifiers=[];
     this.currentPlayer.playRestrictions=null;

@@ -7300,6 +7300,108 @@ await test('LZ 兜底规则已移除：无法识别的放逐区句子不再假�
   assert.ok(e.some(x => x.action === 'usage_condition'), '应落成未建模标记，指标上可见');
 });
 
+
+// ============================================================
+//  ③(a)(b) 回合结束道具：自动弃置 / 文柚果一族触发式
+// ============================================================
+
+// 触发式效果由 EffectExecutor 注入的 _triggerHandler 驱动，测试里先 bootstrap 一次
+async function bootTriggers(gs) { await executeEffects(gs, gs.player1, []); }
+const YACHE = '在双方的回合结束时，如果身上放有这张卡牌的宝可梦身上放置有3个以上（包含3个）伤害指示物的话，则回复该宝可梦「30」点HP。然后，将这张卡牌放于弃牌区。';
+
+await test('TE(b) 文柚果一族解析为 checkup 触发器（含条件与自弃）', () => {
+  const e = parseEffect(YACHE).effects;
+  assert.equal(e.length, 1);
+  assert.equal(e[0].action, 'trigger');
+  assert.equal(e[0].params.event, 'checkup', '「双方的回合结束时」= 引擎的 checkup 时点');
+  assert.equal(e[0].params.anyPosition, true, '卡面只写「身上放有这张卡牌的宝可梦」，不限出战位');
+  assert.deepEqual(e[0].params.condition, { kind:'damage_counters_at_least', count:3 });
+  assert.deepEqual(e[0].params.effects.map(x => x.action), ['heal', 'discard_self_tool']);
+  assert.equal(e[0].params.effects[0].params.target, 'trigger_source', '回复的是持有者');
+
+  const m = parseEffect('在双方的回合结束时，身上放有这张卡牌的宝可梦处于特殊状态的话，则恢复该宝可梦的所有特殊状态。然后，将这张卡牌放于弃牌区。').effects;
+  assert.deepEqual(m[0].params.condition, { kind:'has_special_condition' });
+  assert.deepEqual(m[0].params.effects.map(x => x.action), ['heal_status', 'discard_self_tool']);
+
+  const j = parseEffect('在双方的回合结束时，如果身上放有这张卡牌的宝可梦的剩余HP在「30」点以下（包含30点）且身上放置有伤害指示物的话，则回复该宝可梦「120」点HP。然后，将这张卡牌放于弃牌区。').effects;
+  assert.deepEqual(j[0].params.condition, { kind:'hp_at_most_with_counters', hp:30 });
+  assert.equal(j[0].params.effects[0].params.amount, 120);
+});
+
+await test('TE(a) 「对手的回合结束时被放于弃牌区」解析为对手回合弃置标记', () => {
+  const e = parseEffect('放于宝可梦身上的这张卡牌，将在对手的回合结束时被放于弃牌区。').effects;
+  assert.ok(e.some(x => x.action === 'tool_opponent_turn_end_discard'), '应解析出对手回合弃置标记');
+});
+
+await test('TE(b) 备战区持有者也能触发，且触发后道具进弃牌区', async () => {
+  const eff = parseEffect(YACHE).effects;
+  const gs = new GameState();
+  await bootTriggers(gs);
+  const pl = gs.player1;
+  pl.active = mon('前排', 'a1');
+  const holder = mon('后排', 'b1');
+  holder.hp = 30; // 3 个伤害指示物
+  holder.tool = { cardId:'tool1', name:'文柚果', effects: eff };
+  pl.bench = [holder];
+  pl.discard = [];
+  gs.emitTriggerEvent('checkup', {});
+  await new Promise(r => setTimeout(r, 5));
+  assert.equal(holder.hp, 60, '应回复 30 点（30 → 60）');
+  assert.equal(holder.tool, null, '触发后道具应进弃牌区');
+  assert.equal(pl.discard.length, 1, '道具应真的进了弃牌区');
+});
+
+await test('TE(b) 条件不满足时不触发、也不弃卡', async () => {
+  const eff = parseEffect(YACHE).effects;
+  const gs = new GameState();
+  await bootTriggers(gs);
+  const pl = gs.player1;
+  pl.active = mon('前排', 'a1');
+  const holder = mon('后排', 'b1');
+  holder.hp = 40; // 只有 2 个伤害指示物（不足 3 个）
+  holder.tool = { cardId:'tool1', name:'文柚果', effects: eff };
+  pl.bench = [holder];
+  pl.discard = [];
+  gs.emitTriggerEvent('checkup', {});
+  await new Promise(r => setTimeout(r, 5));
+  assert.equal(holder.hp, 40, '条件不满足不应回复');
+  assert.ok(holder.tool, '条件不满足不应弃卡');
+});
+
+await test('TE 顺序：endTurn 里道具必须在 checkup 触发之后才被弃置', async () => {
+  const eff = parseEffect(YACHE).effects;
+  const gs = new GameState();
+  await bootTriggers(gs);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('前排', 'a1');
+  opp.active = mon('敌方', 'o1');
+  const holder = mon('后排', 'b1');
+  holder.hp = 30;
+  holder.tool = { cardId:'tool1', name:'文柚果', effects: eff };
+  pl.bench = [holder];
+  pl.discard = [];
+  pl.deck = ['x1', 'x2', 'x3'];
+  opp.deck = ['y1', 'y2', 'y3'];
+  pl.prizes = ['p']; opp.prizes = ['q'];
+  gs.endTurn();
+  assert.equal(holder.hp, 60, '回合结束时应先触发回复');
+  assert.equal(holder.tool, null, '然后再把道具放进弃牌区');
+});
+
+await test('TE(a) 「对手的回合结束时弃置」的归属方是持有者的对手', async () => {
+  const eff = parseEffect('放于宝可梦身上的这张卡牌，将在对手的回合结束时被放于弃牌区。').effects;
+  const gs = new GameState();
+  await bootTriggers(gs);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('我方', 'a1');
+  opp.active = mon('敌方', 'o1');
+  opp.active.tool = { cardId:'t9', name:'金属核心屏障', effects: eff };
+  pl.deck = ['x1', 'x2']; opp.deck = ['y1', 'y2'];
+  pl.prizes = ['p']; opp.prizes = ['q'];
+  gs.endTurn(); // 我方回合结束 —— 对持有者(玩家2)而言这正是「对手的回合」
+  assert.equal(opp.active.tool, null, '持有者的对手回合结束时应弃置');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

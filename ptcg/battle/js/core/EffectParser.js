@@ -477,6 +477,16 @@ const RULES = [
   // 莎莉娜 分支2「选择对手备战区的1只「宝可梦V」，将其与战斗宝可梦互换」
   { re: /选择对手备战区的1只["“”「」]?[^"“”「」]{0,8}["“”「」]?[，,]?将其与战斗宝可梦互换/, act:'switch_pokemon', p:()=>({ who:'opponent' }) },
 
+  // ===== P2-TE 回合结束（道具）=====
+  // (a) 对手的回合结束时自动弃置（金属核心屏障 / 巨型炸弹）；自己回合那半已有 tool_end_of_turn_discard
+  { re: /放置?于宝可梦身上的这张卡(?:牌)?[，,]?(?:将)?在对手的回合结束时被(?:丢到弃牌区|放于弃牌区)/, act:'tool_opponent_turn_end_discard', p:()=>({}) },
+  // (b) 文柚果 / 木子果 / 应急果冻：「在双方的回合结束时」= 引擎的 checkup 时点
+  //     触发式道具默认只对出战宝可梦生效（幸运头盔等卡面写「在战斗场上」），
+  //     这一族卡面只写「身上放有这张卡牌的宝可梦」不限位置 → 用 anyPosition 放宽
+  { re: /在双方的回合结束时[，,]?(?:如果|若)身上放有这张卡(?:牌)?的宝可梦身上放置有(\d+)个以上（包含\d+个）伤害指示物(?:的话)?[，,]?则(?:回复|恢复)该宝可梦["“”「」]?(\d+)["“”「」]?(?:点)?HP。然后[，,]?将这张卡(?:牌)?(?:丢到|放于)弃牌区/, act:'trigger', p:m=>({ event:'checkup', anyPosition:true, condition:{ kind:'damage_counters_at_least', count:+m[1] }, effects:[{ action:'heal', params:{ amount:+m[2], target:'trigger_source' } }, { action:'discard_self_tool', params:{} }] }) },
+  { re: /在双方的回合结束时[，,]?身上放有这张卡(?:牌)?的宝可梦处于特殊状态(?:的话)?[，,]?则(?:恢复|回复)该宝可梦的所有特殊状态。然后[，,]?将这张卡(?:牌)?(?:丢到|放于)弃牌区/, act:'trigger', p:()=>({ event:'checkup', anyPosition:true, condition:{ kind:'has_special_condition' }, effects:[{ action:'heal_status', params:{ target:'trigger_source' } }, { action:'discard_self_tool', params:{} }] }) },
+  { re: /在双方的回合结束时[，,]?(?:如果|若)身上放有这张卡(?:牌)?的宝可梦的剩余HP在["“”「」]?(\d+)["“”「」]?点以下（包含\d+点）且身上放置有伤害指示物(?:的话)?[，,]?则(?:回复|恢复)该宝可梦["“”「」]?(\d+)["“”「」]?(?:点)?HP。然后[，,]?将这张卡(?:牌)?(?:丢到|放于)弃牌区/, act:'trigger', p:m=>({ event:'checkup', anyPosition:true, condition:{ kind:'hp_at_most_with_counters', hp:+m[1] }, effects:[{ action:'heal', params:{ amount:+m[2], target:'trigger_source' } }, { action:'discard_self_tool', params:{} }] }) },
+
   // ===== P2 批 4 =====
   // D/D2「将剩余的卡牌丢到弃牌区 / 全部翻到反面重洗放回牌库下方」：
   // 指的是前一句「查看牌库上方 N 张，选其中 M 张加入手牌」剩下没拿的那些 → 并入 peek_and_keep
