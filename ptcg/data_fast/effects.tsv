@@ -1,4 +1,4 @@
-#eff1 hash=13aa77e32e7d5b3b
+#eff1 hash=ca0722c4ce06471b
 151C-001	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-002	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-003	ability		0	usage_condition	{"kind":"requires_active"}
@@ -21412,7 +21412,7 @@ CSM2DC-348	trainer		0	trainer_prerequisite	{"kind":"discard_cost","raw":"这张�
 CSM2DC-348	trainer		1	draw	{"count":4}
 CSM2DC-349	trainer		0	attach_energy_from_hand	{"filter":"【火】能量","target":"any","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CSM2DC-349	trainer		1	draw	{"count":3}
-CSM2aC-140	trainer		0	usage_condition	{"kind":"generic_effect","raw":"在这个回合，使用了这张卡后，首次由于招式、特性、训练家的效果自己掷硬币时，其第一次的结果，可由自己决定是正面还是反面。"}
+CSM2aC-140	trainer		0	coin_choice_this_turn	{}
 CSM2aC-141	trainer		0	usage_condition	{"kind":"generic_effect","raw":"在这个回合，自己的\\"究极异兽\\"所使用的招式的伤害，不计算对手战斗宝可梦身上所附加的效果。"}
 CSM2aC-142	trainer		0	search_deck_to_hand	{"filter":"支援者","count":3,"maxCount":3,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CSM2aC-142	trainer		1	shuffle_deck	{}
@@ -21429,7 +21429,7 @@ CSM2aC-147	trainer		0	switch_pokemon	{"who":"self"}
 CSM2aC-147	trainer		1	optional_hand_cost	{"count":2,"then":[{"action":"heal","params":{"amount":120,"target":"previous_switched"}}]}
 CSM2aC-148	trainer		0	trainer_prerequisite	{"kind":"own_prizes_more_than_opponent","raw":"这张卡，只有在自己的剩余奖赏卡张数，比对手的剩余奖赏卡张数多时才可使用"}
 CSM2aC-148	trainer		1	usage_condition	{"kind":"supporter_limit_set","raw":"在这个回合，自己可使用的支援者数量变为3张"}
-CSM2aC-179	trainer		0	usage_condition	{"kind":"generic_effect","raw":"在这个回合，使用了这张卡后，由于招式、特性、训练家的效果自己掷硬币时，其第一次的结果，可由自己决定是正面还是反面。"}
+CSM2aC-179	trainer		0	coin_choice_this_turn	{}
 CSM2aC-180	trainer		0	search_deck_to_hand	{"filter":"支援者","count":3,"maxCount":3,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CSM2aC-180	trainer		1	shuffle_deck	{}
 CSM2aC-181	trainer		0	usage_condition	{"kind":"move_counters_opp","raw":"将对手场上1只宝可梦身上放置的最多3个伤害指示物，转放置于对手1只其他宝可梦身上"}

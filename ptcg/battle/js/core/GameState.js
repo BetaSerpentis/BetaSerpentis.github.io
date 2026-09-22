@@ -187,6 +187,7 @@ export class GameState {
       }
     }
     if(this.firstPlayerFirstTurnInProgress&&this.currentPlayer===this.firstPlayer)this.firstPlayerFirstTurnInProgress=false;
+    this.currentPlayer.coinChoiceArmed=false; // 一树：只在使用的那个回合有效
     this.currentPlayer.supporterUsed=false;this.currentPlayer.energyAttached=false;this.currentPlayer.retreatUsed=false;this.currentPlayer.stadiumPlayedThisTurn=false;this.currentPlayer.abilityUsedThisTurn={};this.currentPlayer.stadiumUsedThisTurn={};this.currentPlayer.turnAttackModifiers=[];
     this.currentPlayer.playRestrictions=null;
     this.temporaryAbilityLocks=(this.temporaryAbilityLocks||[]).filter(lock=>lock.expires!=='turn'&&lock.owner!==this.currentPlayer);

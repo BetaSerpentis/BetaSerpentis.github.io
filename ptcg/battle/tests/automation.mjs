@@ -7919,6 +7919,64 @@ await test('k3 没写 damagePerCard 时行为不变', async () => {
   assert.equal(opp.active.hp, hp0, '没有 damagePerCard 就不该造成伤害');
 });
 
+
+// ============================================================
+//  k4 一树：本回合第一次由效果触发的掷硬币，结果可由自己决定
+// ============================================================
+
+const ICHIKU = '在这个回合，使用了这张卡牌后，首次由于招式、特性、训练家的效果自己抛掷硬币时，其第一次的结果，可由自己决定是正面还是反面。';
+
+await test('k4 一树两种措辞都能解析', () => {
+  assert.deepEqual(parseEffect(ICHIKU).effects.map(e => e.action), ['coin_choice_this_turn']);
+  const short = '在这个回合，使用了这张卡牌后，由于招式、特性、训练家的效果自己抛掷硬币时，其第一次的结果，可由自己决定是正面还是反面。';
+  assert.deepEqual(parseEffect(short).effects.map(e => e.action), ['coin_choice_this_turn']);
+  assert.ok(!parseEffect(ICHIKU).effects.some(e => e.params?.kind === 'residual_sentence'), '不应残留未建模标记');
+});
+
+await test('k4 一树：第一次掷硬币可选结果，用掉后恢复随机', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  gs.phase = PHASE.MAIN;
+  const pl = gs.player1;
+  pl.active = mon('我', 'a1');
+  pl.deck = ['d1', 'd2', 'd3'];
+  pl.hand = [];
+  await executeEffects(gs, pl, parseEffect(ICHIKU).effects);
+  assert.equal(pl.coinChoiceArmed, true, '应武装标记');
+
+  // 模拟 UI：选「反面」（索引 1）→ 正面分支不应执行
+  let pending = null;
+  gs._onPendingPick = p => { pending = p; };
+  const running = executeEffects(gs, pl, [{ action:'coin_flip', params:{ count:1, heads:[{ action:'draw', params:{ count:1 } }] } }]);
+  await new Promise(r => setTimeout(r, 0));
+  assert.ok(pending, '应弹出硬币结果选择');
+  assert.deepEqual(pending.cards, ['正面', '反面']);
+  gs.resolvePick([1]);
+  await running;
+  assert.equal(pl.hand.length, 0, '选反面时正面分支不执行');
+  assert.equal(pl.coinChoiceArmed, false, '标记应被用掉');
+
+  // 第二次回到随机：Math.random()=0 → 正面 → 抽 1 张
+  const saved = Math.random;
+  Math.random = () => 0;
+  try { await executeEffects(gs, pl, [{ action:'coin_flip', params:{ count:1, heads:[{ action:'draw', params:{ count:1 } }] } }]); }
+  finally { Math.random = saved; }
+  assert.equal(pl.hand.length, 1, '第二次应恢复随机判定');
+});
+
+await test('k4 一树：自动决策（无 UI）按正面处理', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  pl.active = mon('我', 'a1');
+  pl.deck = ['d1', 'd2'];
+  pl.hand = [];
+  pl.coinChoiceArmed = true; // 相当于已使用一树
+  await executeEffects(gs, pl, [{ action:'coin_flip', params:{ count:1, heads:[{ action:'draw', params:{ count:1 } }] } }]);
+  assert.equal(pl.hand.length, 1, '无 UI 时应按正面处理（分支执行）');
+  assert.equal(pl.coinChoiceArmed, false, '标记应被用掉');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

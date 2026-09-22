@@ -107,6 +107,30 @@ function _applyCountedDamage(gs, pl, p, movedCount) {
 }
 
 /**
+ * 掷硬币的**唯一入口**（效果驱动的掷硬币都走这里）。
+ * 集中处理「一树」类效果：「在这个回合，使用了这张卡后，首次由于招式、特性、训练家的效果
+ * 自己掷硬币时，其第一次的结果，可由自己决定是正面还是反面。」
+ * 注意：中毒/灼伤/睡眠的恢复判定不属于「招式/特性/训练家的效果」，不走这里。
+ */
+async function _flipCoin(gs, pl) {
+  if (pl && pl.coinChoiceArmed) {
+    pl.coinChoiceArmed = false;
+    if (pl === gs.player1 && gs._onPendingPick) {
+      const picked = await gs.waitForPick(['正面', '反面'], 1, {
+        source: 'coin-choice', prompt: '选择这次硬币的结果', minCount:1, maxCount:1,
+      });
+      const heads = (picked?.[0] ?? 0) === 0;
+      gs.addLog(`（一树）本次硬币结果选为${heads ? '正面' : '反面'}`);
+      return heads;
+    }
+    // 自动决策（AI/无 UI）：按正面处理（对使用者有利）
+    gs.addLog('（一树）本次硬币结果按正面处理');
+    return true;
+  }
+  return Math.random() < 0.5;
+}
+
+/**
  * 附能后发出 energy_attached 事件，供「每次将【X】能量附着于这只宝可梦身上时」这类触发式效果。
  * 约定：
  *   · 只有「附着」才发事件；**能量在宝可梦之间移动不算附着**（那些地方不调本函数）
@@ -1812,7 +1836,7 @@ const EXECUTORS = {
   async coin_flip(gs, pl, p) {
     const count = p.count || 1;
     let heads = 0;
-    for (let i = 0; i < count; i++) { if (Math.random() < 0.5) heads++; }
+    for (let i = 0; i < count; i++) { if (await _flipCoin(gs, pl)) heads++; }
     gs.addLog(`掷${count}次硬币: ${heads}正${count - heads}反`);
     if (p.fail_on_tails && heads < count) { gs.addLog('招式失败'); throw new Error('attack_failed'); }
     if (p.heads && heads > 0) {
@@ -1821,7 +1845,7 @@ const EXECUTORS = {
     return { heads, tails: count - heads };
   },
   async coin_flip_status(gs, pl, p) {
-    if (Math.random() < 0.5) {
+    if (await _flipCoin(gs, pl)) {
       const opp = _opponent(gs, pl);
       if (opp.active && p.statuses) { _applyStatus(opp.active, p.statuses); gs.addLog(`硬币正面→${p.statuses.join('、')}`); }
     } else { gs.addLog('硬币反面'); }
@@ -1829,7 +1853,7 @@ const EXECUTORS = {
   async coin_flip_damage(gs, pl, p) {
     const count = p.count || 1;
     let heads = 0;
-    for (let i = 0; i < count; i++) { if (Math.random() < 0.5) heads++; }
+    for (let i = 0; i < count; i++) { if (await _flipCoin(gs, pl)) heads++; }
     const damagePer = Number.isFinite(p.damage_per) ? p.damage_per : (Number.isFinite(p.damage) ? p.damage : 20);
     const extra = heads * damagePer;
     const opp = _opponent(gs, pl);
@@ -1838,7 +1862,7 @@ const EXECUTORS = {
   },
   async coin_flip_until_tails(gs, pl, p) {
     let heads = 0;
-    while (Math.random() >= 0.5) heads++;
+    while (await _flipCoin(gs, pl)) heads++;
     const extra = heads * (p.damage_per || 20);
     const opp = _opponent(gs, pl);
     if (opp.active && extra > 0) { opp.active.hp -= extra; gs.addLog(`掷至反面+${extra}`); if (opp.active.hp <= 0) gs.knockout(opp); }
@@ -2026,6 +2050,12 @@ const EXECUTORS = {
     opp.playRestrictions = opp.playRestrictions || {};
     opp.playRestrictions[p.what || 'item'] = 'next_opp_turn';
     gs.addLog(`对手下回合无法使用${p.what === 'item' ? '物品' : (p.what || '指定卡')}`);
+  },
+
+  /** 一树：本回合第一次由效果触发的掷硬币可由自己决定结果（记一个一次性标记） */
+  coin_choice_this_turn(gs, pl) {
+    pl.coinChoiceArmed = true;
+    gs.addLog('本回合首次掷硬币的结果可由自己决定');
   },
 
   /**
