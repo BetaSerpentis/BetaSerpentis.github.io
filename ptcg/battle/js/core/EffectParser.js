@@ -477,7 +477,13 @@ const RULES = [
   // 莎莉娜 分支2「选择对手备战区的1只「宝可梦V」，将其与战斗宝可梦互换」
   { re: /选择对手备战区的1只["“”「」]?[^"“”「」]{0,8}["“”「」]?[，,]?将其与战斗宝可梦互换/, act:'switch_pokemon', p:()=>({ who:'opponent' }) },
 
-  // ===== P2-TE 回合结束（道具）=====
+  // ===== P2-EV 事件触发条件（妙蛙花&藤藤蛇GX「光辉蔓藤」）=====
+  // 「在自己的回合，每次从自己的手牌将【草】能量附着于这只宝可梦身上时，可使用1次。<效果>」
+  // 触发句本身不产出效果，**后续动作由解析末尾收进 trigger.effects**
+  //（与「可选代价」同一机制），这样一行卡面就是一个触发器而不是「使用特性时立刻执行」。
+  { re: /在自己的回合[，,]?每次从自己的手牌将【(.+?)】能量附(?:着)?于这只宝可梦身上时[，,]?可使用1次/, act:'trigger', p:m=>({ event:'energy_attached', condition:{ owner:'self', toSelf:true, fromHand:true, energyFilter:`【${m[1]}】能量` }, effects:[] }) },
+
+  // ===== P2-TE 回合结束（道具）======
   // (a) 对手的回合结束时自动弃置（金属核心屏障 / 巨型炸弹）；自己回合那半已有 tool_end_of_turn_discard
   { re: /放置?于宝可梦身上的这张卡(?:牌)?[，,]?(?:将)?在对手的回合结束时被(?:丢到弃牌区|放于弃牌区)/, act:'tool_opponent_turn_end_discard', p:()=>({}) },
   // (b) 文柚果 / 木子果 / 应急果冻：「在双方的回合结束时」= 引擎的 checkup 时点
@@ -1937,6 +1943,23 @@ export function parseEffect(text) {
       effects.length = 0;
       for (const e of kept) effects.push(e);
     }
+  }
+  // 「触发句 + 后续效果」：把空的 trigger 后面的动作收进它的 effects
+  // （妙蛙花&藤藤蛇GX「光辉蔓藤」这类：前半句定义触发时机，后半句才是触发后要做的事）
+  for (let i = 0; i < effects.length; i++) {
+    const tr = effects[i];
+    if (tr.action !== 'trigger' || (Array.isArray(tr.params?.effects) && tr.params.effects.length)) continue;
+    const tail = effects.slice(i + 1).filter(e => e.action !== 'usage_condition' && e.action !== 'trainer_prerequisite');
+    if (!tail.length) continue;
+    tr.params = { ...tr.params, effects: tail };
+    // ⚠️ 只移除真正被收进 effects 的那些，不要截断数组：
+    //    触发器后面可能还有**不属于触发内容**的顶层元数据（如 requires_active 发动前提，
+    //    它要留在顶层给 _abilityUsageFailure 读）。
+    const drop = new Set(tail);
+    const kept = effects.filter(e => e === tr || !drop.has(e));
+    effects.length = 0;
+    for (const e of kept) effects.push(e);
+    break;
   }
   const out = finalizeCoverage(effects, text, remaining);
   sanitizeFilters(out.effects);

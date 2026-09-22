@@ -1,4 +1,4 @@
-#eff1 hash=af7f96eeca9c073d
+#eff1 hash=2e729757a9b3d605
 151C-001	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-002	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-003	ability		0	usage_condition	{"kind":"requires_active"}
@@ -9604,9 +9604,8 @@ CSM2.1C-054	attack	1	0	attach_energy_from_hand	{"filter":"能量","target":"any"
 CSM2.1C-054	attack	2	0	conditional_damage_mod	{"condition":"opponent_active_is_evolved","amount":120,"mode":"fixed"}
 CSM2.1C-054	attack	3	0	usage_condition	{"kind":"draw_until_extra_energy","raw":"若追加附着1个能量，则从自己的牌库抽出卡牌，直到自己的手牌变为10张为止"}
 CSM2.1C-054	attack	3	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
-CSM2.5C-001	ability		0	usage_condition	{"kind":"requires_active"}
-CSM2.5C-001	ability		1	switch_pokemon	{"who":"opponent"}
-CSM2.5C-001	ability		2	usage_condition	{"kind":"residual_sentence","raw":"在自己的回合，每次从自己的手牌将【草】能量附于这只宝可梦身上时，可使用1次。"}
+CSM2.5C-001	ability		0	trigger	{"event":"energy_attached","condition":{"owner":"self","toSelf":true,"fromHand":true,"energyFilter":"【草】能量"},"effects":[{"action":"switch_pokemon","params":{"who":"opponent"}}]}
+CSM2.5C-001	ability		1	usage_condition	{"kind":"requires_active"}
 CSM2.5C-001	attack	2	0	damage_bench	{"target":"opponent_all_field","damage":50}
 CSM2.5C-001	attack	2	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM2.5C-001	attack	2	2	usage_condition	{"kind":"residual_sentence","raw":"若追加附着2个能量，则将自己所有宝可梦的HP，全部恢复。"}
@@ -9733,15 +9732,13 @@ CSM2.5C-044	attack	1	0	inflict_status_self	{"statuses":["burn"]}
 CSM2.5C-044	attack	2	0	shuffle_deck	{}
 CSM2.5C-044	attack	2	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM2.5C-044	attack	2	2	usage_condition	{"kind":"residual_sentence","raw":"将自己的牌库中任意卡牌最多10张，丢到弃牌区。"}
-CSM2.5C-062	ability		0	usage_condition	{"kind":"requires_active"}
-CSM2.5C-062	ability		1	switch_pokemon	{"who":"opponent"}
-CSM2.5C-062	ability		2	usage_condition	{"kind":"residual_sentence","raw":"在自己的回合，每次从自己的手牌将【草】能量附于这只宝可梦身上时，可使用1次。"}
+CSM2.5C-062	ability		0	trigger	{"event":"energy_attached","condition":{"owner":"self","toSelf":true,"fromHand":true,"energyFilter":"【草】能量"},"effects":[{"action":"switch_pokemon","params":{"who":"opponent"}}]}
+CSM2.5C-062	ability		1	usage_condition	{"kind":"requires_active"}
 CSM2.5C-062	attack	2	0	damage_bench	{"target":"opponent_all_field","damage":50}
 CSM2.5C-062	attack	2	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM2.5C-062	attack	2	2	usage_condition	{"kind":"residual_sentence","raw":"若追加附着2个能量，则将自己所有宝可梦的HP，全部恢复。"}
-CSM2.5C-063	ability		0	usage_condition	{"kind":"requires_active"}
-CSM2.5C-063	ability		1	switch_pokemon	{"who":"opponent"}
-CSM2.5C-063	ability		2	usage_condition	{"kind":"residual_sentence","raw":"在自己的回合，每次从自己的手牌将【草】能量附于这只宝可梦身上时，可使用1次。"}
+CSM2.5C-063	ability		0	trigger	{"event":"energy_attached","condition":{"owner":"self","toSelf":true,"fromHand":true,"energyFilter":"【草】能量"},"effects":[{"action":"switch_pokemon","params":{"who":"opponent"}}]}
+CSM2.5C-063	ability		1	usage_condition	{"kind":"requires_active"}
 CSM2.5C-063	attack	2	0	damage_bench	{"target":"opponent_all_field","damage":50}
 CSM2.5C-063	attack	2	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM2.5C-063	attack	2	2	usage_condition	{"kind":"residual_sentence","raw":"若追加附着2个能量，则将自己所有宝可梦的HP，全部恢复。"}
@@ -9820,9 +9817,8 @@ CSM2.5C-077	attack	1	0	conditional_damage_mod	{"amount":60,"condition":"counter"
 CSM2.5C-077	attack	2	0	inflict_status	{"statuses":["sleep"]}
 CSM2.5C-077	attack	2	1	damage_bench	{"target":"opponent_1","damage":200}
 CSM2.5C-077	attack	2	2	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
-CSM2.5C-083	ability		0	usage_condition	{"kind":"requires_active"}
-CSM2.5C-083	ability		1	switch_pokemon	{"who":"opponent"}
-CSM2.5C-083	ability		2	usage_condition	{"kind":"residual_sentence","raw":"在自己的回合，每次从自己的手牌将【草】能量附于这只宝可梦身上时，可使用1次。"}
+CSM2.5C-083	ability		0	trigger	{"event":"energy_attached","condition":{"owner":"self","toSelf":true,"fromHand":true,"energyFilter":"【草】能量"},"effects":[{"action":"switch_pokemon","params":{"who":"opponent"}}]}
+CSM2.5C-083	ability		1	usage_condition	{"kind":"requires_active"}
 CSM2.5C-083	attack	2	0	damage_bench	{"target":"opponent_all_field","damage":50}
 CSM2.5C-083	attack	2	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM2.5C-083	attack	2	2	usage_condition	{"kind":"residual_sentence","raw":"若追加附着2个能量，则将自己所有宝可梦的HP，全部恢复。"}
@@ -11666,9 +11662,8 @@ CSMLC-004	attack	1	0	discard_energy	{"target":"self","count":"all"}
 CSMLC-004	attack	2	0	shuffle_deck	{}
 CSMLC-004	attack	2	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSMLC-004	attack	2	2	usage_condition	{"kind":"residual_sentence","raw":"将自己的牌库中最多5张能量，以任意方式附于自己的宝可梦身上。"}
-CSMPaC-001	ability		0	usage_condition	{"kind":"requires_active"}
-CSMPaC-001	ability		1	switch_pokemon	{"who":"opponent"}
-CSMPaC-001	ability		2	usage_condition	{"kind":"residual_sentence","raw":"在自己的回合，每次从自己的手牌将【草】能量附于这只宝可梦身上时，可使用1次。"}
+CSMPaC-001	ability		0	trigger	{"event":"energy_attached","condition":{"owner":"self","toSelf":true,"fromHand":true,"energyFilter":"【草】能量"},"effects":[{"action":"switch_pokemon","params":{"who":"opponent"}}]}
+CSMPaC-001	ability		1	usage_condition	{"kind":"requires_active"}
 CSMPaC-001	attack	2	0	damage_bench	{"target":"opponent_all_field","damage":50}
 CSMPaC-001	attack	2	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSMPaC-001	attack	2	2	usage_condition	{"kind":"residual_sentence","raw":"若追加附着2个能量，则将自己所有宝可梦的HP，全部恢复。"}

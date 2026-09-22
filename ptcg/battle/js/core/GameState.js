@@ -223,7 +223,10 @@ export class GameState {
     if(cd.specialRules?.blockAttackEffects)t.preventEffect=true;
     if(cd.specialRules?.blockSpecialCondition)t.status=null;
     pl.energyAttached=true;
-    this.addLog(`${pl.name} 为 ${t.name} 附着了 ${cd.name}`);this.emitTriggerEvent('energy_attached',{target:t,owner:pl});return true;}
+    // fromHand / cardName 供触发条件判定：
+    // attachEnergy 的能量一定来自手牌（下面 splice 的就是 pl.hand），
+    // 「每次从自己的手牌将【X】能量附着于这只宝可梦身上时」这类特性要靠它区分。
+    this.addLog(`${pl.name} 为 ${t.name} 附着了 ${cd.name}`);this.emitTriggerEvent('energy_attached',{target:t,owner:pl,fromHand:true,cardName:cd?.name||''});return true;}
 
   checkEnergy(mon,ai){const a=this.getAttacks(mon)[ai];if(!a||!a.cost||a.cost.length===0)return true;
     return this._canPayEnergyCost(mon,this.adjustedAttackCost(mon,a));}

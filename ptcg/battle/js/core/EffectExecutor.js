@@ -547,7 +547,23 @@ let _emitDepth = 0;
  * 目前支持三类，都是回合结束道具用到的：
  *   damage_counters_at_least / has_special_condition / hp_at_most_with_counters
  */
-function _triggerConditionMet(gs, mon, cond) {
+function _triggerConditionMet(gs, mon, cond, payload = {}, ownerPl = null, event = '') {
+  // 能量附着事件的方向/范围：卡面写「每次从自己的手牌将【X】能量附着于这只宝可梦身上时」
+  // 与「每当对手附着能量时」是两回事。默认仍是旧行为（只处理对手附着）。
+  if (event === 'energy_attached') {
+    const owner = payload?.owner;
+    const wantOwner = cond?.owner; // 'self' | 'opponent' | undefined(=旧默认: 对手)
+    if (wantOwner === 'self') { if (owner !== ownerPl) return false; }
+    else if (owner === ownerPl) return false;
+    if (cond?.toSelf && payload?.target !== mon) return false;
+    if (cond?.fromHand && payload?.fromHand === false) return false;
+    if (cond?.energyFilter) {
+      // 两侧都去掉【】：能量卡名可能是「基本【草】能量」也可能是「基本草能量」
+      const strip = t => String(t || '').replace(/[【】]/g, '');
+      if (!strip(payload?.cardName).includes(strip(cond.energyFilter))) return false;
+    }
+    return true;
+  }
   if (!cond) return true;
   const counters = Math.max(0, (mon.maxHp || 0) - (mon.hp || 0));
   switch (cond.kind) {
@@ -563,7 +579,8 @@ function _shouldTrigger(event, mon, payload, ownerPl) {
     case 'attacked_damage':
     case 'knocked_out':
     case 'evolved': return payload.target === mon; // 自身事件
-    case 'energy_attached': return payload.owner !== ownerPl; // 对手附着能量
+    // 方向判定交给 _triggerConditionMet（那里能看到具体效果的 condition）
+    case 'energy_attached': return true;
     default: return true;
   }
 }
@@ -585,7 +602,7 @@ function _emitTriggers(gs, event, payload = {}) {
           if (toolEffects.includes(eff) && mon !== pl.active && !eff.params?.anyPosition) continue;
           if (eff.action !== 'trigger' || eff.params?.event !== event) continue;
           // 卡面「如果…的话」的附加条件不满足则不触发
-          if (!_triggerConditionMet(gs, mon, eff.params?.condition)) continue;
+          if (!_triggerConditionMet(gs, mon, eff.params?.condition, payload, pl, event)) continue;
           // 依次执行全部内层效果（兼容旧的单 effect 结构）
           const innerList = Array.isArray(eff.params?.effects) && eff.params.effects.length
             ? eff.params.effects

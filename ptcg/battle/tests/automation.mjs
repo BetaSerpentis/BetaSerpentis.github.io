@@ -7402,6 +7402,64 @@ await test('TE(a) 「对手的回合结束时弃置」的归属方是持有者�
   assert.equal(opp.active.tool, null, '持有者的对手回合结束时应弃置');
 });
 
+
+// ============================================================
+//  ④ 事件触发条件：妙蛙花&藤藤蛇GX「光辉蔓藤」
+// ============================================================
+
+const VENUSAUR = '在自己的回合，如果这只宝可梦在战斗场上的话，则每次从自己的手牌将【草】能量附着于这只宝可梦身上时，可使用1次。选择对手的1只备战宝可梦，将其与战斗宝可梦互换。';
+
+await test('EV 妙蛙花&藤藤蛇GX：触发句 + 后续效果收进 trigger.effects', () => {
+  const e = parseEffect(VENUSAUR).effects;
+  const tr = e.find(x => x.action === 'trigger');
+  assert.ok(tr, `应解析出 trigger（实际 ${JSON.stringify(e.map(x => x.action))}）`);
+  assert.equal(tr.params.event, 'energy_attached');
+  assert.deepEqual(tr.params.condition, { owner:'self', toSelf:true, fromHand:true, energyFilter:'【草】能量' });
+  assert.deepEqual(tr.params.effects.map(x => x.action), ['switch_pokemon'], '后半句应作为触发后的效果');
+  assert.ok(e.some(x => x.params?.kind === 'requires_active'), '发动前提要留在顶层（供 _abilityUsageFailure 读）');
+  assert.ok(!e.some(x => x.action === 'switch_pokemon'), '不应留在顶层（否则使用特性时会立刻换位）');
+});
+
+await test('EV 触发条件：只有「自己+手牌+草能量+附于自身」才触发', async () => {
+  const eff = parseEffect(VENUSAUR).effects;
+  const run = async (ownerSelf, cardName) => {
+    const gs = new GameState();
+    await bootTriggers(gs);
+    const pl = gs.player1, opp = gs.player2;
+    const holder = mon('持有者', 'h1');
+    holder.ability = { name:'光辉蔓藤', active:true, zone:'field', effects: eff };
+    pl.active = holder;
+    pl.bench = [];
+    opp.active = mon('敌前', 'o1');
+    opp.bench = [mon('敌后', 'o2')];
+    gs.emitTriggerEvent('energy_attached', { target: holder, owner: ownerSelf ? pl : opp, fromHand: true, cardName });
+    await new Promise(r => setTimeout(r, 5));
+    return opp.active.name;
+  };
+  assert.equal(await run(true, '基本【草】能量'), '敌后', '自己附草能量应触发');
+  assert.equal(await run(true, '基本草能量'), '敌后', '卡名没有【】也要能识别');
+  assert.equal(await run(true, '基本【火】能量'), '敌前', '非草能量不应触发');
+  assert.equal(await run(false, '基本【草】能量'), '敌前', '对手附能不应触发');
+});
+
+await test('EV 「每当对手附着能量时」的老行为未被破坏', async () => {
+  // 旧行为：energy_attached 默认只处理**对手**附着（方向判定已移到条件里，默认值保持不变）
+  const eff = parseEffect('每当对手将能量附着于其宝可梦身上时，从牌库上方抽取1张卡牌。').effects;
+  const trig = eff.find(x => x.action === 'trigger');
+  if (!trig) return; // 该措辞未建模时不强求
+  const gs = new GameState();
+  await bootTriggers(gs);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('我方', 'a1');
+  pl.active.ability = { name:'窥视', active:true, zone:'field', effects: eff };
+  opp.active = mon('敌方', 'o1');
+  pl.deck = ['d1', 'd2', 'd3'];
+  pl.hand = [];
+  gs.emitTriggerEvent('energy_attached', { target: opp.active, owner: opp, fromHand: true, cardName: '基本【草】能量' });
+  await new Promise(r => setTimeout(r, 5));
+  assert.ok(pl.hand.length >= 1, '对手附能时仍应触发');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',
