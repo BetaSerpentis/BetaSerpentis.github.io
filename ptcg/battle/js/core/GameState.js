@@ -603,6 +603,30 @@ export class GameState {
    * 需求来源：先攻玩家最初回合不能使用招式，界面应像能量不足一样置灰，
    * 而不是点下去才提示不可用。
    */
+  /**
+   * 胜利条件进度（未知图腾「伤害 / 手牌 / 放逐」）。
+   * 返回当前值；与 win_condition 的 threshold 比较决定能否发动/是否获胜。
+   */
+  _winConditionProgress(pl, kind){
+    switch(kind){
+      case 'bench_damage_counters_total':
+        return (pl?.bench||[]).filter(Boolean).reduce((s,m)=>s+Math.max(0,(m.maxHp||0)-(m.hp||0)),0);
+      case 'hand_count':
+        return pl?.hand?.length||0;
+      case 'opponent_lost_zone_supporter_count':{
+        const opp=this.getOpponent(pl);
+        let c=0;
+        for(const v of (opp?.lostZone||[])){
+          const id=typeof v==='object'&&v?(v.cardId||v.name):v;
+          const cd=this.cardResolver?.getCard?.(id);
+          if(cd?.cardType==='trainer'&&cd?.trainerType==='supporter')c++;
+        }
+        return c;
+      }
+      default: return 0;
+    }
+  }
+
   /** 放逐区里的「宝可梦」张数（不是全部卡牌） */
   _lostZonePokemonCount(pl){
     let c=0;
@@ -668,6 +692,12 @@ export class GameState {
   _abilityUsageFailure(pl,ability,source=null){
     for(const eff of ability?.effects||[]){
       const p=eff.params||{};
+      // 胜利条件类特性（未知图腾）：进度未达成时置灰，并把进度写进提示
+      if(eff.action==='win_condition'){
+        const need=+p.threshold||0;
+        const have=this._winConditionProgress(pl,p.kind);
+        if(have<need)return {reason:'usage_condition',message:`胜利条件未达成：${have}/${need}`};
+      }
       // 「转放伤害指示物」类特性（如愿增猿「亢奋脑力」）：
       // 「自己场上有宝可梦带着伤害指示物」是发动前提。没有指示物时该置灰，
       // 而不是点下去才提示（用户反馈：身上有恶能量、但己方场上无指示物仍然可按）。

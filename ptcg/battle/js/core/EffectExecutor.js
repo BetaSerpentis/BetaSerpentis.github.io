@@ -1978,6 +1978,19 @@ const EXECUTORS = {
   },
 
   /**
+   * 胜利条件（未知图腾「伤害 / 手牌 / 放逐」）：
+   * 达成即立刻结束对战并判自己获胜；未达成时什么都不做（特性本身已被置灰）。
+   */
+  win_condition(gs, pl, p) {
+    const need = +p?.threshold || 0;
+    const have = gs._winConditionProgress ? gs._winConditionProgress(pl, p?.kind) : 0;
+    if (have < need) { gs.addLog(`胜利条件未达成（${have}/${need}）`); return; }
+    gs.winner = pl;
+    gs.phase = PHASE.GAME_OVER;
+    gs.addLog(`${pl.name} 达成胜利条件（${p?.kind} ${have}/${need}），获得胜利！`);
+  },
+
+  /**
    * 「(在)使用了这张卡牌的回合结束时，<效果>」——把效果挂到回合结束时结算。
    * endTurn 是同步流程，所以这里只登记；由 GameState.endTurn 在回合末取出并执行。
    */

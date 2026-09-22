@@ -1,4 +1,4 @@
-#eff1 hash=fc17de8b627c56a0
+#eff1 hash=143812ed7b337d0f
 151C-001	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-002	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-003	ability		0	usage_condition	{"kind":"requires_active"}
@@ -8344,13 +8344,15 @@ CSM1aC-034	attack	3	0	damage_place	{"target":"opponent_any","count":10}
 CSM1aC-034	attack	3	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM1aC-035	ability		0	usage_condition	{"kind":"requires_active"}
 CSM1aC-035	ability		1	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
-CSM1aC-035	ability		2	usage_condition	{"kind":"residual_sentence","raw":"若自己全部备战宝可梦身上放置的所有伤害指示物达到66个以上（包含66个），则这场对战算作自己的胜利。"}
+CSM1aC-035	ability		2	win_condition	{"kind":"bench_damage_counters_total","threshold":66}
 CSM1aC-036	ability		0	usage_condition	{"kind":"requires_active"}
 CSM1aC-036	ability		1	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
-CSM1aC-036	ability		2	usage_condition	{"kind":"residual_sentence","raw":"\\\\n若自己的手牌张数达到35张以上（包含35张），则这场对战算做自己的胜利。"}
+CSM1aC-036	ability		2	win_condition	{"kind":"hand_count","threshold":35}
+CSM1aC-036	ability		3	usage_condition	{"kind":"shell_fragment","raw":"\\\\n。"}
 CSM1aC-037	ability		0	usage_condition	{"kind":"requires_active"}
 CSM1aC-037	ability		1	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
-CSM1aC-037	ability		2	usage_condition	{"kind":"residual_sentence","raw":"\\\\n若对手的放逐区中的支援者的张数达到12张以上（包含12张），则这场对战算做自己的胜利。"}
+CSM1aC-037	ability		2	win_condition	{"kind":"opponent_lost_zone_supporter_count","threshold":12}
+CSM1aC-037	ability		3	usage_condition	{"kind":"shell_fragment","raw":"\\\\n。"}
 CSM1aC-038	ability		0	poison_damage_increase	{"target":"opponent_active","amount":1}
 CSM1aC-038	attack	1	0	inflict_status	{"statuses":["poison"]}
 CSM1aC-040	ability		0	trigger	{"event":"evolved","effect":{"action":"usage_condition","params":{"kind":"generic_effect","raw":"可使用1次。将对手弃牌区中的1张【基础】宝可梦，放置于对手的备战区。"}},"effects":[{"action":"usage_condition","params":{"kind":"generic_effect","raw":"可使用1次。将对手弃牌区中的1张【基础】宝可梦，放置于对手的备战区。"}}],"optional":false}

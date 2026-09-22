@@ -7566,6 +7566,67 @@ await test('TE(d) 支援者延迟效果：打出时不当场执行，回合结�
   assert.equal(pl.discard.length, 4, '丢掉的 4 张应进弃牌区');
 });
 
+
+// ============================================================
+//  ① 胜利条件：未知图腾「伤害 / 手牌 / 放逐」
+// ============================================================
+
+const UNOWN_DMG = '如果这只宝可梦在战斗场上的话，则在自己的回合可以使用1次。如果自己全部备战宝可梦身上放置的所有伤害指示物达到66个以上（包含66个）的话，则这场对战算作自己的胜利。';
+const UNOWN_HAND = '如果这只宝可梦在战斗场上的话，则在自己的回合可以使用1次。如果自己的手牌张数达到35张以上（包含35张）的话，则这场对战算做自己的胜利。';
+const UNOWN_LZ = '如果这只宝可梦在战斗场上的话，则在自己的回合可以使用1次。如果对手的放逐区中的支援者的张数达到12张以上（包含12张），则这场对战算做自己的胜利。';
+
+await test('WIN 未知图腾三种胜利条件都能解析', () => {
+  assert.deepEqual(parseEffect(UNOWN_DMG).effects.find(e => e.action === 'win_condition').params,
+    { kind:'bench_damage_counters_total', threshold:66 });
+  assert.deepEqual(parseEffect(UNOWN_HAND).effects.find(e => e.action === 'win_condition').params,
+    { kind:'hand_count', threshold:35 });
+  assert.deepEqual(parseEffect(UNOWN_LZ).effects.find(e => e.action === 'win_condition').params,
+    { kind:'opponent_lost_zone_supporter_count', threshold:12 });
+  for (const t of [UNOWN_DMG, UNOWN_HAND, UNOWN_LZ]) {
+    assert.ok(!parseEffect(t).effects.some(e => e.params?.kind === 'residual_sentence'), '不应残留未建模标记');
+  }
+});
+
+await test('WIN 条件进度计算：备战区指示物 / 手牌 / 对手放逐区支援者', () => {
+  const gs = new GameState();
+  const pl = gs.player1, opp = gs.player2;
+  pl.bench = [mon('a', 'a1'), mon('b', 'b1')];
+  pl.bench[0].hp = 30; pl.bench[1].hp = 10; // 30 + 50 = 80
+  assert.equal(gs._winConditionProgress(pl, 'bench_damage_counters_total'), 80);
+  pl.hand = new Array(35).fill('h');
+  assert.equal(gs._winConditionProgress(pl, 'hand_count'), 35);
+  gs.cardResolver = { getCard: id => ({ s1:{ cardType:'trainer', trainerType:'supporter' }, s2:{ cardType:'trainer', trainerType:'supporter' }, t1:{ cardType:'trainer', trainerType:'item' } }[id] || null) };
+  opp.lostZone = ['s1', 's2', 't1'];
+  assert.equal(gs._winConditionProgress(pl, 'opponent_lost_zone_supporter_count'), 2, '只数支援者');
+});
+
+await test('WIN 未达成时特性置灰并显示进度', () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  gs.phase = PHASE.MAIN;
+  const u = mon('未知图腾', 'u1');
+  u.ability = { name:'伤害', active:true, zone:'field', effects: parseEffect(UNOWN_DMG).effects };
+  pl.active = u; pl.bench = [];
+  const r = gs.canUseAbility(pl, u, u.ability, 'active');
+  assert.equal(r.ok, false, '未达成时不可用');
+  assert.match(String(r.message || ''), /胜利条件未达成：0\/66/);
+});
+
+await test('WIN 达成时发动即获胜（对手放逐区支援者 ≥12）', async () => {
+  const gs = new GameState();
+  const pl = gs.player1, opp = gs.player2;
+  gs.phase = PHASE.MAIN;
+  const u = mon('未知图腾', 'u1');
+  u.ability = { name:'放逐', active:true, zone:'field', effects: parseEffect(UNOWN_LZ).effects };
+  pl.active = u;
+  gs.cardResolver = { getCard: () => ({ cardType:'trainer', trainerType:'supporter' }) };
+  opp.lostZone = new Array(12).fill('s');
+  assert.equal(gs.canUseAbility(pl, u, u.ability, 'active').ok, true, '达成后应可用');
+  await executeEffects(gs, pl, u.ability.effects);
+  assert.equal(gs.winner, pl, '应判自己获胜');
+  assert.equal(gs.phase, PHASE.GAME_OVER, '对战应结束');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

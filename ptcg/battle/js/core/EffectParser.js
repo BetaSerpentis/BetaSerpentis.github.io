@@ -499,6 +499,13 @@ const RULES = [
   // 莎莉娜 分支2「选择对手备战区的1只「宝可梦V」，将其与战斗宝可梦互换」
   { re: /选择对手备战区的1只["“”「」]?[^"“”「」]{0,8}["“”「」]?[，,]?将其与战斗宝可梦互换/, act:'switch_pokemon', p:()=>({ who:'opponent' }) },
 
+  // ===== P2-WIN 胜利条件（未知图腾 ×3「伤害 / 手牌 / 放逐」）=====
+  // 卡面：「…如果<条件>的话，则这场对战算作/算做自己的胜利。」
+  // 条件达成与否由 GameState._winConditionProgress 计算；未达成时该特性会置灰（见 _abilityUsageFailure）。
+  { re: /若自己全部备战宝可梦身上放置的所有伤害指示物达到(\d+)个以上（包含\d+个）[，,]?则这场对战算[做作]自己的胜利/, act:'win_condition', p:m=>({ kind:'bench_damage_counters_total', threshold:+m[1] }) },
+  { re: /若自己的手牌张数达到(\d+)张以上（包含\d+张）[，,]?则这场对战算[做作]自己的胜利/, act:'win_condition', p:m=>({ kind:'hand_count', threshold:+m[1] }) },
+  { re: /若对手的放逐区中的支援者的张数达到(\d+)张以上（包含\d+张）[，,]?则这场对战算[做作]自己的胜利/, act:'win_condition', p:m=>({ kind:'opponent_lost_zone_supporter_count', threshold:+m[1] }) },
+
   // ===== P2-TE(c) 特性：回合结束时触发 =====
   // 效果由解析末尾收进 trigger.effects（与 ④ 同一机制）
   // - 可选（光辉妙蛙花/波克基斯）：「在自己的回合结束时可以使用1次。」
