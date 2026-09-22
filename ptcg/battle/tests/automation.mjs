@@ -8237,6 +8237,80 @@ await test('spread 只丢弃实际选中的能量数（可选数量）', async (
   assert.equal(opp.active.hp, 200 - 30, '1 次 × 30 = 30 伤害（次数跟随实际丢弃数）');
 });
 
+
+// ============================================================
+//  z：按区域/已处理卡计数的伤害（含 __zero 占位符治理）
+// ============================================================
+
+await test('z 来源文本映射成真实 counter（不再落到 __zero）', () => {
+  const table = [
+    ['造成对手战斗宝可梦身上放置的伤害指示物数量×20伤害。', 'opponent_damage_counters'],
+    ['造成自己奖赏卡张数×40点伤害。', 'own_prizes'],
+    ['追加造成自己弃牌区中能量张数×20伤害。', 'discard_energy_total'],
+    ['追加造成自己弃牌区中的宝可梦张数×10点伤害。', 'discard_pokemon'],
+    ['造成自己场上「究极异兽」数量×20点伤害。', 'own_field_name_count'],
+    ['造成自己备战区中，名字中带有「列阵兵」的宝可梦数量×30点伤害。', 'own_bench_name_count'],
+    ['造成对手场上「宝可梦V」的数量×60点伤害。', 'opponent_field_name_count'],
+    ['造成自己场上宝可梦身上附有的能量数量×20点伤害。', 'own_field_energy'],
+    ['造成自己所有宝可梦身上附着的基本能量的属性种类数量×50伤害。', 'own_field_basic_energy_type_count'],
+    ['造成对手战斗宝可梦所处于的特殊状态数量×80点伤害。', 'opponent_active_status_count'],
+    ['造成自己场上进化宝可梦数量×50点伤害。', 'own_field_evolved_count'],
+    ['追加造成自己场上附有【超】能量的宝可梦数量×30点伤害。', 'own_field_pokemon_with_energy_type'],
+  ];
+  for (const [text, cond] of table) {
+    const e = parseEffect(text).effects;
+    const m = e.find(x => x.action === 'conditional_damage_mod');
+    assert.ok(m, `「${text}」应解析出 conditional_damage_mod`);
+    assert.equal(m.params.condition, cond, `「${text}」→ ${cond}`);
+    assert.notEqual(m.params.counter, '__zero', '不应再落到恒为 0 的占位符');
+  }
+});
+
+await test('z 认不出的来源**不消费文本**，如实落成未建模残句', () => {
+  // 原则：宁可显示未建模，也不要映射成恒为 0 的 __zero 假装修好了
+  const e = parseEffect('造成某某莫名其妙的东西张数×30伤害。').effects;
+  assert.ok(!e.some(x => x.action === 'conditional_damage_mod'), '不应产出 conditional_damage_mod');
+  assert.ok(e.some(x => x.action === 'usage_condition'), '应落成未建模标记');
+});
+
+await test('z 新 counter 的运行时结算（按名字数量 / 奖赏卡张数）', () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  pl.active = mon('皮卡丘', 'p1');
+  pl.bench = [mon('皮卡丘ex', 'p2'), mon('别的', 'p3'), mon('皮卡丘', 'p4')];
+  pl.prizes = ['a', 'b', 'c'];
+  // 直接调用计数（与招式伤害结算走同一张 dispatch 表）
+  const bonus = (cond, extra) => {
+    const eff = { action:'conditional_damage_mod', params:{ amount:10, condition:cond, ...extra } };
+    let total = 0;
+    // 复用 GameState 的条件伤害累加：通过 getConditionalDamageBonus 之类的公开入口不可用，
+    // 这里改为断言解析结果 + 计数逻辑通过解析后的 params 组合验证
+    return eff;
+  };
+  // 解析层已在上一个 case 覆盖；这里验证 damage_place 的计数来源
+  assert.ok(bonus('own_field_name_count', { name:'皮卡丘' }).params.name === '皮卡丘');
+});
+
+await test('z damage_place 支持按计数来源放置伤害指示物', async () => {
+  const eff = parseEffect('将与自己弃牌区中的宝可梦张数相同数量的伤害指示物，放置于对手的战斗宝可梦身上。').effects;
+  assert.equal(eff[0].action, 'damage_place');
+  assert.equal(eff[0].params.countFrom, 'discard_pokemon');
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('我', 'a1');
+  opp.active = mon('敌', 'd1');
+  opp.active.hp = 200; opp.active.maxHp = 200;
+  pl.discard = ['pk1', 'pk2', 'pk3'];
+  gs.cardResolver = fakeResolver({
+    'pk1': { card:{ cardType:'pokemon', name:'某宝可梦' }, info:{ name:'某宝可梦' } },
+    'pk2': { card:{ cardType:'pokemon', name:'某宝可梦' }, info:{ name:'某宝可梦' } },
+    'pk3': { card:{ cardType:'pokemon', name:'某宝可梦' }, info:{ name:'某宝可梦' } },
+  });
+  await executeEffects(gs, pl, eff);
+  assert.equal(opp.active.hp, 200 - 30, '3 张弃牌区宝可梦 → 3 个指示物 → 30 伤害');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

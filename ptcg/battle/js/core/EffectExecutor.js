@@ -1070,6 +1070,7 @@ const EXECUTORS = {
         }
       }
     }
+    gs._lastProcessed = [...topCards]; // 「其中」= 刚查看的牌库顶
     const selectedTopPositions = new Set(selected.map(item => item.topIndex));
     const selectedCards = selected.map(item => item.card);
     const remainder = peeked.filter((_, peekedIndex) => !selectedTopPositions.has(peek - 1 - peekedIndex));
@@ -1403,7 +1404,15 @@ const EXECUTORS = {
   // ===== 伤害指示物放置 =====
   async damage_place(gs, pl, p) {
     const opp = _opponent(gs, pl);
-    const dmg = (p.count || 1) * 10;
+    // 「与…张数相同数量的伤害指示物」/「…张数×N 个伤害指示物」：个数来自计数
+    let counters = p.count || 1;
+    if (p.countFrom) {
+      const base = gs._counterValueForDamage ? gs._counterValueForDamage(pl, p.countFrom) : 0;
+      counters = base * (p.mult || 1);
+      gs.addLog(`按${p.countFrom}计得 ${base} 个 ×${p.mult || 1} = ${counters} 个伤害指示物`);
+      if (counters <= 0) return;
+    }
+    const dmg = counters * 10;
     const target = p.target || 'opponent_active';
     if (target === 'opponent_active') {
       _applyDamageToPokemon(gs, opp, opp.active, dmg);
@@ -2127,6 +2136,7 @@ const EXECUTORS = {
   async discard_energy_peek_damage(gs, pl, p) {
     const filter = p.filter || '基本能量';
     const matches = (pl.discard || []).filter(c => _cardMatchesFilter(gs, c, filter));
+    gs._lastProcessed = [...matches]; // 「其中」= 刚给对手查看的卡
     const per = +p.per || 0;
     const countersPer = +p.countersPer || 0;
     gs.addLog(`给对手查看弃牌区中的 ${matches.length} 张${filter}`);
@@ -2299,13 +2309,19 @@ const EXECUTORS = {
   mill(gs, pl, p) {
     const owner = (p.target === 'self') ? pl : _opponent(gs, pl);
     const n = Math.min(p.count || 1, owner.deck.length);
-    for (let i = 0; i < n; i++) owner.discard.push(owner.deck.pop());
+    const milled = [];
+    for (let i = 0; i < n; i++) { const c = owner.deck.pop(); milled.push(c); owner.discard.push(c); }
+    gs._lastProcessed = milled; // 「造成其中X张数×N伤害」的计数源
     gs.addLog(`${p.target === 'self' ? '自己' : '对手'}弃 ${n} 张`);
     _applyCountedDamage(gs, pl, p, n);
   },
 
   // ===== 查看对手手牌 =====
-  look_at(gs, pl, p) { gs.addLog('查看了对手手牌'); },
+  look_at(gs, pl, p) {
+    const opp = _opponent(gs, pl);
+    gs._lastProcessed = [...(opp.hand || [])]; // 「其中」= 刚查看的对手手牌
+    gs.addLog('查看了对手手牌');
+  },
 
   // ===== 随机丢弃对手手牌 =====
   discard_opponent_hand_random(gs, pl, p) {

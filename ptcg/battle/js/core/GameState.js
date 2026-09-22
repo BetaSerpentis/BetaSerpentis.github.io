@@ -628,6 +628,47 @@ export class GameState {
     }
   }
 
+  /**
+   * 「其中」的计数源：上一个动作**处理过的那批卡**（查看手牌 / 翻牌库顶 / 丢弃并查看…）。
+   * 由各执行器在处理完时写入 gs._lastProcessed。
+   * kind 可以是类别（trainer/supporter/item/pokemon/energy）或卡名片段。
+   */
+  _countLastProcessed(kind){
+    const list=this._lastProcessed||[];
+    const want=String(kind||'');
+    if(!want)return list.length;
+    // 卡面用的是中文类别名（训练家/支援者/物品/宝可梦/能量），也要能映射
+    const kindMap={
+      trainer:['trainer',null],supporter:['trainer','supporter'],item:['trainer','item'],
+      pokemon:['pokemon',null],energy:['energy',null],basicEnergy:['energy',null],
+      '训练家':['trainer',null],'支援者':['trainer','supporter'],'物品':['trainer','item'],
+      '宝可梦':['pokemon',null],'能量':['energy',null],'基本能量':['energy',null],
+    };
+    const mapped=kindMap[want];
+    let c=0;
+    for(const d of list){
+      const cd=(typeof d==='object'&&d&&d.cardType)?d:this.cardResolver?.getCard?.(typeof d==='object'?(d.cardId||d.name):d);
+      if(!cd){continue;}
+      if(mapped){
+        if(cd.cardType!==mapped[0])continue;
+        if(mapped[1]&&cd.trainerType!==mapped[1])continue;
+        c++;
+      }else if(String(cd.name||'').includes(want)){c++;}
+    }
+    return c;
+  }
+
+  /** damage_place 的计数来源取值（只读，给「与…张数相同数量的伤害指示物」用） */
+  _counterValueForDamage(pl, kind){
+    switch(kind){
+      case 'discard_pokemon': return (pl.discard||[]).filter(d=>{const cd=(typeof d==='object'&&d)?d:this.cardResolver?.getCard?.(d);return cd&&cd.cardType==='pokemon';}).length;
+      case 'opponent_prizes_taken': { const opp=this.getOpponent(pl); return Math.max(0, (opp?.prizes?.length!=null? (6-(opp.prizes.length)) : 0)); }
+      case 'hand_count': return pl?.hand?.length||0;
+      case 'own_field_pokemon_count': return [pl.active,...(pl.bench||[])].filter(Boolean).length;
+      default: return 0;
+    }
+  }
+
   /** 放逐区里的「宝可梦」张数（不是全部卡牌） */
   _lostZonePokemonCount(pl){
     let c=0;
@@ -848,6 +889,23 @@ export class GameState {
       if(p.condition==='opponent_active_has_damage'){if(!(defender&&defender.maxHp&&defender.hp<defender.maxHp))continue;total+=p.amount||0;continue;}
       if(p.condition==='opponent_active_type'){if(!defender||this._normalizeType(defender.element)!==this._normalizeType(p.type))continue;total+=p.amount||0;continue;}
       if(p.condition==='opponent_damage_counters'){const dmg=defender?Math.max(0,defender.maxHp-defender.hp):0;total+=(p.amount||0)*Math.floor(dmg/10);continue;}
+      // ===== z2：按来源文本映射出来的 counter =====
+      if(p.condition==='own_prizes'){total+=(p.amount||0)*(pl.prizes?.length||0);continue;}
+      if(p.condition==='opponent_active_status_count'){const st=String(defender?.status||'');total+=(p.amount||0)*(st?st.split(',').filter(Boolean).length:0);continue;}
+      if(p.condition==='own_field_evolved_count'){total+=(p.amount||0)*[pl.active,...(pl.bench||[])].filter(Boolean).filter(m=>m.evolvesFrom).length;continue;}
+      if(p.condition==='own_field_energy_name'){const want=String(p.name||'');total+=(p.amount||0)*[pl.active,...(pl.bench||[])].filter(Boolean).reduce((s,m)=>s+(m.energy||[]).filter(e=>String(typeof e==='object'?(e.name||e.cardId):e).includes(want)).length,0);continue;}
+      if(p.condition==='own_field_pokemon_with_energy_type'){const want=String(p.type||'');total+=(p.amount||0)*[pl.active,...(pl.bench||[])].filter(Boolean).filter(m=>(m.energy||[]).some(e=>String(typeof e==='object'?(e.name||e.cardId):e).includes(`【${want}】`))).length;continue;}
+      if(p.condition==='own_field_basic_energy_type_count'){const ts=new Set();for(const m of [pl.active,...(pl.bench||[])].filter(Boolean)){for(const e of (m.energy||[])){const s=String(typeof e==='object'?(e.name||e.cardId):e);if(!s.includes('基本'))continue;const mm=s.match(/【(.+?)】/);if(mm)ts.add(mm[1]);}}total+=(p.amount||0)*ts.size;continue;}
+      if(p.condition==='own_bench_name_count'){const want=String(p.name||'');total+=(p.amount||0)*(pl.bench||[]).filter(Boolean).filter(m=>String(m.name||'').includes(want)).length;continue;}
+      if(p.condition==='opponent_field_name_count'){const opp=this.getOpponent(pl);const want=String(p.name||'');total+=(p.amount||0)*[opp.active,...(opp.bench||[])].filter(Boolean).filter(m=>String(m.name||'').includes(want)).length;continue;}
+      // 「造成自己场上的「X」数量×N伤害」（按名字匹配自己场上的宝可梦）
+      if(p.condition==='own_field_name_count'){const want=String(p.name||'');total+=(p.amount||0)*[pl.active,...(pl.bench||[])].filter(Boolean).filter(m=>String(m.name||'').includes(want)).length;continue;}
+      // 「造成其中X张数×N伤害」——「其中」指上一个动作处理过的那批卡（记录在 gs._lastProcessed）
+      if(p.condition==='last_processed_kind'){total+=(p.amount||0)*this._countLastProcessed(p.kind);continue;}
+      // 「造成自己弃牌区中能量张数×N伤害」（不限定属性）
+      if(p.condition==='discard_energy_total'){total+=(p.amount||0)*(pl.discard||[]).filter(d=>{const cd=(typeof d==='object'&&d)?d:this.cardResolver?.getCard?.(d);return cd&&(cd.cardType==='energy'||cd.cardType==='specialEnergy');}).length;continue;}
+      // 「与自己弃牌区中的宝可梦张数相同数量」
+      if(p.condition==='discard_pokemon'){total+=(p.amount||0)*(pl.discard||[]).filter(d=>{const cd=(typeof d==='object'&&d)?d:this.cardResolver?.getCard?.(d);return cd&&cd.cardType==='pokemon';}).length;continue;}
       if(p.condition==='self_damage_counters'){const dmg=attacker?Math.max(0,attacker.maxHp-attacker.hp):0;total+=(p.amount||0)*Math.floor(dmg/10);continue;}
       if(p.condition==='self_energy'){total+=(p.amount||0)*(attacker?.energy?.length||0);continue;}
       if(p.condition==='total_bench'){total+=(p.amount||0)*((this.player1.bench?.length||0)+(this.player2.bench?.length||0));continue;}

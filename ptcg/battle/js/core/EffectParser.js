@@ -180,6 +180,8 @@ function conditionKey(condText) {
   if (/对手(?:的)?战斗宝可梦身上没有/.test(t)) return { condition:'opponent_active_no_damage' };
   if (/这只宝可梦身上没有附着(?:任何)?能量/.test(t)) return { condition:'self_no_energy' };
   if (/这只宝可梦身上没有/.test(t)) return { condition:'self_no_damage' };
+  // 「造成自己弃牌区中能量张数×N伤害」（不限定属性）
+  if (/自己(?:的)?弃牌区中(?:的)?能量(?:的)?(?:张数|数量)/.test(t)) return { condition:'discard_energy_total' };
   if (/自己没有手牌/.test(t)) return { condition:'self_no_hand' };
   if (/自己(?:的)?手牌(?:张数|数量)与对手(?:的)?手牌(?:张数|数量)相同/.test(t)) return { condition:'hand_count_equal' };
   const prizeM = t.match(/对手(?:的)?剩余奖赏卡(?:张数|数量)为(\d+)张/);
@@ -194,6 +196,47 @@ function conditionKey(condText) {
   if (/对手(?:的)?战斗宝可梦身上(?:放置有|有)伤害指示物/.test(t)) return { condition:'opponent_active_has_damage' };
   return null;
 }
+/**
+ * 把「造成<来源>张数/数量×N伤害」里的**来源文本**映射成 counter 规格。
+ *
+ * 背景：原来有一条 catch-all 把这类句子一律映射成 `counter:'__zero'`（恒为 0 的占位符），
+ * 于是 126 行看起来「已建模」、实际加成伤害恒为 0（静默失效）。这里改成：
+ *   · 能识别的来源 → 真实的 counter
+ *   · 认不出的 → **返回 null**，让这条规则不吃文本，句子如实落成「未建模」残句
+ *     （与放逐区那次同样的原则：宁可显示未建模，也不要假装修好了）
+ */
+function counterFromText(t) {
+  const s = String(t || '').replace(/[「」"“”｢｣]/g, '').replace(/，/g, ',');
+  const pick = re => { const m = s.match(re); return m ? String(m[1]).trim() : null; };
+  // 伤害指示物
+  if (/对手(?:的)?战斗宝可梦身上放置的伤害指示物|对手战斗宝可梦身上放置的伤害指示物/.test(s)) return { condition:'opponent_damage_counters' };
+  // 奖赏卡
+  if (/自己(?:的)?奖赏卡/.test(s)) return { condition:'own_prizes' };
+  if (/对手(?:已经获得的)?奖赏卡/.test(s)) return { condition:'opponent_prizes_taken' };
+  // 弃牌区
+  if (/自己弃牌区中(?:的)?能量/.test(s)) return { condition:'discard_energy_total' };
+  if (/自己弃牌区中(?:的)?宝可梦/.test(s)) return { condition:'discard_pokemon' };
+  { const n = pick(/自己弃牌区中(?:的)?(.+?)(?:的)?(?:张数|数量)/); if (n) return { condition:'discard_name', name:n }; }
+  // ⚠️ 顺序很重要（第 N 次踩这个坑）：**具体模式必须排在通用的「名字数量」之前**，
+  //    否则「自己场上宝可梦身上附有的能量数量」「自己场上进化宝可梦数量」会被
+  //    「自己场上的<X>数量」抢走，映射成按名字找宝可梦（恒为 0）。
+  // ① 能量相关（最具体）
+  if (/自己所有宝可梦身上附着的基本能量的属性种类数量/.test(s)) return { condition:'own_field_basic_energy_type_count' };
+  // 注意归一化会把「附有」变成「附着」，两种都要认
+  { const ty = pick(/自己场上附(?:有|着)【(.+?)】能量的宝可梦数量/); if (ty) return { condition:'own_field_pokemon_with_energy_type', type:ty }; }
+  { const ty = pick(/自己场上宝可梦身上附(?:有|着)(?:的)?【(.+?)】能量数量/); if (ty) return { condition:'own_field_energy_type_count', type:ty }; }
+  if (/自己场上宝可梦身上附(?:有|着)(?:的)?能量数量/.test(s)) return { condition:'own_field_energy' };
+  { const n = pick(/自己场上宝可梦身上附(?:有|着)(?:的)?(.+?)数量/); if (n) return { condition:'own_field_energy_name', name:n }; }
+  // ② 特殊状态 / 进化
+  if (/对手战斗宝可梦所处于的特殊状态数量/.test(s)) return { condition:'opponent_active_status_count' };
+  if (/自己场上进化宝可梦数量/.test(s)) return { condition:'own_field_evolved_count' };
+  // ③ 名字数量（通用，放最后）
+  { const n = pick(/自己备战区中[，,]?(?:名字中带有)?(.+?)(?:的)?宝可梦(?:的)?(?:张数|数量)/); if (n) return { condition:'own_bench_name_count', name:n }; }
+  { const n = pick(/自己场上(?:的)?(.+?)(?:的)?(?:张数|数量)/); if (n) return { condition:'own_field_name_count', name:n }; }
+  { const n = pick(/对手场上(?:的)?(.+?)(?:的)?(?:张数|数量)/); if (n) return { condition:'opponent_field_name_count', name:n }; }
+  return null;
+}
+
 function conditionDamageParams(condText, amount) {
   const c = conditionKey(condText);
   return c ? { ...c, amount, mode:'fixed' } : null;
@@ -1207,7 +1250,8 @@ const RULES = [
   { re: /当这只宝可梦的HP为全满的状态下，这只宝可梦受到招式的伤害而【昏厥】时，这只宝可梦不会【昏厥】，而是以剩余HP为["“”]10["“”]的状态留在场上/, act:'usage_condition', p:m=>trainerPrerequisite('endure_at_10_when_full', m[0]) },
   { re: /掷硬币直到出现反面，从自己的牌库抽出与出现正面次数相同数量的卡牌/, act:'usage_condition', p:m=>trainerPrerequisite('coin_draw_till_tails', m[0]) },
   { re: /掷与这只宝可梦身上附着的能量数量相同次数的硬币，造成正面次数[×x](\d+)伤害/, act:'usage_condition', p:m=>trainerPrerequisite('coin_per_energy_damage', m[0]) },
-  { re: /将对手已经获得的奖赏卡张数[×x]\d+个伤害指示物，放置于对手的战斗宝可梦身上/, act:'usage_condition', p:m=>trainerPrerequisite('counters_by_opp_prizes', m[0]) },
+  // 升级：原为未建模标记 → 按「对手已获得的奖赏卡张数×N」放置伤害指示物
+  { re: /将对手已经获得的奖赏卡张数[×x](\d+)个伤害指示物[，,]?放置于对手的战斗宝可梦身上/, act:'damage_place', p:m=>({ target:'opponent_active', countFrom:'opponent_prizes_taken', mult:+m[1] }) },
   { re: /在对手的1只宝可梦身上放置伤害指示物，直到其剩余HP变为["“”]?\d+["“”]?点为止/, act:'usage_condition', p:m=>trainerPrerequisite('counters_until_100hp', m[0]) },
   { re: /在下个对手的回合，无法从手牌将能量附于受到这个招式影响的宝可梦身上/, act:'usage_condition', p:m=>trainerPrerequisite('block_attach_energy_next', m[0]) },
   // k3 前半句升级：原为未建模标记，现在映射到真实动作（自己场上的宝可梦道具 → 弃牌区，伤害=张数×N）
@@ -1236,7 +1280,8 @@ const RULES = [
   { re: /双方的身上附着基本【斗】能量的宝可梦（除["“”]究极异兽["“”]外）使用的招式，给对手战斗宝可梦造成的伤害["“”]([+-]?\d+)["“”]，若自己的剩余奖赏卡张数，比对手多，则变为["“”]([+-]?\d+)["“”]/, act:'passive_damage_mod', p:m=>({target:'own_field',amount:+m[1]}) },
   // --- 触发式反伤/计数/metadata ---
   { re: /在下个对手的回合，当这只宝可梦受到招式的伤害时，将与受到的伤害数值相同的伤害指示物，放置于使用了招式的宝可梦身上/, act:'mirror_damage_counters', p:()=>({}) },
-  { re: /将与自己弃牌区中的宝可梦张数相同数量的伤害指示物，放置于对手的战斗宝可梦身上/, act:'usage_condition', p:m=>trainerPrerequisite('counters_by_discard_pokemon', m[0]) },
+  // 升级：原为未建模标记 → 按「自己弃牌区中的宝可梦张数」放置伤害指示物
+  { re: /将与自己弃牌区中的宝可梦张数相同数量的伤害指示物[，,]?放置于对手的战斗宝可梦身上/, act:'damage_place', p:()=>({ target:'opponent_active', countFrom:'discard_pokemon' }) },
   { re: /若这只宝可梦身上附着有(?:【(.+?)】)?能量，则这只宝可梦【撤退】所需能量，全部消除/, act:'retreat_cost_zero', p:()=>({target:'self'}) },
   { re: /(?:对手场上的)?【基础】宝可梦（除["“”]([^"“”]+)["“”]外）的特性，全部消除/, act:'ability_nullify', p:m=>abilityNullifyParams(m[0],m.input) },
   { re: /选择自己备战区中最多(\d+)只["“”]([^"“”]+)["“”]宝可梦，各附着1张自己弃牌区中的能量/, act:'attach_energy_from_discard', p:m=>withCount({filter:'能量',target:'bench'},m[1],true) },
@@ -1350,7 +1395,9 @@ const RULES = [
   { re: /给对手的(\d+)只宝可梦(?:身上)?，?各?造成(\d+)伤害/, act:'damage_bench', p:m=>({target:'opponent_N',count:+m[1],damage:+m[2]}) },
   { re: /给对手的1只宝可梦，造成(\d+)伤害/, act:'damage_bench', p:m=>({target:'opponent_any',damage:+m[1]}) },
   { re: /对自己的(\d+)只(?:备战)?宝可梦，也各造成(\d+)伤害/, act:'damage_bench', p:m=>({target:'self_1',damage:+m[2]}) },
-  { re: /(?:造成|追加造成)(?:自己|对手).{0,20}?(?:张数|数量)[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'counter',counter:'__zero',mode:'per_unit'}) },
+  // ⚠️ 原则：认不出的来源**返回 null**（不吃文本）→ 句子如实落成未建模残句，
+  //    而不是像原来那样映射成恒为 0 的 `__zero`（看起来已建模、实际加成伤害为 0）。
+  { re: /(?:造成|追加造成)(?:自己|对手).{0,20}?(?:张数|数量)[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>{ const c=counterFromText(m[0]); return c ? { amount:+m[1], mode:'per_unit', ...c } : null; } },
   { re: /则多拿取(\d+)张奖赏卡/, act:'extra_prize', p:m=>({count:+m[1]}) },
   { re: /在下个对手的回合，受到这个招式影响的[^。]{0,12}?宝可梦[，,]?无法使用招式/, act:'cannot_attack_next', p:()=>({target:'opponent'}) },
   { re: /将附于这只宝可梦身上的(\d+)个(?:【.+?】)?能量，放回手牌/, act:'return_energy_to_hand', p:m=>({target:'self',count:+m[1]}) },
@@ -1832,6 +1879,17 @@ const RULES = [
   // 交互：点一只对手宝可梦 → 继续弹下一次，共 N 次（N = 前面动作实际移动的张数）；
   // 同一只可被重复选中，最终按「被选次数」逐只结算伤害（不计算弱点、抗性）。
   { re: /选择与其张数相同数量的对手的宝可梦（同1只宝可梦可以选择多次）。然后[，,]?给所有被选择的宝可梦[^。]*?造成被选择次数[×x](\d+)伤害/, act:'action_count_override', p:m=>({ targets:['discard_energy','discard_hand','lost_zone'], set:{ spreadDamagePer:+m[1] }, raw:m[0] }) },
+
+  // ===== 按区域/已处理卡计数的伤害（z1 第一批）=====
+  // ①「造成放置于对手战斗宝可梦身上的伤害指示物数量×N伤害」「给对手的1只宝可梦造成其身上放置的伤害指示物数量×N伤害」
+  { re: /造成放置于对手战斗宝可梦身上的伤害指示物数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({ amount:+m[1], condition:'opponent_damage_counters' }) },
+  { re: /给对手的1只宝可梦造成其身上放置的伤害指示物数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({ amount:+m[1], condition:'opponent_damage_counters' }) },
+  // ②「造成自己场上的「X」数量×N伤害」
+  { re: /造成自己场上的["“”「」]?([^"“”「」]{1,20})["“”「」]?数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({ amount:+m[2], condition:'own_field_name_count', name:m[1] }) },
+  // ③「造成自己弃牌区中能量张数×N伤害」
+  { re: /造成自己弃牌区中能量张数[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({ amount:+m[1], condition:'discard_energy_total' }) },
+  // ④「造成其中X张数×N伤害」——「其中」= 上一个动作处理过的卡
+  { re: /造成其中(?:的)?(["“”「」]?[^"“”「」]{1,10}["“”「」]?)(?:卡)?(?:张数|数量)[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({ amount:+m[2], condition:'last_processed_kind', kind:String(m[1]).replace(/["“”「」]/g,'').replace(/的$/,'') }) },
 
   { re: /这张卡，只有在上一个对手的回合，自己的【(.+?)】宝可梦【昏厥】时才可使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('condition', m[0]) },  // ===== 「造成其张数×N伤害」（**兜底**，必须放在最后）=====
   // ⚠️ 本项目早有专用实现：`discard_energy_for_damage`（5 条规则 + 真执行器，覆盖
