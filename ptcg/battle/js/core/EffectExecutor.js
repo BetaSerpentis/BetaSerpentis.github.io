@@ -91,6 +91,22 @@ export async function executeEffects(gs, player, effects, options = {}) {
 }
 
 /**
+ * 「造成其张数×N伤害」：伤害 = 本动作**实际移动的卡牌数** × N。
+ * 卡面没有指定目标时，按规则打到对手的出战宝可梦。
+ * 返回实际造成的伤害（0 表示这条卡面没有这个效果）。
+ */
+function _applyCountedDamage(gs, pl, p, movedCount) {
+  const per = +((p && p.damagePerCard) || 0);
+  if (!per || !movedCount) return 0;
+  const opp = _opponent(gs, pl);
+  if (!opp || !opp.active) return 0;
+  const dmg = per * movedCount;
+  _applyDamageToPokemon(gs, opp, opp.active, dmg);
+  gs.addLog(`造成其张数×${per}＝${dmg} 伤害`);
+  return dmg;
+}
+
+/**
  * 附能后发出 energy_attached 事件，供「每次将【X】能量附着于这只宝可梦身上时」这类触发式效果。
  * 约定：
  *   · 只有「附着」才发事件；**能量在宝可梦之间移动不算附着**（那些地方不调本函数）
@@ -1251,6 +1267,7 @@ const EXECUTORS = {
       if (old) n++;
     }
     gs.addLog(`丢弃场上附加卡 ${n} 张`);
+    _applyCountedDamage(gs, pl, p, n);
   },
 
   // ===== 宝可梦通信：手牌宝可梦回牌库后搜宝可梦 =====
@@ -1552,6 +1569,7 @@ const EXECUTORS = {
     if (!selected.length) return;
     for (const item of selected.sort((a,b)=>b.index-a.index)) pl.discard.push(pl.hand.splice(item.index, 1)[0]);
     gs.addLog(`丢弃 ${selected.length} 张手牌`);
+    _applyCountedDamage(gs, pl, p, selected.length);
   },
   discard_all_hand(gs, pl) { while (pl.hand.length > 0) pl.discard.push(pl.hand.pop()); gs.addLog('丢弃全部手牌'); },
 
@@ -1719,6 +1737,7 @@ const EXECUTORS = {
     if (!selected.length) return;
     for (const item of _removeAttachedEnergy(selected)) _pushEnergyDiscard(item.owner, item.energy);
     gs.addLog(`丢弃 ${selected.length} 个能量`);
+    _applyCountedDamage(gs, pl, p, selected.length);
   },
 
   // ===== 能量换位 =====
@@ -2091,6 +2110,7 @@ const EXECUTORS = {
     const n = Math.min(p.count || 1, owner.deck.length);
     for (let i = 0; i < n; i++) owner.discard.push(owner.deck.pop());
     gs.addLog(`${p.target === 'self' ? '自己' : '对手'}弃 ${n} 张`);
+    _applyCountedDamage(gs, pl, p, n);
   },
 
   // ===== 查看对手手牌 =====
@@ -2118,6 +2138,7 @@ const EXECUTORS = {
         const cards = pl.deck.splice(pl.deck.length - n, n);
         zone.push(...cards);
         gs.addLog(`牌库上方 ${cards.length} 张放入放逐区`);
+        _applyCountedDamage(gs, pl, p, cards.length);
         return;
       }
       case 'discard': {
@@ -2129,6 +2150,7 @@ const EXECUTORS = {
         });
         for (const item of sel.sort((a, b) => b.index - a.index)) zone.push(pl.discard.splice(item.index, 1)[0]);
         gs.addLog(`弃牌区 ${sel.length} 张放入放逐区`);
+        _applyCountedDamage(gs, pl, p, sel.length);
         return;
       }
       case 'hand': {
@@ -2139,6 +2161,7 @@ const EXECUTORS = {
         });
         for (const item of sel.sort((a, b) => b.index - a.index)) zone.push(pl.hand.splice(item.index, 1)[0]);
         gs.addLog(`手牌 ${sel.length} 张放入放逐区`);
+        _applyCountedDamage(gs, pl, p, sel.length);
         return;
       }
       case 'field_energy':
@@ -2162,6 +2185,7 @@ const EXECUTORS = {
           zone.push(toCardRef(x.e));
         }
         gs.addLog(`${picked.length} 个能量放入放逐区`);
+        _applyCountedDamage(gs, pl, p, picked.length);
         return;
       }
       default:

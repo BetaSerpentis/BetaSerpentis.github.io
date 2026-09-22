@@ -245,6 +245,7 @@ function triggerParams(m) {
  */
 const RULES = [
   // ===== 触发式「当/每当…时，效果」：优先匹配，避免效果部分被其他规则先吃掉 =====
+
   // ===== 招式失败前提 =====
   // 无极汰那「世界终焉」：「将场上的竞技场丢到弃牌区。若无法将卡牌丢到弃牌区，则这个招式失败。」
   // 前半句已有 discard_stadium；这里补上「没有竞技场就不能打」的前提
@@ -1763,7 +1764,17 @@ const RULES = [
   { re: /若自己的剩余奖赏卡张数，比对手的剩余奖赏卡张数多，则这张卡，只要被附于进化宝可梦身上（除["“"]([^"“"]+)["“"]外），就的能量/, act:'usage_condition', p:m=>trainerPrerequisite('energy_prize_lead_desc', m[0]) },
   { re: /若为正面，则在对手战斗宝可梦身上放置伤害指示物，直到其剩余HP变为["“"]?(\d+)["“"]?点/, act:'usage_condition', p:m=>trainerPrerequisite('counters_to_hp_act', m[0]) },
   { re: /将(?:自己的|自己)?手牌全部放回牌库。然后，从自己的牌库抽出与对手的手牌相同张数的卡牌/, act:'usage_condition', p:m=>trainerPrerequisite('hand_to_deck_like_opp', m[0]) },
-  { re: /这张卡，只有在上一个对手的回合，自己的【(.+?)】宝可梦【昏厥】时才可使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('condition', m[0]) },
+  { re: /这张卡，只有在上一个对手的回合，自己的【(.+?)】宝可梦【昏厥】时才可使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('condition', m[0]) },  // ===== 「造成其张数×N伤害」（**兜底**，必须放在最后）=====
+  // ⚠️ 本项目早有专用实现：`discard_energy_for_damage`（5 条规则 + 真执行器，覆盖
+  //    「从手牌/场上丢能量，造成其张数×N伤害」等固定措辞）。主循环是「按规则表顺序、先命中者先吃」，
+  //    所以这条通用规则**必须排在最后**，只处理专用规则没覆盖的剩余措辞；
+  //    否则会把那 85 行抢过来、反而让本来能用的卡失效。
+  // 含义：伤害 = 前一个动作**实际移动的卡牌数** × N，由执行端按实际张数结算。
+  // 意为：伤害 = **前一个动作实际移动的卡牌数** × N
+  //（如「将附着于这只宝可梦身上的能量全部丢到弃牌区，造成其张数×100伤害」＝ 丢掉的能量数 ×100）
+  // 用既有的改写句机制并入前面的动作，由执行端在移动完卡牌后按实际张数结算伤害。
+  { re: /[，,]?(?:追加)?造成其张数[×x](\d+)(?:点)?伤害/, act:'action_count_override', p:m=>({ targets:['discard_energy','discard_hand','lost_zone','mill','discard_field_attachments','discard_hand_draw'], set:{ damagePerCard:+m[1] }, raw:m[0] }) },
+
 ];
 
 export { RULES, normalizeCn };
@@ -2007,7 +2018,16 @@ export function parseEffect(text) {
       // 另属别的机制）。**转回未建模标记**而不是留在库里：
       //   ① 执行端不必为一个空动作报「未实现」噪声；
       //   ② 指标上仍算未建模，不会把问题藏起来。
+      // 找不到目标时：优先**并回前面最近的那条残句**——它俩本来就是同一句话的两半
+      //（例：「将附着于这只宝可梦身上的能量全部丢到弃牌区，造成其张数×100伤害」前半句也没解析出来）。
+      // 否则会把一句未建模的卡面拆成两条，让未建模计数虚高。
+      const raw = ov.params?.raw || '条件改写句（未找到目标动作）';
+      // 找不到目标：说明这句改写所修饰的**动作本身没解析出来**
+      //（如「将附着于这只宝可梦身上的能量全部丢到弃牌区，造成其张数×100伤害」前半句也没建模）。
+      // 此时把改写句本身也记为未建模标记。注意这里**不能**试图并回前面那条残句：
+      // 前半句的残句是 finalizeCoverage 在本轮之后才生成的，此刻还不存在。
       effects[oi] = { action:'usage_condition', params:{ kind:'residual_sentence', raw: ov.params?.raw || '条件改写句（未找到目标动作）' } };
+      effects[oi] = { action:'usage_condition', params:{ kind:'residual_sentence', raw } };
     }
     if (drop.size) {
       const kept = effects.filter((_, i) => !drop.has(i));

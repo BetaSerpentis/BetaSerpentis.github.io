@@ -7102,7 +7102,14 @@ await test('TM 附着后招式可用：getAttacks 合并、能量不足时不可
 await test('TM 招式已纳入效果索引（toolattack scope）', () => {
   const tsv = fs.readFileSync(path.join(__dirname, '..', '..', 'data_fast', 'effects.tsv'), 'utf8');
   const lines = tsv.split('\n').filter(l => l.split('\t')[1] === 'toolattack');
-  assert.ok(lines.length >= 40, `效果索引应含招式学习器招式的效果（实际 ${lines.length} 行）`);
+  assert.ok(lines.length >= 39, `效果索引应含招式学习器招式的效果（实际 ${lines.length} 行）`);
+  // 更强的守卫：每张招式学习器卡的招式都要出现在索引里（不能漏卡）
+  {
+    const tools = loadJson('PokemonTool-cards.json').filter(c => (c['效果'] || '').includes('可以使用这张卡牌'));
+    const ids = new Set(lines.map(l => l.split('	')[0]));
+    const missing = tools.map(c => c['卡牌ID'][0]).filter(id => !ids.has(id));
+    assert.deepEqual(missing, [], `以下招式学习器卡的招式未进索引：${missing.join(', ')}`);
+  }
   assert.ok(lines.some(l => l.startsWith('CSV4C-119\t')), '应含「能量涡轮」');
 });
 
@@ -7854,6 +7861,62 @@ await test('世界终焉 无竞技场：招式失败、零伤害（修复前会�
   const ok = await engine.attack(0);
   assert.equal(ok, false, '招式应失败');
   assert.equal(gs.player2.active.hp, gs.player2.active.maxHp, '失败时不应造成任何伤害');
+});
+
+
+// ============================================================
+//  k3「造成其张数×N伤害」= 前一个动作实际移动的卡牌数 × N
+// ============================================================
+
+await test('k3 「其张数×N伤害」并入前面的移卡动作', () => {
+  // 水箭龟ex 类：把能量丢到弃牌区 → 伤害 = 丢掉的张数 × N
+  const e = parseEffect('将附着于这只宝可梦身上的能量全部放于弃牌区，造成其张数×100伤害。').effects;
+  const de = e.find(x => x.action === 'discard_energy');
+  assert.ok(de, `应解析出 discard_energy（实际 ${JSON.stringify(e.map(x => x.action))}）`);
+  assert.equal(de.params.damagePerCard, 100);
+  assert.ok(!e.some(x => x.params?.kind === 'residual_sentence'), '不应残留未建模标记');
+
+  // 招式学习器版「巨龙燃烧GX」：把基本能量丢到弃牌区 → 张数 × 80
+  const tm = parseEffect('将附着于这只宝可梦身上的基本能量，全部放于弃牌区，造成其张数×80点伤害。').effects;
+  assert.equal(tm.find(x => x.action === 'discard_energy').params.damagePerCard, 80);
+});
+
+await test('k3 执行：丢弃 N 个能量 → 对手出战宝可梦受 N×N 伤害', async () => {
+  const e = parseEffect('将附着于这只宝可梦身上的能量全部放于弃牌区，造成其张数×100伤害。').effects;
+  const gs = new GameState();
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('攻击方', 'a1');
+  pl.active.energy = [{ cardId:'e1', name:'能量' }, { cardId:'e2', name:'能量' }];
+  opp.active = mon('受击方', 'd1');
+  opp.active.hp = 200; opp.active.maxHp = 200;
+  await executeEffects(gs, pl, e);
+  assert.equal(pl.active.energy.length, 0, '能量应全部被丢弃');
+  assert.equal(opp.active.hp, 0, '2 张 × 100 = 200 伤害（200 → 0）');
+});
+
+await test('k3 执行：翻牌张数也算（mill）', async () => {
+  const e = [{ action:'mill', params:{ target:'self', count:3, damagePerCard:20 } }];
+  const gs = new GameState();
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('攻击方', 'a1');
+  opp.active = mon('受击方', 'd1');
+  opp.active.hp = 200; opp.active.maxHp = 200;
+  pl.deck = ['a', 'b', 'c', 'd'];
+  await executeEffects(gs, pl, e);
+  assert.equal(pl.discard.length, 3, '应翻 3 张');
+  assert.equal(opp.active.hp, 140, '3 × 20 = 60 伤害');
+});
+
+await test('k3 没写 damagePerCard 时行为不变', async () => {
+  const gs = new GameState();
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('攻击方', 'a1');
+  pl.active.energy = [{ cardId:'e1', name:'能量' }];
+  opp.active = mon('受击方', 'd1');
+  const hp0 = opp.active.hp;
+  await executeEffects(gs, pl, [{ action:'discard_energy', params:{ target:'self', count:'all' } }]);
+  assert.equal(pl.active.energy.length, 0, '能量仍被丢弃');
+  assert.equal(opp.active.hp, hp0, '没有 damagePerCard 就不该造成伤害');
 });
 
 await test('全卡牌效果文本解析覆盖率报告', () => {
