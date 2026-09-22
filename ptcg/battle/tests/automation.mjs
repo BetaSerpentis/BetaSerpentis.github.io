@@ -7098,6 +7098,99 @@ await test('TM 招式已纳入效果索引（toolattack scope）', () => {
   assert.ok(lines.some(l => l.startsWith('CSV4C-119\t')), '应含「能量涡轮」');
 });
 
+
+// ============================================================
+//  二选一效果（B）：choose_effect + 分支描述选择
+// ============================================================
+
+await test('二选一 解析为一个 choose_effect，分支各自解析', () => {
+  // 莎莉娜真实卡面
+  const t = '这张卡牌，可以从2个效果中选择1个使用。\n\n◆选择自己的最多3张手牌，放于弃牌区。（必须至少选择1张。）然后，从牌库上方抽取卡牌，直到自己的手牌变为5张为止。\n\n◆选择对手备战区的1只「宝可梦V」，将其与战斗宝可梦互换。';
+  const eff = parseEffect(t).effects;
+  const ce = eff.find(e => e.action === 'choose_effect');
+  assert.ok(ce, '应解析为 choose_effect');
+  assert.equal(ce.params.branches.length, 2);
+  const [b1, b2] = ce.params.branches;
+  assert.deepEqual(b1.effects.filter(e => e.action !== 'usage_condition').map(e => e.action), ['discard_hand', 'draw_until']);
+  assert.equal(b1.effects.find(e => e.action === 'discard_hand').params.minCount, 1, '卡面要求「必须至少选择1张」');
+  assert.deepEqual(b2.effects.filter(e => e.action !== 'usage_condition').map(e => e.action), ['switch_pokemon']);
+  assert.equal(b2.effects.find(e => e.action === 'switch_pokemon').params.who, 'opponent');
+  // 选项文案从效果里精炼（不含「◆」等分隔符）
+  assert.match(b1.label, /弃 3 张手牌/);
+  assert.match(b2.label, /换对手后备上场/);
+});
+
+await test('二选一 首个分支缺「◆」也能正确分两支', () => {
+  const t = '这张卡牌，可以从2个效果中选择1个使用。\n\n将自己的所有手牌放回牌库并重洗牌库。然后，从牌库上方抽取5张卡牌。\n\n◆将自己的战斗宝可梦与备战宝可梦互换。';
+  const ce = parseEffect(t).effects.find(e => e.action === 'choose_effect');
+  assert.ok(ce, '应仍能识别');
+  assert.equal(ce.params.branches.length, 2, '缺 ◆ 时用标题到第一个 ◆ 的文本作为第一分支');
+  assert.deepEqual(ce.params.branches[1].effects.filter(e => e.action !== 'usage_condition').map(e => e.action), ['switch_pokemon']);
+});
+
+await test('二选一 分支内的残句上提到顶层（不把未建模藏进分支里）', () => {
+  // 第二分支是一个未建模的措辞 → 分支内容为空，但残句必须出现在顶层
+  const t = '这张卡牌，可以从2个效果中选择1个使用。\n\n◆从自己的牌库上方抽取1张卡牌。\n\n◆这句完全没有匹配的措辞。';
+  const eff = parseEffect(t).effects;
+  assert.ok(eff.some(e => e.action === 'choose_effect'));
+  const residuals = eff.filter(e => e.action === 'usage_condition' && e.params?.kind);
+  assert.ok(residuals.length >= 1, '分支内未建模的残句应上提到顶层，指标上仍然可见');
+});
+
+await test('二选一 全部 11 张卡都能识别为 choose_effect（数据守卫）', () => {
+  const files = ['Item-cards.json', 'Supporter-cards.json', 'PokemonTool-cards.json'];
+  const bad = [];
+  let n = 0;
+  for (const f of files) {
+    for (const c of loadJson(f)) {
+      if (!(c['效果'] || '').includes('可以从2个效果中选择1个使用')) continue;
+      const eff = parseEffect(c['效果']).effects;
+      const ce = eff.find(e => e.action === 'choose_effect');
+      if (!ce || ce.params.branches.length < 2) bad.push(c['卡牌ID'][0]);
+      else n++;
+    }
+  }
+  assert.ok(n >= 11, `应有 11 张以上（实际 ${n}）`);
+  assert.deepEqual(bad, [], `以下卡识别失败：${bad.join(', ')}`);
+});
+
+await test('二选一 自动决策（无 UI）选第一个分支并真的执行', async () => {
+  const t = '这张卡牌，可以从2个效果中选择1个使用。\n\n◆从自己的牌库上方抽取1张卡牌。\n\n◆将自己的战斗宝可梦与备战宝可梦互换。';
+  const ce = parseEffect(t).effects.find(e => e.action === 'choose_effect');
+  const gs = new GameState();
+  const pl = gs.player1;
+  pl.deck = ['d1', 'd2'];
+  pl.hand = [];
+  pl.active = mon('前排', 'a1');
+  pl.bench = [mon('后排', 'b1')];
+  await executeEffects(gs, pl, [ce]);
+  assert.equal(pl.hand.length, 1, '应执行第一分支（抽 1 张）');
+  assert.equal(pl.active.name, '前排', '不应执行第二分支（换位）');
+});
+
+await test('二选一 人类玩家：按选择执行对应分支', async () => {
+  const t = '这张卡牌，可以从2个效果中选择1个使用。\n\n◆从自己的牌库上方抽取1张卡牌。\n\n◆将自己的战斗宝可梦与备战宝可梦互换。';
+  const ce = parseEffect(t).effects.find(e => e.action === 'choose_effect');
+  const gs = new GameState();
+  const pl = gs.player1;
+  pl.deck = ['d1', 'd2'];
+  pl.hand = [];
+  pl.active = mon('前排', 'a1');
+  pl.bench = [mon('后排', 'b1')];
+  // 模拟 UI：拿到 pendingPick 后选第二分支（索引 1）
+  let pending = null;
+  gs._onPendingPick = pick => { pending = pick; };
+  const running = executeEffects(gs, pl, [ce]);
+  await new Promise(r => setTimeout(r, 0));
+  assert.ok(pending, '应弹出选择');
+  assert.equal(pending.cards.length, 2, '应有两个选项');
+  assert.match(String(pending.cards[1]), /换对手后备上场|自己换位/, '选项文案应是分支效果的精炼描述');
+  gs.resolvePick([1]);
+  await running;
+  assert.equal(pl.active.name, '后排', '选第二分支应换位');
+  assert.equal(pl.hand.length, 0, '不应执行第一分支（抽卡）');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

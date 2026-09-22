@@ -471,6 +471,11 @@ const RULES = [
   // 顺带补两条措辞：「选择对手的1只宝可梦，放置N个伤害指示物」「选择自己手牌中的1张【X】能量，丢到弃牌区」
   { re: /选择对手的1只宝可梦[，,]?放置(\d+)个伤害指示物/, act:'damage_place', p:m=>({ target:'opponent_any', count:+m[1] }) },
   { re: /选择自己手牌中的1张【(.+?)】能量[，,]?(?:丢到|放于)弃牌区/, act:'discard_hand', p:m=>({ filter:`【${m[1]}】能量`, count:1, zone:'hand' }) },
+  // 莎莉娜 分支1「选择自己的最多3张手牌，放于弃牌区。（必须至少选择1张。）」
+  // 归一化后：「选择自己的最多3张手牌，丢到弃牌区。」+ 括号说明被剥掉；卡面要求的「至少1张」体现在 minCount
+  { re: /选择自己的最多(\d+)张手牌[，,]?(?:丢到|放于)弃牌区/, act:'discard_hand', p:m=>({ count:+m[1], maxCount:+m[1], minCount:1, allowFewer:true }) },
+  // 莎莉娜 分支2「选择对手备战区的1只「宝可梦V」，将其与战斗宝可梦互换」
+  { re: /选择对手备战区的1只["“”「」]?[^"“”「」]{0,8}["“”「」]?[，,]?将其与战斗宝可梦互换/, act:'switch_pokemon', p:()=>({ who:'opponent' }) },
 
   // ===== P2 批 4 =====
   // D/D2「将剩余的卡牌丢到弃牌区 / 全部翻到反面重洗放回牌库下方」：
@@ -1726,8 +1731,71 @@ export function extractToolAttacks(text) {
   };
 }
 
+/** 分支选项文案：把分支里已解析出的动作「精炼」成一句短描述（拿不到就用效果原文截断） */
+const BRANCH_LABEL_RULES = [
+  [/^draw_until$/, p => `抽到手牌 ${p.target} 张`],
+  [/^draw$/, p => `抽 ${p.count || 1} 张`],
+  [/^shuffle_hand_to_deck$/, () => '手牌洗回牌库'],
+  [/^switch_pokemon$/, p => (p.who === 'opponent' ? '换对手后备上场' : '自己换位')],
+  [/^discard_hand$/, p => `弃 ${p.count || 1} 张手牌`],
+  [/^search_deck_to_hand$/, p => `检索${p.filter || ''}${p.count || 1}张`],
+  [/^search_deck_multi$/, () => '检索多张卡'],
+  [/^heal$/, p => (p.amount === 'full' ? '回满 HP' : `回复 ${p.amount} HP`)],
+  [/^damage_place$/, p => `放置 ${p.count || 1} 个伤害指示物`],
+  [/^damage_bench$/, p => `造成 ${p.damage || 0} 伤害`],
+  [/^attach_energy_from_(deck|hand|discard)$/, p => `附能 ${p.count || 1} 张`],
+  [/^discard_energy$/, () => '弃对手能量'],
+  [/^recover_from_discard$/, () => '回收弃牌区卡牌'],
+  [/^discard_stadium$/, () => '丢弃竞技场'],
+  [/^heal_all$/, p => `己方全体回复 ${p.amount || 10} HP`],
+  [/^discard_energy$/, () => '弃对手能量'],
+];
+function _describeBranch(actions, text) {
+  const real = (actions || []).filter(e => e.action !== 'usage_condition');
+  const parts = [];
+  for (const e of real) {
+    for (const [re, fn] of BRANCH_LABEL_RULES) {
+      if (re.test(e.action)) { parts.push(fn(e.params || {})); break; }
+    }
+    if (parts.length >= 2) break;
+  }
+  if (parts.length) return parts.join(' + ');
+  // 没有可识别的动作时，退回截断的效果原文 —— 同样是「从卡牌效果里精炼出描述」
+  const t = String(text || '').replace(/\s+/g, '');
+  return t.length > 22 ? t.slice(0, 22) + '…' : t;
+}
+
+/**
+ * 「这张卡，可以从2个效果中选择1个使用」→ 一个 choose_effect 动作。
+ * 分支用 ◆ 分隔（个别卡的首个分支缺 ◆，此时标题与第一个 ◆ 之间的文本即第一分支）。
+ * 每个分支的效果仍交给 parseEffect 解析（解析器只有一份实现）。
+ */
+function _extractChooseEffect(text) {
+  const raw = String(text || '');
+  if (!/可以从2个效果中选择1个使用/.test(raw)) return null;
+  const body = raw.replace(/^[\s\S]*?可以从2个效果中选择1个使用[。.]?/, '');
+  const parts = body.split('◆').map(s => s.trim()).filter(Boolean);
+  if (parts.length < 2) return null; // 结构不符合预期就不接管，交回常规解析
+  const branches = parts.map(part => {
+    const effects = parseEffect(part).effects;
+    return { text: part, label: _describeBranch(effects, part), effects };
+  });
+  // ⚠️ 分支内部的残句**上提到顶层**：否则未建模统计看不到它们，等于把问题藏起来。
+  //    （usage_condition 只是元数据，不会被执行，所以重复一份无副作用。）
+  const residuals = [];
+  for (const b of branches) for (const e of b.effects) if (e.action === 'usage_condition') residuals.push(e);
+  return { action: 'choose_effect', params: { branches } };
+}
+
 export function parseEffect(text) {
   if (!text || text === '无') return { effects: [], unparsed: '' };
+  // 「二选一」类卡整张卡就是一个选择动作，先接管（分支递归调用 parseEffect）
+  const choice = _extractChooseEffect(text);
+  if (choice) {
+    const residuals = [];
+    for (const b of choice.params.branches) for (const e of b.effects) if (e.action === 'usage_condition') residuals.push(e);
+    return { effects: [choice, ...residuals], unparsed: '' };
+  }
   text = normalizeCn(norm(text));
   const effects = [];
   let remaining = text;

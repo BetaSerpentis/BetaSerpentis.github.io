@@ -1,4 +1,4 @@
-#eff1 hash=59bfbb46dc596058
+#eff1 hash=74448d34d5039b87
 151C-001	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-002	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-003	ability		0	usage_condition	{"kind":"requires_active"}
@@ -18934,9 +18934,7 @@ CSM2DC-248	trainer		0	usage_condition	{"kind":"put_remaining_back","raw":"将剩
 CSM2DC-248	trainer		1	shuffle_deck	{}
 CSM2DC-248	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"查看对手牌库上方3张卡，选择其中任意1张。"}
 CSM2DC-248	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"，将选择的卡牌放回牌库上方。"}
-CSM2DC-249	trainer		0	draw	{"count":1}
-CSM2DC-249	trainer		1	recover_from_discard	{"filter":"\\"裁判\\"","target":"hand","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
-CSM2DC-249	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"这张卡，可以从2个效果中选择1个使用。"}
+CSM2DC-249	trainer		0	choose_effect	{"branches":[{"text":"从自己的牌库上方抽取1张卡牌。","label":"抽 1 张","effects":[{"action":"draw","params":{"count":1}}]},{"text":"将自己弃牌区中的1张「裁判」，在给对手看过之后，加入手牌。","label":"回收弃牌区卡牌","effects":[{"action":"recover_from_discard","params":{"filter":"\\"裁判\\"","target":"hand","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}}]}]}
 CSM2DC-250	trainer		0	peek_and_keep	{"peek":7,"keep":1,"filter":"宝可梦"}
 CSM2DC-250	trainer		1	usage_condition	{"kind":"put_remaining_back","raw":"将剩余的卡牌放回牌库"}
 CSM2DC-250	trainer		2	shuffle_deck	{}
@@ -18993,9 +18991,7 @@ CSM2DC-273	trainer		1	shuffle_deck	{}
 CSM2DC-273	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"或者，将自己弃牌区中的3张宝可梦，在给对手看过后，放回牌库。"}
 CSM2DC-274	trainer		0	usage_condition	{"kind":"look_reorder_or_bottom","raw":"查看自己的牌库上方4张卡。以任意顺序重新排列后，放回牌库上方。或者，放回牌库后"}
 CSM2DC-274	trainer		1	shuffle_deck	{}
-CSM2DC-355	trainer		0	draw	{"count":1}
-CSM2DC-355	trainer		1	recover_from_discard	{"filter":"\\"裁判\\"","target":"hand","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
-CSM2DC-355	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"这张卡，可以从2个效果中选择1个使用。"}
+CSM2DC-355	trainer		0	choose_effect	{"branches":[{"text":"从自己的牌库上方抽取1张卡牌。","label":"抽 1 张","effects":[{"action":"draw","params":{"count":1}}]},{"text":"将自己弃牌区中的1张「裁判」，在给对手看过之后，加入手牌。","label":"回收弃牌区卡牌","effects":[{"action":"recover_from_discard","params":{"filter":"\\"裁判\\"","target":"hand","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}}]}]}
 CSM2DC-356	trainer		0	trainer_prerequisite	{"kind":"discard_cost","raw":"这张卡，只有将自己的2张手牌丢到弃牌区才可使用","count":2,"zone":"hand"}
 CSM2DC-356	trainer		1	search_deck_to_hand	{"filter":"【火】能量","count":4,"maxCount":4,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CSM2DC-356	trainer		2	shuffle_deck	{}
@@ -20348,7 +20344,7 @@ CS2DaC-053	trainer		0	draw	{"count":2}
 CS2DaC-053	trainer		1	coin_flip	{"count":1}
 CS2DaC-053	trainer		2	draw	{"count":2}
 CS2aC-107	trainer		0	draw	{"count":3}
-CS2aC-107	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"然后，选择自己的最多3张手牌，丢到弃牌区。"}
+CS2aC-107	trainer		1	discard_hand	{"count":3,"maxCount":3,"minCount":1,"allowFewer":true}
 CS2aC-108	trainer		0	mill	{"target":"self","count":5}
 CS2aC-108	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"将其中的所有能量，以任意方式附于备战区的【斗】宝可梦身上。"}
 CS2aC-109	trainer		0	turn_damage_mod	{"target":"own_field","amount":30,"defender":"opponent_active","duration":"turn"}
@@ -20357,14 +20353,14 @@ CS2aC-110	trainer		1	draw	{"count":3}
 CS2aC-111	trainer		0	draw	{"count":2}
 CS2aC-111	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"若场上有\\"宫门竞技场\\"，则额外抽出2张卡。"}
 CS2aC-129	trainer		0	draw	{"count":3}
-CS2aC-129	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"然后，选择自己的最多3张手牌，丢到弃牌区。"}
+CS2aC-129	trainer		1	discard_hand	{"count":3,"maxCount":3,"minCount":1,"allowFewer":true}
 CS2aC-130	trainer		0	mill	{"target":"self","count":5}
 CS2aC-130	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"将其中的所有能量，以任意方式附于备战区的【斗】宝可梦身上。"}
 CS2aC-131	trainer		0	turn_damage_mod	{"target":"own_field","amount":30,"defender":"opponent_active","duration":"turn"}
 CS2aC-132	trainer		0	switch_pokemon	{"who":"self"}
 CS2aC-132	trainer		1	draw	{"count":3}
 CS2aC-139	trainer		0	draw	{"count":3}
-CS2aC-139	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"然后，选择自己的最多3张手牌，丢到弃牌区。"}
+CS2aC-139	trainer		1	discard_hand	{"count":3,"maxCount":3,"minCount":1,"allowFewer":true}
 CS2aC-140	trainer		0	mill	{"target":"self","count":5}
 CS2aC-140	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"将其中的所有能量，以任意方式附于备战区的【斗】宝可梦身上。"}
 CS2aC-141	trainer		0	turn_damage_mod	{"target":"own_field","amount":30,"defender":"opponent_active","duration":"turn"}
@@ -20409,7 +20405,7 @@ CS3.5C-087	trainer		2	shuffle_deck	{}
 CS3DC-147	trainer		0	trainer_prerequisite	{"kind":"first_player_first_turn_supporter_exception","raw":"这张卡，即使是先攻玩家的最初回合也可使用"}
 CS3DC-147	trainer		1	draw	{"count":2}
 CS3DC-148	trainer		0	draw	{"count":3}
-CS3DC-148	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"然后，选择自己的最多3张手牌，丢到弃牌区。"}
+CS3DC-148	trainer		1	discard_hand	{"count":3,"maxCount":3,"minCount":1,"allowFewer":true}
 CS3DC-149	trainer		0	usage_condition	{"kind":"hand_to_bottom_draw_same","raw":"选择自己任意数量的手牌，以任意顺序重新排列，放回牌库下方。然后，从牌库抽出与放回牌库的卡牌数量相同张数的卡牌"}
 CS3DC-150	trainer		0	conditional_damage_mod	{"amount":20,"condition":"opponent_prizes_taken","mode":"per_unit"}
 CS3DC-151	trainer		0	damage_place	{"target":"opponent_active","count":3,"source":"self_active"}
@@ -20903,12 +20899,9 @@ CS6.5C-093	trainer		1	shuffle_deck	{}
 CS6aC-124	trainer		0	usage_condition	{"kind":"discard_bench_v","raw":"选择自己备战区中的1只\\"宝可梦V\\"，将被选择的宝可梦，以及放置于其身上的卡牌，全部丢到弃牌区"}
 CS6aC-125	trainer		0	draw	{"count":3}
 CS6aC-125	trainer		1	discard_stadium	{}
-CS6aC-126	trainer		0	draw_until	{"target":5}
-CS6aC-126	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"这张卡，可以从2个效果中选择1个使用。"}
-CS6aC-126	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"◆选择自己的最多3张手牌，丢到弃牌区。"}
-CS6aC-126	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"（必须至少选择1张。"}
-CS6aC-126	trainer		4	usage_condition	{"kind":"shell_fragment","raw":"）然后，。"}
-CS6aC-126	trainer		5	usage_condition	{"kind":"residual_sentence","raw":"◆选择对手备战区的1只\\"宝可梦V\\"，将其与战斗宝可梦互换。"}
+CS6aC-126	trainer		0	choose_effect	{"branches":[{"text":"选择自己的最多3张手牌，放于弃牌区。（必须至少选择1张。）然后，从牌库上方抽取卡牌，直到自己的手牌变为5张为止。","label":"弃 3 张手牌 + 抽到手牌 5 张","effects":[{"action":"discard_hand","params":{"count":3,"maxCount":3,"minCount":1,"allowFewer":true}},{"action":"draw_until","params":{"target":5}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"（必须至少选择1张。"}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"）然后，。"}}]},{"text":"选择对手备战区的1只「宝可梦V」，将其与战斗宝可梦互换。","label":"换对手后备上场","effects":[{"action":"switch_pokemon","params":{"who":"opponent"}}]}]}
+CS6aC-126	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"（必须至少选择1张。"}
+CS6aC-126	trainer		2	usage_condition	{"kind":"shell_fragment","raw":"）然后，。"}
 CS6aC-127	trainer		0	usage_condition	{"kind":"swap_discard_base_with_field_base","raw":"从自己的弃牌区选择1张【基础】宝可梦，与自己场上的1只【基础】宝可梦互换（继承所有放置于其身上的卡牌"}
 CS6aC-127	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"、伤害指示物、特殊状态、效果等等）。"}
 CS6aC-127	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"将被互换的宝可梦丢到弃牌区。"}
@@ -20922,12 +20915,9 @@ CS6aC-129	trainer		1	shuffle_deck	{}
 CS6aC-129	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"查看对手牌库上方5张卡，选择其中任意数量的物品，丢到弃牌区。"}
 CS6aC-148	trainer		0	usage_condition	{"kind":"discard_bench_v","raw":"选择自己备战区中的1只\\"宝可梦V\\"，将被选择的宝可梦，以及放置于其身上的卡牌，全部丢到弃牌区"}
 CS6aC-149	trainer		0	usage_condition	{"kind":"discard_bench_v","raw":"选择自己备战区中的1只\\"宝可梦V\\"，将被选择的宝可梦，以及放置于其身上的卡牌，全部丢到弃牌区"}
-CS6aC-150	trainer		0	draw_until	{"target":5}
-CS6aC-150	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"这张卡，可以从2个效果中选择1个使用。"}
-CS6aC-150	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"◆选择自己的最多3张手牌，丢到弃牌区。"}
-CS6aC-150	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"（必须至少选择1张。"}
-CS6aC-150	trainer		4	usage_condition	{"kind":"shell_fragment","raw":"）然后，。"}
-CS6aC-150	trainer		5	usage_condition	{"kind":"residual_sentence","raw":"◆选择对手备战区的1只\\"宝可梦V\\"，将其与战斗宝可梦互换。"}
+CS6aC-150	trainer		0	choose_effect	{"branches":[{"text":"选择自己的最多3张手牌，放于弃牌区。（必须至少选择1张。）然后，从牌库上方抽取卡牌，直到自己的手牌变为5张为止。","label":"弃 3 张手牌 + 抽到手牌 5 张","effects":[{"action":"discard_hand","params":{"count":3,"maxCount":3,"minCount":1,"allowFewer":true}},{"action":"draw_until","params":{"target":5}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"（必须至少选择1张。"}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"）然后，。"}}]},{"text":"选择对手备战区的1只「宝可梦V」，将其与战斗宝可梦互换。","label":"换对手后备上场","effects":[{"action":"switch_pokemon","params":{"who":"opponent"}}]}]}
+CS6aC-150	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"（必须至少选择1张。"}
+CS6aC-150	trainer		2	usage_condition	{"kind":"shell_fragment","raw":"）然后，。"}
 CS6aC-151	trainer		0	usage_condition	{"kind":"swap_discard_base_with_field_base","raw":"从自己的弃牌区选择1张【基础】宝可梦，与自己场上的1只【基础】宝可梦互换（继承所有放置于其身上的卡牌"}
 CS6aC-151	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"、伤害指示物、特殊状态、效果等等）。"}
 CS6aC-151	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"将被互换的宝可梦丢到弃牌区。"}
@@ -20940,12 +20930,9 @@ CS6aC-153	trainer		0	usage_condition	{"kind":"put_remaining_back","raw":"将剩�
 CS6aC-153	trainer		1	shuffle_deck	{}
 CS6aC-153	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"查看对手牌库上方5张卡，选择其中任意数量的物品，丢到弃牌区。"}
 CS6aC-162	trainer		0	usage_condition	{"kind":"discard_bench_v","raw":"选择自己备战区中的1只\\"宝可梦V\\"，将被选择的宝可梦，以及放置于其身上的卡牌，全部丢到弃牌区"}
-CS6aC-163	trainer		0	draw_until	{"target":5}
-CS6aC-163	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"这张卡，可以从2个效果中选择1个使用。"}
-CS6aC-163	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"◆选择自己的最多3张手牌，丢到弃牌区。"}
-CS6aC-163	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"（必须至少选择1张。"}
-CS6aC-163	trainer		4	usage_condition	{"kind":"shell_fragment","raw":"）然后，。"}
-CS6aC-163	trainer		5	usage_condition	{"kind":"residual_sentence","raw":"◆选择对手备战区的1只\\"宝可梦V\\"，将其与战斗宝可梦互换。"}
+CS6aC-163	trainer		0	choose_effect	{"branches":[{"text":"选择自己的最多3张手牌，放于弃牌区。（必须至少选择1张。）然后，从牌库上方抽取卡牌，直到自己的手牌变为5张为止。","label":"弃 3 张手牌 + 抽到手牌 5 张","effects":[{"action":"discard_hand","params":{"count":3,"maxCount":3,"minCount":1,"allowFewer":true}},{"action":"draw_until","params":{"target":5}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"（必须至少选择1张。"}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"）然后，。"}}]},{"text":"选择对手备战区的1只「宝可梦V」，将其与战斗宝可梦互换。","label":"换对手后备上场","effects":[{"action":"switch_pokemon","params":{"who":"opponent"}}]}]}
+CS6aC-163	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"（必须至少选择1张。"}
+CS6aC-163	trainer		2	usage_condition	{"kind":"shell_fragment","raw":"）然后，。"}
 CS6aC-164	trainer		0	usage_condition	{"kind":"swap_discard_base_with_field_base","raw":"从自己的弃牌区选择1张【基础】宝可梦，与自己场上的1只【基础】宝可梦互换（继承所有放置于其身上的卡牌"}
 CS6aC-164	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"、伤害指示物、特殊状态、效果等等）。"}
 CS6aC-164	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"将被互换的宝可梦丢到弃牌区。"}
@@ -21135,12 +21122,9 @@ CSM1DC-298	trainer		0	trainer_prerequisite	{"kind":"own_pokemon_knocked_out_last
 CSM1DC-298	trainer		1	attach_energy_from_hand	{"filter":"基本能量","target":"any","targetType":"dragon","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CSM1DC-299	trainer		0	usage_condition	{"kind":"count_then_draw_same","raw":"双方玩家，在各数过自己的手牌之后，将所有手牌放回牌库。然后，双方玩家，各从牌库抽出与放回牌库的张数相同数量的卡牌"}
 CSM1DC-299	trainer		1	shuffle_deck	{}
-CSM1DC-300	trainer		0	shuffle_deck	{}
-CSM1DC-300	trainer		1	draw	{"count":5}
-CSM1DC-300	trainer		2	switch_pokemon	{"who":"self"}
-CSM1DC-300	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"这张卡，可以从2个效果中选择1个使用。"}
-CSM1DC-300	trainer		4	usage_condition	{"kind":"residual_sentence","raw":"◆将自己的所有手牌放回牌库。"}
-CSM1DC-300	trainer		5	usage_condition	{"kind":"shell_fragment","raw":"然后，。"}
+CSM1DC-300	trainer		0	choose_effect	{"branches":[{"text":"将自己的所有手牌放回牌库并重洗牌库。然后，从牌库上方抽取5张卡牌。","label":"抽 5 张","effects":[{"action":"shuffle_deck","params":{}},{"action":"draw","params":{"count":5}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"将自己的所有手牌放回牌库。"}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"然后，。"}}]},{"text":"将自己的战斗宝可梦与备战宝可梦互换。","label":"自己换位","effects":[{"action":"switch_pokemon","params":{"who":"self"}}]}]}
+CSM1DC-300	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"将自己的所有手牌放回牌库。"}
+CSM1DC-300	trainer		2	usage_condition	{"kind":"shell_fragment","raw":"然后，。"}
 CSM1DC-301	trainer		0	search_deck_to_hand	{"filter":"【基础】宝可梦","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CSM1DC-301	trainer		1	shuffle_deck	{}
 CSM1DC-302	trainer		0	draw	{"count":2}
@@ -21199,12 +21183,9 @@ CSM1aC-141	trainer		0	usage_condition	{"kind":"look_top_pick_effect","raw":"查�
 CSM1aC-141	trainer		1	draw	{"count":5}
 CSM1aC-141	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"◆将自己所有的手牌丢到弃牌区后，。"}
 CSM1aC-141	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"◆将自己所有的手牌丢到弃牌区后，从牌库下方抽出5张卡。"}
-CSM1aC-142	trainer		0	shuffle_deck	{}
-CSM1aC-142	trainer		1	draw	{"count":5}
-CSM1aC-142	trainer		2	switch_pokemon	{"who":"self"}
-CSM1aC-142	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"这张卡，可以从2个效果中选择1个使用。"}
-CSM1aC-142	trainer		4	usage_condition	{"kind":"residual_sentence","raw":"◆将自己的所有手牌放回牌库。"}
-CSM1aC-142	trainer		5	usage_condition	{"kind":"shell_fragment","raw":"然后，。"}
+CSM1aC-142	trainer		0	choose_effect	{"branches":[{"text":"将自己的所有手牌放回牌库并重洗牌库。然后，从牌库上方抽取5张卡牌。","label":"抽 5 张","effects":[{"action":"shuffle_deck","params":{}},{"action":"draw","params":{"count":5}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"将自己的所有手牌放回牌库。"}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"然后，。"}}]},{"text":"将自己的战斗宝可梦与备战宝可梦互换。","label":"自己换位","effects":[{"action":"switch_pokemon","params":{"who":"self"}}]}]}
+CSM1aC-142	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"将自己的所有手牌放回牌库。"}
+CSM1aC-142	trainer		2	usage_condition	{"kind":"shell_fragment","raw":"然后，。"}
 CSM1aC-143	trainer		0	trainer_prerequisite	{"kind":"discard_cost","raw":"这张卡，只有将自己的2张手牌丢到弃牌区才可使用","count":2,"zone":"hand"}
 CSM1aC-143	trainer		1	discard_energy	{"target":"opponent_field","count":1}
 CSM1aC-144	trainer		0	search_deck_to_hand	{"filter":"【钢】宝可梦","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
@@ -21320,12 +21301,9 @@ CSM2.1C-030	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"然后
 CSM2.1C-031	trainer		0	shuffle_hand_to_deck	{"who":"self","draw_count":6}
 CSM2.1C-032	trainer		0	search_deck_to_hand	{"filter":"物品+【雷】能量","count":2,"maxCount":2,"minCount":2,"allowFewer":false,"allowEmpty":false}
 CSM2.1C-032	trainer		1	shuffle_deck	{}
-CSM2.1C-033	trainer		0	shuffle_deck	{}
-CSM2.1C-033	trainer		1	draw	{"count":5}
-CSM2.1C-033	trainer		2	switch_pokemon	{"who":"self"}
-CSM2.1C-033	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"这张卡，可以从2个效果中选择1个使用。"}
-CSM2.1C-033	trainer		4	usage_condition	{"kind":"residual_sentence","raw":"将自己的所有手牌放回牌库。"}
-CSM2.1C-033	trainer		5	usage_condition	{"kind":"shell_fragment","raw":"然后，。"}
+CSM2.1C-033	trainer		0	choose_effect	{"branches":[{"text":"将自己的所有手牌放回牌库并重洗牌库。然后，从牌库上方抽取5张卡牌。","label":"抽 5 张","effects":[{"action":"shuffle_deck","params":{}},{"action":"draw","params":{"count":5}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"将自己的所有手牌放回牌库。"}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"然后，。"}}]},{"text":"将自己的战斗宝可梦与备战宝可梦互换。","label":"自己换位","effects":[{"action":"switch_pokemon","params":{"who":"self"}}]}]}
+CSM2.1C-033	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"将自己的所有手牌放回牌库。"}
+CSM2.1C-033	trainer		2	usage_condition	{"kind":"shell_fragment","raw":"然后，。"}
 CSM2.1C-034	trainer		0	attach_energy_from_hand	{"filter":"【火】能量","target":"any","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CSM2.1C-034	trainer		1	draw	{"count":3}
 CSM2.1C-035	trainer		0	draw_until	{"target":6}
@@ -21404,12 +21382,9 @@ CSM2DC-311	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"◆将�
 CSM2DC-312	trainer		0	draw	{"count":3}
 CSM2DC-313	trainer		0	usage_condition	{"kind":"count_then_draw_same","raw":"双方玩家，在各数过自己的手牌之后，将所有手牌放回牌库。然后，双方玩家，各从牌库抽出与放回牌库的张数相同数量的卡牌"}
 CSM2DC-313	trainer		1	shuffle_deck	{}
-CSM2DC-314	trainer		0	shuffle_deck	{}
-CSM2DC-314	trainer		1	draw	{"count":5}
-CSM2DC-314	trainer		2	switch_pokemon	{"who":"self"}
-CSM2DC-314	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"这张卡，可以从2个效果中选择1个使用。"}
-CSM2DC-314	trainer		4	usage_condition	{"kind":"residual_sentence","raw":"◆将自己的所有手牌放回牌库。"}
-CSM2DC-314	trainer		5	usage_condition	{"kind":"shell_fragment","raw":"然后，。"}
+CSM2DC-314	trainer		0	choose_effect	{"branches":[{"text":"将自己的所有手牌放回牌库并重洗牌库。然后，从牌库上方抽取5张卡牌。","label":"抽 5 张","effects":[{"action":"shuffle_deck","params":{}},{"action":"draw","params":{"count":5}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"将自己的所有手牌放回牌库。"}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"然后，。"}}]},{"text":"将自己的战斗宝可梦与备战宝可梦互换。","label":"自己换位","effects":[{"action":"switch_pokemon","params":{"who":"self"}}]}]}
+CSM2DC-314	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"将自己的所有手牌放回牌库。"}
+CSM2DC-314	trainer		2	usage_condition	{"kind":"shell_fragment","raw":"然后，。"}
 CSM2DC-315	trainer		0	search_deck_to_hand	{"filter":"名字带球·物品","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CSM2DC-315	trainer		1	shuffle_deck	{}
 CSM2DC-316	trainer		0	usage_condition	{"kind":"generic_effect","raw":"恢复自己的1只宝可梦\\"60\\"HP，并恢复全部特殊状态。"}
@@ -22312,12 +22287,9 @@ CSVE1C-150	trainer		2	usage_condition	{"kind":"put_remaining_back","raw":"将剩
 CSVE1C-150	trainer		3	shuffle_deck	{}
 CSVE1C-151	trainer		0	heal	{"amount":60}
 CSVE1C-151	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"选择最多2只自己的\\"连击\\"宝可梦，各。"}
-CSVE1C-152	trainer		0	draw_until	{"target":5}
-CSVE1C-152	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"这张卡，可以从2个效果中选择1个使用。"}
-CSVE1C-152	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"◆选择自己的最多3张手牌，丢到弃牌区。"}
-CSVE1C-152	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"（必须至少选择1张。"}
-CSVE1C-152	trainer		4	usage_condition	{"kind":"shell_fragment","raw":"）然后，。"}
-CSVE1C-152	trainer		5	usage_condition	{"kind":"residual_sentence","raw":"◆选择对手备战区的1只\\"宝可梦V\\"，将其与战斗宝可梦互换。"}
+CSVE1C-152	trainer		0	choose_effect	{"branches":[{"text":"选择自己的最多3张手牌，放于弃牌区。（必须至少选择1张。）然后，从牌库上方抽取卡牌，直到自己的手牌变为5张为止。","label":"弃 3 张手牌 + 抽到手牌 5 张","effects":[{"action":"discard_hand","params":{"count":3,"maxCount":3,"minCount":1,"allowFewer":true}},{"action":"draw_until","params":{"target":5}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"（必须至少选择1张。"}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"）然后，。"}}]},{"text":"选择对手备战区的1只「宝可梦V」，将其与战斗宝可梦互换。","label":"换对手后备上场","effects":[{"action":"switch_pokemon","params":{"who":"opponent"}}]}]}
+CSVE1C-152	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"（必须至少选择1张。"}
+CSVE1C-152	trainer		2	usage_condition	{"kind":"shell_fragment","raw":"）然后，。"}
 CSVE1C-153	trainer		0	shuffle_hand_to_deck	{"who":"self","draw_count":5}
 CSVE1C-154	trainer		0	trainer_prerequisite	{"kind":"opponent_prizes_at_most","raw":"这张卡，只有在对手的剩余奖赏卡张数在3张以下（包含3张）时才可使用","count":3}
 CSVE1C-154	trainer		1	shuffle_hand_to_deck	{"who":"both"}
@@ -22679,7 +22651,7 @@ CSXC-018	trainer		0	discard_all_hand	{}
 CSXC-018	trainer		1	draw	{"count":7}
 CSXC-019	trainer		0	switch_pokemon	{"who":"opponent"}
 CSYC-012	trainer		0	draw	{"count":3}
-CSYC-012	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"然后，选择自己的最多3张手牌，丢到弃牌区。"}
+CSYC-012	trainer		1	discard_hand	{"count":3,"maxCount":3,"minCount":1,"allowFewer":true}
 CSYC-013	trainer		0	trainer_prerequisite	{"kind":"own_pokemon_knocked_out_last_opponent_turn","raw":"这张卡，只有在上一个对手的回合，自己的宝可梦【昏厥】时才可使用"}
 CSYC-013	trainer		1	attach_energy_from_discard	{"filter":"基本能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSYC-013	trainer		2	search_deck_to_hand	{"filter":null,"count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
@@ -22704,12 +22676,9 @@ CSZC-046	trainer		3	shuffle_deck	{}
 CSZC-047	trainer		0	recover_from_discard	{"filter":"宝可梦，和最多基本能量","target":"hand","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CSZC-048	trainer		0	draw	{"count":3}
 CSZC-048	trainer		1	discard_stadium	{}
-CSZC-049	trainer		0	draw_until	{"target":5}
-CSZC-049	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"这张卡，可以从2个效果中选择1个使用。"}
-CSZC-049	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"◆选择自己的最多3张手牌，丢到弃牌区。"}
-CSZC-049	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"（必须至少选择1张。"}
-CSZC-049	trainer		4	usage_condition	{"kind":"shell_fragment","raw":"）然后，。"}
-CSZC-049	trainer		5	usage_condition	{"kind":"residual_sentence","raw":"◆选择对手备战区的1只\\"宝可梦V\\"，将其与战斗宝可梦互换。"}
+CSZC-049	trainer		0	choose_effect	{"branches":[{"text":"选择自己的最多3张手牌，放于弃牌区。（必须至少选择1张。）然后，从牌库上方抽取卡牌，直到自己的手牌变为5张为止。","label":"弃 3 张手牌 + 抽到手牌 5 张","effects":[{"action":"discard_hand","params":{"count":3,"maxCount":3,"minCount":1,"allowFewer":true}},{"action":"draw_until","params":{"target":5}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"（必须至少选择1张。"}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"）然后，。"}}]},{"text":"选择对手备战区的1只「宝可梦V」，将其与战斗宝可梦互换。","label":"换对手后备上场","effects":[{"action":"switch_pokemon","params":{"who":"opponent"}}]}]}
+CSZC-049	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"（必须至少选择1张。"}
+CSZC-049	trainer		2	usage_condition	{"kind":"shell_fragment","raw":"）然后，。"}
 CSZC-050	trainer		0	trainer_prerequisite	{"kind":"opponent_prizes_at_most","raw":"这张卡，只有在对手的剩余奖赏卡张数在3张以下（包含3张）时才可使用","count":3}
 CSZC-050	trainer		1	shuffle_hand_to_deck	{"who":"both"}
 CSZC-050	trainer		2	shuffle_deck	{}

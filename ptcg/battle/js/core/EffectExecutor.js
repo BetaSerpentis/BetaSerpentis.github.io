@@ -1451,8 +1451,12 @@ const EXECUTORS = {
     const selected = await _pickCardsFromZone(gs, pl, pl, pl.hand, count, {
       source:'hand-discard',
       filter:p.filter || null,
-      prompt:'选择要丢弃的手牌',
-      allowEmpty:true
+      prompt:p.prompt || '选择要丢弃的手牌',
+      // 「（必须至少选择1张。）」类要求：minCount>0 时不允许空选
+      allowEmpty: !p.minCount,
+      allowFewer: !!p.allowFewer || !!p.minCount,
+      minCount: p.minCount || 0,
+      maxCount: p.maxCount || count,
     });
     if (!selected.length) return;
     for (const item of selected.sort((a,b)=>b.index-a.index)) pl.discard.push(pl.hand.splice(item.index, 1)[0]);
@@ -1758,6 +1762,29 @@ const EXECUTORS = {
   // duration='next_opp_turn' 时（如大岩蛇「坚硬头锤」）：生效窗口是**对手的下一个回合**，
   // 用 attackShieldArmed 标记它，让 GameState.endTurn 在自己回合结束时不要清掉，
   // 改由对手回合结束时清除（见 GameState.endTurn 的 1 / 1.1 两段）。
+  /**
+   * 「这张卡，可以从2个效果中选择1个使用」→ 弹出**效果描述**选择（不是选卡名）。
+   * 选项文案来自分支效果的「精炼描述」（见解析端 _describeBranch）。
+   * AI 侧固定选第一个分支（确定性；后续可接入 AiPolicy 打分）。
+   */
+  async choose_effect(gs, pl, p) {
+    const branches = Array.isArray(p?.branches) ? p.branches : [];
+    if (!branches.length) return;
+    if (branches.length === 1) { await executeEffects(gs, pl, branches[0].effects || []); return; }
+    const labels = branches.map(b => b.label || b.text || '效果');
+    if (pl === gs.player1 && gs._onPendingPick) {
+      const picked = await gs.waitForPick(labels, 1, {
+        source:'choose-effect', prompt:'选择要使用的效果', minCount:1, maxCount:1,
+      });
+      const idx = Math.min(Math.max(Number(picked?.[0]) || 0, 0), branches.length - 1);
+      gs.addLog(`选择了效果：${labels[idx]}`);
+      await executeEffects(gs, pl, branches[idx].effects || []);
+      return;
+    }
+    gs.addLog(`（自动决策）选择效果：${labels[0]}`);
+    await executeEffects(gs, pl, branches[0].effects || []);
+  },
+
   /**
    * E 「然后，将这只宝可梦，以及放置于其身上的所有卡牌，丢到弃牌区」
    * ⚠️ 这**不是昏厥**：不拿奖赏卡，只把这张卡与它身上的能量/道具放进弃牌区。
