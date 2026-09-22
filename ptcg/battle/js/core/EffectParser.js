@@ -1210,9 +1210,10 @@ const RULES = [
   { re: /将对手已经获得的奖赏卡张数[×x]\d+个伤害指示物，放置于对手的战斗宝可梦身上/, act:'usage_condition', p:m=>trainerPrerequisite('counters_by_opp_prizes', m[0]) },
   { re: /在对手的1只宝可梦身上放置伤害指示物，直到其剩余HP变为["“”]?\d+["“”]?点为止/, act:'usage_condition', p:m=>trainerPrerequisite('counters_until_100hp', m[0]) },
   { re: /在下个对手的回合，无法从手牌将能量附于受到这个招式影响的宝可梦身上/, act:'usage_condition', p:m=>trainerPrerequisite('block_attach_energy_next', m[0]) },
-  { re: /在造成伤害前，将任意数量的(?:放置|放)于自己场上宝可梦身上的["“”]宝可梦道具["“”]丢到弃牌区，追加造成其(?:张数|数量)[×x](\d+)伤害/, act:'usage_condition', p:m=>trainerPrerequisite('discard_tools_for_damage', m[0]) },
+  // k3 前半句升级：原为未建模标记，现在映射到真实动作（自己场上的宝可梦道具 → 弃牌区，伤害=张数×N）
+  { re: /在造成伤害前，将任意数量的(?:放置|放)于自己场上宝可梦身上的["“”]宝可梦道具["“”]丢到弃牌区，追加造成其(?:张数|数量)[×x](\d+)伤害/, act:'discard_field_attachments', p:m=>({ target:'self', tools:true, maxCount:1, optional:true, damagePerCard:+m[1] }) },
   { re: /给这只宝可梦身上放置最多(\d+)个伤害指示物，造成放置的伤害指示物数量[×x](\d+)伤害/, act:'usage_condition', p:m=>trainerPrerequisite('self_counters_damage', m[0]) },
-  { re: /将自己手牌中任意数量的["“”]([^"“”]+)["“”]丢到弃牌区，造成其(?:张数|数量)[×x](\d+)伤害/, act:'usage_condition', p:m=>trainerPrerequisite('discard_kind_hand_for_damage', m[0]) },
+  { re: /将自己手牌中任意数量的["“”]([^"“”]+)["“”]丢到弃牌区，造成其(?:张数|数量)[×x](\d+)伤害/, act:'discard_hand', p:m=>({ filter:m[1], count:'all', allowFewer:true, allowEmpty:true, optional:true, damagePerCard:+m[2] }) },
   { re: /用这个招式时，若自己的剩余奖赏卡张数为(\d+)张，则这场对战算作自己的胜利/, act:'usage_condition', p:m=>trainerPrerequisite('instant_win_at_prize', m[0]) },
   { re: /在上个对手的回合，若自己的宝可梦(?:【昏厥】了)?[^。]*则这只宝可梦[^。]*招式的伤害，全部消除/, act:'usage_condition', p:m=>trainerPrerequisite('energy_cost_zero_cond', m[0]) },
 
@@ -1361,7 +1362,7 @@ const RULES = [
   // ===== P11（2026-09）：长尾第 5 批 =====
   { re: /这只宝可梦使用招式所需能量会减少与对手场上["“”]([^"“”]+)["“"]宝可梦数量相同数量的【无】能量/, act:'attack_cost_reduction', p:()=>({target:'self',type:'colorless',amount:'opponent_field_count'}) },
   { re: /这只宝可梦，当对手从手牌使出物品时，不受其效果影响/, act:'prevent_effect', p:()=>({source:'trainer'}) },
-  { re: /将自己手牌中任意数量的支援者丢到弃牌区，造成其(?:张数|数量)[×x](\d+)伤害/, act:'usage_condition', p:m=>trainerPrerequisite('discard_supporter_hand_for_damage', m[0]) },
+  { re: /将自己手牌中任意数量的支援者丢到弃牌区，造成其(?:张数|数量)[×x](\d+)伤害/, act:'discard_hand', p:m=>({ filter:'支援者', count:'all', allowFewer:true, allowEmpty:true, optional:true, damagePerCard:+m[1] }) },
   { re: /这只宝可梦，可使用所有自己的备战区或弃牌区中的["“”]宝可梦GX・EX["“”]所拥有的招式/, act:'usage_condition', p:m=>trainerPrerequisite('copy_gx_ex_moves', m[0]) },
   { re: /将双方场上["“”]拥有规则的宝可梦["“”]的特性，全部消除/, act:'ability_nullify', p:m=>abilityNullifyParams(m[0],m.input) },
   { re: /身上放有这张卡的宝可梦所使用的招式，给对手备战区的["“”]([^"“”]+)["“”]造成的伤害["“”]([+-]?\d+)["“"]/, act:'passive_damage_mod', p:m=>({target:'self',amount:+m[2]}) },
@@ -1411,7 +1412,8 @@ const RULES = [
   { re: /从自己的弃牌区选择最多(\d+)张【(.+?)】能量，以任意方式附于自己的【(.+?)】宝可梦身上/, act:'attach_energy_from_discard', p:m=>withCount({filter:`【${m[2]}】能量`,target:'any',targetType:ELEM[m[3]]||m[3]},m[1],true) },
   { re: /这只宝可梦所使用的招式，给对手战斗宝可梦造成的伤害，会因为每张自己已获取的奖赏卡而["“”]([+-]?\d+)["“"]/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'counter',counter:'own_prizes_taken',mode:'per_unit'}) },
   { re: /对方就无法从手牌使出["“"]宝可梦道具["“"]["“"]特殊能量["“"]也无法放置["“"]竞技场["“"]/, act:'usage_condition', p:m=>trainerPrerequisite('opp_block_item_special_stadium', m[0]) },
-  { re: /将自己手牌中任意数量的【撤退】所需能量数为(\d+)个的宝可梦丢到弃牌区，造成其(?:张数|数量)[×x](\d+)伤害/, act:'usage_condition', p:m=>trainerPrerequisite('discard_retreat4_for_damage', m[0]) },
+  // 注：卡面限定「【撤退】所需能量数为N个的宝可梦」，这里只按「宝可梦」过滤（具体挑哪张由玩家决定）
+  { re: /将自己手牌中任意数量的【撤退】所需能量数为(\d+)个的宝可梦丢到弃牌区，造成其(?:张数|数量)[×x](\d+)伤害/, act:'discard_hand', p:m=>({ filter:'宝可梦', count:'all', allowFewer:true, allowEmpty:true, optional:true, damagePerCard:+m[2] }) },
   { re: /对手场上所有【(.+?)】宝可梦的弱点全部变为【(.+?)】属性/, act:'usage_condition', p:m=>trainerPrerequisite('weakness_set_type', m[0]) },
   { re: /将自己场上宝可梦身上附着的最多(\d+)张能量丢到弃牌区，造成其(?:张数|数量)[×x](\d+)伤害/, act:'discard_energy_for_damage', p:m=>({source:'field',count:+m[1],amountPer:+m[2]}) },
   { re: /在下个自己的回合，这只宝可梦的["“"]([^"“"]+)["“"]的伤害["“"]([+-]?\d+)["“"]/, act:'damage_boost_next_self', p:m=>({amount:+m[2]}) },
@@ -1772,6 +1774,16 @@ const RULES = [
   { re: /若自己的剩余奖赏卡张数，比对手的剩余奖赏卡张数多，则这张卡，只要被附于进化宝可梦身上（除["“"]([^"“"]+)["“"]外），就的能量/, act:'usage_condition', p:m=>trainerPrerequisite('energy_prize_lead_desc', m[0]) },
   { re: /若为正面，则在对手战斗宝可梦身上放置伤害指示物，直到其剩余HP变为["“"]?(\d+)["“"]?点/, act:'usage_condition', p:m=>trainerPrerequisite('counters_to_hp_act', m[0]) },
   { re: /将(?:自己的|自己)?手牌全部放回牌库。然后，从自己的牌库抽出与对手的手牌相同张数的卡牌/, act:'usage_condition', p:m=>trainerPrerequisite('hand_to_deck_like_opp', m[0]) },
+  // ===== k3 前半句（续）：无既有规则覆盖的措辞 =====
+  // ①「（若希望，）可从自己的手牌将最多N张 X 丢到弃牌区」
+  { re: /(?:若希望[，,]?)?可从自己的手牌将最多(\d+)张(.{1,10}?)丢到弃牌区/, act:'discard_hand', p:m=>({ filter:m[2], count:+m[1], maxCount:+m[1], allowFewer:true, allowEmpty:true, optional:true }) },
+  // ②「从自己的手牌将最多N张 X 丢到弃牌区」
+  { re: /从自己的手牌将最多(\d+)张(.{1,10}?)丢到弃牌区/, act:'discard_hand', p:m=>({ filter:m[2], count:+m[1], maxCount:+m[1], allowFewer:true, allowEmpty:true, optional:true }) },
+  // ③「将附于自己场上宝可梦身上的（N个|任意数量的）能量丢到弃牌区」→ 己方**全场**（不只是出战位）
+  { re: /将附于自己场上宝可梦身上的(?:(\d+)个|任意数量的)(?:【(.+?)】)?能量丢到弃牌区/, act:'discard_energy', p:m=>({ target:'own_field', count:m[1]?+m[1]:'all', filter:m[2]?`【${m[2]}】能量`:null, allowFewer:true, allowEmpty:true, optional:true }) },
+  // ④ 同上但放到**放逐区**（既有规则只覆盖带「选择」的写法）
+  { re: /将附于自己场上宝可梦身上的(?:(\d+)个|任意数量的)(?:【(.+?)】)?能量放置于放逐区/, act:'lost_zone', p:m=>({ from:'field_energy', count:m[1]?+m[1]:'any', filter:m[2]?`【${m[2]}】能量`:null }) },
+
   { re: /这张卡，只有在上一个对手的回合，自己的【(.+?)】宝可梦【昏厥】时才可使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('condition', m[0]) },  // ===== 「造成其张数×N伤害」（**兜底**，必须放在最后）=====
   // ⚠️ 本项目早有专用实现：`discard_energy_for_damage`（5 条规则 + 真执行器，覆盖
   //    「从手牌/场上丢能量，造成其张数×N伤害」等固定措辞）。主循环是「按规则表顺序、先命中者先吃」，

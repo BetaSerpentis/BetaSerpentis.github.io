@@ -1264,7 +1264,7 @@ const EXECUTORS = {
   // ===== 百万吨吹风机：丢对手道具/特殊能量/竞技场 =====
   discard_field_attachments(gs, pl, p) {
     const opp = _opponent(gs, pl);
-    const owners = (p.target === 'both') ? [pl, opp] : [opp];
+    const owners = (p.target === 'both') ? [pl, opp] : (p.target === 'self' ? [pl] : [opp]);
     const maxCount = p.maxCount || Infinity;
     // toLostZone：这些卡进放逐区而不是弃牌区
     const zoneOf = owner => (p.toLostZone ? (owner.lostZone = owner.lostZone || []) : owner.discard);
@@ -1751,6 +1751,18 @@ const EXECUTORS = {
         prompt:'选择丢弃能量的对手宝可梦'
       });
       mon = _getMon(owner, slot);
+    } else if (p.target === 'own_field') {
+      // 「将附于自己场上宝可梦身上的任意数量的能量丢到弃牌区」——范围是自己**全场**，
+      // 不是只有出战位（旧实现只有 self/opponent 两种，落到这里是出战位）
+      const candidates = [pl.active, ...(pl.bench || [])].filter(Boolean);
+      const items = candidates.flatMap(m => _attachedEnergyItems(gs, pl, m, _monSlot(pl, m), p.filter));
+      if (!items.length) return;
+      const selected = await _pickAttachedEnergy(gs, pl, items, p.count === 'all' ? 'all' : (p.count || 1), { filter:p.filter || null, allowFewer:!!p.allowFewer, allowEmpty:!!p.allowEmpty, maxCount:p.maxCount, minCount:p.minCount, optional:!!p.optional });
+      if (!selected.length) return;
+      for (const item of _removeAttachedEnergy(selected)) _pushEnergyDiscard(item.owner, item.energy);
+      gs.addLog(`丢弃场上 ${selected.length} 个能量`);
+      _applyCountedDamage(gs, pl, p, selected.length);
+      return;
     } else {
       mon = p.target === 'opponent' || p.target === 'opponent_active' ? owner.active : pl.active;
       slot = _monSlot(owner, mon);
