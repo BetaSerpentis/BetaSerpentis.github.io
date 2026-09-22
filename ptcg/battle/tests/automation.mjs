@@ -5643,19 +5643,26 @@ await test('真实卡特性：猛烈燃烧让己方基本火能量提供2个火'
   assert.equal(gs.checkEnergy(pl.active, 0), true);
 });
 
-await test('真实卡特性：阳光绽放补牌到4且一回合一次', async () => {
+await test('真实卡特性：阳光绽放是「回合结束时」触发（不应能中途手动补牌）', async () => {
+  // ⚠️ 语义变更：卡面是「在自己的回合结束时可以使用1次」，本应结算于回合结束，
+  //   旧实现把它当成可随时手动发动的特性（中途就能补到 4 张）。现在解析为 turn_end 触发器，
+  //   补牌效果收在触发器内 → 中途手动发动不再补牌，回合结束才结算。
+  const ability = buildAbilityFromRaw(getPokemonRawByAbility('阳光绽放'));
+  const tr = ability.effects.find(e => e.action === 'trigger');
+  assert.ok(tr, `应解析为 turn_end 触发器（实际 ${JSON.stringify(ability.effects.map(e => e.action))}）`);
+  assert.equal(tr.params.event, 'turn_end');
+  assert.equal(tr.params.effects.some(e => e.action === 'draw_until' && e.params.target === 4), true, '补牌到 4 应作为触发效果');
+  assert.ok(!ability.effects.some(e => e.action === 'draw_until'), '补牌不应留在顶层');
+
   const gs = new GameState();
   const pl = gs.player1;
-  const ability = buildAbilityFromRaw(getPokemonRawByAbility('阳光绽放'));
-  assert.equal(ability.effects.some(e => e.action === 'draw_until' && e.params.target === 4), true);
   pl.hand = ['h1'];
   pl.deck = ['d1', 'd2', 'd3', 'd4'];
   pl.active = mon('美丽花');
   pl.active.ability = ability;
   const engine = makeEngine(gs);
-  assert.equal(await engine.useAbility(pl.active), true);
-  assert.equal(pl.hand.length, 4);
-  assert.equal(await engine.useAbility(pl.active), false);
+  await engine.useAbility(pl.active);
+  assert.equal(pl.hand.length, 1, '不应在中途手动补牌（回合结束才结算）');
 });
 
 await test('真实卡特性：化学变化气体只在战斗场上消除对手场上特性并尊重例外', () => {
@@ -7458,6 +7465,105 @@ await test('EV 「每当对手附着能量时」的老行为未被破坏', async
   gs.emitTriggerEvent('energy_attached', { target: opp.active, owner: opp, fromHand: true, cardName: '基本【草】能量' });
   await new Promise(r => setTimeout(r, 5));
   assert.ok(pl.hand.length >= 1, '对手附能时仍应触发');
+});
+
+
+// ============================================================
+//  ③(c) 特性回合结束触发  /  ③(d) 支援者延迟到回合结束
+// ============================================================
+
+const FLOWER = '在自己的回合结束时可以使用1次。从牌库上方抽取卡牌，直到自己的手牌变为4张为止。';
+const TUSK = '在自己的回合结束时，如果这只宝可梦在战斗场上的话，则必须使用1次。将自己牌库上方5张卡牌放于弃牌区。';
+const NALI = '从自己牌库上方抽取4张卡牌。在使用了这张卡牌的回合结束时，如果自己的手牌数量为5张及以上的话，则将自己的手牌全部放于弃牌区。';
+
+await test('TE(c) 回合结束特性解析为 trigger(turn_end) 且效果收在其内', () => {
+  const a = parseEffect(FLOWER).effects;
+  assert.equal(a[0].action, 'trigger');
+  assert.equal(a[0].params.event, 'turn_end');
+  assert.deepEqual(a[0].params.effects.map(x => x.action), ['draw_until']);
+
+  const b = parseEffect(TUSK).effects;
+  const tr = b.find(x => x.action === 'trigger');
+  assert.equal(tr.params.forced, true, '「必须使用1次」应标记为强制');
+  assert.deepEqual(tr.params.condition, { requiresActive:true });
+  assert.deepEqual(tr.params.effects.map(x => x.action), ['mill'], '效果不应留在顶层');
+  assert.ok(!b.some(x => x.action === 'mill'), '顶层不应再有 mill（否则手动发动会立刻生效）');
+});
+
+await test('TE(c) 弱丁鱼：对手回合结束触发 + 反面回牌库', () => {
+  const e = parseEffect('如果这只宝可梦身上放置有伤害指示物的话，则在对手的回合结束时，抛掷1次硬币。如果为反面，则将这只宝可梦，以及放于其身上的所有卡牌，放回自己的牌库并重洗牌库。').effects;
+  const tr = e.find(x => x.action === 'trigger');
+  assert.ok(tr, `应解析出 trigger（实际 ${JSON.stringify(e.map(x => x.action))}）`);
+  assert.equal(tr.params.event, 'opponent_turn_end');
+  assert.deepEqual(tr.params.condition, { kind:'has_damage_counters' });
+  const flip = tr.params.effects.find(x => x.action === 'coin_flip');
+  assert.ok(flip, '应有抛硬币');
+  assert.deepEqual((flip.params.tails || []).map(x => x.action), ['return_self_to_deck'], '反面才回牌库');
+});
+
+await test('TE(c) 回合结束特性：出战位触发、备战位不触发', async () => {
+  const eff = parseEffect(TUSK).effects;
+  const mkCase = async bench => {
+    const gs = new GameState();
+    await bootTriggers(gs);
+    const pl = gs.player1, opp = gs.player2;
+    pl.active = mon('前排', 'a1');
+    opp.active = mon('敌方', 'o1');
+    const holder = bench ? mon('后备', 'b1') : pl.active;
+    holder.ability = { name:'摇晃击溃', active:true, zone:'field', effects: eff };
+    if (bench) pl.bench = [holder];
+    pl.deck = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
+    opp.deck = ['y1', 'y2', 'y3'];
+    pl.prizes = ['p']; opp.prizes = ['q'];
+    pl.discard = [];
+    gs.endTurn();
+    await new Promise(r => setTimeout(r, 10));
+    return pl.discard.length;
+  };
+  assert.equal(await mkCase(false), 5, '出战位应在回合结束时 mill 5');
+  assert.equal(await mkCase(true), 0, '备战位不应触发（卡面要求「在战斗场上」）');
+});
+
+await test('TE(c) 光辉妙蛙花：回合结束时抽到手牌 4 张', async () => {
+  const eff = parseEffect(FLOWER).effects;
+  const gs = new GameState();
+  await bootTriggers(gs);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('前排', 'a1');
+  pl.active.ability = { name:'花开', active:true, zone:'field', effects: eff };
+  opp.active = mon('敌方', 'o1');
+  pl.hand = ['h1'];
+  pl.deck = ['d1', 'd2', 'd3', 'd4', 'd5'];
+  opp.deck = ['y1', 'y2'];
+  pl.prizes = ['p']; opp.prizes = ['q'];
+  gs.endTurn();
+  await new Promise(r => setTimeout(r, 10));
+  assert.equal(pl.hand.length, 4, '应在回合结束时抽到 4 张');
+});
+
+await test('TE(d) 支援者延迟效果：打出时不当场执行，回合结束才结算', async () => {
+  const eff = parseEffect(NALI).effects;
+  const gate = eff.find(x => x.action === 'defer_to_turn_end');
+  assert.ok(gate, '应解析出 defer_to_turn_end');
+  assert.deepEqual(gate.params.effects.map(x => x.action), ['discard_all_hand'], '延迟部分应是「丢光手牌」');
+
+  const gs = new GameState();
+  await bootTriggers(gs);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('前排', 'a1');
+  opp.active = mon('敌方', 'o1');
+  pl.deck = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6'];
+  opp.deck = ['y1', 'y2'];
+  pl.prizes = ['p']; opp.prizes = ['q'];
+  pl.hand = [];
+  pl.discard = [];
+  await executeEffects(gs, pl, eff);
+  assert.equal(pl.hand.length, 4, '打出时应抽 4 张');
+  assert.equal(pl.discard.length, 0, '**不应当场丢手牌**（这是修复前的真错）');
+  gs.endTurn();
+  await new Promise(r => setTimeout(r, 20));
+  assert.equal(pl.hand.length, 0, '回合结束时应把手牌丢光');
+  assert.equal(pl.discard.length, 4, '丢掉的 4 张应进弃牌区');
 });
 
 await test('全卡牌效果文本解析覆盖率报告', () => {

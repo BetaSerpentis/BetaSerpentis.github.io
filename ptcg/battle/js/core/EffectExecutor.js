@@ -73,6 +73,8 @@ function _requiredFailure(action, reason) {
 
 export async function executeEffects(gs, player, effects, options = {}) {
   if (!gs._triggerHandler) gs._triggerHandler = (event, payload) => _emitTriggers(gs, event, payload);
+  // 供 GameState 结算「延迟到回合结束的效果」（endTurn 是同步的，这里异步执行、不阻塞）
+  if (!gs._runEffects) gs._runEffects = (player, effects) => { try { Promise.resolve(executeEffects(gs, player, effects)).catch(() => {}); } catch (e) { /* 忽略 */ } };
   for (const eff of effects) {
     try {
       const fn = EXECUTORS[eff.action];
@@ -564,9 +566,11 @@ function _triggerConditionMet(gs, mon, cond, payload = {}, ownerPl = null, event
     }
     return true;
   }
+  if (cond?.requiresActive && ownerPl && ownerPl.active !== mon) return false;
   if (!cond) return true;
   const counters = Math.max(0, (mon.maxHp || 0) - (mon.hp || 0));
   switch (cond.kind) {
+    case 'has_damage_counters': return counters > 0;
     case 'damage_counters_at_least': return counters >= (cond.count || 0) * 10;
     case 'has_special_condition': return !!mon.status;
     case 'hp_at_most_with_counters': return counters > 0 && (mon.hp || 0) <= (cond.hp || 0);
@@ -581,6 +585,9 @@ function _shouldTrigger(event, mon, payload, ownerPl) {
     case 'evolved': return payload.target === mon; // 自身事件
     // 方向判定交给 _triggerConditionMet（那里能看到具体效果的 condition）
     case 'energy_attached': return true;
+    // 「在自己的回合结束时」只对**结束回合的这一方**生效；「对手的回合结束时」则相反
+    case 'turn_end': return payload.player === ownerPl;
+    case 'opponent_turn_end': return !!payload.player && payload.player !== ownerPl;
     default: return true;
   }
 }
@@ -1968,6 +1975,36 @@ const EXECUTORS = {
     opp.playRestrictions = opp.playRestrictions || {};
     opp.playRestrictions[p.what || 'item'] = 'next_opp_turn';
     gs.addLog(`对手下回合无法使用${p.what === 'item' ? '物品' : (p.what || '指定卡')}`);
+  },
+
+  /**
+   * 「(在)使用了这张卡牌的回合结束时，<效果>」——把效果挂到回合结束时结算。
+   * endTurn 是同步流程，所以这里只登记；由 GameState.endTurn 在回合末取出并执行。
+   */
+  defer_to_turn_end(gs, pl, p) {
+    const effects = Array.isArray(p?.effects) ? p.effects : [];
+    if (!effects.length) return;
+    (gs.pendingTurnEnd = gs.pendingTurnEnd || []).push({ player: pl, effects });
+    gs.addLog(`（已登记回合结束时结算的效果 ×${effects.length}）`);
+  },
+
+  /** 弱丁鱼：「将这只宝可梦，以及放置于其身上的所有卡牌，放回自己的牌库并重洗牌库」 */
+  return_self_to_deck(gs, pl, p, eff) {
+    const mon = p?.triggerSource || eff?.source || pl.active;
+    if (!mon) return;
+    const bi = (pl.bench || []).indexOf(mon);
+    const wasActive = pl.active === mon;
+    const cards = [_toolCardValue(mon), ...((mon.energy || []).map(_toolCardValue))];
+    if (mon.tool) cards.push(_toolCardValue(mon.tool));
+    pl.deck.push(...cards);
+    if (bi >= 0) pl.bench.splice(bi, 1);
+    if (wasActive) {
+      pl.active = pl.bench.length ? pl.bench.shift() : null;
+      if (pl.active) gs.addLog(`${pl.name} 换上 ${pl.active.name}`);
+    }
+    gs._shuffle?.(pl.deck);
+    gs.recomputePassives?.();
+    gs.addLog(`${mon.name} 与身上的卡牌被放回牌库并重洗`);
   },
 
   /** 「然后，将这张卡牌放于弃牌区」——触发式道具在触发后自弃（如文柚果/木子果/应急果冻） */

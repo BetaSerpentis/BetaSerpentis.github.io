@@ -226,6 +226,23 @@ function triggerParams(m) {
   return { event, effect: inner.effects[0], effects: inner.effects, optional };
 }
 
+/**
+ * ⚠️ 写规则前必读：RULES 匹配的是**归一化后**的文本（normalizeCn/norm），不是卡面原文。
+ * 常见替换（按执行顺序，前面的先跑）：
+ *   「」→ "                选择(自己|自己的)牌库中的 → 从自己的牌库选择
+ *   (令|使)…陷入【X】状态 → 将…【X】
+ *   **放于弃牌区 → 丢到弃牌区**       ← 先于下面那条，所以「放于弃牌区」不会变成「放置于弃牌区」
+ *   **放于 → 放置于**；附着于 → 附于；附有 → 附着
+ *   **抛掷 → 掷**                    ← 「抛掷1次硬币」在规则里必须写成 (?:抛)?掷1次硬币
+ *   **如果 → 若**；的话 → 删除
+ *   牌库上方(抽取|抽出) → 牌库抽出；**抽取 → 抽出**
+ *   **回复 → 恢复**；自己牌库 → 自己的牌库；**张卡牌 → 张卡**
+ *   给对手看过之后 → 给对手看过后；并重洗牌库 → 并且重洗牌库；恢复其 → 恢复
+ *   **点HP → HP**；丢到弃牌区后才可使用 → 丢到弃牌区才可使用；从(自己|自己的)牌库中 → 从自己的牌库
+ *   只要这只宝可梦在(战斗场上|场上|备战区)， → 删除
+ *   不受到 → 不会受到；在下一个 → 在下个；(\d+)点伤害 → $1伤害
+ * 写新规则时优先写**容错**形式（如 若|如果、(?:抛)?掷、可(?:以)?使用），并实测再定稿。
+ */
 const RULES = [
   // ===== 触发式「当/每当…时，效果」：优先匹配，避免效果部分被其他规则先吃掉 =====
   { re: /^(?:每当|当)(.{2,40}?)(?:时)[，,]?(.+)$/, act:'trigger', p:triggerParams },
@@ -396,6 +413,9 @@ const RULES = [
   { re: /在下个对手的回合[，,]?这只宝可梦受到招式的伤害时[，,]?自己(?:抛)?掷1次硬币[。.]?(?:如果|若)为正面[，,]?则这只宝可梦不会受到该伤害(?:影响)?/, act:'attack_damage_flip_shield', p:()=>({duration:'next_opp_turn'}) },
   // 特性版：常驻被动，BattleEngine 每次结算伤害时都重掷（必须排在泛用 /掷1次硬币/ 之前，否则会被它先吃掉左侧文本）
   { re: /当这只宝可梦受到招式的伤害时[，,]?自己(?:抛)?掷1次硬币[。.]?(?:如果|若)为正面[，,]?则这只宝可梦不会受到该伤害(?:影响)?/, act:'coin_flip_damage_shield', p:()=>({}) },
+  // 弱丁鱼：「若这只宝可梦身上放置有伤害指示物，则在对手的回合结束时，抛掷1次硬币。若为反面，则…放回自己的牌库并重洗牌库」
+  // ⚠️ 必须排在泛用 /掷1次硬币/ 之前，否则硬币先被吃掉，这句永远匹配不到
+  { re: /(?:如果|若)这只宝可梦身上放置有伤害指示物(?:的话)?[，,]?则在对手的回合结束时[，,]?(?:抛)?掷1次硬币。若为反面[，,]?则将这只宝可梦[，,]?以及放置于其身上的所有卡牌[，,]?放回自己的牌库/, act:'trigger', p:()=>({ event:'opponent_turn_end', condition:{ kind:'has_damage_counters' }, effects:[{ action:'coin_flip', params:{ count:1, tails:[{ action:'return_self_to_deck', params:{} }] } }] }) },
   { re: /掷(\d+)次硬币/, act:'coin_flip', p:m=>({count:+m[1]}) },
   { re: /掷1次硬币/, act:'coin_flip', p:()=>({count:1}) },
 
@@ -444,6 +464,8 @@ const RULES = [
   { re: /(?:然后[，,]?)?从牌库抽卡直到(?:自己的)?手牌满(\d+)张(?:为止)?/, act:'draw_until', p:m=>({target:+m[1]}) },
   { re: /(?:若希望[，,]?)?从牌库上方抽出卡牌[，,]?直到自己的手牌(?:数量)?变为(\d+)张(?:为止)?/, act:'draw_until', p:m=>({target:+m[1]}) },
   { re: /从牌库抽出卡牌[，,]?直到自己的手牌变为(\d+)张(?:为止)?/, act:'draw_until', p:m=>({target:+m[1]}) },
+  // 青绿的战略：「从自己的牌库抽出卡牌，直到自己的手牌张数为8张为止」
+  { re: /从(?:自己的)?牌库(?:上方)?抽出?卡牌[，,]?直到自己的手牌张数为(\d+)张(?:为止)?/, act:'draw_until', p:m=>({target:+m[1]}) },
   { re: /从(?:自己的)?牌库抽出(\d+)张卡/, act:'draw', p:m=>({count:+m[1]}) },
   { re: /从牌库抽出(\d+)张/, act:'draw', p:m=>({count:+m[1]}) },
   // 条件改写句：数据里写成「基础动作。若……则张数变为N张」两句。
@@ -476,6 +498,19 @@ const RULES = [
   { re: /选择自己的最多(\d+)张手牌[，,]?(?:丢到|放于)弃牌区/, act:'discard_hand', p:m=>({ count:+m[1], maxCount:+m[1], minCount:1, allowFewer:true }) },
   // 莎莉娜 分支2「选择对手备战区的1只「宝可梦V」，将其与战斗宝可梦互换」
   { re: /选择对手备战区的1只["“”「」]?[^"“”「」]{0,8}["“”「」]?[，,]?将其与战斗宝可梦互换/, act:'switch_pokemon', p:()=>({ who:'opponent' }) },
+
+  // ===== P2-TE(c) 特性：回合结束时触发 =====
+  // 效果由解析末尾收进 trigger.effects（与 ④ 同一机制）
+  // - 可选（光辉妙蛙花/波克基斯）：「在自己的回合结束时可以使用1次。」
+  { re: /在自己的回合结束时可(?:以)?使用1次/, act:'trigger', p:()=>({ event:'turn_end', effects:[] }) },
+  // - 强制（雄伟牙ex）：「在自己的回合结束时，如果这只宝可梦在战斗场上的话，则必须使用1次。」
+  { re: /在自己的回合结束时[，,]?(?:(?:如果|若)这只宝可梦在战斗场上(?:的话)?[，,]?则)?必须使用1次/, act:'trigger', p:()=>({ event:'turn_end', forced:true, condition:{ requiresActive:true }, effects:[] }) },
+
+  // ===== P2-TE(d) 支援者延迟：「(在)使用了这张卡牌的回合结束时，<效果>」=====
+  // 延迟部分不立即执行，而是记到回合结束时结算（原来的实现会把「丢光手牌」当场执行）
+  { re: /在?使用了这张卡(?:牌)?的回合结束时[，,]?/, act:'defer_to_turn_end', p:()=>({ effects:[] }) },
+  // 莉莉艾的全力 延迟部分：「将手牌放回牌库，直到手牌剩余N张为止并重洗牌库」
+  { re: /将手牌放回牌库[，,]?直到手牌剩余(\d+)张为止/, act:'shuffle_hand_to_deck', p:m=>({ keep:+m[1] }) },
 
   // ===== P2-EV 事件触发条件（妙蛙花&藤藤蛇GX「光辉蔓藤」）=====
   // 「在自己的回合，每次从自己的手牌将【草】能量附着于这只宝可梦身上时，可使用1次。<效果>」
@@ -1948,7 +1983,9 @@ export function parseEffect(text) {
   // （妙蛙花&藤藤蛇GX「光辉蔓藤」这类：前半句定义触发时机，后半句才是触发后要做的事）
   for (let i = 0; i < effects.length; i++) {
     const tr = effects[i];
-    if (tr.action !== 'trigger' || (Array.isArray(tr.params?.effects) && tr.params.effects.length)) continue;
+    // trigger（触发时机）与 defer_to_turn_end（延迟到回合结束）都是「先写时机、后写效果」
+    if (!['trigger', 'defer_to_turn_end'].includes(tr.action)) continue;
+    if (Array.isArray(tr.params?.effects) && tr.params.effects.length) continue;
     const tail = effects.slice(i + 1).filter(e => e.action !== 'usage_condition' && e.action !== 'trainer_prerequisite');
     if (!tail.length) continue;
     tr.params = { ...tr.params, effects: tail };

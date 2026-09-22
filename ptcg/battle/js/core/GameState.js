@@ -158,6 +158,19 @@ export class GameState {
       if(mon.hp<=0){this.knockout(pl);}
     }
     this.emitTriggerEvent('checkup',{});
+    // 「在自己的回合结束时」/「对手的回合结束时」触发（特性：光辉妙蛙花/雄伟牙ex/弱丁鱼）
+    // payload.player = 正在结束回合的一方，由 _shouldTrigger 决定各玩家哪些宝可梦能收到
+    this.emitTriggerEvent('turn_end',{player:this.currentPlayer});
+    this.emitTriggerEvent('opponent_turn_end',{player:this.currentPlayer});
+    // 支援者的「使用了这张卡牌的回合结束时」延迟效果（青绿的战略/莉莉艾的全力/纳莉）
+    // 注意：endTurn 是同步流程，这里只取出登记项，实际执行由 _runEffects 异步进行（目标玩家已固定，
+    // 所以即使晚一个 tick 结算，作用对象与结果都正确）。
+    {
+      const all=this.pendingTurnEnd||[];
+      const mine=all.filter(x=>x.player===this.currentPlayer);
+      this.pendingTurnEnd=all.filter(x=>x.player!==this.currentPlayer);
+      for(const entry of mine)this._runEffects?.(entry.player,entry.effects);
+    }
     // 1.5' 「回合结束时自动弃置」类道具：
     //   - 自己的回合结束时（招式学习器类，action=tool_end_of_turn_discard）→ 结束回合的这一方
     //   - 对手的回合结束时（金属核心屏障/巨型炸弹，tool_opponent_turn_end_discard）→ 另一方
