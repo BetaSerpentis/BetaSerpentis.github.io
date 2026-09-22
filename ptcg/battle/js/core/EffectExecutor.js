@@ -91,6 +91,37 @@ export async function executeEffects(gs, player, effects, options = {}) {
 }
 
 /**
+ * 「选择与其张数相同数量的对手的宝可梦（同1只宝可梦可以选择多次）…造成被选择次数×N伤害」。
+ * 交互：点一只对手宝可梦 → 再弹下一次，共 picks 次；同一只可重复选中；
+ * 最后按「每只被选中的次数」结算伤害。
+ * 注：卡面写明「不计算弱点、抗性」，而 _applyDamageToPokemon 本就是裸伤害
+ *（弱点/抗性只在 BattleEngine 结算招式伤害时计算），所以这里天然满足。
+ * 无 UI（AI）时 _pickPokemonTarget 每次返回第一个可选目标 → 全部打在对手出战宝可梦上。
+ */
+async function _applySpreadDamage(gs, pl, per, picks) {
+  const n = +per || 0;
+  const times = +picks || 0;
+  if (!n || !times) return;
+  const opp = _opponent(gs, pl);
+  if (!opp) return;
+  const tally = new Map();
+  for (let i = 0; i < times; i++) {
+    const slot = await _pickPokemonTarget(gs, pl, opp, {
+      mode:'damage', side:'opponent', allowActive:true, allowBench:true,
+      prompt:`选择要伤害的宝可梦（第 ${i + 1} / ${times} 次）`,
+    });
+    if (!slot) break; // 没有可选目标就停（不足次数按已选结算）
+    tally.set(slot, (tally.get(slot) || 0) + 1);
+  }
+  for (const [slot, cnt] of tally) {
+    const mon = _getMon(opp, slot);
+    if (!mon) continue;
+    _applyDamageToPokemon(gs, opp, mon, n * cnt);
+    gs.addLog(`${mon.name} 被选择 ${cnt} 次 → ${n * cnt} 伤害`);
+  }
+}
+
+/**
  * 「造成其张数×N伤害」：伤害 = 本动作**实际移动的卡牌数** × N。
  * 卡面没有指定目标时，按规则打到对手的出战宝可梦。
  * 返回实际造成的伤害（0 表示这条卡面没有这个效果）。
@@ -1597,6 +1628,7 @@ const EXECUTORS = {
     for (const item of selected.sort((a,b)=>b.index-a.index)) pl.discard.push(pl.hand.splice(item.index, 1)[0]);
     gs.addLog(`丢弃 ${selected.length} 张手牌`);
     _applyCountedDamage(gs, pl, p, selected.length);
+    await _applySpreadDamage(gs, pl, p.spreadDamagePer, selected.length);
   },
   discard_all_hand(gs, pl) { while (pl.hand.length > 0) pl.discard.push(pl.hand.pop()); gs.addLog('丢弃全部手牌'); },
 
@@ -1764,6 +1796,7 @@ const EXECUTORS = {
       for (const item of _removeAttachedEnergy(selected)) _pushEnergyDiscard(item.owner, item.energy);
       gs.addLog(`丢弃备战区 ${selected.length} 个能量`);
       _applyCountedDamage(gs, pl, p, selected.length);
+      await _applySpreadDamage(gs, pl, p.spreadDamagePer, selected.length);
       return;
     } else if (p.target === 'own_field') {
       // 「将附于自己场上宝可梦身上的任意数量的能量丢到弃牌区」——范围是自己**全场**，
@@ -1776,6 +1809,7 @@ const EXECUTORS = {
       for (const item of _removeAttachedEnergy(selected)) _pushEnergyDiscard(item.owner, item.energy);
       gs.addLog(`丢弃场上 ${selected.length} 个能量`);
       _applyCountedDamage(gs, pl, p, selected.length);
+      await _applySpreadDamage(gs, pl, p.spreadDamagePer, selected.length);
       return;
     } else {
       mon = p.target === 'opponent' || p.target === 'opponent_active' ? owner.active : pl.active;
@@ -1788,6 +1822,7 @@ const EXECUTORS = {
     for (const item of _removeAttachedEnergy(selected)) _pushEnergyDiscard(item.owner, item.energy);
     gs.addLog(`丢弃 ${selected.length} 个能量`);
     _applyCountedDamage(gs, pl, p, selected.length);
+    await _applySpreadDamage(gs, pl, p.spreadDamagePer, selected.length);
   },
 
   // ===== 能量换位 =====
@@ -2307,6 +2342,7 @@ const EXECUTORS = {
         for (const item of sel.sort((a, b) => b.index - a.index)) zone.push(pl.discard.splice(item.index, 1)[0]);
         gs.addLog(`弃牌区 ${sel.length} 张放入放逐区`);
         _applyCountedDamage(gs, pl, p, sel.length);
+        await _applySpreadDamage(gs, pl, p.spreadDamagePer, sel.length);
         return;
       }
       case 'hand': {
@@ -2318,6 +2354,7 @@ const EXECUTORS = {
         for (const item of sel.sort((a, b) => b.index - a.index)) zone.push(pl.hand.splice(item.index, 1)[0]);
         gs.addLog(`手牌 ${sel.length} 张放入放逐区`);
         _applyCountedDamage(gs, pl, p, sel.length);
+        await _applySpreadDamage(gs, pl, p.spreadDamagePer, sel.length);
         return;
       }
       case 'field_energy':
@@ -2342,6 +2379,7 @@ const EXECUTORS = {
         }
         gs.addLog(`${picked.length} 个能量放入放逐区`);
         _applyCountedDamage(gs, pl, p, picked.length);
+        await _applySpreadDamage(gs, pl, p.spreadDamagePer, picked.length);
         return;
       }
       default:

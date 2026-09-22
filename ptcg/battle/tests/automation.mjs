@@ -8167,6 +8167,76 @@ await test('k3d 「给对手看」与「给对手查看」两种写法都能解�
   assert.equal(b[0].action, 'reveal_hand_for_damage');
 });
 
+
+// ============================================================
+//  k3 最后一条：按数量重复选择目标（同一目标可重复），按被选次数结算伤害
+// ============================================================
+
+const SPREAD = '将附着于这只宝可梦身上的任意数量的【水】能量放于弃牌区，选择与其张数相同数量的对手的宝可梦（同1只宝可梦可以选择多次）。然后，给所有被选择的宝可梦，在不计算弱点、抗性的情况下，造成被选择次数×30点伤害。';
+
+function spreadSetup() {
+  const gs = new GameState();
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('我', 'a1');
+  pl.active.energy = [1, 2, 3].map(i => ({ cardId: 'w' + i, name: '基本【水】能量' }));
+  opp.active = mon('敌前', 'o1');
+  opp.active.hp = 200; opp.active.maxHp = 200;
+  opp.bench = [mon('敌后', 'o2')];
+  opp.bench[0].hp = 200; opp.bench[0].maxHp = 200;
+  gs.cardResolver = fakeResolver({
+    'w1': { card:{ cardType:'energy', name:'基本【水】能量' }, info:{ name:'基本【水】能量', type:'energy' } },
+    'w2': { card:{ cardType:'energy', name:'基本【水】能量' }, info:{ name:'基本【水】能量', type:'energy' } },
+    'w3': { card:{ cardType:'energy', name:'基本【水】能量' }, info:{ name:'基本【水】能量', type:'energy' } },
+  });
+  return { gs, pl, opp };
+}
+
+await test('spread 「被选择次数×N伤害」并入前面的移卡动作', () => {
+  const e = parseEffect(SPREAD).effects;
+  assert.equal(e.length, 1, `应只剩一个动作（实际 ${JSON.stringify(e.map(x => x.action))}）`);
+  assert.equal(e[0].action, 'discard_energy');
+  assert.equal(e[0].params.spreadDamagePer, 30);
+  assert.ok(!e.some(x => x.params?.kind === 'residual_sentence'), '不应残留未建模标记');
+});
+
+await test('spread 自动决策：N 次全部落在对手出战宝可梦上', async () => {
+  const { gs, pl, opp } = spreadSetup();
+  await executeEffects(gs, gs.player1, []);
+  await executeEffects(gs, pl, parseEffect(SPREAD).effects);
+  assert.equal(pl.active.energy.length, 0, '能量应全部被丢弃');
+  assert.equal(opp.active.hp, 200 - 90, '3 次 × 30 = 90 伤害');
+  assert.equal(opp.bench[0].hp, 200, '备战宝可梦未被选中');
+});
+
+await test('spread 手动选择：同一目标可重复选，按被选次数分别结算', async () => {
+  const { gs, pl, opp } = spreadSetup();
+  await executeEffects(gs, gs.player1, []);
+  // 依次选：出战 → 备战 → 备战（同一只备战被选 2 次）
+  const picks = ['active', 'bench-0', 'bench-0'];
+  let pending = null;
+  gs._onPendingPokemonPick = p => { pending = p; };
+  const running = executeEffects(gs, pl, parseEffect(SPREAD).effects);
+  for (let i = 0; i < 30 && picks.length; i++) {
+    await new Promise(r => setTimeout(r, 1));
+    if (!pending) continue;
+    const p = pending; pending = null;
+    p.resolve?.(picks.shift());
+  }
+  await running;
+  assert.equal(opp.active.hp, 200 - 30, '出战被选 1 次 → 30');
+  assert.equal(opp.bench[0].hp, 200 - 60, '备战被选 2 次 → 60');
+});
+
+await test('spread 只丢弃实际选中的能量数（可选数量）', async () => {
+  const { gs, pl, opp } = spreadSetup();
+  await executeEffects(gs, gs.player1, []);
+  // 手动指定只丢 1 张（模拟玩家在附能量选择里少选）
+  const eff = parseEffect(SPREAD).effects.map(e => ({ ...e, params: { ...e.params, count: 1, allowFewer: true } }));
+  await executeEffects(gs, pl, eff);
+  assert.equal(pl.active.energy.length, 2, '只丢 1 张');
+  assert.equal(opp.active.hp, 200 - 30, '1 次 × 30 = 30 伤害（次数跟随实际丢弃数）');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

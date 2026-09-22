@@ -1,4 +1,4 @@
-#eff1 hash=ce628b045172943e
+#eff1 hash=c004fc77c4c03f52
 151C-001	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-002	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-003	ability		0	usage_condition	{"kind":"requires_active"}
@@ -5534,9 +5534,7 @@ CS4bC-020	attack	2	0	damage_bench	{"target":"opponent_1","damage":180}
 CS4bC-022	ability		0	damage_received_mod	{"amount":-30,"target":"self"}
 CS4bC-022	attack	1	0	damage_bench	{"target":"opponent_N","count":2,"damage":30}
 CS4bC-023	attack	1	0	attach_energy_from_hand	{"filter":"【水】能量","target":"any","count":1,"maxCount":1,"minCount":0,"allowFewer":true,"allowEmpty":true}
-CS4bC-024	attack	1	0	discard_energy	{"target":"self","count":"all","filter":"【水】能量","allowFewer":true,"allowEmpty":true,"optional":true}
-CS4bC-024	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"选择与其张数相同数量的对手的宝可梦（同1只宝可梦可以选择多次）。"}
-CS4bC-024	attack	1	2	usage_condition	{"kind":"residual_sentence","raw":"然后，给所有被选择的宝可梦，在不计算弱点、抗性的情况下，造成被选择次数×30伤害。"}
+CS4bC-024	attack	1	0	discard_energy	{"target":"self","count":"all","filter":"【水】能量","allowFewer":true,"allowEmpty":true,"optional":true,"spreadDamagePer":30}
 CS4bC-025	attack	1	0	conditional_damage_mod	{"amount":20,"condition":"self_damage_counters","mode":"per_unit"}
 CS4bC-026	attack	1	0	discard_energy	{"target":"opponent","count":1}
 CS4bC-029	ability		0	trigger	{"event":"evolved","effect":{"action":"coin_flip","params":{"count":1}},"effects":[{"action":"coin_flip","params":{"count":1}},{"action":"mill","params":{"target":"opponent","count":5}},{"action":"mill","params":{"target":"self","count":5}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"必须使用1次。"}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"若为正面，则。"}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"若为反面，则。"}}],"optional":false}
