@@ -1,4 +1,4 @@
-#eff1 hash=c24868aa85a27f49
+#eff1 hash=59bfbb46dc596058
 151C-001	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-002	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-003	ability		0	usage_condition	{"kind":"requires_active"}
@@ -23182,9 +23182,11 @@ CS3DC-146	trainer		0	trigger	{"event":"attacked_damage","effect":{"action":"dama
 CS3aC-110	trainer		0	usage_condition	{"kind":"tool_learn_move","raw":"身上放有这张卡的\\"一击\\"宝可梦，可使用这张卡上的招式"}
 CS3aC-110	trainer		1	conditional_damage_mod	{"amount":10,"condition":"self_damage_counters","mode":"per_unit"}
 CS3aC-110	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"【斗】 怒发冲冠 10+"}
+CS3aC-110	toolattack	怒发冲冠	0	conditional_damage_mod	{"amount":10,"condition":"self_damage_counters","mode":"per_unit"}
 CS3aC-111	trainer		0	usage_condition	{"kind":"tool_learn_move","raw":"身上放有这张卡的\\"一击\\"宝可梦，可使用这张卡上的招式"}
 CS3aC-111	trainer		1	ignore	{"what":"weakness_resistance_effects"}
 CS3aC-111	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"【火】【无】【无】 枪弹突破 120"}
+CS3aC-111	toolattack	枪弹突破	0	ignore	{"what":"weakness_resistance_effects"}
 CS3aC-112	trainer		0	trigger	{"event":"knocked_out","effect":{"action":"move_energy","params":{"source":"self","dest":"bench","count":1}},"effects":[{"action":"move_energy","params":{"source":"self","dest":"bench","count":1}}],"optional":true}
 CS3aC-113	trainer		0	passive_damage_mod	{"target":"own_field","amount":30}
 CS3aC-114	trainer		0	passive_damage_mod	{"target":"own_field","amount":30}
@@ -23195,9 +23197,11 @@ CS3bC-110	trainer		0	passive_damage_mod	{"target":"own_field","amount":30}
 CS3bC-111	trainer		0	usage_condition	{"kind":"tool_learn_move","raw":"身上放有这张卡的\\"连击\\"宝可梦，可使用这张卡上的招式"}
 CS3bC-111	trainer		1	conditional_damage_mod	{"amount":50,"condition":"opponent_active_energy_count","mode":"per_unit"}
 CS3bC-111	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"【雷】【无】饭纲坠落 10+"}
+CS3bC-111	toolattack	饭纲坠落	0	conditional_damage_mod	{"amount":50,"condition":"opponent_active_energy_count","mode":"per_unit"}
 CS3bC-112	trainer		0	usage_condition	{"kind":"tool_learn_move","raw":"身上放有这张卡的\\"连击\\"宝可梦，可使用这张卡上的招式"}
 CS3bC-112	trainer		1	damage_bench	{"target":"opponent_all_field","damage":30}
 CS3bC-112	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"【雷】【无】【无】 漩涡无双"}
+CS3bC-112	toolattack	漩涡无双	0	damage_bench	{"target":"opponent_all_field","damage":30}
 CS3bC-178	trainer		0	trigger	{"event":"attacked_damage","effect":{"action":"return_energy_to_hand","params":{"count":1}},"sourceKind":"tool"}
 CS4.5C-053	trainer		0	usage_condition	{"kind":"generic_effect","raw":"身上放有这张卡的，名字中带有\\"水伊布V\\"或\\"雷伊布V\\"或\\"火伊布V\\"的宝可梦使用招式所需能量，减少1个【无】能量。"}
 CS4.5C-054	trainer		0	usage_condition	{"kind":"generic_effect","raw":"身上放有这张卡的，名字中带有\\"叶伊布V\\"或\\"冰伊布V\\"的宝可梦【撤退】所需能量和弱点，全部消除。"}
@@ -23214,6 +23218,7 @@ CS4aC-121	trainer		0	passive_damage_mod	{"target":"own_field","amount":30}
 CS4aC-122	trainer		0	usage_condition	{"kind":"tool_learn_move","raw":"身上放有这张卡的\\"一击\\"宝可梦，可使用这张卡上的招式"}
 CS4aC-122	trainer		1	discard_energy	{"target":"self","count":"all"}
 CS4aC-122	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"【斗】【钢】【钢】【无】【无】 刚力斩 300"}
+CS4aC-122	toolattack	刚力斩	0	discard_energy	{"target":"self","count":"all"}
 CS4aC-123	trainer		0	passive_damage_mod	{"target":"own_field","amount":30}
 CS4aC-124	trainer		0	damage_received_mod	{"amount":-20,"target":"self"}
 CS4aC-181	trainer		0	damage_received_mod	{"amount":-20,"target":"self"}
@@ -23225,6 +23230,8 @@ CS4bC-122	trainer		0	usage_condition	{"kind":"tool_learn_move","raw":"身上放�
 CS4bC-122	trainer		1	discard_energy	{"target":"self","count":2}
 CS4bC-122	trainer		2	damage_bench	{"target":"opponent_any","damage":90}
 CS4bC-122	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"【火】【雷】 流星"}
+CS4bC-122	toolattack	流星	0	discard_energy	{"target":"self","count":2}
+CS4bC-122	toolattack	流星	1	damage_bench	{"target":"opponent_any","damage":90}
 CS5.5C-061	trainer		0	usage_condition	{"kind":"generic_effect","raw":"身上放有这张卡的宝可梦，即使处于【睡眠】或【麻痹】状态，也可使用招式。"}
 CS5.5C-062	trainer		0	damage_place	{"target":"attacker","count":8}
 CS5.5C-088	trainer		0	damage_place	{"target":"attacker","count":8}
@@ -23329,6 +23336,9 @@ CSM2aC-135	trainer		1	discard_energy	{"target":"self","count":"all","filter":"�
 CSM2aC-135	trainer		2	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM2aC-135	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"【无】【无】【无】 巨龙燃烧GX 80×"}
 CSM2aC-135	trainer		4	usage_condition	{"kind":"residual_sentence","raw":"区，造成其张数×80伤害。"}
+CSM2aC-135	toolattack	巨龙燃烧GX	0	discard_energy	{"target":"self","count":"all","filter":"基本能量"}
+CSM2aC-135	toolattack	巨龙燃烧GX	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
+CSM2aC-135	toolattack	巨龙燃烧GX	2	usage_condition	{"kind":"residual_sentence","raw":"区，造成其张数×80伤害。"}
 CSM2aC-136	trainer		0	usage_condition	{"kind":"generic_effect","raw":"身上放有这张卡的\\"究极异兽\\"使用的招式，给对手战斗宝可梦造成的伤害，会因自己已经获得的每张奖赏卡而\\"+10\\"。"}
 CSM2aC-137	trainer		0	usage_condition	{"kind":"generic_effect","raw":"身上放有这张卡的【撤退】所需能量为4个的宝可梦的最大HP提高\\"50\\"点。"}
 CSM2aC-138	trainer		0	damage_received_mod	{"amount":-70,"target":"self"}
@@ -23345,6 +23355,8 @@ CSM2bC-134	trainer		0	usage_condition	{"kind":"tool_gx_move","raw":"身上放有
 CSM2bC-134	trainer		1	coin_flip_until_tails	{"damage_per":40}
 CSM2bC-134	trainer		2	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM2bC-134	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"【无】【无】【无】【无】 冲刺攻击GX 200+"}
+CSM2bC-134	toolattack	冲刺攻击GX	0	coin_flip_until_tails	{"damage_per":40}
+CSM2bC-134	toolattack	冲刺攻击GX	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM2bC-135	trainer		0	extra_prize	{"count":1}
 CSM2bC-135	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"当自己的剩余奖赏卡张数为6张时，因身上放有这张卡的\\"究极异兽\\"的招式的伤害，而导致对手战斗场上的\\"宝可梦GX・EX\\"【昏厥】时，。"}
 CSM2bC-191	trainer		0	attack_cost_reduction	{"target":"self","type":"colorless","amount":1}
@@ -23357,6 +23369,8 @@ CSM2cC-135	trainer		0	usage_condition	{"kind":"tool_gx_move","raw":"身上放有
 CSM2cC-135	trainer		1	prevent_damage_effect	{"duration":"next_opp_turn"}
 CSM2cC-135	trainer		2	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM2cC-135	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"【无】【无】【无】【无】 俯冲轰裂撞GX 180"}
+CSM2cC-135	toolattack	俯冲轰裂撞GX	0	prevent_damage_effect	{"duration":"next_opp_turn"}
+CSM2cC-135	toolattack	俯冲轰裂撞GX	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM2cC-136	trainer		0	prevent_damage	{"source":"attack"}
 CSM2cC-190	trainer		0	damage_place	{"target":"attacker","count":10}
 CSM2cC-190	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"放置于宝可梦身上的这张卡，将在对手的回合结束时被丢到弃牌区。"}
@@ -23398,14 +23412,17 @@ CSV4C-117	trainer		0	max_hp_mod	{"amount":100,"target":"self"}
 CSV4C-117	trainer		1	trigger	{"event":"knocked_out","effect":{"action":"usage_condition","params":{"kind":"generic_effect","raw":"对手拿取的奖赏卡将增加1张。"}},"effects":[{"action":"usage_condition","params":{"kind":"generic_effect","raw":"对手拿取的奖赏卡将增加1张。"}}],"optional":false}
 CSV4C-118	trainer		0	damage_received_mod	{"amount":-40,"target":"self"}
 CSV4C-119	trainer		0	tool_end_of_turn_discard	{}
-CSV4C-119	trainer		1	shuffle_deck	{}
-CSV4C-119	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"身上放有这张卡的宝可梦，可使用这张卡上的招式。"}
-CSV4C-119	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"【无】 能量涡轮"}
-CSV4C-119	trainer		4	usage_condition	{"kind":"residual_sentence","raw":"从自己的牌库选择最多2张基本能量，以任意方式附于备战宝可梦身上。"}
+CSV4C-119	trainer		1	attach_energy_from_deck	{"filter":"基本能量","target":"bench","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
+CSV4C-119	trainer		2	shuffle_deck	{}
+CSV4C-119	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"身上放有这张卡的宝可梦，可使用这张卡上的招式。"}
+CSV4C-119	trainer		4	usage_condition	{"kind":"residual_sentence","raw":"【无】 能量涡轮"}
+CSV4C-119	toolattack	能量涡轮	0	attach_energy_from_deck	{"filter":"基本能量","target":"bench","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
+CSV4C-119	toolattack	能量涡轮	1	shuffle_deck	{}
 CSV4C-120	trainer		0	tool_end_of_turn_discard	{}
 CSV4C-120	trainer		1	damage_bench	{"target":"opponent_any","damage":100}
 CSV4C-120	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"身上放有这张卡的宝可梦，可使用这张卡上的招式。"}
 CSV4C-120	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"【无】【无】【无】 暗中奇袭"}
+CSV4C-120	toolattack	暗中奇袭	0	damage_bench	{"target":"opponent_any","damage":100}
 CSV4C-164	trainer		0	max_hp_mod	{"amount":100,"target":"self"}
 CSV4C-164	trainer		1	trigger	{"event":"knocked_out","effect":{"action":"usage_condition","params":{"kind":"generic_effect","raw":"对手拿取的奖赏卡将增加1张。"}},"effects":[{"action":"usage_condition","params":{"kind":"generic_effect","raw":"对手拿取的奖赏卡将增加1张。"}}],"optional":false}
 CSV5C-117	trainer		0	usage_condition	{"kind":"on_ko_discard_opp_hand","raw":"身上放有这张卡的宝可梦，受到对手宝可梦的招式的伤害而【昏厥】时，在不看正面的前提下，选择对手的1张手牌，丢到弃牌区"}
@@ -23415,11 +23432,14 @@ CSV5C-119	trainer		1	shuffle_deck	{}
 CSV5C-119	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"身上放有这张卡的宝可梦，可使用这张卡上的招式。"}
 CSV5C-119	trainer		3	usage_condition	{"kind":"shell_fragment","raw":"【无】 进化"}
 CSV5C-119	trainer		4	usage_condition	{"kind":"residual_sentence","raw":"选择自己最多2只备战宝可梦，从自己的牌库选择从该宝可梦进化而来的卡牌各1张，各放置于其身上进行进化。"}
+CSV5C-119	toolattack	进化	0	shuffle_deck	{}
+CSV5C-119	toolattack	进化	1	usage_condition	{"kind":"residual_sentence","raw":"选择自己最多2只备战宝可梦，从自己的牌库选择从该宝可梦进化而来的卡牌各1张，各放置于其身上进行进化。"}
 CSV5C-120	trainer		0	tool_end_of_turn_discard	{}
 CSV5C-120	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"身上放有这张卡的宝可梦，可使用这张卡上的招式。"}
 CSV5C-120	trainer		2	usage_condition	{"kind":"shell_fragment","raw":"【无】 退化"}
 CSV5C-120	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"从对手所有已经进化的宝可梦身上，各移除1张\\"进化卡\\"使其退化。"}
 CSV5C-120	trainer		4	usage_condition	{"kind":"residual_sentence","raw":"将被移除的卡牌，放回对手的手牌。"}
+CSV5C-120	toolattack	退化	0	usage_condition	{"kind":"generic_effect","raw":"从对手所有已经进化的宝可梦身上，各移除1张\\"进化卡\\"使其退化。将被移除的卡牌，放回对手的手牌。"}
 CSV5C-164	trainer		0	passive_damage_mod	{"target":"self","amount":30}
 CSV6C-118	trainer		0	max_hp_mod	{"amount":60,"target":"self"}
 CSV6C-118	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"已经处于的特殊状态，也全部恢复。"}
@@ -23430,6 +23450,7 @@ CSV6C-120	trainer		0	tool_end_of_turn_discard	{}
 CSV6C-120	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"身上放有这张卡的宝可梦，可使用这张卡上的招式。"}
 CSV6C-120	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"【无】【无】【无】 临危一击 280"}
 CSV6C-120	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"这个招式，只有在对手的剩余奖赏卡张数为1张时才可使用。"}
+CSV6C-120	toolattack	临危一击	0	usage_condition	{"kind":"generic_effect","raw":"这个招式，只有在对手的剩余奖赏卡张数为1张时才可使用。"}
 CSV7C-184	trainer		0	usage_condition	{"kind":"generic_effect","raw":"身上放有这张卡的宝可梦，受到对手【水】宝可梦的招式的伤害时，那个伤害\\"-60\\"，将这张卡丢到弃牌区。"}
 CSV7C-185	trainer		0	retreat_cost_reduce	{"amount":1,"target":"self"}
 CSV7C-185	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"若那只宝可梦的剩余HP在\\"30\\"及以下，则【撤退】所需能量，全部消除。"}
@@ -23467,11 +23488,14 @@ CSV9.5C-180	trainer		1	shuffle_deck	{}
 CSV9.5C-180	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"身上放有这张卡的宝可梦，可使用这张卡上的招式。"}
 CSV9.5C-180	trainer		3	usage_condition	{"kind":"shell_fragment","raw":"【无】 进化"}
 CSV9.5C-180	trainer		4	usage_condition	{"kind":"residual_sentence","raw":"选择自己最多2只备战宝可梦，从自己的牌库选择从该宝可梦进化而来的卡牌各1张，各放置于其身上进行进化。"}
+CSV9.5C-180	toolattack	进化	0	shuffle_deck	{}
+CSV9.5C-180	toolattack	进化	1	usage_condition	{"kind":"residual_sentence","raw":"选择自己最多2只备战宝可梦，从自己的牌库选择从该宝可梦进化而来的卡牌各1张，各放置于其身上进行进化。"}
 CSV9.5C-181	trainer		0	tool_end_of_turn_discard	{}
 CSV9.5C-181	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"身上放有这张卡的宝可梦，可使用这张卡上的招式。"}
 CSV9.5C-181	trainer		2	usage_condition	{"kind":"shell_fragment","raw":"【无】 退化"}
 CSV9.5C-181	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"从对手所有已经进化的宝可梦身上，各移除1张\\"进化卡\\"使其退化。"}
 CSV9.5C-181	trainer		4	usage_condition	{"kind":"residual_sentence","raw":"将被移除的卡牌，放回对手的手牌。"}
+CSV9.5C-181	toolattack	退化	0	usage_condition	{"kind":"generic_effect","raw":"从对手所有已经进化的宝可梦身上，各移除1张\\"进化卡\\"使其退化。将被移除的卡牌，放回对手的手牌。"}
 CSV9C-190	trainer		0	usage_condition	{"kind":"generic_effect","raw":"若自己的剩余奖赏卡张数，比对手的剩余奖赏卡张数多，则身上放有这张卡的宝可梦使用招式所需能量，减少1个【无】能量。"}
 CSV9C-191	trainer		0	search_deck_to_hand	{"filter":null,"count":3,"maxCount":3,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CSV9C-191	trainer		1	shuffle_deck	{}
@@ -23483,6 +23507,8 @@ CSV9C-195	trainer		1	discard_energy	{"target":"self","count":"all"}
 CSV9C-195	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"身上放有这张卡的宝可梦，可使用这张卡上的招式。"}
 CSV9C-195	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"【草】【水】【超】 萤石"}
 CSV9C-195	trainer		4	usage_condition	{"kind":"residual_sentence","raw":"萤石，将自己所有\\"太晶\\"宝可梦的HP，全部恢复。"}
+CSV9C-195	toolattack	萤石	0	discard_energy	{"target":"self","count":"all"}
+CSV9C-195	toolattack	萤石	1	usage_condition	{"kind":"residual_sentence","raw":"萤石，将自己所有\\"太晶\\"宝可梦的HP，全部恢复。"}
 CSV9C-264	trainer		0	usage_condition	{"kind":"generic_effect","raw":"若自己的剩余奖赏卡张数，比对手的剩余奖赏卡张数多，则身上放有这张卡的宝可梦使用招式所需能量，减少1个【无】能量。"}
 CSV9C-265	trainer		0	attach_energy_from_discard	{"filter":"基本能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSV9C-265	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"在自己的回合结束时，若身上放有这张卡的宝可梦在战斗场上，则可。"}
@@ -23490,6 +23516,7 @@ CSVE1C-126	trainer		0	passive_damage_mod	{"target":"own_field","amount":30}
 CSVE1C-127	trainer		0	usage_condition	{"kind":"tool_learn_move","raw":"身上放有这张卡的\\"一击\\"宝可梦，可使用这张卡上的招式"}
 CSVE1C-127	trainer		1	conditional_damage_mod	{"amount":10,"condition":"self_damage_counters","mode":"per_unit"}
 CSVE1C-127	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"【斗】 怒发冲冠 10+"}
+CSVE1C-127	toolattack	怒发冲冠	0	conditional_damage_mod	{"amount":10,"condition":"self_damage_counters","mode":"per_unit"}
 CSVE1C-128	trainer		0	passive_damage_mod	{"target":"own_field","amount":30}
 CSVE1C-129	trainer		0	trigger	{"event":"knocked_out","effect":{"action":"move_energy","params":{"source":"self","dest":"bench","count":1}},"effects":[{"action":"move_energy","params":{"source":"self","dest":"bench","count":1}}],"optional":true}
 CSVE1C-130	trainer		0	passive_damage_mod	{"target":"own_field","amount":30}
@@ -23502,6 +23529,7 @@ CSVE1C-136	trainer		0	trigger	{"event":"attacked_damage","effect":{"action":"dis
 CSVE1C-137	trainer		0	usage_condition	{"kind":"tool_learn_move","raw":"身上放有这张卡的\\"连击\\"宝可梦，可使用这张卡上的招式"}
 CSVE1C-137	trainer		1	damage_bench	{"target":"opponent_all_field","damage":30}
 CSVE1C-137	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"【雷】【无】【无】 漩涡无双"}
+CSVE1C-137	toolattack	漩涡无双	0	damage_bench	{"target":"opponent_all_field","damage":30}
 CSVE2C-163	trainer		0	trigger	{"event":"attacked_damage","effect":{"action":"return_energy_to_hand","params":{"count":1}},"sourceKind":"tool"}
 CSVE2C-164	trainer		0	usage_condition	{"kind":"generic_effect","raw":"身上放有这张卡的，名字中带有\\"水伊布V\\"或\\"雷伊布V\\"或\\"火伊布V\\"的宝可梦使用招式所需能量，减少1个【无】能量。"}
 CSVE2C-165	trainer		0	trigger	{"event":"knocked_out","effect":{"action":"move_energy","params":{"source":"self","dest":"bench","count":1}},"effects":[{"action":"move_energy","params":{"source":"self","dest":"bench","count":1}}],"optional":true}
@@ -23540,6 +23568,7 @@ CSVH3aC-017	trainer		0	tool_end_of_turn_discard	{}
 CSVH3aC-017	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"身上放有这张卡的宝可梦，可使用这张卡上的招式。"}
 CSVH3aC-017	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"【无】【无】【无】 临危一击 280"}
 CSVH3aC-017	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"这个招式，只有在对手的剩余奖赏卡张数为1张时才可使用。"}
+CSVH3aC-017	toolattack	临危一击	0	usage_condition	{"kind":"generic_effect","raw":"这个招式，只有在对手的剩余奖赏卡张数为1张时才可使用。"}
 CSVH4C-042	trainer		0	passive_damage_mod	{"target":"self","amount":10}
 CSVH4C-043	trainer		0	max_hp_mod	{"amount":60,"target":"self"}
 CSVH4C-043	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"已经处于的特殊状态，也全部恢复。"}
@@ -23552,14 +23581,17 @@ CSVH4aC-013	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"若那
 CSVH4aC-014	trainer		0	max_hp_mod	{"amount":50,"target":"self"}
 CSVH4aC-015	trainer		0	damage_place	{"target":"attacker","count":4}
 CSVH4aC-016	trainer		0	tool_end_of_turn_discard	{}
-CSVH4aC-016	trainer		1	shuffle_deck	{}
-CSVH4aC-016	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"身上放有这张卡的宝可梦，可使用这张卡上的招式。"}
-CSVH4aC-016	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"【无】 能量涡轮"}
-CSVH4aC-016	trainer		4	usage_condition	{"kind":"residual_sentence","raw":"从自己的牌库选择最多2张基本能量，以任意方式附于备战宝可梦身上。"}
+CSVH4aC-016	trainer		1	attach_energy_from_deck	{"filter":"基本能量","target":"bench","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
+CSVH4aC-016	trainer		2	shuffle_deck	{}
+CSVH4aC-016	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"身上放有这张卡的宝可梦，可使用这张卡上的招式。"}
+CSVH4aC-016	trainer		4	usage_condition	{"kind":"residual_sentence","raw":"【无】 能量涡轮"}
+CSVH4aC-016	toolattack	能量涡轮	0	attach_energy_from_deck	{"filter":"基本能量","target":"bench","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
+CSVH4aC-016	toolattack	能量涡轮	1	shuffle_deck	{}
 CSVH4aC-017	trainer		0	tool_end_of_turn_discard	{}
 CSVH4aC-017	trainer		1	damage_bench	{"target":"opponent_any","damage":100}
 CSVH4aC-017	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"身上放有这张卡的宝可梦，可使用这张卡上的招式。"}
 CSVH4aC-017	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"【无】【无】【无】 暗中奇袭"}
+CSVH4aC-017	toolattack	暗中奇袭	0	damage_bench	{"target":"opponent_any","damage":100}
 CSVH5C-046	trainer		0	trigger	{"event":"knocked_out","effect":{"action":"move_energy","params":{"source":"self","dest":"bench","count":1}},"effects":[{"action":"move_energy","params":{"source":"self","dest":"bench","count":1}}],"optional":true}
 CSVH5aC-013	trainer		0	retreat_cost_reduce	{"amount":1,"target":"self"}
 CSVH5aC-013	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"若那只宝可梦的剩余HP在\\"30\\"及以下，则【撤退】所需能量，全部消除。"}
@@ -23582,6 +23614,7 @@ CSVM1aC-024	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"身上
 CSVM1aC-024	trainer		2	usage_condition	{"kind":"shell_fragment","raw":"【无】 退化"}
 CSVM1aC-024	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"从对手所有已经进化的宝可梦身上，各移除1张\\"进化卡\\"使其退化。"}
 CSVM1aC-024	trainer		4	usage_condition	{"kind":"residual_sentence","raw":"将被移除的卡牌，放回对手的手牌。"}
+CSVM1aC-024	toolattack	退化	0	usage_condition	{"kind":"generic_effect","raw":"从对手所有已经进化的宝可梦身上，各移除1张\\"进化卡\\"使其退化。将被移除的卡牌，放回对手的手牌。"}
 CSVM1bC-023	trainer		0	max_hp_mod	{"amount":100,"target":"self"}
 CSVM1bC-023	trainer		1	trigger	{"event":"knocked_out","effect":{"action":"usage_condition","params":{"kind":"generic_effect","raw":"对手拿取的奖赏卡将增加1张。"}},"effects":[{"action":"usage_condition","params":{"kind":"generic_effect","raw":"对手拿取的奖赏卡将增加1张。"}}],"optional":false}
 CSVM1bC-024	trainer		0	max_hp_mod	{"amount":50,"target":"self"}
@@ -23590,6 +23623,8 @@ CSVM1bC-025	trainer		1	shuffle_deck	{}
 CSVM1bC-025	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"身上放有这张卡的宝可梦，可使用这张卡上的招式。"}
 CSVM1bC-025	trainer		3	usage_condition	{"kind":"shell_fragment","raw":"【无】 进化"}
 CSVM1bC-025	trainer		4	usage_condition	{"kind":"residual_sentence","raw":"选择自己最多2只备战宝可梦，从自己的牌库选择从该宝可梦进化而来的卡牌各1张，各放置于其身上进行进化。"}
+CSVM1bC-025	toolattack	进化	0	shuffle_deck	{}
+CSVM1bC-025	toolattack	进化	1	usage_condition	{"kind":"residual_sentence","raw":"选择自己最多2只备战宝可梦，从自己的牌库选择从该宝可梦进化而来的卡牌各1张，各放置于其身上进行进化。"}
 CSVM1cC-016	trainer		0	trigger	{"event":"knocked_out","effect":{"action":"move_energy","params":{"source":"self","dest":"bench","count":1}},"effects":[{"action":"move_energy","params":{"source":"self","dest":"bench","count":1}}],"optional":true}
 CSVM1cC-017	trainer		0	retreat_cost_reduce	{"amount":1,"target":"self"}
 CSVM1cC-017	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"若那只宝可梦的剩余HP在\\"30\\"及以下，则【撤退】所需能量，全部消除。"}
@@ -23613,17 +23648,22 @@ CSVM2bC-022	trainer		1	shuffle_deck	{}
 CSVM2bC-022	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"身上放有这张卡的宝可梦，可使用这张卡上的招式。"}
 CSVM2bC-022	trainer		3	usage_condition	{"kind":"shell_fragment","raw":"【无】 进化"}
 CSVM2bC-022	trainer		4	usage_condition	{"kind":"residual_sentence","raw":"选择自己最多2只备战宝可梦，从自己的牌库选择从该宝可梦进化而来的卡牌各1张，各放置于其身上进行进化。"}
+CSVM2bC-022	toolattack	进化	0	shuffle_deck	{}
+CSVM2bC-022	toolattack	进化	1	usage_condition	{"kind":"residual_sentence","raw":"选择自己最多2只备战宝可梦，从自己的牌库选择从该宝可梦进化而来的卡牌各1张，各放置于其身上进行进化。"}
 CSVM2bC-023	trainer		0	tool_end_of_turn_discard	{}
 CSVM2bC-023	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"身上放有这张卡的宝可梦，可使用这张卡上的招式。"}
 CSVM2bC-023	trainer		2	usage_condition	{"kind":"shell_fragment","raw":"【无】 退化"}
 CSVM2bC-023	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"从对手所有已经进化的宝可梦身上，各移除1张\\"进化卡\\"使其退化。"}
 CSVM2bC-023	trainer		4	usage_condition	{"kind":"residual_sentence","raw":"将被移除的卡牌，放回对手的手牌。"}
+CSVM2bC-023	toolattack	退化	0	usage_condition	{"kind":"generic_effect","raw":"从对手所有已经进化的宝可梦身上，各移除1张\\"进化卡\\"使其退化。将被移除的卡牌，放回对手的手牌。"}
 CSVM2cC-022	trainer		0	damage_received_mod	{"amount":-30,"target":"self"}
 CSVM2cC-023	trainer		0	tool_end_of_turn_discard	{}
 CSVM2cC-023	trainer		1	shuffle_deck	{}
 CSVM2cC-023	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"身上放有这张卡的宝可梦，可使用这张卡上的招式。"}
 CSVM2cC-023	trainer		3	usage_condition	{"kind":"shell_fragment","raw":"【无】 进化"}
 CSVM2cC-023	trainer		4	usage_condition	{"kind":"residual_sentence","raw":"选择自己最多2只备战宝可梦，从自己的牌库选择从该宝可梦进化而来的卡牌各1张，各放置于其身上进行进化。"}
+CSVM2cC-023	toolattack	进化	0	shuffle_deck	{}
+CSVM2cC-023	toolattack	进化	1	usage_condition	{"kind":"residual_sentence","raw":"选择自己最多2只备战宝可梦，从自己的牌库选择从该宝可梦进化而来的卡牌各1张，各放置于其身上进行进化。"}
 CSVNC-033	trainer		0	passive_damage_mod	{"target":"self","amount":40}
 CSVSC-057	trainer		0	passive_damage_mod	{"target":"self","amount":10}
 CSXC-014	trainer		0	passive_damage_mod	{"target":"self","amount":30,"defenderRule":"宝可梦V"}

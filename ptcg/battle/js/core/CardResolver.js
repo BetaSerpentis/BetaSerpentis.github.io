@@ -1,5 +1,5 @@
 // js/core/CardResolver.js
-import { parseEffect } from './EffectParser.js';
+import { parseEffect, extractToolAttacks } from './EffectParser.js';
 
 // 数据目录基于本模块 URL 推导（而非页面 URL / 部署路径）：
 //   本文件位于 /ptcg/battle/js/core/ → '../../../data/battle/' 指向 /ptcg/data/battle/
@@ -117,8 +117,13 @@ export class CardResolver {
 
   _trainer(r){
     const parsed = parseEffect(r['效果']||'');
-    return { cardType:'trainer', trainerType:r._t, name:r['卡牌名字']||'未知',
+    const card = { cardType:'trainer', trainerType:r._t, name:r['卡牌名字']||'未知',
       effectText:r['效果']||'', effects:parsed.effects, unparsed:parsed.unparsed };
+    // 「招式学习器 / 一击卷轴 / 连击卷轴 / Z招式」类道具：招式写在卡面文本里，
+    // 提取后挂在卡上，附着到宝可梦身上即可使用（见 GameState.getAttacks）。
+    const ta = extractToolAttacks(r['效果']||'');
+    if (ta) card.toolAttacks = ta.attacks;
+    return card;
   }
 
   _energy(r){ const m=(r['卡牌名字']||'').match(/【(.+?)】/);

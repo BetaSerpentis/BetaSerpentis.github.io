@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseEffect } from '../js/core/EffectParser.js';
+import { parseEffect, extractToolAttacks } from '../js/core/EffectParser.js';
 import { executeEffects } from '../js/core/EffectExecutor.js';
 import { GameState, PHASE } from '../js/core/GameState.js';
 import { BattleEngine } from '../js/core/BattleEngine.js';
@@ -7000,6 +7000,102 @@ await test('P2-4 改写句找不到目标时转回未建模标记（不留在库
   const e = parseEffect('将自己的牌库上方6张卡牌翻到正面。造成其中【超】宝可梦数量×60点伤害。将正面朝上的【超】宝可梦放回牌库并重洗牌库。将剩余的卡牌放于弃牌区。').effects;
   assert.ok(!e.some(x => x.action === 'action_count_override'), '不应留下孤儿改写句');
   assert.ok(e.some(x => x.params?.kind === 'residual_sentence'), '应转成未建模标记，指标上仍算未完成');
+});
+
+
+// ============================================================
+//  招式学习器（A）：从卡面提取招式 + 附着后可使用
+// ============================================================
+
+await test('TM 从卡面提取招式：普通学习器', () => {
+  // CSV4C-119「招式学习器 能量涡轮」真实卡面
+  const text = '身上放有这张卡牌的宝可梦，可以使用这张卡牌上的招式。[需要满足使用招式所需能量。]\n放于宝可梦身上的这张卡牌，将在自己的回合结束时被放于弃牌区。\n\n【无】 能量涡轮\n选择自己牌库中最多2张基本能量，以任意方式附着于备战宝可梦身上。并重洗牌库。';
+  const ta = extractToolAttacks(text);
+  assert.ok(ta, '应提取出招式');
+  assert.equal(ta.attacks.length, 1);
+  const a = ta.attacks[0];
+  assert.equal(a.name, '能量涡轮');
+  assert.deepEqual(a.cost, ['colorless']);
+  assert.equal(a.damage, 0, '无伤害数值');
+  assert.equal(a.gx, false);
+  assert.equal(a.requiresMove, null);
+  assert.ok(a.effects.some(e => e.action === 'attach_energy_from_deck'), '招式内的效果应被解析');
+});
+
+await test('TM 从卡面提取招式：多能量符号 + 伤害后缀', () => {
+  const ta = extractToolAttacks('身上放有这张卡牌的「一击」宝可梦，可以使用这张卡牌上的招式。[需要满足使用招式所需能量。]\n\n【斗】【钢】【钢】【无】【无】 刚力斩 300\n将附着于这只宝可梦身上的能量，全部放于弃牌区。');
+  const a = ta.attacks[0];
+  assert.equal(a.name, '刚力斩');
+  assert.deepEqual(a.cost, ['fighting', 'metal', 'metal', 'colorless', 'colorless']);
+  assert.equal(a.damage, 300);
+  assert.equal(a.tag, '一击');
+
+  const ta2 = extractToolAttacks('身上放有这张卡牌的宝可梦，可以使用这张卡牌上的招式。[需要满足使用招式所需能量。]\n\n【雷】【无】饭纲坠落 10+\n追加造成对手战斗宝可梦身上附有的能量数量×50点伤害。');
+  assert.equal(ta2.attacks[0].name, '饭纲坠落', '招式名与符号之间没有空格也要能提取');
+  assert.equal(ta2.attacks[0].damage, 10);
+  assert.equal(ta2.attacks[0].damageSuffix, '+');
+  assert.deepEqual(ta2.attacks[0].cost, ['lightning', 'colorless']);
+});
+
+await test('TM 从卡面提取招式：GX 招式与「拥有招式」限制', () => {
+  const ta = extractToolAttacks('身上放有这张卡牌的，拥有招式「龙爪」的宝可梦，可以使用这张卡牌上的GX招式。[需要满足使用招式所需能量。]\n\n【无】【无】【无】 巨龙燃烧GX 80×\n将附着于这只宝可梦身上的基本能量，全部放于弃牌区，造成其张数×80点伤害。[对战中，己方的GX招式只能使用1次。]');
+  const a = ta.attacks[0];
+  assert.equal(a.name, '巨龙燃烧GX');
+  assert.equal(a.gx, true);
+  assert.equal(a.requiresMove, '龙爪');
+  assert.equal(a.damage, 80);
+  assert.equal(a.damageSuffix, '×');
+});
+
+await test('TM 非招式学习器类道具不应被误提取', () => {
+  assert.equal(extractToolAttacks('附有这张卡的宝可梦，最大HP提高「50」点。'), null);
+  assert.equal(extractToolAttacks(''), null);
+  // 宝可梦的招式文本不应被当成道具招式
+  assert.equal(extractToolAttacks('【无】 撞击\n造成20点伤害。'), null);
+});
+
+await test('TM 全部招式学习器卡的招式都能提取（数据守卫）', () => {
+  const tools = loadJson('PokemonTool-cards.json');
+  let n = 0;
+  const bad = [];
+  for (const c of tools) {
+    const eff = c['效果'] || '';
+    if (!eff.includes('可以使用这张卡牌')) continue;
+    const ta = extractToolAttacks(eff);
+    if (!ta || !ta.attacks[0].name || !ta.attacks[0].cost.length) bad.push(c['卡牌ID'][0]);
+    else n++;
+  }
+  assert.ok(n >= 27, `招式学习器类卡应有 27 张以上（实际 ${n}）`);
+  assert.deepEqual(bad, [], `以下卡提取失败：${bad.join(', ')}`);
+});
+
+await test('TM 附着后招式可用：getAttacks 合并、能量不足时不可用', () => {
+  const tools = loadJson('PokemonTool-cards.json');
+  const raw = tools.find(c => c['卡牌ID'][0] === 'CSV4C-119');
+  const cd = { cardType:'trainer', trainerType:'tool', name:raw['卡牌名字'], effects:[], toolAttacks: extractToolAttacks(raw['效果']).attacks };
+  const gs = new GameState();
+  const pl = gs.player1;
+  gs.currentPlayer = pl;
+  gs.phase = PHASE.BATTLE;
+  pl.active = mon('测试者', 'm1', [{ name:'撞击', cost:['colorless'], damage:10, effects:[] }]);
+  assert.deepEqual(gs.getAttacks(pl.active).map(a => a.name), ['撞击'], '未装备时只有自身招式');
+
+  pl.active.tool = gs._makeToolState('CSV4C-119', cd);
+  assert.deepEqual(gs.getAttacks(pl.active).map(a => a.name), ['撞击', '能量涡轮'], '装备后应多出学习器招式');
+  assert.equal(gs.checkEnergy(pl.active, 1), false, '没有能量时不能使用');
+  pl.active.energy = [{ cardId:'e', name:'基本草能量' }];
+  assert.equal(gs.checkEnergy(pl.active, 1), true, '有 1 个能量后可用【无】费用的学习器招式');
+  pl.energyAttached = true;
+  assert.equal(gs.canUseAttack(pl, pl.active, 1).ok, true);
+  // 道具提供的招式不应影响别的宝可梦
+  assert.deepEqual(gs.getAttacks(mon('另一个', 'm2', [{ name:'撞击' }])).map(a => a.name), ['撞击']);
+});
+
+await test('TM 招式已纳入效果索引（toolattack scope）', () => {
+  const tsv = fs.readFileSync(path.join(__dirname, '..', '..', 'data_fast', 'effects.tsv'), 'utf8');
+  const lines = tsv.split('\n').filter(l => l.split('\t')[1] === 'toolattack');
+  assert.ok(lines.length >= 40, `效果索引应含招式学习器招式的效果（实际 ${lines.length} 行）`);
+  assert.ok(lines.some(l => l.startsWith('CSV4C-119\t')), '应含「能量涡轮」');
 });
 
 await test('全卡牌效果文本解析覆盖率报告', () => {

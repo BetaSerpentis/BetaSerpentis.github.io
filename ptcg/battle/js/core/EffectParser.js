@@ -238,6 +238,11 @@ const RULES = [
   { re: /(?:选择自己牌库中最多|从自己的牌库选择最多)(\d+)张["“”「」]?(?:基本)?【(.+?)】能量["“”「」]?[，,]?(?:以任意方式)?(?:附着于|附于)(?:这只|自己的)?(?:备战区中的1只)?(?:["“”「」][^"“”「」]+["“”「」])?(?:宝可梦)?身上/, act:'attach_energy_from_deck', p:m=>withCount({filter:`【${m[2]}】能量`,target:'any'},m[1],true) },
   { re: /(?:选择自己牌库中的|从自己的牌库选择的?)(\d+)张["“”「」]([^"“”「」]{1,8})["“”「」][，,]?(?:附着于|附于)自己的["“”「」][^"“”「」]+["“”「」]宝可梦身上/, act:'attach_energy_from_deck', p:m=>withCount({filter:m[2],target:'any'},m[1],false) },
   { re: /(?:选择自己牌库中最多|从自己的牌库选择最多)(\d+)张特殊能量[，,]?(?:附着于|附于)自己的1只宝可梦身上/, act:'attach_energy_from_deck', p:m=>withCount({filter:'特殊能量',target:'any'},m[1],true) },
+  // 「选择自己牌库中最多N张基本能量，以任意方式附着于备战宝可梦身上」
+  // （招式学习器「能量涡轮」一类：只写「基本能量」不带【】，且目标是备战区）
+  // ⚠️ 措辞按**归一化后**的文本写：原文「选择自己牌库中最多2张基本能量，以任意方式附着于备战宝可梦身上」
+  //    经归一化后变成「从自己的牌库选择最多2张基本能量，以任意方式附于备战宝可梦身上」。
+  { re: /从(?:自己的)?牌库选择最多(\d+)张基本能量[，,]?以任意方式附(?:着)?于(?:自己的)?备战宝可梦身上/, act:'attach_energy_from_deck', p:m=>({ filter:'基本能量', target:'bench', count:+m[1], maxCount:+m[1], minCount:0, allowFewer:true, allowEmpty:true }) },
   // 弃牌区能量附着
   { re: /(?:将(?:自己的|自己)?弃牌区中的|从自己的弃牌区选择)(\d+)张能量[，,]?以任意方式(?:附着于|附于)自己的宝可梦身上/, act:'attach_energy_from_discard', p:m=>withCount({filter:'能量',target:'any'},m[1],false) },
   { re: /(?:选择(?:自己的|自己)?弃牌区中最多|从自己的弃牌区选择最多)(\d+)张能量[，,]?(?:附着于|附于)自己的1只宝可梦身上/, act:'attach_energy_from_discard', p:m=>withCount({filter:'能量',target:'any'},m[1],true) },
@@ -1665,6 +1670,60 @@ function stripNotes(text) {
     s = s.replace(/[（(][^（）()]*?[）)]/g, '');
   }
   return s.replace(/^[,，。\s]+/, '').trim();
+}
+
+/**
+ * 招式学习器类卡面的能量符号 → 属性 key。
+ * 与 CardResolver 的 ELEM 保持一致（这里独立一份，避免解析器反向依赖数据层）。
+ */
+const TOOL_ELEM = { '草':'grass','火':'fire','水':'water','雷':'lightning','斗':'fighting',
+  '恶':'dark','钢':'metal','超':'psychic','无':'colorless','龙':'dragon','妖':'fairy' };
+
+/**
+ * 从「招式学习器 / 一击卷轴 / 连击卷轴 / Z招式」类**宝可梦道具**的卡面文本里提取招式。
+ *
+ * 卡面是固定格式（换行敏感，招式行以能量符号开头）：
+ *
+ *   身上放有这张卡牌的[「一击」|，拥有招式「龙爪」的]宝可梦，可以使用这张卡牌上的[GX]招式。[需要满足使用招式所需能量。]
+ *   [放于宝可梦身上的这张卡牌，将在自己的回合结束时被放于弃牌区。]
+ *   （空行）
+ *   【能量符号…】 招式名 [伤害]
+ *   招式效果文本…
+ *
+ * 这类卡在战斗数据里**没有结构化的招式字段**（招式只写在「效果」文本里），
+ * 所以必须在这里提取。招式内的效果文本仍然交给 parseEffect 解析，保持「解析器只有一份实现」。
+ *
+ * @returns {{attacks: Array}} 或 null（不是这类卡时）
+ */
+export function extractToolAttacks(text) {
+  const raw = String(text || '');
+  if (!/可以使用这张卡牌上的(?:GX)?招式/.test(raw)) return null;
+  const lines = raw.split(/\r?\n/).map(s => s.trim());
+  const lineIdx = lines.findIndex(s => /^(?:【[^】]+】)+/.test(s));
+  if (lineIdx < 0) return null;
+  const line = lines[lineIdx];
+  const cost = (line.match(/【[^】]+】/g) || []).map(s => TOOL_ELEM[s.replace(/[【】]/g, '')] || 'colorless');
+  let rest = line.replace(/^(?:【[^】]+】)+/, '').trim();
+  let damage = 0;
+  let damageSuffix = '';
+  // 伤害可带后缀：10+ / 80× / 200+；也有的招式没有伤害（如「漩涡无双」）
+  const dm = rest.match(/^(.*?)\s*(\d+)\s*([+×x])?$/);
+  if (dm && dm[1]) { rest = dm[1].trim(); damage = parseInt(dm[2], 10); damageSuffix = dm[3] || ''; }
+  const name = rest.replace(/["“”「」]/g, '').trim();
+  if (!name) return null;
+  const effect = lines.slice(lineIdx + 1).join('\n').trim();
+  const header = lines.slice(0, lineIdx).join(' ');
+  const req = header.match(/拥有招式["“”「」]([^"“”「」]+)["“”「」]/);
+  return {
+    attacks: [{
+      name, cost, damage, damageSuffix, effect,
+      effects: effect ? parseEffect(effect).effects : [],
+      gx: /可以使用这张卡牌上的GX招式/.test(raw),
+      requiresMove: req ? req[1] : null,
+      tag: header.includes('「一击」') ? '一击' : (header.includes('「连击」') ? '连击' : null),
+      fromTool: true,
+    }],
+  };
 }
 
 export function parseEffect(text) {

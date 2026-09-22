@@ -1553,7 +1553,7 @@ const EXECUTORS = {
     // target:'self' = 「附于这只宝可梦身上」（招式效果，指使用者自己），不要再弹目标选择
     const slot = evolvedSlot
       || (p.target === 'self' && pl.active ? 'active' : null)
-      || await _pickPokemonTarget(gs, pl, pl, { mode:'attach-energy', side:'self', allowActive:true, allowBench:true, prompt:'选择附能目标',
+      || await _pickPokemonTarget(gs, pl, pl, { mode:'attach-energy', side:'self', allowActive:p.target !== 'bench', allowBench:true, prompt:'选择附能目标',
           // ② 同弃牌区版：排除会因指示物被昏厥的目标
           slotFilter: candidateSlot => !_wouldBeKnockedOutByCounters(_getMon(pl, candidateSlot), p.damageCountersOnAttachedTarget)
         });

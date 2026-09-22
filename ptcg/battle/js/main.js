@@ -318,7 +318,7 @@ export class PTCGBattleApp {
     const menu = $('#fight-menu');
     menu.innerHTML = '';
     const elem = this._elementLabel(mon.element);
-    const attacks = mon.attacks || [];
+    const attacks = this.gs.getAttacks ? this.gs.getAttacks(mon) : (mon.attacks || []);
     // 需求：先攻玩家最初回合不能用招式等「确定性不可用」也要像能量不足一样置灰
     const reasonOf = i => (this.gs.canUseAttack ? this.gs.canUseAttack(this.gs.player1, mon, i) : { ok: this.gs.checkEnergy(mon, i), message: '能量不足' });
     const usableCount = attacks.filter((_, i) => reasonOf(i).ok).length;
@@ -351,7 +351,7 @@ export class PTCGBattleApp {
 
   async _doAttack(atkIdx) {
     const mon = this.gs.player1.active;
-    if (!mon?.attacks?.[atkIdx]) return;
+    if (!this.gs.getAttacks(mon)[atkIdx]) return;
     if (!this.gs.checkEnergy(mon, atkIdx)) { this._appendBattleLog('能量不足，无法使用该招式'); return; }
     if (this.gs.phase === PHASE.MAIN) this.gs.setPhase(PHASE.BATTLE); // 攻击需要 BATTLE 校验
     const anim = this._animEnabled();

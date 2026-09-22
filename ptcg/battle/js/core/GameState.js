@@ -218,7 +218,7 @@ export class GameState {
     pl.energyAttached=true;
     this.addLog(`${pl.name} 为 ${t.name} 附着了 ${cd.name}`);this.emitTriggerEvent('energy_attached',{target:t,owner:pl});return true;}
 
-  checkEnergy(mon,ai){const a=mon.attacks?.[ai];if(!a||!a.cost||a.cost.length===0)return true;
+  checkEnergy(mon,ai){const a=this.getAttacks(mon)[ai];if(!a||!a.cost||a.cost.length===0)return true;
     return this._canPayEnergyCost(mon,this.adjustedAttackCost(mon,a));}
   adjustedAttackCost(mon,attack){let adjusted=this._adjustAttackCostForPassives(mon,attack?.cost||[],attack);const inc=(mon?.attackCostIncrease||0)+this._passiveAttackCostIncrease(mon);for(let i=0;i<inc;i++)adjusted.push('colorless');return adjusted;}
   _adjustAttackCostForPassives(mon,cost,attack=null){let adjusted=[...(cost||[])];
@@ -343,7 +343,13 @@ export class GameState {
   // 保留道具的 effects —— effectiveRetreatCost 等需要按「道具效果」通用判定
   // （原实现只存 cardId/name，导致紧急滑板「撤退费-1」这类效果无法生效，
   //   只能靠硬编码卡名，覆盖不了新卡）
-  _makeToolState(cardId,cd){return {cardId,name:cd?.name||String(cardId),effects:cd?.effects||null,specialRules:cd?.specialRules||null};}
+  _makeToolState(cardId,cd){return {cardId,name:cd?.name||String(cardId),effects:cd?.effects||null,specialRules:cd?.specialRules||null,toolAttacks:cd?.toolAttacks||null};}
+
+  /**
+   * 该宝可梦当前可用招式 = 自身招式 + 身上「招式学习器」类道具提供的招式。
+   * 独立成一处取用点，避免在「附上/离场」时增删 mon.attacks 带来的清理遗漏。
+   */
+  getAttacks(mon){return [...((mon&&mon.attacks)||[]),...((mon&&mon.tool&&mon.tool.toolAttacks)||[])];}
 
   /**
    * 备战区已满、且该效果**全部**可执行动作都需要空备战位 → 视为不可用。
@@ -580,7 +586,7 @@ export class GameState {
    * （CBB6C-0301~0322 等卡面明确写了例外的招式）。
    */
   _attackAllowsFirstTurn(mon,attackIndex=0){
-    const effs=mon?.attacks?.[attackIndex]?.effects||[];
+    const effs=this.getAttacks(mon)[attackIndex]?.effects||[];
     return effs.some(e=>e.action==='usage_condition'&&e.params?.kind==='attack_first_turn_ok');
   }
 

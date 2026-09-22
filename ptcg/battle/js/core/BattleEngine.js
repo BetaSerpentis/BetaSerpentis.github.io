@@ -446,7 +446,7 @@ export class BattleEngine {
     if (atk.active.cannotAttackNext) { this.cb.onLog?.('无法攻击'); return false; }
     if (!def.active) { this.cb.onLog?.('对手无宝可梦'); return false; }
 
-    const attacks = atk.active.attacks || [];
+    const attacks = gs.getAttacks ? gs.getAttacks(atk.active) : (atk.active.attacks || []);
     const ai = Number.isInteger(attackIndex) ? attackIndex : 0;
     const move = attacks[ai];
     if (!move) { this.cb.onLog?.('招式不存在'); return false; }
@@ -612,7 +612,7 @@ export class BattleEngine {
   }
 
   _firstLegalAttackIndex(player) {
-    const attacks = player.active?.attacks || [];
+    const attacks = this.gs.getAttacks ? this.gs.getAttacks(player.active) : (player.active?.attacks || []);
     return attacks.findIndex((_, i) => player.active?.costEliminated || this.gs.checkEnergy(player.active, i));
   }
 

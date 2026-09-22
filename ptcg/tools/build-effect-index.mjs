@@ -28,7 +28,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseEffect } from '../battle/js/core/EffectParser.js';
+import { parseEffect, extractToolAttacks } from '../battle/js/core/EffectParser.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PTCG = path.resolve(__dirname, '..');
@@ -67,6 +67,10 @@ function effectTextsOf(card) {
       out.push({ scope: 'attack', slot: String(i), text: atk['效果'] });
     }
   }
+  // 「招式学习器 / 卷轴 / Z招式」类道具：招式写在「效果」文本里，单独作为 toolattack 纳入索引，
+  // 否则这些招式的效果（如「能量涡轮」的从牌库附能）在索引里查不到。
+  const ta = extractToolAttacks(card['效果'] || '');
+  if (ta) for (const atk of ta.attacks) out.push({ scope: 'toolattack', slot: atk.name, text: atk.effect || '' });
   return out;
 }
 

@@ -288,7 +288,7 @@ export function getLegalActions(gs, resolver, player = gs.currentPlayer) {
     const statusBlocked = st.includes('sleep') || st.includes('paralysis');
     const firstTurnBlock = gs.firstPlayerFirstTurnInProgress && player === gs.firstPlayer;
     if (!statusBlocked && !active.cannotAttackNext) {
-      (active.attacks || []).forEach((move, i) => {
+      gs.getAttacks(active).forEach((move, i) => {
         // 先攻首回合整体不能用招式，但**卡面写明例外的招式**要照常产出候选
         if (firstTurnBlock && !gs._attackAllowsFirstTurn?.(active, i)) return;
         const canPay = active.costEliminated || (gs.checkEnergy ? gs.checkEnergy(active, i) : false);
@@ -336,7 +336,7 @@ function previewAttach(gs, mon, energyCardData, defender) {
       }],
     };
     const nowPlayable = [];
-    (mon.attacks || []).forEach((move, i) => {
+    gs.getAttacks(mon).forEach((move, i) => {
       const before = mon.costEliminated || gs.checkEnergy?.(mon, i);
       const after = simulated.costEliminated || gs.checkEnergy?.(simulated, i);
       if (!before && after) {
