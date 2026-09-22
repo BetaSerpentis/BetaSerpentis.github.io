@@ -7802,6 +7802,60 @@ await test('K2 非目标属性不会触发（能量筛选条件生效）', async
   assert.equal(opp.active.name, '敌前', '附火能量不应触发草能量的特性');
 });
 
+
+// ============================================================
+//  优化点：「世界终焉」需要竞技场，没有则招式失败
+// ============================================================
+
+const WORLD_END = '将场上的竞技场放于弃牌区。如果无法将卡牌放于弃牌区的话，则这个招式失败。';
+
+function worldEndCase(withStadium) {
+  const gs = new GameState();
+  gs.phase = PHASE.BATTLE;
+  gs.currentPlayer = gs.player1;
+  const atk = { name:'世界终焉', cost:[], damage:230, effect:WORLD_END, effects: parseEffect(WORLD_END).effects };
+  gs.player1.active = mon('无极汰那', 'e1', [atk]);
+  gs.player2.active = mon('受击方', 'd1');
+  gs.player1.deck = ['a', 'b']; gs.player2.deck = ['c', 'd'];
+  gs.player1.prizes = ['p']; gs.player2.prizes = ['q'];
+  gs.player1.discard = []; gs.player2.discard = [];
+  if (withStadium) {
+    gs.player1.hand = ['st1'];
+    const st = { cardType:'trainer', trainerType:'stadium', name:'深钵镇', effects:[], effectText:'' };
+    gs.cardResolver = { getCard: () => st };
+    gs.setActiveStadium(gs.player1, 0, st);
+  } else {
+    gs.cardResolver = { getCard: () => null };
+  }
+  return { gs, engine: makeEngine(gs) };
+}
+
+await test('世界终焉 解析出「需要竞技场」前提', () => {
+  const e = parseEffect(WORLD_END).effects;
+  assert.ok(e.some(x => x.action === 'discard_stadium'), '应有丢弃竞技场');
+  assert.ok(e.some(x => x.params?.kind === 'attack_requires_stadium'), '应解析出招式失败前提');
+});
+
+await test('世界终焉 有竞技场：正常造成伤害并弃掉竞技场', async () => {
+  const { gs, engine } = worldEndCase(true);
+  assert.equal(gs.canUseAttack(gs.player1, gs.player1.active, 0).ok, true, '有竞技场时可用');
+  assert.equal(await engine.attack(0), true);
+  assert.equal(gs.player2.active.hp, 0, '应造成 230 伤害');
+  assert.equal(gs.getActiveStadium(), null, '竞技场应被弃掉');
+  assert.deepEqual(gs.player1.discard, ['st1'], '竞技场应进其持有者的弃牌区');
+});
+
+await test('世界终焉 无竞技场：招式失败、零伤害（修复前会照常打 230）', async () => {
+  const { gs, engine } = worldEndCase(false);
+  const canUse = gs.canUseAttack(gs.player1, gs.player1.active, 0);
+  assert.equal(canUse.ok, false, '无竞技场时应置灰');
+  assert.match(String(canUse.message || ''), /没有竞技场/);
+  // 即使强行发动，也必须失败且不结算伤害
+  const ok = await engine.attack(0);
+  assert.equal(ok, false, '招式应失败');
+  assert.equal(gs.player2.active.hp, gs.player2.active.maxHp, '失败时不应造成任何伤害');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

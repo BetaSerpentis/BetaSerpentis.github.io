@@ -629,9 +629,17 @@ export class PTCGBattleApp {
       };
     });
     if (!items.length) items.push({ label: '（手牌为空）', disabled: true });
-    items.push({ label: '查看弃牌区', meta: `${pl.discard?.length || 0} 张`, onSelect: () => this._showDiscardList() });
-    // 放逐区是独立区域（放进去的卡不能被回收），必须能单独查看
-    items.push({ label: '查看放逐区', meta: `${pl.lostZone?.length || 0} 张`, onSelect: () => this._showDiscardList('lostZone') });
+    // 优化：弃牌区为空时置灰（没有内容可看就不该像可用按钮）
+    items.push({
+      label: '查看弃牌区',
+      meta: `${pl.discard?.length || 0} 张`,
+      disabled: !(pl.discard?.length),
+      onSelect: () => this._showDiscardList(),
+    });
+    // 优化：放逐区是很少用的区域，**为空时整条不显示**，不占常驻按钮
+    if (pl.lostZone?.length) {
+      items.push({ label: '查看放逐区', meta: `${pl.lostZone.length} 张`, onSelect: () => this._showDiscardList('lostZone') });
+    }
     this._showListView(items, { onBack: () => { this._refresh(); this._showPanel('panel-main'); } });
   }
 
@@ -736,9 +744,12 @@ export class PTCGBattleApp {
     this._appendBattleLog('没有可放置的位置');
   }
 
-  /** zone: 'discard'（默认）| 'lostZone' —— 两个区域都不能回收，但必须分开显示 */
-  _showDiscardList(zone = 'discard') {
-    const pl = this.gs.player1;
+  /**
+   * zone: 'discard'（默认）| 'lostZone'；owner: 'self'（默认）| 'opponent'
+   * 这些区域都只做查看显示（放逐区/弃牌区的卡不能被直接取用）。
+   */
+  _showDiscardList(zone = 'discard', owner = 'self') {
+    const pl = owner === 'opponent' ? this.gs.player2 : this.gs.player1;
     const cards = zone === 'lostZone' ? (pl.lostZone || []) : (pl.discard || []);
     const emptyText = zone === 'lostZone' ? '（放逐区为空）' : '（弃牌区为空）';
     const items = cards.map(cid => {
@@ -746,7 +757,8 @@ export class PTCGBattleApp {
       return { label: cd?.name || String(cid), meta: this._cardMeta(cd), disabled: true };
     });
     if (!items.length) items.push({ label: emptyText, disabled: true });
-    this._showListView(items, { onBack: () => this._showHandList() });
+    // 返回来源页签：对方弃牌区来自「对方场地」列表，自己的一律回手牌列表
+    this._showListView(items, { onBack: () => (owner === 'opponent' ? this._showOpponentList() : this._showHandList()) });
   }
 
   // 卡牌动作子菜单
@@ -879,6 +891,13 @@ export class PTCGBattleApp {
     push(opp.active, '出战');
     (opp.bench || []).forEach((mon, i) => push(mon, `备战${i + 1}`));
     if (!items.length) items.push({ label: '（对方场上无宝可梦）', disabled: true });
+    // 优化：对方弃牌区（只查看，不可操作）
+    items.push({
+      label: '对方弃牌区',
+      meta: `${opp.discard?.length || 0} 张`,
+      disabled: !(opp.discard?.length),
+      onSelect: () => this._showDiscardList('discard', 'opponent'),
+    });
     this._showListView(items, { onBack: () => this._showPokemonList() });
   }
 

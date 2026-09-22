@@ -473,6 +473,14 @@ export class BattleEngine {
       catch(e) { this.cb.onLog?.('招式失败'); return false; }
     }
 
+    // 「若无法将卡牌丢到弃牌区，则这个招式失败」（无极汰那「世界终焉」）：
+    // 场上没有竞技场时招式直接失败，不结算伤害（招式已宣告，回合照常结束）
+    if (gs._attackRequiresStadium?.(atk.active, ai) && !gs.getActiveStadium()) {
+      this.cb.onLog?.(`场上没有竞技场，「${move?.name || '这个招式'}」失败`);
+      this.finishTurn();
+      return false;
+    }
+
     let damage = move ? (parseInt(String(move.damage).match(/\d+/)?.[0]) || 0) : 20;
     damage += (atk.active.nextOwnTurnDamageBoost || 0);
     atk.active.nextOwnTurnDamageBoost = 0;

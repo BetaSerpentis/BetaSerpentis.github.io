@@ -1,4 +1,4 @@
-#eff1 hash=9eacb6a9bb7bf721
+#eff1 hash=3193b60cfde54274
 151C-001	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-002	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-003	ability		0	usage_condition	{"kind":"requires_active"}
@@ -3685,7 +3685,8 @@ CS3.5C-005	ability		4	usage_condition	{"kind":"residual_sentence","raw":"直到�
 CS3.5C-005	attack	1	0	coin_flip_damage	{"count":1,"damage":80}
 CS3.5C-006	attack	2	0	usage_condition	{"kind":"generic_effect","raw":"将对手牌库上方与自己场上的\\"铁蚁\\"数量相同数量的卡牌丢到弃牌区。"}
 CS3.5C-007	ability		0	conditional_effect	{"condition":"own_discard_items_gte","count":8,"effect":{"action":"energy_cost_eliminate","params":{"target":"self"}}}
-CS3.5C-007	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"将场上的\\"竞技场\\"丢到弃牌区。若无法将卡牌丢到弃牌区，则这个招式失败。"}
+CS3.5C-007	attack	1	0	usage_condition	{"kind":"attack_requires_stadium"}
+CS3.5C-007	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"将场上的\\"竞技场\\"丢到弃牌区。"}
 CS3.5C-008	attack	1	0	conditional_damage_mod	{"condition":"opponent_active_name","name":"宝可梦V","amount":50,"mode":"fixed"}
 CS3.5C-008	attack	2	0	discard_energy	{"target":"self","count":"all"}
 CS3.5C-009	attack	1	0	attach_energy_from_discard	{"filter":"【火】能量","target":"any","count":3,"maxCount":3,"minCount":0,"allowFewer":true,"allowEmpty":true}
@@ -8121,7 +8122,8 @@ CSM1DC-158	attack	1	0	conditional_damage_mod	{"amount":20,"condition":"counter",
 CSM1DC-158	attack	2	0	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM1DC-158	attack	2	1	usage_condition	{"kind":"residual_sentence","raw":"选择对手场上宝可梦所拥有的1个招式，作为这个招式使用。"}
 CSM1DC-159	attack	1	0	draw	{"count":1}
-CSM1DC-160	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"将自己手牌中的1张物品丢到弃牌区，给对手1只宝可梦在不计算弱点、抗性的前提下，造成60伤害。若无法将卡牌丢到弃牌区，则这个招式失败。"}
+CSM1DC-160	attack	1	0	usage_condition	{"kind":"attack_requires_stadium"}
+CSM1DC-160	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"将自己手牌中的1张物品丢到弃牌区，给对手1只宝可梦在不计算弱点、抗性的前提下，造成60伤害。"}
 CSM1DC-160	attack	2	0	self_damage	{"amount":30}
 CSM1DC-161	attack	1	0	discard_energy	{"target":"opponent","count":1}
 CSM1DC-161	attack	2	0	cannot_retreat	{"target":"opponent","duration":"next_opp_turn"}
@@ -8955,7 +8957,8 @@ CSM1bC-091	attack	1	0	conditional_damage_mod	{"amount":20,"condition":"counter",
 CSM1bC-091	attack	2	0	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM1bC-091	attack	2	1	usage_condition	{"kind":"residual_sentence","raw":"选择对手场上宝可梦所拥有的1个招式，作为这个招式使用。"}
 CSM1bC-092	attack	1	0	draw	{"count":1}
-CSM1bC-093	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"将自己手牌中的1张物品丢到弃牌区，给对手1只宝可梦在不计算弱点、抗性的前提下，造成60伤害。若无法将卡牌丢到弃牌区，则这个招式失败。"}
+CSM1bC-093	attack	1	0	usage_condition	{"kind":"attack_requires_stadium"}
+CSM1bC-093	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"将自己手牌中的1张物品丢到弃牌区，给对手1只宝可梦在不计算弱点、抗性的前提下，造成60伤害。"}
 CSM1bC-093	attack	2	0	self_damage	{"amount":30}
 CSM1bC-094	attack	2	0	coin_flip	{"count":1,"fail_on_tails":true}
 CSM1bC-095	attack	2	0	coin_flip_damage	{"count":2,"damage_per":60}
@@ -11308,7 +11311,8 @@ CSM2cC-051	attack	1	0	damage_place	{"target":"attacker","count":8}
 CSM2cC-053	ability		0	trigger	{"event":"evolved","effect":{"action":"attach_energy_from_deck","params":{"filter":"【恶】能量","target":"active","count":99,"maxCount":99,"minCount":0,"allowFewer":true,"allowEmpty":true}},"effects":[{"action":"attach_energy_from_deck","params":{"filter":"【恶】能量","target":"active","count":99,"maxCount":99,"minCount":0,"allowFewer":true,"allowEmpty":true}},{"action":"usage_condition","params":{"kind":"put_remaining_back","raw":"将剩余的卡牌放回牌库"}},{"action":"shuffle_deck","params":{}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"可使用1次。"}}],"optional":false}
 CSM2cC-053	attack	1	0	conditional_damage_mod	{"amount":20,"condition":"self_energy","mode":"per_unit"}
 CSM2cC-054	attack	1	0	discard_energy	{"target":"opponent_field","count":1,"filter":"特殊能量"}
-CSM2cC-054	attack	2	0	usage_condition	{"kind":"generic_effect","raw":"将自己的1张手牌丢到弃牌区。若无法将卡牌丢到弃牌区，则这个招式失败。"}
+CSM2cC-054	attack	2	0	usage_condition	{"kind":"attack_requires_stadium"}
+CSM2cC-054	attack	2	1	usage_condition	{"kind":"residual_sentence","raw":"将自己的1张手牌丢到弃牌区。"}
 CSM2cC-055	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CSM2cC-055	ability		1	damage_place	{"target":"attacker","count":1}
 CSM2cC-055	attack	1	0	conditional_damage_mod	{"amount":30,"condition":"self_damage_counters","mode":"per_unit"}
@@ -12937,7 +12941,8 @@ CSV2C-085	attack	1	0	coin_flip	{"count":1}
 CSV2C-085	attack	1	1	cannot_attack_next	{"duration":"next_self_turn"}
 CSV2C-086	attack	1	0	switch_pokemon	{"who":"self"}
 CSV2C-086	attack	2	0	conditional_damage_mod	{"amount":20,"condition":"own_discard_move_count","moveName":"团结之翼","mode":"per_unit"}
-CSV2C-087	attack	2	0	usage_condition	{"kind":"generic_effect","raw":"将自己的1张手牌丢到弃牌区。若无法将卡牌丢到弃牌区，则这个招式失败。"}
+CSV2C-087	attack	2	0	usage_condition	{"kind":"attack_requires_stadium"}
+CSV2C-087	attack	2	1	usage_condition	{"kind":"residual_sentence","raw":"将自己的1张手牌丢到弃牌区。"}
 CSV2C-088	attack	1	0	inflict_status	{"statuses":["sleep"]}
 CSV2C-088	attack	2	0	conditional_damage_mod	{"condition":"opponent_active_any_status","amount":70,"mode":"fixed"}
 CSV2C-089	attack	1	0	switch_pokemon	{"who":"opponent"}
@@ -14338,7 +14343,8 @@ CSV8C-013	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"从自�
 CSV8C-014	attack	1	0	draw	{"count":1}
 CSV8C-015	attack	1	0	conditional_damage_mod	{"amount":20,"condition":"own_discard_move_count","moveName":"团结之翼","mode":"per_unit"}
 CSV8C-016	attack	1	0	draw_until	{"target":7}
-CSV8C-016	attack	2	0	usage_condition	{"kind":"generic_effect","raw":"将自己手牌中的1张\\"基本【草】能量\\"丢到弃牌区。若无法将卡牌丢到弃牌区，则这个招式失败。"}
+CSV8C-016	attack	2	0	usage_condition	{"kind":"attack_requires_stadium"}
+CSV8C-016	attack	2	1	usage_condition	{"kind":"residual_sentence","raw":"将自己手牌中的1张\\"基本【草】能量\\"丢到弃牌区。"}
 CSV8C-018	ability		0	usage_condition	{"kind":"requires_active"}
 CSV8C-018	ability		1	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CSV8C-018	ability		2	inflict_status	{"statuses":["sleep"]}
@@ -15332,7 +15338,8 @@ CSV9C-132	attack	2	0	coin_flip_damage	{"count":2,"damage_per":100}
 CSV9C-133	ability		0	usage_condition	{"kind":"generic_effect","raw":"若这只宝可梦身上放有\\"宝可梦道具\\"，则对手无法从手牌使出\\"【ACE SPEC】\\"卡牌。"}
 CSV9C-134	attack	1	0	search_deck_to_hand	{"filter":"宝可梦道具","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSV9C-134	attack	1	1	shuffle_deck	{}
-CSV9C-135	attack	2	0	usage_condition	{"kind":"generic_effect","raw":"在造成伤害前，将放置于这只宝可梦身上的\\"宝可梦道具\\"丢到弃牌区。若无法将卡牌丢到弃牌区，则这个招式失败。"}
+CSV9C-135	attack	2	0	usage_condition	{"kind":"attack_requires_stadium"}
+CSV9C-135	attack	2	1	usage_condition	{"kind":"residual_sentence","raw":"在造成伤害前，将放置于这只宝可梦身上的\\"宝可梦道具\\"丢到弃牌区。"}
 CSV9C-136	attack	2	0	discard_energy	{"target":"self","count":2}
 CSV9C-137	ability		0	retreat_cost_zero	{"target":"own_field"}
 CSV9C-137	attack	1	0	cannot_attack_next	{"duration":"next_self_turn"}
@@ -15364,7 +15371,7 @@ CSV9C-150	attack	1	0	cannot_attack_next	{"target":"opponent"}
 CSV9C-150	attack	2	0	self_damage	{"amount":20}
 CSV9C-151	attack	1	0	conditional_damage_mod	{"condition":"opponent_active_name","name":"宝可梦【ex】","amount":80,"mode":"fixed"}
 CSV9C-151	attack	2	0	discard_stadium	{}
-CSV9C-151	attack	2	1	usage_condition	{"kind":"residual_sentence","raw":"若无法将卡牌丢到弃牌区，则这个招式失败。"}
+CSV9C-151	attack	2	1	usage_condition	{"kind":"attack_requires_stadium"}
 CSV9C-152	attack	1	0	ignore	{"what":"opponent_effects"}
 CSV9C-152	attack	2	0	peek_and_keep	{"peek":10,"keep":1}
 CSV9C-152	attack	2	1	usage_condition	{"kind":"put_remaining_back","raw":"将剩余的卡牌放回牌库"}
@@ -16319,7 +16326,8 @@ CSVH3pC-006	attack	1	0	discard_energy	{"target":"self","count":"all"}
 CSVH4C-001	attack	1	0	draw	{"count":1}
 CSVH4C-002	attack	1	0	damage_bench	{"target":"opponent_1","damage":20}
 CSVH4C-003	attack	1	0	draw_until	{"target":7}
-CSVH4C-003	attack	2	0	usage_condition	{"kind":"generic_effect","raw":"将自己手牌中的1张\\"基本【草】能量\\"丢到弃牌区。若无法将卡牌丢到弃牌区，则这个招式失败。"}
+CSVH4C-003	attack	2	0	usage_condition	{"kind":"attack_requires_stadium"}
+CSVH4C-003	attack	2	1	usage_condition	{"kind":"residual_sentence","raw":"将自己手牌中的1张\\"基本【草】能量\\"丢到弃牌区。"}
 CSVH4C-004	attack	1	0	search_deck_to_hand	{"filter":"基本能量","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CSVH4C-004	attack	1	1	shuffle_deck	{}
 CSVH4C-004	attack	2	0	conditional_damage_mod	{"amount":20,"condition":"opponent_bench_count","mode":"per_unit"}

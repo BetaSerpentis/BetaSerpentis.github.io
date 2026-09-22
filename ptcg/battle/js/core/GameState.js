@@ -650,6 +650,12 @@ export class GameState {
     return false;
   }
 
+  /** 该招式是否要求场上存在竞技场（无极汰那「世界终焉」：没有竞技场则招式失败） */
+  _attackRequiresStadium(mon,attackIndex=0){
+    const effs=this.getAttacks(mon)[attackIndex]?.effects||[];
+    return effs.some(e=>e.action==='usage_condition'&&e.params?.kind==='attack_requires_stadium');
+  }
+
   /** 是否是该玩家**自己的最初回合**（回合 1 属于先攻方，回合 2 属于后攻方） */
   _isOwnFirstTurn(pl){
     if(!this.firstPlayer)return false;
@@ -686,6 +692,8 @@ export class GameState {
     if(st.includes('paralysis'))return {ok:false,reason:'paralyzed',message:'麻痹中无法使用招式'};
     if(mon.cannotAttackNext)return {ok:false,reason:'cannot_attack_next',message:'这个回合无法使用招式'};
     if(!mon.costEliminated&&!this._passiveCostEliminatedByLostZone(mon)&&!this.checkEnergy(mon,attackIndex))return {ok:false,reason:'energy',message:'能量不足'};
+    // 场上没有竞技场时「世界终焉」必定失败 → 直接置灰，别让玩家白费一个回合
+    if(this._attackRequiresStadium(mon,attackIndex)&&!this.getActiveStadium())return {ok:false,reason:'requires_stadium',message:'场上没有竞技场，这个招式会失败'};
     return {ok:true};
   }
 

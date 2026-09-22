@@ -1312,7 +1312,9 @@ const EXECUTORS = {
   },
 
   // ===== 丢弃竞技场 =====
-  discard_stadium(gs, pl, p) { const old = gs.clearActiveStadium?.(); gs.addLog(old ? '丢弃竞技场' : '无竞技场'); },
+  // 注意把 pl 作为**兜底归属方**传进去：正常情况竞技场自带 owner，
+  // 但万一没有（旧数据/异常流程），以前会既不清场也不进弃牌区、卡直接消失。
+  discard_stadium(gs, pl, p) { const old = gs.clearActiveStadium?.(pl); gs.addLog(old ? '丢弃竞技场' : '无竞技场'); },
 
   // ===== 自身伤害 =====
   self_damage(gs, pl, p) {
