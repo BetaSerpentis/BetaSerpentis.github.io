@@ -714,6 +714,11 @@ const RULES = [
   { re: /这只宝可梦不会陷入【(.+?)】状态/, act:'block_status', p:m=>({status:STATUS_MAP[m[1]]||m[1],target:'self'}) },
   { re: /(?:自己的所有|自己所有)宝可梦[，,]?不会陷入【(.+?)】状态/, act:'block_status', p:m=>({status:STATUS_MAP[m[1]]||m[1],target:'own_field'}) },
   { re: /双方(?:的)?所有宝可梦[，,]?不会陷入【(.+?)】状态/, act:'block_status', p:m=>({status:STATUS_MAP[m[1]]||m[1],target:'both_field'}) },
+  // ⚠️ 这条必须排在下面那条懒惰兜底 `/不会受到.*?招式的伤害/` **之前**：
+  // 卡面措辞有变体（如「只要这只宝可梦，处于备战区，就不会受到对手宝可梦的招式的伤害和效果影响。」
+  // 多了逗号，归一化剥离规则要求「在」所以没剥掉），专用规则匹配不到时，
+  // 懒惰兜底只会吃掉「…招式的伤害」半句，把「和效果影响」漏在外面（实测 10 条，斯魔茶一族）。
+  { re: /不会受到[^。]*?招式的伤害(?:和|与)效果(?:的)?影响/, act:'prevent_damage_effect', p:()=>({source:'attack'}) },
   { re: /不会受到.*?招式的伤害/, act:'prevent_damage', p:()=>({source:'attack'}) },
 
   // ===== 无视弱抗/效果 =====
