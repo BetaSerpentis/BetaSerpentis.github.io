@@ -8086,6 +8086,87 @@ await test('k3c 「名字中带有「X」的物品」按名字片段筛手牌', 
   assert.equal(d.params.damagePerCard, 40);
 });
 
+
+await test('k3d 备战区能量弃置：discard_energy 新增 own_bench 目标', async () => {
+  const eff = parseEffect('将最多3张附着于自己备战宝可梦身上的基本能量放于弃牌区，造成其张数×90点伤害。').effects;
+  const d = eff.find(e => e.action === 'discard_energy');
+  assert.ok(d, '应解析出 discard_energy');
+  assert.equal(d.params.target, 'own_bench');
+  assert.equal(d.params.damagePerCard, 90);
+
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('前排', 'a1');
+  const b = mon('备战', 'b1');
+  b.energy = [{ cardId:'e1', name:'基本火能量' }, { cardId:'e2', name:'基本火能量' }];
+  pl.bench = [b];
+  pl.active.energy = [{ cardId:'e9', name:'基本火能量' }]; // 出战位的能量不应被动
+  pl.discard = [];
+  opp.active = mon('敌', 'd1');
+  opp.active.hp = 200; opp.active.maxHp = 200;
+  await executeEffects(gs, pl, eff);
+  assert.equal(b.energy.length, 0, '备战区能量应被丢弃');
+  assert.equal(pl.active.energy.length, 1, '出战位能量不应受影响');
+  assert.equal(opp.active.hp, 200 - 180, '2 张 × 90 = 180 伤害');
+});
+
+await test('k3d 备战区能量转附到出战位并按张数造成伤害', async () => {
+  const eff = parseEffect('将附着于自己备战宝可梦身上的任意数量的【雷】能量，转附于这只宝可梦身上，造成其张数×20点伤害。').effects;
+  const m = eff.find(e => e.action === 'move_energy');
+  assert.ok(m, '应解析出 move_energy');
+  assert.equal(m.params.damagePerCard, 20, '伤害句应并入转移动作');
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('前排', 'a1');
+  const b = mon('备战', 'b1');
+  b.energy = [{ cardId:'t1', name:'基本【雷】能量' }, { cardId:'t2', name:'基本【雷】能量' }];
+  pl.bench = [b];
+  opp.active = mon('敌', 'd1');
+  opp.active.hp = 200; opp.active.maxHp = 200;
+  // 带 filter 的附能量匹配要能解析出卡名，所以这里给能量卡配 resolver
+  gs.cardResolver = fakeResolver({
+    't1': { card:{ cardType:'energy', name:'基本【雷】能量' }, info:{ name:'基本【雷】能量', type:'energy' } },
+    't2': { card:{ cardType:'energy', name:'基本【雷】能量' }, info:{ name:'基本【雷】能量', type:'energy' } },
+  });
+  await executeEffects(gs, pl, eff);
+  assert.equal(pl.active.energy.length, 2, '能量应转附到出战位');
+  assert.equal(b.energy.length, 0, '来源应清空');
+  assert.equal(opp.active.hp, 200 - 40, '2 张 × 20 = 40 伤害');
+});
+
+await test('k3d 弃牌区草能量给对手查看 → 放置伤害指示物 → 放回牌库', async () => {
+  const eff = parseEffect('将自己弃牌区中所有「基本【草】能量」给对手查看，将其张数×2个伤害指示物，放置于对手的1只宝可梦身上。然后，将给对手查看过的能量放回牌库并重洗牌库。').effects;
+  const g = eff.find(e => e.action === 'discard_energy_peek_damage');
+  assert.ok(g, '应解析出 discard_energy_peek_damage');
+  assert.equal(g.params.countersPer, 2, '是按指示物而不是直接伤害');
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('我', 'a1');
+  opp.active = mon('敌', 'd1');
+  opp.active.hp = 200; opp.active.maxHp = 200;
+  pl.discard = ['e1', 'e2'];
+  pl.deck = [];
+  gs.cardResolver = fakeResolver({
+    'e1': { card:{ cardType:'energy', name:'基本【草】能量' }, info:{ name:'基本【草】能量', type:'energy' } },
+    'e2': { card:{ cardType:'energy', name:'基本【草】能量' }, info:{ name:'基本【草】能量', type:'energy' } },
+  });
+  await executeEffects(gs, pl, eff);
+  assert.equal(opp.active.hp, 200 - 40, '2 张 × 2 个指示物 = 40 伤害');
+  assert.equal(pl.discard.length, 0, '查看过的能量应放回牌库');
+  assert.equal(pl.deck.length, 2);
+});
+
+await test('k3d 「给对手看」与「给对手查看」两种写法都能解析', () => {
+  const a = parseEffect('将自己手牌中任意数量的「哞哞鲜奶」给对手看，造成其张数×60点伤害。').effects;
+  assert.equal(a[0].action, 'reveal_hand_for_damage');
+  assert.equal(a[0].params.filter, '哞哞鲜奶');
+  const b = parseEffect('将自己手牌中任意数量的「连击」卡给对手查看，造成其张数×40点伤害。').effects;
+  assert.equal(b[0].action, 'reveal_hand_for_damage');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

@@ -494,7 +494,10 @@ function _attachedEnergyItems(gs, owner, mon, slot, filter) {
   return (mon?.energy || []).map((energy, energyIndex) => ({ owner, mon, slot, energy, energyIndex })).filter(item => _isEnergyCard(gs, item.energy, filter));
 }
 async function _pickAttachedEnergy(gs, actingPlayer, items, count, options = {}) {
-  const limit = _selectionLimit(count, items.length, options);
+  // count 可能是 Infinity（「任意数量」/count:'all'）：统一折算成实际可选数，
+  // 否则 _selectionLimit 会算出错误的 max（曾导致「转附任意数量的能量」只转 1 张）。
+  const wantCount = Number.isFinite(count) ? count : items.length;
+  const limit = _selectionLimit(wantCount, items.length, options);
   if (limit.max <= 0) return [];
   if (actingPlayer !== gs.player1 || options.auto || !gs._onPendingPick) return items.slice(0, limit.max);
   if (items.length <= limit.max && !limit.allowFewer) return items.slice(0, limit.max);
@@ -1751,6 +1754,17 @@ const EXECUTORS = {
         prompt:'选择丢弃能量的对手宝可梦'
       });
       mon = _getMon(owner, slot);
+    } else if (p.target === 'own_bench') {
+      // 「将附着于自己备战宝可梦身上的能量丢到弃牌区」——范围是备战区
+      const candidates = (pl.bench || []).filter(Boolean);
+      const items = candidates.flatMap(m => _attachedEnergyItems(gs, pl, m, _monSlot(pl, m), p.filter));
+      if (!items.length) return;
+      const selected = await _pickAttachedEnergy(gs, pl, items, p.count === 'all' ? 'all' : (p.count || 1), { filter:p.filter || null, allowFewer:!!p.allowFewer, allowEmpty:!!p.allowEmpty, maxCount:p.maxCount, minCount:p.minCount, optional:!!p.optional });
+      if (!selected.length) return;
+      for (const item of _removeAttachedEnergy(selected)) _pushEnergyDiscard(item.owner, item.energy);
+      gs.addLog(`丢弃备战区 ${selected.length} 个能量`);
+      _applyCountedDamage(gs, pl, p, selected.length);
+      return;
     } else if (p.target === 'own_field') {
       // 「将附于自己场上宝可梦身上的任意数量的能量丢到弃牌区」——范围是自己**全场**，
       // 不是只有出战位（旧实现只有 self/opponent 两种，落到这里是出战位）
@@ -1786,6 +1800,7 @@ const EXECUTORS = {
       const selected = await _pickAttachedEnergy(gs, pl, items, wantCount, { filter:p.filter || null, allowFewer:p.count === 'all' });
       for (const item of _removeAttachedEnergy(selected)) pl.active.energy.push(item.energy);
       if (selected.length) gs.addLog('能量转至出战');
+      _applyCountedDamage(gs, pl, p, selected.length);
     } else if (p.source === 'opponent_active' && p.dest === 'opponent_bench') {
       const opp = _opponent(gs, pl);
       const destSlot = await _pickPokemonTarget(gs, pl, opp, { mode:'move-energy-dest', side:'opponent', allowActive:false, allowBench:true, prompt:'选择对手转附能量的备战宝可梦' });
@@ -2078,11 +2093,22 @@ const EXECUTORS = {
     const filter = p.filter || '基本能量';
     const matches = (pl.discard || []).filter(c => _cardMatchesFilter(gs, c, filter));
     const per = +p.per || 0;
+    const countersPer = +p.countersPer || 0;
     gs.addLog(`给对手查看弃牌区中的 ${matches.length} 张${filter}`);
-    if (per && matches.length) {
+    if ((per || countersPer) && matches.length) {
       const opp = _opponent(gs, pl);
-      if (opp?.active) _applyDamageToPokemon(gs, opp, opp.active, per * matches.length);
-      gs.addLog(`造成其张数×${per}＝${per * matches.length} 伤害`);
+      if (countersPer) {
+        // 「将其张数×N个伤害指示物，放置于对手的1只宝可梦身上」——按指示物而不是直接伤害
+        const slot = await _pickPokemonTarget(gs, pl, opp, { mode:'damage', side:'opponent', allowActive:true, allowBench:true, prompt:'选择放置伤害指示物的宝可梦' });
+        const targetMon = _getMon(opp, slot) || opp.active;
+        if (targetMon) {
+          _applyDamageToPokemon(gs, opp, targetMon, countersPer * matches.length * 10);
+          gs.addLog(`放置其张数×${countersPer}＝${countersPer * matches.length} 个伤害指示物`);
+        }
+      } else if (opp?.active) {
+        _applyDamageToPokemon(gs, opp, opp.active, per * matches.length);
+        gs.addLog(`造成其张数×${per}＝${per * matches.length} 伤害`);
+      }
     }
     if (p.returnToDeck) {
       for (const c of matches) {
