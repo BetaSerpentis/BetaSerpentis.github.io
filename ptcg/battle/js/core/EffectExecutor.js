@@ -2071,6 +2071,63 @@ const EXECUTORS = {
   },
 
   /**
+   * 「将自己弃牌区中的所有基本能量给对手查看，造成其张数×N伤害。然后，将给对手查看过的能量放回牌库」
+   * 计数来自**区域**（弃牌区），不是上一个动作移动的张数；所以不走 _applyCountedDamage。
+   */
+  async discard_energy_peek_damage(gs, pl, p) {
+    const filter = p.filter || '基本能量';
+    const matches = (pl.discard || []).filter(c => _cardMatchesFilter(gs, c, filter));
+    const per = +p.per || 0;
+    gs.addLog(`给对手查看弃牌区中的 ${matches.length} 张${filter}`);
+    if (per && matches.length) {
+      const opp = _opponent(gs, pl);
+      if (opp?.active) _applyDamageToPokemon(gs, opp, opp.active, per * matches.length);
+      gs.addLog(`造成其张数×${per}＝${per * matches.length} 伤害`);
+    }
+    if (p.returnToDeck) {
+      for (const c of matches) {
+        const i = pl.discard.indexOf(c);
+        if (i >= 0) pl.deck.push(pl.discard.splice(i, 1)[0]);
+      }
+      gs._shuffle?.(pl.deck);
+      gs.addLog(`查看过的 ${matches.length} 张能量放回牌库并重洗`);
+    }
+  },
+
+  /** 「将自己手牌中任意数量的「X」给对手查看，造成其张数×N伤害」——只展示，不改动手牌 */
+  async reveal_hand_for_damage(gs, pl, p) {
+    const per = +p.per || 0;
+    const selected = await _pickCardsFromZone(gs, pl, pl, pl.hand, pl.hand.length, {
+      source:'reveal-hand', filter: card => _cardMatchesFilter(gs, card, p.filter || null),
+      prompt:`选择要给对手查看的「${p.filter || '卡'}」`, allowFewer:true, allowEmpty:true, optional:true,
+    });
+    gs.addLog(`给对手查看手牌 ${selected.length} 张`);
+    if (per && selected.length) {
+      const opp = _opponent(gs, pl);
+      if (opp?.active) _applyDamageToPokemon(gs, opp, opp.active, per * selected.length);
+      gs.addLog(`造成其张数×${per}＝${per * selected.length} 伤害`);
+    }
+  },
+
+  /** 「将自己场上宝可梦身上附着的任意数量的能量放回牌库，造成其张数×N伤害」 */
+  async energy_to_deck_for_damage(gs, pl, p) {
+    const candidates = [pl.active, ...(pl.bench || [])].filter(Boolean);
+    const items = candidates.flatMap(m => _attachedEnergyItems(gs, pl, m, _monSlot(pl, m), p.filter));
+    if (!items.length) return;
+    const selected = await _pickAttachedEnergy(gs, pl, items, 'all', { filter:p.filter || null, allowFewer:true, allowEmpty:true, optional:true });
+    if (!selected.length) return;
+    for (const item of _removeAttachedEnergy(selected)) pl.deck.push(toCardRef(item.energy));
+    gs._shuffle?.(pl.deck);
+    gs.addLog(`${selected.length} 个能量放回牌库并重洗`);
+    const per = +p.per || 0;
+    if (per) {
+      const opp = _opponent(gs, pl);
+      if (opp?.active) _applyDamageToPokemon(gs, opp, opp.active, per * selected.length);
+      gs.addLog(`造成其张数×${per}＝${per * selected.length} 伤害`);
+    }
+  },
+
+  /**
    * 「昏厥 → 放逐区」替代效果。
    * scope:'attack'（达克莱伊）由本动作当场设标记；其余三种 scope 是**持续/场地**效果，
    * 由 GameState._knockoutDestination 在被昏厥时读取（这里注册空实现，避免执行层记为「未实现」）。

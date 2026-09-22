@@ -7977,6 +7977,74 @@ await test('k4 一树：自动决策（无 UI）按正面处理', async () => {
   assert.equal(pl.coinChoiceArmed, false, '标记应被用掉');
 });
 
+
+// ============================================================
+//  k3b 前半句补齐：给对手查看 / 放回牌库 / 弃牌区能量计数
+// ============================================================
+
+await test('k3b 弃牌区能量给对手查看 → 张数×N 伤害 → 放回牌库', async () => {
+  const eff = parseEffect('将自己弃牌区中的所有基本能量给对手查看，造成其张数×20伤害。然后，将给对手查看过的能量放回牌库并重洗牌库。').effects;
+  const gate = eff.find(e => e.action === 'discard_energy_peek_damage');
+  assert.ok(gate, '应解析出 discard_energy_peek_damage');
+  assert.equal(gate.params.per, 20);
+
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('我', 'a1');
+  opp.active = mon('敌', 'd1');
+  opp.active.hp = 200; opp.active.maxHp = 200;
+  pl.discard = ['e1', 'e2', 'e3', 't1'];
+  pl.deck = [];
+  gs.cardResolver = fakeResolver({
+    'e1': { card:{ cardType:'energy', name:'基本草能量' }, info:{ name:'基本草能量', type:'energy' } },
+    'e2': { card:{ cardType:'energy', name:'基本草能量' }, info:{ name:'基本草能量', type:'energy' } },
+    'e3': { card:{ cardType:'energy', name:'基本草能量' }, info:{ name:'基本草能量', type:'energy' } },
+    't1': { card:{ cardType:'trainer', trainerType:'item', name:'某物品' }, info:{ name:'某物品' } },
+  });
+  await executeEffects(gs, pl, eff);
+  assert.equal(opp.active.hp, 140, '3 张基本能量 × 20 = 60 伤害');
+  assert.deepEqual(pl.discard, ['t1'], '只有基本能量被移走');
+  assert.equal(pl.deck.length, 3, '查看过的能量应放回牌库');
+});
+
+await test('k3b 手牌给对手查看：只展示、不改动手牌，伤害按张数', async () => {
+  const eff = parseEffect('将自己手牌中任意数量的「连击」卡给对手查看，造成其张数×40点伤害。').effects;
+  assert.equal(eff[0].action, 'reveal_hand_for_damage');
+  assert.equal(eff[0].params.per, 40);
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('我', 'a1');
+  opp.active = mon('敌', 'd1');
+  opp.active.hp = 200; opp.active.maxHp = 200;
+  pl.hand = ['c1', 'c2'];
+  gs.cardResolver = fakeResolver({
+    'c1': { card:{ cardType:'trainer', trainerType:'item', name:'连击卡' }, info:{ name:'连击卡' } },
+    'c2': { card:{ cardType:'trainer', trainerType:'item', name:'连击卡' }, info:{ name:'连击卡' } },
+  });
+  await executeEffects(gs, pl, eff);
+  assert.equal(pl.hand.length, 2, '只是给对手查看，手牌不应减少');
+  assert.equal(opp.active.hp, 120, '2 张 × 40 = 80 伤害');
+});
+
+await test('k3b 场上能量放回牌库 → 张数×N 伤害', async () => {
+  const eff = parseEffect('将自己场上宝可梦身上附有的任意数量的【水】能量放回牌库，造成其张数×40点伤害。').effects;
+  assert.equal(eff[0].action, 'energy_to_deck_for_damage');
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('我', 'a1');
+  pl.active.energy = [{ cardId:'w1', name:'基本【水】能量' }, { cardId:'w2', name:'基本【水】能量' }];
+  opp.active = mon('敌', 'd1');
+  opp.active.hp = 200; opp.active.maxHp = 200;
+  pl.deck = [];
+  await executeEffects(gs, pl, eff);
+  assert.equal(pl.active.energy.length, 0, '能量应全部回牌库');
+  assert.equal(pl.deck.length, 2);
+  assert.equal(opp.active.hp, 120, '2 张 × 40 = 80 伤害');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',
