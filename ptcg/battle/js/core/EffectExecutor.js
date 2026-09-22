@@ -2094,6 +2094,31 @@ const EXECUTORS = {
     }
   },
 
+  /**
+   * 「将自己备战区中任意数量的「X」放于弃牌区」——从备战区弃掉宝可梦（不是手牌）。
+   * 连同身上的能量/道具一起进弃牌区；只移除宝可梦本身，不涉及出战位。
+   */
+  async discard_bench_pokemon(gs, pl, p) {
+    const want = p.count === 'all' ? Infinity : (p.count || 1);
+    let moved = 0;
+    const candidates = (pl.bench || []).filter(Boolean).filter(m => {
+      const cd = gs.cardResolver?.getCard?.(m.cardId);
+      return !p.filter || String(m.name || '').includes(String(p.filter)) || String(cd?.name || '').includes(String(p.filter));
+    });
+    while (moved < want && candidates.length) {
+      const mon = candidates.shift();
+      const i = (pl.bench || []).indexOf(mon);
+      if (i < 0) continue;
+      pl.bench.splice(i, 1);
+      pl.discard.push(mon.cardId);
+      for (const e of (mon.energy || [])) pl.discard.push(_toolCardValue(e));
+      if (mon.tool) pl.discard.push(_toolCardValue(mon.tool));
+      gs.addLog(`${mon.name} 从备战区被丢到弃牌区`);
+      moved++;
+    }
+    _applyCountedDamage(gs, pl, p, moved);
+  },
+
   /** 「将自己手牌中任意数量的「X」给对手查看，造成其张数×N伤害」——只展示，不改动手牌 */
   async reveal_hand_for_damage(gs, pl, p) {
     const per = +p.per || 0;
@@ -2106,6 +2131,12 @@ const EXECUTORS = {
       const opp = _opponent(gs, pl);
       if (opp?.active) _applyDamageToPokemon(gs, opp, opp.active, per * selected.length);
       gs.addLog(`造成其张数×${per}＝${per * selected.length} 伤害`);
+    }
+    // 「然后，将给对手查看过的卡放回牌库并重洗牌库」（乌贼王一类）
+    if (p.returnToDeck && selected.length) {
+      for (const item of selected.sort((a, b) => b.index - a.index)) pl.deck.push(pl.hand.splice(item.index, 1)[0]);
+      gs._shuffle?.(pl.deck);
+      gs.addLog(`查看过的 ${selected.length} 张放回牌库并重洗`);
     }
   },
 

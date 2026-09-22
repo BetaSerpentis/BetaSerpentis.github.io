@@ -8045,6 +8045,47 @@ await test('k3b 场上能量放回牌库 → 张数×N 伤害', async () => {
   assert.equal(opp.active.hp, 120, '2 张 × 40 = 80 伤害');
 });
 
+
+await test('k3c 备战区弃场：按张数造成伤害，身上的卡牌一起进弃牌区', async () => {
+  const eff = parseEffect('将自己备战区中任意数量的「刺梭鱼」放于弃牌区，造成其张数×60点伤害。').effects;
+  assert.equal(eff[0].action, 'discard_bench_pokemon');
+  assert.equal(eff[0].params.filter, '刺梭鱼');
+  assert.equal(eff[0].params.damagePerCard, 60, '伤害句应并入');
+
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('前排', 'a1');
+  const b1 = mon('刺梭鱼', 'f1'); b1.tool = { cardId:'t1', name:'道具' };
+  const b2 = mon('刺梭鱼', 'f2');
+  const b3 = mon('别的', 'x1');
+  pl.bench = [b1, b2, b3];
+  pl.discard = [];
+  opp.active = mon('敌', 'd1');
+  opp.active.hp = 200; opp.active.maxHp = 200;
+  await executeEffects(gs, pl, eff);
+  assert.deepEqual(pl.bench.map(m => m.name), ['别的'], '只应弃掉名字匹配的备战宝可梦');
+  assert.deepEqual(pl.discard, ['f1', 't1', 'f2'], '宝可梦与身上的道具一起进弃牌区');
+  assert.equal(opp.active.hp, 200 - 120, '2 张 × 60 = 120 伤害');
+});
+
+await test('k3c 牌库上方最多N张 → 翻牌并按张数造成伤害', () => {
+  const eff = parseEffect('若希望，可将自己牌库上方最多5张卡牌放于弃牌区。然后，追加造成其张数×40点伤害。').effects;
+  const m = eff.find(e => e.action === 'mill');
+  assert.ok(m, `应解析出 mill（实际 ${JSON.stringify(eff.map(e => e.action))}）`);
+  assert.equal(m.params.count, 5);
+  assert.equal(m.params.damagePerCard, 40);
+  assert.ok(!eff.some(e => e.params?.kind === 'residual_sentence'), '不应残留未建模标记');
+});
+
+await test('k3c 「名字中带有「X」的物品」按名字片段筛手牌', () => {
+  const eff = parseEffect('将自己手牌中任意数量的名字中带有「球」的物品放于弃牌区，追加造成其张数×40点伤害。').effects;
+  const d = eff.find(e => e.action === 'discard_hand');
+  assert.ok(d, '应解析出 discard_hand');
+  assert.equal(d.params.filter, '球');
+  assert.equal(d.params.damagePerCard, 40);
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

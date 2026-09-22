@@ -1,4 +1,4 @@
-#eff1 hash=9bead2217a908544
+#eff1 hash=3db19959a9d21423
 151C-001	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-002	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-003	ability		0	usage_condition	{"kind":"requires_active"}
@@ -3496,8 +3496,7 @@ CS2bC-019	ability		0	damage_received_mod	{"amount":-30,"target":"self"}
 CS2bC-019	attack	1	0	cannot_retreat	{"target":"opponent","duration":"next_opp_turn"}
 CS2bC-020	ability		0	damage_received_mod	{"amount":-30,"target":"self"}
 CS2bC-020	attack	1	0	coin_flip_damage	{"count":1,"damage":80}
-CS2bC-021	attack	1	0	usage_condition	{"kind":"residual_sentence","raw":"，造成其张数×60伤害"}
-CS2bC-021	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"将自己备战区中任意数量的\\"刺梭鱼\\"丢到弃牌区。"}
+CS2bC-021	attack	1	0	discard_bench_pokemon	{"filter":"刺梭鱼","count":"all","damagePerCard":60}
 CS2bC-022	attack	1	0	search_deck_to_bench	{"filter":"刺梭鱼","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CS2bC-022	attack	1	1	shuffle_deck	{}
 CS2bC-023	attack	1	0	usage_condition	{"kind":"bench_damage_by_counters","raw":"给对手的1只备战宝可梦，造成其身上放置的伤害指示物数量×20伤害"}
@@ -3596,7 +3595,7 @@ CS2bC-084	attack	1	0	cannot_retreat	{"target":"opponent","duration":"next_opp_tu
 CS2bC-084	attack	2	0	conditional_damage_mod	{"condition":"custom","conditionText":"从手牌使出了\\"聂梓\\"","amount":90,"mode":"fixed"}
 CS2bC-085	attack	1	0	search_deck_to_hand	{"filter":"物品","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CS2bC-085	attack	1	1	shuffle_deck	{}
-CS2bC-086	attack	1	0	usage_condition	{"kind":"discard_tools_show_damage_back","raw":"将自己弃牌区中的所有\\"宝可梦道具\\"给对手查看，造成其张数×30伤害。然后，将给对手查看过的\\"宝可梦道具\\"放回牌库"}
+CS2bC-086	attack	1	0	discard_energy_peek_damage	{"per":30,"filter":"宝可梦道具","returnToDeck":true}
 CS2bC-086	attack	1	1	shuffle_deck	{}
 CS2bC-086	attack	2	0	inflict_status	{"statuses":["poison"]}
 CS2bC-087	attack	2	0	conditional_damage_mod	{"condition":"opponent_active_status","status":"confusion","amount":50,"mode":"fixed"}
@@ -3723,7 +3722,7 @@ CS3.5C-028	attack	2	0	mill	{"target":"self","count":3}
 CS3.5C-029	attack	1	0	damage_place	{"target":"attacker","count":12}
 CS3.5C-031	attack	1	0	draw	{"count":1}
 CS3.5C-032	attack	1	0	conditional_damage_mod	{"condition":"hand_count_equal","amount":80,"mode":"fixed"}
-CS3.5C-034	attack	1	0	usage_condition	{"kind":"show_hand_kind_damage_back","raw":"将自己手牌中任意数量的\\"连击\\"卡给对手查看，造成其张数×40伤害。然后，将给对手查看过的\\"连击\\"卡放回牌库"}
+CS3.5C-034	attack	1	0	reveal_hand_for_damage	{"filter":"连击","per":40,"returnToDeck":true}
 CS3.5C-034	attack	1	1	shuffle_deck	{}
 CS3.5C-036	attack	1	0	heal	{"amount":30,"target":"self"}
 CS3.5C-037	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
@@ -3773,7 +3772,7 @@ CS3.5C-052	ability		0	usage_condition	{"kind":"generic_effect","raw":"这只宝�
 CS3.5C-052	attack	1	0	self_damage	{"amount":30}
 CS3.5C-053	attack	1	0	recover_from_discard	{"filter":"\\"宝可梦道具\\"","target":"hand","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CS3.5C-054	ability		0	usage_condition	{"kind":"generic_effect","raw":"附于自己宝可梦身上的能量，不会受到因对手的物品或支援者而造成的丢到弃牌区的效果以及放回手牌和牌库的效果影响。"}
-CS3.5C-067	attack	1	0	usage_condition	{"kind":"show_hand_kind_damage_back","raw":"将自己手牌中任意数量的\\"连击\\"卡给对手查看，造成其张数×40伤害。然后，将给对手查看过的\\"连击\\"卡放回牌库"}
+CS3.5C-067	attack	1	0	reveal_hand_for_damage	{"filter":"连击","per":40,"returnToDeck":true}
 CS3.5C-067	attack	1	1	shuffle_deck	{}
 CS3.5C-068	ability		0	conditional_effect	{"condition":"own_discard_items_gte","count":8,"effect":{"action":"energy_cost_eliminate","params":{"target":"self"}}}
 CS3.5C-068	attack	1	0	draw_until	{"target":6}
@@ -4316,8 +4315,7 @@ CS3bC-031	ability		0	trigger	{"event":"knocked_out","effect":{"action":"usage_co
 CS3bC-031	attack	1	0	conditional_damage_mod	{"amount":40,"condition":"self_energy","mode":"per_unit"}
 CS3bC-032	attack	2	0	search_deck_to_hand	{"filter":"物品","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CS3bC-032	attack	2	1	shuffle_deck	{}
-CS3bC-033	attack	1	0	usage_condition	{"kind":"residual_sentence","raw":"，追加造成其张数×40伤害"}
-CS3bC-033	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"将自己手牌中任意数量的名字中带有\\"球\\"的物品丢到弃牌区。"}
+CS3bC-033	attack	1	0	discard_hand	{"filter":"球","count":"all","allowFewer":true,"allowEmpty":true,"optional":true,"damagePerCard":40}
 CS3bC-034	attack	1	0	search_deck_to_hand	{"filter":"美蓉","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CS3bC-034	attack	1	1	shuffle_deck	{}
 CS3bC-034	attack	2	0	inflict_status	{"statuses":["sleep"]}
@@ -5534,7 +5532,9 @@ CS4bC-020	attack	2	0	damage_bench	{"target":"opponent_1","damage":180}
 CS4bC-022	ability		0	damage_received_mod	{"amount":-30,"target":"self"}
 CS4bC-022	attack	1	0	damage_bench	{"target":"opponent_N","count":2,"damage":30}
 CS4bC-023	attack	1	0	attach_energy_from_hand	{"filter":"【水】能量","target":"any","count":1,"maxCount":1,"minCount":0,"allowFewer":true,"allowEmpty":true}
-CS4bC-024	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"将附于这只宝可梦身上的任意数量的【水】能量丢到弃牌区，选择与其张数相同数量的对手的宝可梦（同1只宝可梦可以选择多次）。然后，给所有被选择的宝可梦，在不计算弱点、抗性的情况下，造成被选择次数×30伤害。"}
+CS4bC-024	attack	1	0	discard_energy	{"target":"self","count":"all","filter":"【水】能量","allowFewer":true,"allowEmpty":true,"optional":true}
+CS4bC-024	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"选择与其张数相同数量的对手的宝可梦（同1只宝可梦可以选择多次）。"}
+CS4bC-024	attack	1	2	usage_condition	{"kind":"residual_sentence","raw":"然后，给所有被选择的宝可梦，在不计算弱点、抗性的情况下，造成被选择次数×30伤害。"}
 CS4bC-025	attack	1	0	conditional_damage_mod	{"amount":20,"condition":"self_damage_counters","mode":"per_unit"}
 CS4bC-026	attack	1	0	discard_energy	{"target":"opponent","count":1}
 CS4bC-029	ability		0	trigger	{"event":"evolved","effect":{"action":"coin_flip","params":{"count":1}},"effects":[{"action":"coin_flip","params":{"count":1}},{"action":"mill","params":{"target":"opponent","count":5}},{"action":"mill","params":{"target":"self","count":5}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"必须使用1次。"}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"若为正面，则。"}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"若为反面，则。"}}],"optional":false}
@@ -6410,7 +6410,7 @@ CS5bC-026	attack	2	0	heal	{"amount":30,"target":"self"}
 CS5bC-027	attack	1	0	conditional_damage_mod	{"condition":"custom","conditionText":"这只宝可梦从\\"结草儿\\"进化而来","amount":90,"mode":"fixed"}
 CS5bC-028	attack	1	0	search_deck_to_hand	{"filter":"物品","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CS5bC-028	attack	1	1	shuffle_deck	{}
-CS5bC-029	attack	1	0	reveal_hand_for_damage	{"filter":"甜甜蜜","per":60}
+CS5bC-029	attack	1	0	reveal_hand_for_damage	{"filter":"甜甜蜜","per":60,"returnToDeck":false}
 CS5bC-030	attack	2	0	conditional_damage_mod	{"amount":40,"condition":"opponent_prizes_taken","mode":"per_unit"}
 CS5bC-031	ability		0	heal_all	{"amount":120}
 CS5bC-031	ability		1	usage_condition	{"kind":"vstar_power_once","raw":"[对战中，己方的VSTAR力量只能使用1次。]"}
@@ -6907,9 +6907,7 @@ CS6aC-037	attack	1	0	conditional_damage_mod	{"amount":20,"condition":"total_benc
 CS6aC-038	attack	1	0	attach_energy_from_discard	{"filter":"【火】能量","target":"any","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CS6aC-039	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"若希望，可选择自己手牌中最多2张基本能量，以任意方式附于自己的宝可梦身上。"}
 CS6aC-039	attack	2	0	conditional_damage_mod	{"amount":30,"condition":"opponent_active_energy_count","mode":"per_unit"}
-CS6aC-040	attack	1	0	usage_condition	{"kind":"residual_sentence","raw":"，追加造成其张数×40伤害"}
-CS6aC-040	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"若希望，可将自己的牌库上方最多5张卡丢到弃牌区。"}
-CS6aC-040	attack	1	2	usage_condition	{"kind":"residual_sentence","raw":"然后。"}
+CS6aC-040	attack	1	0	mill	{"target":"self","count":5,"damagePerCard":40}
 CS6aC-040	attack	2	0	conditional_damage_mod	{"amount":30,"condition":"counter","counter":"__zero","mode":"per_unit"}
 CS6aC-040	attack	2	1	usage_condition	{"kind":"vstar_power_once","raw":"[对战中，己方的VSTAR力量只能使用1次。]"}
 CS6aC-042	attack	2	0	cannot_attack_next	{"duration":"next_self_turn"}
@@ -7082,9 +7080,7 @@ CS6aC-154	ability		0	usage_condition	{"kind":"requires_active"}
 CS6aC-154	ability		1	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CS6aC-154	ability		2	draw	{"count":1}
 CS6aC-154	attack	1	0	conditional_damage_mod	{"amount":20,"condition":"total_bench","mode":"per_unit"}
-CS6aC-155	attack	1	0	usage_condition	{"kind":"residual_sentence","raw":"，追加造成其张数×40伤害"}
-CS6aC-155	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"若希望，可将自己的牌库上方最多5张卡丢到弃牌区。"}
-CS6aC-155	attack	1	2	usage_condition	{"kind":"residual_sentence","raw":"然后。"}
+CS6aC-155	attack	1	0	mill	{"target":"self","count":5,"damagePerCard":40}
 CS6aC-155	attack	2	0	conditional_damage_mod	{"amount":30,"condition":"counter","counter":"__zero","mode":"per_unit"}
 CS6aC-155	attack	2	1	usage_condition	{"kind":"vstar_power_once","raw":"[对战中，己方的VSTAR力量只能使用1次。]"}
 CS6aC-156	ability		0	usage_condition	{"kind":"requires_active"}
@@ -7154,8 +7150,7 @@ CS6bC-021	attack	1	0	attach_energy_from_hand	{"filter":"【水】能量","target
 CS6bC-022	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CS6bC-022	ability		1	mill	{"target":"self","count":1}
 CS6bC-022	ability		2	usage_condition	{"kind":"residual_sentence","raw":"若该卡牌是【水】能量，则附于自己的宝可梦身上。"}
-CS6bC-022	attack	1	0	usage_condition	{"kind":"residual_sentence","raw":"，追加造成其张数×50伤害"}
-CS6bC-022	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"将附于这只宝可梦身上的任意数量的【水】能量丢到弃牌区。"}
+CS6bC-022	attack	1	0	discard_energy	{"target":"self","count":"all","filter":"【水】能量","allowFewer":true,"allowEmpty":true,"optional":true,"damagePerCard":50}
 CS6bC-023	attack	2	0	conditional_damage_mod	{"condition":"custom","conditionText":"自己的备战区中有\\"勾帕路翁\\"\\"代拉基翁\\"\\"毕力吉翁\\"","amount":170,"mode":"fixed"}
 CS6bC-025	attack	1	0	coin_flip_status	{"count":1,"statuses":["paralysis"]}
 CS6bC-025	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"另外，选择附于那只宝可梦身上的1个能量，丢到弃牌区。"}
@@ -7362,8 +7357,7 @@ CS6bC-157	attack	1	0	cannot_attack_next	{"duration":"next_self_turn"}
 CS6bC-159	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CS6bC-159	ability		1	mill	{"target":"self","count":1}
 CS6bC-159	ability		2	usage_condition	{"kind":"residual_sentence","raw":"若该卡牌是【水】能量，则附于自己的宝可梦身上。"}
-CS6bC-159	attack	1	0	usage_condition	{"kind":"residual_sentence","raw":"，追加造成其张数×50伤害"}
-CS6bC-159	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"将附于这只宝可梦身上的任意数量的【水】能量丢到弃牌区。"}
+CS6bC-159	attack	1	0	discard_energy	{"target":"self","count":"all","filter":"【水】能量","allowFewer":true,"allowEmpty":true,"optional":true,"damagePerCard":50}
 CS6bC-160	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"在下个对手的回合，对手无法从手牌使出并附着\\"宝可梦道具\\"\\"特殊能量\\"。"}
 CS6bC-160	attack	2	0	conditional_damage_mod	{"amount":60,"condition":"self_energy","mode":"per_unit"}
 CS6bC-160	attack	2	1	usage_condition	{"kind":"vstar_power_once","raw":"[对战中，己方的VSTAR力量只能使用1次。]"}
@@ -9642,7 +9636,9 @@ CSM2.5C-010	ability		1	usage_condition	{"kind":"residual_sentence","raw":"自己
 CSM2.5C-010	attack	1	0	heal_all	{"amount":30}
 CSM2.5C-011	attack	1	0	coin_flip_damage	{"count":1,"damage":20}
 CSM2.5C-012	attack	1	0	attack_damage_flip_shield	{"duration":"next_opp_turn"}
-CSM2.5C-014	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"将附于这只宝可梦身上的任意数量的【雷】能量丢到弃牌区，选择与其相同数量的对手的宝可梦（同1只宝可梦可以选择多次）。然后，给所有被选择的宝可梦，在不计算弱点、抗性的情况下，造成被选择次数×30伤害。"}
+CSM2.5C-014	attack	1	0	discard_energy	{"target":"self","count":"all","filter":"【雷】能量","allowFewer":true,"allowEmpty":true,"optional":true}
+CSM2.5C-014	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"选择与其相同数量的对手的宝可梦（同1只宝可梦可以选择多次）。"}
+CSM2.5C-014	attack	1	2	usage_condition	{"kind":"residual_sentence","raw":"然后，给所有被选择的宝可梦，在不计算弱点、抗性的情况下，造成被选择次数×30伤害。"}
 CSM2.5C-015	ability		0	usage_condition	{"kind":"no_stack_note","raw":"这个效果，无论拥有这个特性的宝可梦有多少只，都不会叠加"}
 CSM2.5C-015	ability		1	usage_condition	{"kind":"residual_sentence","raw":"自己场上的从\\"伊布\\"进化而来的\\"宝可梦GX\\"使用招式所需能量，各减少1个【无】能量。"}
 CSM2.5C-016	attack	1	0	shuffle_deck	{}
@@ -11947,7 +11943,9 @@ CSMPmC-001	attack	2	0	self_damage	{"amount":30}
 CSMPmC-001	attack	3	0	inflict_status	{"statuses":["paralysis"]}
 CSMPmC-001	attack	3	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSMPmC-002	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"这个招式，只有在自己的剩余奖赏卡张数，比对手多3张以上（包括3张）时才可使用。将自己弃牌区中的所有【雷】能量，以任意方式附于自己的宝可梦身上。"}
-CSMPmC-003	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"将附于这只宝可梦身上的任意数量的【雷】能量丢到弃牌区，选择与其相同数量的对手的宝可梦（同1只宝可梦可以选择多次）。然后，给所有被选择的宝可梦，在不计算弱点、抗性的情况下，造成被选择次数×30伤害。"}
+CSMPmC-003	attack	1	0	discard_energy	{"target":"self","count":"all","filter":"【雷】能量","allowFewer":true,"allowEmpty":true,"optional":true}
+CSMPmC-003	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"选择与其相同数量的对手的宝可梦（同1只宝可梦可以选择多次）。"}
+CSMPmC-003	attack	1	2	usage_condition	{"kind":"residual_sentence","raw":"然后，给所有被选择的宝可梦，在不计算弱点、抗性的情况下，造成被选择次数×30伤害。"}
 CSMPmC-004	attack	1	0	conditional_damage_mod	{"amount":20,"condition":"own_field_energy_type","type":"雷","mode":"per_unit"}
 CSMPmC-004	attack	2	0	self_damage	{"amount":30}
 CSMPmC-004	attack	3	0	inflict_status	{"statuses":["paralysis"]}

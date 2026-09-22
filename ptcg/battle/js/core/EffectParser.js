@@ -1541,7 +1541,8 @@ const RULES = [
   { re: /将(?:自己的|自己)?牌库中，与对手场上宝可梦相同属性的1张宝可梦，在给对手看过后，加入手牌/, act:'search_deck_to_hand', p:m=>withCount({filter:'与对手场上宝可梦相同属性的宝可梦'},1,false) },
   { re: /在下个对手的回合，受到这个招式影响的宝可梦在使用招式时，对手将。若为反面则那个招式失败/, act:'usage_condition', p:m=>trainerPrerequisite('coin_fail_attack_next', m[0]) },
   { re: /若这只宝可梦身上放有["“"]咒术之铲["“"]，则额外将(\d+)张卡丢到弃牌区/, act:'usage_condition', p:m=>trainerPrerequisite('shovel_extra_discard', m[0]) },
-  { re: /将自己弃牌区中的所有["“"]([^"“"]+)["“"]给对手查看，造成其(?:张数|数量)[×x](\d+)伤害。然后，将给对手查看过的["“"]([^"“"]+)["“"]放回牌库/, act:'usage_condition', p:m=>trainerPrerequisite('discard_tools_show_damage_back', m[0]) },
+  // 升级：原为未建模标记 → 真实动作（弃牌区任意种类的卡给对手查看 → 张数×N 伤害 → 放回牌库）
+  { re: /将自己弃牌区中的所有["“"]([^"“"]+)["“"]给对手查看，造成其(?:张数|数量)[×x](\d+)伤害。然后，将给对手查看过的["“"]([^"“"]+)["“"]放回牌库/, act:'discard_energy_peek_damage', p:m=>({ per:+m[2], filter:m[1], returnToDeck:true }) },
   { re: /当把这张卡从手牌附于(?:【(.+?)】)?宝可梦身上时/, act:'usage_condition', p:m=>trainerPrerequisite('energy_attach_trigger_desc', m[0]) },
   { re: /并恢复所有特殊状态/, act:'heal_status', p:()=>({target:'self'}) },
   { re: /选择自己手牌中的。然后，。/, act:'usage_condition', p:m=>trainerPrerequisite('wave_return_approx', m[0]) },
@@ -1649,7 +1650,7 @@ const RULES = [
   { re: /将(?:自己的|自己)?弃牌区中的(\d+)张【(.+?)】能量，以任意方式附于自己的宝可梦身上/, act:'attach_energy_from_discard', p:m=>withCount({filter:`【${m[2]}】能量`,target:'any'},m[1],false) },
   { re: /若追加附着1个能量，则从自己的牌库抽出卡牌，直到自己的手牌变为(\d+)张为止/, act:'usage_condition', p:m=>trainerPrerequisite('draw_until_extra_energy', m[0]) },
   { re: /因这个【中毒】而放置的伤害指示物数量变为(\d+)个/, act:'usage_condition', p:m=>trainerPrerequisite('poison_counters_set', m[0]) },
-  { re: /将(?:自己的|自己)?手牌中任意数量的["“"]([^"“"]+)["“"]卡给对手查看，造成其(?:张数|数量)[×x](\d+)伤害。然后，将给对手查看过的["“"]([^"“"]+)["“"]卡放回牌库/, act:'usage_condition', p:m=>trainerPrerequisite('show_hand_kind_damage_back', m[0]) },
+  { re: /将(?:自己的|自己)?手牌中任意数量的["“"]([^"“"]+)["“"]卡给对手查看，造成其(?:张数|数量)[×x](\d+)伤害。然后，将给对手查看过的["“"]([^"“"]+)["“"]卡放回牌库/, act:'reveal_hand_for_damage', p:m=>({ filter:m[1], per:+m[2], returnToDeck:true }) },
   // ===== P29（2026-09）：前缀簇第四波 =====
   { re: /从自己的牌库选择，名字中带有["“"]([^"“"]+)["“"]的，且名字各不同的(.+?)最多(\d+)张，在给对手看过后，加入手牌/, act:'usage_condition', p:m=>trainerPrerequisite('search_distinct_ball_items', m[0]) },
   { re: /将(?:自己的|自己)?牌库中最多(\d+)张，名字中带有["“"]([^"“"]+)["“"]的(.+?)，在给对手看过后，加入手牌/, act:'search_deck_to_hand', p:m=>withCount({filter:`名字带${m[2]}·${m[3]}`},m[1],true) },
@@ -1788,9 +1789,22 @@ const RULES = [
   // ===== k3 前半句（续 2）：给对手查看 / 放回牌库 =====
   // ①「将自己手牌中任意数量的「X」给对手查看，造成其张数×N伤害」——只展示，手牌不变
   // ⚠️ 引号后面常跟一个「卡」字（`"连击"卡给对手查看`），要允许它，否则匹配不到
-  { re: /将自己手牌中任意数量的["“”「」]?([^"“”「」]{1,10})["“”「」]?卡?给对手查看，造成其(?:张数|数量)[×x](\d+)伤害/, act:'reveal_hand_for_damage', p:m=>({ filter:m[1], per:+m[2] }) },
+  { re: /将自己手牌中任意数量的["“”「」]?([^"“”「」]{1,10})["“”「」]?卡?给对手查看，造成其(?:张数|数量)[×x](\d+)伤害[。.]?(?:然后[，,]?将给对手查看过的["“”「」]?[^"“”「」]{1,10}["“”「」]?卡?放回牌库)?/, act:'reveal_hand_for_damage', p:(m, raw)=>({ filter:m[1], per:+m[2], returnToDeck:/放回牌库/.test(m[0]) }) },
   // ②「将自己场上宝可梦身上附着的任意数量的（【X】）能量放回牌库，造成其张数×N伤害」
   { re: /将自己场上宝可梦身上附着的任意数量的(?:【(.+?)】)?能量放回牌库[，,]?造成其(?:张数|数量)[×x](\d+)伤害/, act:'energy_to_deck_for_damage', p:m=>({ filter:m[1]?`【${m[1]}】能量`:null, per:+m[2] }) },
+
+  // ===== k3 前半句（续 3）=====
+  // ①「将自己备战区中任意数量的「X」放于弃牌区」——从**备战区**弃掉宝可梦
+  { re: /将自己备战区中任意数量的["“”「」]?([^"“”「」]{1,12})["“”「」]?丢到弃牌区/, act:'discard_bench_pokemon', p:m=>({ filter:m[1], count:'all' }) },
+  // ②「将自己手牌中任意数量的名字中带有「X」的物品丢到弃牌区」（按名字片段筛手牌）
+  { re: /将自己手牌中任意数量的名字中带有["“”「」]([^"“”「」]{1,6})["“”「」]的物品丢到弃牌区/, act:'discard_hand', p:m=>({ filter:m[1], count:'all', allowFewer:true, allowEmpty:true, optional:true }) },
+  // ③「（若希望，）可将自己牌库上方最多N张卡牌放于弃牌区」→ mill（既有 mill 规则不含「若希望/可」的写法）
+  { re: /(?:若希望[，,]?)?可将(?:自己的|自己)?牌库上方最多(\d+)张卡(?:牌)?(?:丢弃到弃牌区|丢到弃牌区|放置于弃牌区)/, act:'mill', p:m=>({ target:'self', count:+m[1] }) },
+  // ④「将附于这只宝可梦身上的任意数量的（【X】）能量丢到弃牌区」（既有规则只覆盖「所有」与「N个」）
+  { re: /将附于这只宝可梦身上的任意数量的(?:【(.+?)】)?能量丢到弃牌区/, act:'discard_energy', p:m=>({ target:'self', count:'all', filter:m[1]?`【${m[1]}】能量`:null, allowFewer:true, allowEmpty:true, optional:true }) },
+  // ⑤ 弃牌区中任意种类的卡给对手查看 → 张数×N 伤害 → 放回牌库（原规则只写死了「基本能量」）
+  { re: /将自己弃牌区中的所有["“”「」]?([^"“”「」]{1,10})["“”「」]?(?:卡)?给对手查看，追加造成其(?:张数|数量)[×x](\d+)伤害。然后，将给对手查看过的/, act:'discard_energy_peek_damage', p:m=>({ per:+m[2], filter:m[1], returnToDeck:true }) },
+  { re: /将自己弃牌区中的所有["“”「」]?([^"“”「」]{1,10})["“”「」]?(?:卡)?给对手查看，造成其(?:张数|数量)[×x](\d+)伤害。然后，将给对手查看过的/, act:'discard_energy_peek_damage', p:m=>({ per:+m[2], filter:m[1], returnToDeck:true }) },
 
   { re: /这张卡，只有在上一个对手的回合，自己的【(.+?)】宝可梦【昏厥】时才可使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('condition', m[0]) },  // ===== 「造成其张数×N伤害」（**兜底**，必须放在最后）=====
   // ⚠️ 本项目早有专用实现：`discard_energy_for_damage`（5 条规则 + 真执行器，覆盖
@@ -1801,7 +1815,7 @@ const RULES = [
   // 意为：伤害 = **前一个动作实际移动的卡牌数** × N
   //（如「将附着于这只宝可梦身上的能量全部丢到弃牌区，造成其张数×100伤害」＝ 丢掉的能量数 ×100）
   // 用既有的改写句机制并入前面的动作，由执行端在移动完卡牌后按实际张数结算伤害。
-  { re: /[，,]?(?:追加)?造成其张数[×x](\d+)(?:点)?伤害/, act:'action_count_override', p:m=>({ targets:['discard_energy','discard_hand','lost_zone','mill','discard_field_attachments','discard_hand_draw'], set:{ damagePerCard:+m[1] }, raw:m[0] }) },
+  { re: /[，,]?(?:追加)?造成其张数[×x](\d+)(?:点)?伤害/, act:'action_count_override', p:m=>({ targets:['discard_energy','discard_hand','lost_zone','mill','discard_field_attachments','discard_hand_draw','discard_bench_pokemon'], set:{ damagePerCard:+m[1] }, raw:m[0] }) },
 
 ];
 
