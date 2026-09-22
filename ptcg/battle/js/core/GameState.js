@@ -989,7 +989,51 @@ export class GameState {
   prizesForKnockout(mon){return this.isExPokemon(mon)?2:1;}
   takePrizesForKnockout(pl,mon){const count=this.prizesForKnockout(mon);for(let i=0;i<count&&pl?.prizes?.length>0&&this.phase!==PHASE.GAME_OVER;i++)this.takePrize(pl);}
 
-  knockout(pl){if(!pl.active)return;const knockedOut=pl.active;this._recordKnockout(pl);pl.discard.push(knockedOut.cardId);this.addLog(`${pl.name} 的 ${knockedOut.name} 被击倒！`);
+  /**
+   * 昏厥的宝可梦该进哪个区域、身上的卡牌是否一起走。
+   * 卡面来源：
+   *   场地「放逐市」：双方昏厥都进放逐区（只算宝可梦本体）
+   *   耿鬼（战斗场上的对手方）：对手的宝可梦昏厥时进放逐区
+   *   达克莱伊（本招式）/ 班基拉斯GX（本宝可梦的招式）：那个昏厥的宝可梦+身上所有卡牌进放逐区
+   */
+  _knockoutDestination(ownerPl){
+    const ctx=this._koContext||null;
+    // ③ 招式型：由本招式的效果直接标记
+    if(ctx?.toLostZone)return {toLostZone:true,withAttachments:!!ctx.withAttachments};
+    // ④ 招式伤害型特性：攻击者是带该特性的宝可梦
+    if(ctx?.attacker){
+      for(const eff of (this._enabledAbilityEffects(ctx.attacker)||[])){
+        if(eff.action==='ko_to_lost_zone'&&eff.params?.scope==='own_attack')
+          return {toLostZone:true,withAttachments:!!eff.params.withAttachments};
+      }
+    }
+    // ① 场地持续效果
+    const stadium=this.getActiveStadium();
+    for(const eff of (stadium?.effects||[])){
+      if(eff.action==='ko_to_lost_zone'&&eff.params?.scope==='both')
+        return {toLostZone:true,withAttachments:!!eff.params.withAttachments};
+    }
+    // ② 对手场上（出战位）的光圈型特性
+    const opp=this.getOpponent(ownerPl);
+    if(opp?.active&&!opp.active.abilityDisabled){
+      for(const eff of (this._enabledAbilityEffects(opp.active)||[])){
+        if(eff.action==='ko_to_lost_zone'&&eff.params?.scope==='opponent')
+          return {toLostZone:true,withAttachments:!!eff.params.withAttachments};
+      }
+    }
+    return {toLostZone:false,withAttachments:false};
+  }
+
+  knockout(pl){if(!pl.active)return;const knockedOut=pl.active;
+    const dest=this._knockoutDestination(pl);
+    const zone=dest.toLostZone?(pl.lostZone=pl.lostZone||[]):pl.discard;
+    zone.push(knockedOut.cardId);
+    // 身上的能量/道具：以前**直接丢失**（既没进弃牌区也没进放逐区）→ 现在按目的地放好
+    const attachZone=(dest.toLostZone&&dest.withAttachments)?zone:pl.discard;
+    for(const e of (knockedOut.energy||[]))attachZone.push(this._toolCardValue(e));
+    if(knockedOut.tool)attachZone.push(this._toolCardValue(knockedOut.tool));
+    this._recordKnockout(pl);
+    this.addLog(`${pl.name} 的 ${knockedOut.name} 被击倒！${dest.toLostZone?'（放于放逐区）':''}`);
     const opp=this.getOpponent(pl);this.takePrizesForKnockout(opp,knockedOut);
     if(pl.bench.length>0){pl.active=pl.bench.shift();this.addLog(`${pl.name} 换上 ${pl.active.name}`);this.recomputePassives();}
     else{this.winner=opp;this.phase=PHASE.GAME_OVER;this.addLog(`${opp.name} 胜利！`);}}

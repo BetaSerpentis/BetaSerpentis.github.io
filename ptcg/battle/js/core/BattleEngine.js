@@ -446,6 +446,10 @@ export class BattleEngine {
     if (atk.active.cannotAttackNext) { this.cb.onLog?.('无法攻击'); return false; }
     if (!def.active) { this.cb.onLog?.('对手无宝可梦'); return false; }
 
+    // 攻击期间记录「谁在攻击」，供 _knockoutDestination 判定
+    // ④「因这只宝可梦的招式的伤害而昏厥」这类特性使用
+    gs._koContext = { attacker: atk.active };
+
     const attacks = gs.getAttacks ? gs.getAttacks(atk.active) : (atk.active.attacks || []);
     const ai = Number.isInteger(attackIndex) ? attackIndex : 0;
     const move = attacks[ai];
@@ -601,6 +605,7 @@ export class BattleEngine {
 
   finishTurn() {
     const gs = this.gs;
+    gs._koContext = null; // 招式窗口结束：昏厥→放逐区 的招式型标记不再生效
     gs.endTurn();
     if (gs.phase === PHASE.DRAW) gs.nextPhase();
     this.cb.onPhaseChange?.(gs.phase);

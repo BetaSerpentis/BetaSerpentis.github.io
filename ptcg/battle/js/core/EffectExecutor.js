@@ -704,8 +704,16 @@ function _knockoutPokemon(gs, owner, mon) {
   const benchIndex = owner.bench.indexOf(mon);
   if (benchIndex < 0) return;
   owner.bench.splice(benchIndex, 1);
-  owner.discard.push(mon.cardId);
-  gs.addLog(`${owner.name} 的 ${mon.name} 被击倒！`);
+  // ⚠️ 备战区击倒与出战位击倒必须一致：
+  //   ① 也要走「昏厥 → 放逐区」的替代效果判定（放逐市/耿鬼 对备战区同样有效）
+  //   ② 身上的能量/道具以前会**凭空消失**（只 push 了 cardId），现在按目的地放好
+  const dest = gs._knockoutDestination ? gs._knockoutDestination(owner) : { toLostZone:false, withAttachments:false };
+  const zone = dest.toLostZone ? (owner.lostZone = owner.lostZone || []) : owner.discard;
+  zone.push(mon.cardId);
+  const attachZone = (dest.toLostZone && dest.withAttachments) ? zone : owner.discard;
+  for (const e of (mon.energy || [])) attachZone.push(_toolCardValue(e));
+  if (mon.tool) attachZone.push(_toolCardValue(mon.tool));
+  gs.addLog(`${owner.name} 的 ${mon.name} 被击倒！${dest.toLostZone ? '（放于放逐区）' : ''}`);
   _emitTriggers(gs, 'knocked_out', { target: mon, owner });
   const prizeTaker = gs.getOpponent?.(owner) || [gs.player1, gs.player2].find(p => p !== owner);
   if (typeof gs._recordKnockout === 'function') gs._recordKnockout(owner);
@@ -1975,6 +1983,17 @@ const EXECUTORS = {
     opp.playRestrictions = opp.playRestrictions || {};
     opp.playRestrictions[p.what || 'item'] = 'next_opp_turn';
     gs.addLog(`对手下回合无法使用${p.what === 'item' ? '物品' : (p.what || '指定卡')}`);
+  },
+
+  /**
+   * 「昏厥 → 放逐区」替代效果。
+   * scope:'attack'（达克莱伊）由本动作当场设标记；其余三种 scope 是**持续/场地**效果，
+   * 由 GameState._knockoutDestination 在被昏厥时读取（这里注册空实现，避免执行层记为「未实现」）。
+   */
+  ko_to_lost_zone(gs, pl, p) {
+    if (p?.scope !== 'attack') return;
+    gs._koContext = { ...(gs._koContext || {}), toLostZone:true, withAttachments:!!p.withAttachments };
+    gs.addLog('本次招式造成的昏厥将放于放逐区');
   },
 
   /**

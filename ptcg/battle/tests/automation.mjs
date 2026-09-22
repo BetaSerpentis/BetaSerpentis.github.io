@@ -4985,7 +4985,8 @@ await test('幸存锻炼器：仅满HP出战宝可梦受直接招式致命伤害
   globalThis.setTimeout = () => 0;
   try { await makeEngine(damaged).attack(); } finally { globalThis.setTimeout = realSetTimeout; }
   assert.equal(damaged.player2.active.name, '替补');
-  assert.deepEqual(damaged.player2.discard, ['def']);
+  // 修：昏厥时身上的卡牌以前会凭空消失，现在与宝可梦一起进弃牌区（放逐区类效果则一起进放逐区）
+  assert.deepEqual(damaged.player2.discard, ['def', '11176']);
 
   const nonLethal = new GameState();
   nonLethal.phase = PHASE.BATTLE;
@@ -5009,7 +5010,7 @@ await test('幸存锻炼器：伤害指示物与招式效果备战伤害不触�
   gs.player2.bench = [mon('替补')];
   await executeEffects(gs, gs.player1, [{ action:'damage_place', params:{ target:'opponent_active', count:6 } }]);
   assert.equal(gs.player2.active.name, '替补');
-  assert.deepEqual(gs.player2.discard, ['def']);
+  assert.deepEqual(gs.player2.discard, ['def', '11176'], '被击倒的宝可梦与身上的道具一起进弃牌区');
 
   const bench = new GameState();
   bench.player1.active = mon('攻击方');
@@ -5018,7 +5019,7 @@ await test('幸存锻炼器：伤害指示物与招式效果备战伤害不触�
   bench.player2.bench[0].tool = { cardId:'11176', name:'幸存锻炼器' };
   await executeEffects(bench, bench.player1, [{ action:'damage_bench', params:{ target:'opponent_all', damage:60 } }]);
   assert.equal(bench.player2.bench.length, 0);
-  assert.deepEqual(bench.player2.discard, ['bench-def']);
+  assert.deepEqual(bench.player2.discard, ['bench-def', '11176'], '备战区被击倒时道具同样进弃牌区');
 });
 
 await test('WP5 扒手猫乱抓：3次硬币按正面×10伤害且无额外固定10', async () => {
@@ -7625,6 +7626,120 @@ await test('WIN 达成时发动即获胜（对手放逐区支援者 ≥12）', a
   await executeEffects(gs, pl, u.ability.effects);
   assert.equal(gs.winner, pl, '应判自己获胜');
   assert.equal(gs.phase, PHASE.GAME_OVER, '对战应结束');
+});
+
+
+// ============================================================
+//  K1 昏厥 → 放逐区（替代「进弃牌区」）
+// ============================================================
+
+const KO_STADIUM = '每当双方的宝可梦【昏厥】时，不将该宝可梦放于弃牌区，而是放于放逐区。';
+const KO_GENGAR = '只要这只宝可梦在战斗场上，如果对手的宝可梦【昏厥】的话，将那只宝可梦放于放逐区。';
+const KO_DARKRAI = '将受到这个招式的伤害而【昏厥】的宝可梦以及放于其身上的所有卡牌放于放逐区。';
+const KO_TYRANITAR = '如果因这只宝可梦的招式的伤害，对手的宝可梦【昏厥】的话，则该【昏厥】的宝可梦，以及放于其身上的所有卡牌不会被放于弃牌区，而是被放于放逐区。';
+
+async function koSetup() {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  gs.phase = PHASE.MAIN;
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('我方前排', 'a1'); pl.bench = [mon('我方替补', 'a2')];
+  opp.active = mon('敌方前排', 'o1'); opp.bench = [mon('敌方替补', 'o2')];
+  pl.discard = []; pl.lostZone = []; opp.discard = []; opp.lostZone = [];
+  pl.prizes = ['p1', 'p2']; opp.prizes = ['q1', 'q2'];
+  return { gs, pl, opp };
+}
+
+await test('K1 四种「昏厥→放逐区」形态都能解析', () => {
+  assert.deepEqual(parseEffect(KO_STADIUM).effects[0].params, { scope:'both' });
+  assert.deepEqual(parseEffect(KO_GENGAR).effects.find(e => e.action === 'ko_to_lost_zone').params, { scope:'opponent' });
+  assert.deepEqual(parseEffect(KO_DARKRAI).effects[0].params, { scope:'attack', withAttachments:true });
+  assert.deepEqual(parseEffect(KO_TYRANITAR).effects[0].params, { scope:'own_attack', withAttachments:true });
+});
+
+await test('K1 场地「放逐市」：昏厥进放逐区、身上卡牌进弃牌区、奖赏卡照拿', async () => {
+  const { gs, pl, opp } = await koSetup();
+  gs.stadium = { cardId:'st', name:'放逐市', effects: parseEffect(KO_STADIUM).effects };
+  pl.active.energy = [{ cardId:'e1', name:'能量' }];
+  pl.active.tool = { cardId:'t1', name:'道具' };
+  gs.knockout(pl);
+  assert.deepEqual(pl.lostZone, ['a1'], '宝可梦本体进放逐区');
+  assert.deepEqual(pl.discard, ['e1', 't1'], '「除宝可梦以外的卡牌全部丢到弃牌区」');
+  assert.equal(opp.prizes.length, 1, '放逐区替代不影响拿奖赏卡');
+  assert.equal(pl.active.name, '我方替补', '应换上备战宝可梦');
+});
+
+await test('K1 耿鬼（对手出战位）：我方昏厥进放逐区', async () => {
+  const { gs, pl, opp } = await koSetup();
+  opp.active.ability = { name:'暗影', active:true, zone:'field', effects: parseEffect(KO_GENGAR).effects };
+  gs.knockout(pl);
+  assert.deepEqual(pl.lostZone, ['a1']);
+  assert.deepEqual(pl.discard, []);
+});
+
+await test('K1 招式型（达克莱伊）：宝可梦与身上所有卡牌一起进放逐区', async () => {
+  const { gs, pl, opp } = await koSetup();
+  opp.active.energy = [{ cardId:'oe', name:'能量' }];
+  opp.active.tool = { cardId:'ot', name:'道具' };
+  gs._koContext = { attacker: pl.active };
+  await executeEffects(gs, pl, parseEffect(KO_DARKRAI).effects);
+  gs.knockout(opp);
+  assert.deepEqual(opp.lostZone, ['o1', 'oe', 'ot'], '本体+身上卡牌都进放逐区');
+  assert.deepEqual(opp.discard, [], '不应有东西进弃牌区');
+});
+
+await test('K1 招式伤害型特性（班基拉斯GX）：只对本次攻击造成的昏厥生效', async () => {
+  const { gs, pl, opp } = await koSetup();
+  pl.active.ability = { name:'暴君', active:true, zone:'field', effects: parseEffect(KO_TYRANITAR).effects };
+  opp.active.energy = [{ cardId:'oe', name:'能量' }];
+  gs._koContext = { attacker: pl.active }; // 攻击窗口内
+  gs.knockout(opp);
+  assert.deepEqual(opp.lostZone, ['o1', 'oe'], '本次攻击造成的昏厥 → 放逐区（带身上卡牌）');
+  // 攻击窗口结束后（finishTurn 会清 _koContext）→ 不再生效
+  gs._koContext = null;
+  const opp2 = gs.player2;
+  opp2.active = mon('敌方前排2', 'o3');
+  opp2.lostZone = []; opp2.discard = [];
+  gs.knockout(opp2);
+  assert.deepEqual(opp2.lostZone, [], '攻击窗口外不触发');
+  assert.deepEqual(opp2.discard, ['o3']);
+});
+
+await test('K1 修：普通昏厥时身上的卡牌不再凭空消失', async () => {
+  const { gs, pl } = await koSetup();
+  pl.active.energy = [{ cardId:'e1', name:'能量' }];
+  pl.active.tool = { cardId:'t1', name:'道具' };
+  gs.knockout(pl);
+  assert.deepEqual(pl.discard, ['a1', 'e1', 't1'], '本体与身上的能量/道具都进弃牌区');
+  assert.deepEqual(pl.lostZone, []);
+});
+
+await test('K1 修：备战区昏厥同样处理（放逐区判定 + 身上卡牌不丢）', async () => {
+  // 普通情况：备战区被击倒，道具跟着进弃牌区
+  let { gs, pl } = await koSetup();
+  pl.bench[0].tool = { cardId:'t1', name:'道具' };
+  await executeEffects(gs, gs.player1, [{ action:'damage_bench', params:{ target:'opponent_all', damage:60 } }]);
+  // 上面打的是对手备战区；这里直接验证我方备战区路径
+  const gs2 = new GameState();
+  await executeEffects(gs2, gs2.player1, []);
+  gs2.phase = PHASE.MAIN;
+  gs2.player1.active = mon('我','a1');
+  gs2.player2.active = mon('敌','o1');
+  gs2.player2.bench = [mon('备战防守','bench-def')];
+  gs2.player2.bench[0].tool = { cardId:'t1', name:'道具' };
+  await executeEffects(gs2, gs2.player1, [{ action:'damage_bench', params:{ target:'opponent_all', damage:60 } }]);
+  assert.deepEqual(gs2.player2.discard, ['bench-def', 't1'], '备战区被击倒时道具也进弃牌区');
+  // 放逐市在场时：备战区被击倒也进放逐区
+  const gs3 = new GameState();
+  await executeEffects(gs3, gs3.player1, []);
+  gs3.phase = PHASE.MAIN;
+  gs3.stadium = { cardId:'st', name:'放逐市', effects: parseEffect(KO_STADIUM).effects };
+  gs3.player1.active = mon('我','a1');
+  gs3.player2.active = mon('敌','o1');
+  gs3.player2.bench = [mon('备战防守','bench-def')];
+  await executeEffects(gs3, gs3.player1, [{ action:'damage_bench', params:{ target:'opponent_all', damage:60 } }]);
+  assert.deepEqual(gs3.player2.lostZone, ['bench-def'], '备战区被击倒也走放逐区替代');
+  assert.deepEqual(gs3.player2.discard, []);
 });
 
 await test('全卡牌效果文本解析覆盖率报告', () => {

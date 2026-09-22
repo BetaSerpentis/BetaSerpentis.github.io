@@ -245,6 +245,22 @@ function triggerParams(m) {
  */
 const RULES = [
   // ===== 触发式「当/每当…时，效果」：优先匹配，避免效果部分被其他规则先吃掉 =====
+  // ===== P2-KO 昏厥 → 放逐区（替代「放进弃牌区」）=====
+  // 4 种形态：场地持续 / 对手场上的光圈 / 本招式造成的昏厥 / 本宝可梦招式造成的昏厥
+  // ① 放逐市（竞技场）：「每当双方的宝可梦【昏厥】时，不将该宝可梦丢到弃牌区，而是放置于放逐区。」
+  { re: /每当双方的宝可梦【昏厥】时[，,]?不将该宝可梦丢到弃牌区[，,]?而是放置于放逐区/, act:'ko_to_lost_zone', p:()=>({ scope:'both' }) },
+  // ② 耿鬼：「若对手的宝可梦【昏厥】，将那只宝可梦放置于放逐区。[除宝可梦以外的卡牌全部丢到弃牌区。]」
+  //    （归一化会把「只要这只宝可梦在战斗场上，」整段删掉，所以这里只按后半句匹配；
+  //      位置上仍按「持有者在战斗场上」判定，见 _knockoutDestination）
+  { re: /若对手的宝可梦【昏厥】[，,]?将那只宝可梦放置于放逐区/, act:'ko_to_lost_zone', p:()=>({ scope:'opponent' }) },
+  // ③ 达克莱伊&克雷色利亚LEGEND：「将受到这个招式的伤害而【昏厥】的宝可梦以及放置于其身上的所有卡牌放置于放逐区。」
+  { re: /将受到这个招式的伤害而【昏厥】的宝可梦以及放置于其身上的所有卡牌放置于放逐区/, act:'ko_to_lost_zone', p:()=>({ scope:'attack', withAttachments:true }) },
+  // 括号补充说明：「（除宝可梦以外的卡牌，全部放于弃牌区。）」——只把宝可梦本体放进放逐区，
+  // 身上的能量/道具仍进弃牌区，与 _knockoutDestination 的默认处理一致，记成元数据即可
+  { re: /[（(\[【]?除宝可梦以外的卡牌[，,]?全部(?:丢到|放置于)弃牌区[。）)\]】]?/, act:'usage_condition', p:()=>({ kind:'attachments_to_discard' }) },
+  // ④ 班基拉斯GX：「若因这只宝可梦的招式的伤害，对手的宝可梦【昏厥】，则该【昏厥】的宝可梦，以及放置于其身上的所有卡牌不会被丢到弃牌区，而是被放置于放逐区。」
+  { re: /若因这只宝可梦的招式的伤害[，,]?对手的宝可梦【昏厥】[，,]?则该【昏厥】的宝可梦[，,]?以及放置于其身上的所有卡牌不会被丢到弃牌区[，,]?而是被放置于放逐区/, act:'ko_to_lost_zone', p:()=>({ scope:'own_attack', withAttachments:true }) },
+
   { re: /^(?:每当|当)(.{2,40}?)(?:时)[，,]?(.+)$/, act:'trigger', p:triggerParams },
   // ===== 填能措辞变体（附着/转附；含引号「基本【X】能量」与目标变体）=====
   // 手牌能量附着（含「基本【水】能量」「特殊能量」等写法）
@@ -1870,6 +1886,13 @@ function _extractChooseEffect(text) {
   for (const b of branches) for (const e of b.effects) if (e.action === 'usage_condition') residuals.push(e);
   return { action: 'choose_effect', params: { branches } };
 }
+
+/**
+ * 仅用于调试与写规则前查词形：返回 parseEffect 内部实际匹配的那份**归一化文本**。
+ * 以前为了拿它去临时插桩，还因为「按行过滤关键词移除插桩」误删过 `const effects = []` 两次，
+ * 所以直接把归一化暴露出来，不要再改本文件插桩了。
+ */
+export function debugNormalize(text) { return normalizeCn(norm(String(text || ''))); }
 
 export function parseEffect(text) {
   if (!text || text === '无') return { effects: [], unparsed: '' };
