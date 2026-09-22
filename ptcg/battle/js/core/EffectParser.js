@@ -760,7 +760,33 @@ const RULES = [
   { re: /重洗牌库/, act:'shuffle_deck', p:()=>({}) },
 
   // ===== 放逐区 =====
-  { re: /放置于放逐区/, act:'lost_zone', p:()=>({}) },
+  // ===== 放逐区（P2-LZ 阶段 1）=====
+  // 原来这里是一条 `/放置于放逐区/` 的**兜底**规则：把整句吃成一个空动作（只打日志），
+  // 于是 68 张卡的「放逐」实际不发生（被放逐的卡还留在弃牌区，能被错误回收），
+  // 而且兜底吃掉了文本，后面的具体规则永远匹配不到。改为逐条具体规则；匹配不到的
+  // 自然落成残句（指标上可见），不再假装已建模。
+  // 1) 「将剩余的卡牌放置于放逐区」→ 并入前面的 peek_and_keep（与丢弃牌区同一机制）
+  { re: /将剩余的卡牌放置于放逐区/, act:'action_count_override', p:m=>({ targets:['peek_and_keep'], set:{ remainder:'lost_zone' }, raw:m[0] }) },
+  // 2) 自身（含身上所有卡牌）进放逐区
+  { re: /(?:然后[，,]?)?将这只宝可梦[，,]?以及放置于其身上的所有卡牌[，,]?放置于放逐区/, act:'discard_self_with_attachments', p:()=>({ toLostZone:true }) },
+  { re: /(?:然后[，,]?)?将这只宝可梦放置于放逐区/, act:'discard_self_with_attachments', p:()=>({ toLostZone:true }) },
+  // 3) 对手战斗宝可梦（含身上所有卡牌）进放逐区
+  { re: /将对手的战斗宝可梦[，,]?以及放置于其身上的所有卡牌[，,]?放置于放逐区/, act:'discard_self_with_attachments', p:()=>({ who:'opponent', toLostZone:true }) },
+  // 4) 场上的道具/竞技场 → 放逐区
+  { re: /选择放置于双方场上宝可梦身上的["“”「」]宝可梦道具["“”「」]以及场上的["“”「」]竞技场["“”「」]中的1张[，,]?放置于放逐区/, act:'discard_field_attachments', p:()=>({ target:'both', tools:true, stadium:true, maxCount:1, optional:true, toLostZone:true }) },
+  // 5) 弃牌区里的某类卡 → 放逐区
+  { re: /将自己弃牌区中任意数量的["“”「」]([^"“”「」]{1,8})["“”「」]放置于放逐区/, act:'lost_zone', p:m=>({ from:'discard', filter:m[1], count:'any' }) },
+  // 6) 场上的能量 → 放逐区
+  { re: /选择附于自己场上宝可梦身上的(?:(\d+)个|任意数量的)(?:【(.+?)】)?能量[，,]?放置于放逐区/, act:'lost_zone', p:m=>({ from:'field_energy', count:m[1]?+m[1]:'any', filter:m[2]?`【${m[2]}】能量`:null }) },
+  { re: /将附于这只宝可梦身上的(?:(\d+)个|任意数量的)(?:【(.+?)】)?能量放置于放逐区/, act:'lost_zone', p:m=>({ from:'self_energy', count:m[1]?+m[1]:'any', filter:m[2]?`【${m[2]}】能量`:null }) },
+  // 7) 牌库上方 N 张 → 放逐区
+  { re: /将自己的牌库上方(\d+)张卡放置于放逐区/, act:'lost_zone', p:m=>({ from:'deck_top', count:+m[1] }) },
+  // 8) 手牌代价 → 放逐区：复用既有 discard_cost 代价机制（canUseTrainer/BattleEngine 会真正支付）
+  { re: /这张卡[，,]?只有将自己的(\d+)张手牌[，,]?放置于放逐区后才可使用/, act:'trainer_prerequisite', p:m=>({ kind:'discard_cost', count:+m[1], toLostZone:true, raw:m[0] }) },
+  // 9) 前提：自己放逐区 N 张以上
+  { re: /这张卡[，,]?只有在自己放逐区有(\d+)张以上（包含\d+张）时才可使用/, act:'trainer_prerequisite', p:m=>({ kind:'lost_zone_min', count:+m[1], raw:m[0] }) },
+  // 10) 「放逐区有 N 张以上则招式能量全部消除」——被动标记，由 checkEnergy 读取
+  { re: /若自己放逐区有(\d+)张以上（包含\d+张）[，,]?则这只宝可梦使用招式所需能量[，,]?全部消除/, act:'cost_eliminated_if_lost_zone', p:m=>({ minLostZone:+m[1] }) },
 
   // ===== 化石放置 =====
   { re: /作为HP(?:为)?(\d+)的/, act:'fossil_place', p:m=>({hp:+m[1]}) },

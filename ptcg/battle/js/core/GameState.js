@@ -54,6 +54,8 @@ const INCIDENTAL_ACTIONS = new Set(['shuffle_deck']);
 
 export class PlayerState {
   constructor(name){this.name=name;this.deck=[];this.hand=[];this.discard=[];this.prizes=[];this.active=null;this.bench=[];
+    // 放逐区：与弃牌区**分开**的区域。放进去的卡不能被回收（部分卡的效果以此为条件）。
+    this.lostZone=[];
     this.stadium=null;this.supporterUsed=false;this.energyAttached=false;this.retreatUsed=false;this.stadiumPlayedThisTurn=false;this.abilityUsedThisTurn={};this.stadiumUsedThisTurn={};this.turnAttackModifiers=[];}
   draw(n=1){const d=[];for(let i=n;i>0&&this.deck.length;i--){const c=this.deck.pop();this.hand.push(c);d.push(c);}return d;}
 }
@@ -413,6 +415,11 @@ export class GameState {
       if(p.kind==='own_pokemon_knocked_out_last_opponent_turn'){
         if(!this.wasOwnPokemonKnockedOutLastOpponentTurn(pl))return {ok:false,reason:'trainer_prerequisite',message:'使用前提未满足：上个对手的回合自己的宝可梦需被击倒'};
       }
+      // 「这张卡，只有在自己放逐区有 N 张以上时才可使用」——放逐区是独立区域
+      if(p.kind==='lost_zone_min'){
+        const need=p.count??10;
+        if((pl?.lostZone?.length??0)<need)return {ok:false,reason:'trainer_prerequisite',message:`使用前提未满足：自己放逐区需要 ${need} 张以上卡牌`};
+      }
       if(p.kind==='first_turn'){
         const raw=p.raw||'';
         const isOwnFirstTurn=this._isOwnFirstTurn(pl);
@@ -575,6 +582,29 @@ export class GameState {
    * 需求来源：先攻玩家最初回合不能使用招式，界面应像能量不足一样置灰，
    * 而不是点下去才提示不可用。
    */
+  /** 放逐区里的「宝可梦」张数（不是全部卡牌） */
+  _lostZonePokemonCount(pl){
+    let c=0;
+    for(const v of (pl?.lostZone||[])){
+      const id=typeof v==='object'&&v?(v.cardId||v.name):v;
+      const cd=this.cardResolver?.getCard?.(id);
+      if(cd?.cardType==='pokemon')c++;
+    }
+    return c;
+  }
+
+  /** 该宝可梦是否带「放逐区有 N 张以上则招式能量全部消除」的被动 */
+  _passiveCostEliminatedByLostZone(mon){
+    if(!mon||!mon.ability?.effects?.length||this.isAbilityDisabled?.(mon))return false;
+    for(const eff of (this._enabledAbilityEffects(mon)||[])){
+      if(eff.action!=='cost_eliminated_if_lost_zone')continue;
+      const need=+((eff.params||{}).minLostZone||0);
+      const owner=[this.player1,this.player2].find(p=>[p.active,...(p.bench||[])].filter(Boolean).includes(mon));
+      if(owner&&(owner.lostZone?.length||0)>=need)return true;
+    }
+    return false;
+  }
+
   /** 是否是该玩家**自己的最初回合**（回合 1 属于先攻方，回合 2 属于后攻方） */
   _isOwnFirstTurn(pl){
     if(!this.firstPlayer)return false;
@@ -610,7 +640,7 @@ export class GameState {
     if(st.includes('sleep'))return {ok:false,reason:'asleep',message:'睡眠中无法使用招式'};
     if(st.includes('paralysis'))return {ok:false,reason:'paralyzed',message:'麻痹中无法使用招式'};
     if(mon.cannotAttackNext)return {ok:false,reason:'cannot_attack_next',message:'这个回合无法使用招式'};
-    if(!mon.costEliminated&&!this.checkEnergy(mon,attackIndex))return {ok:false,reason:'energy',message:'能量不足'};
+    if(!mon.costEliminated&&!this._passiveCostEliminatedByLostZone(mon)&&!this.checkEnergy(mon,attackIndex))return {ok:false,reason:'energy',message:'能量不足'};
     return {ok:true};
   }
 
@@ -630,6 +660,8 @@ export class GameState {
       if(p.kind==='own_first_turn_only'&&!this._isOwnFirstTurn(pl))return {reason:'usage_condition',message:'只能在最初的自己的回合使用'};
       // 「如果这只宝可梦在战斗场上的话，则…」：来源不在战斗场就不能使用
       if(p.kind==='requires_active'&&source&&pl.active!==source)return {reason:'usage_condition',message:'发动条件未满足：这只宝可梦需在战斗场上'};
+      // 「这张卡，只有在自己放逐区有 N 张以上时才可使用」
+      if(p.kind==='lost_zone_min'&&(pl?.lostZone?.length||0)<(+p.count||0))return {reason:'trainer_prerequisite',message:`使用前提未满足：自己放逐区需要 ${+p.count||0} 张以上卡牌`};
       if(p.kind==='ability_name_once_per_turn'&&pl.abilityUsedThisTurn?.[`ability-name:${p.abilityName||ability.name}`])return {reason:'already_used',message:'这个名字的特性本回合已使用'};
       // 需求：像愿增猿「亢奋脑力」这种「若这只宝可梦身上附着了【恶】能量」的发动条件，未满足时应判定为不可用（按钮置灰），而不是点了才提示
       if(p.kind==='requires_attached_energy'){
@@ -715,7 +747,9 @@ export class GameState {
       case 'own_field_basic_energy_types': { const a = extra.typeA || ''; const b = extra.typeB || ''; let c = 0; for (const m of inPlay) { for (const e of (m.energy || [])) { const s = String(typeof e === 'object' ? (e.cardId || e.name || e) : e); if (s.includes(`【${a}】`) || s.includes(`【${b}】`)) c++; } } return c; }
       case 'own_bench_energy_type_count': { const want = extra.type || ''; let c = 0; for (const m of (pl.bench || [])) { for (const e of (m.energy || [])) { const s = String(typeof e === 'object' ? (e.cardId || e.name || e) : e); if (s.includes(`【${want}】`)) c++; } } return c; }
       case 'own_field_energy_type_count': { const want = extra.type || ''; let c = 0; for (const m of inPlay) { for (const e of (m.energy || [])) { const s = String(typeof e === 'object' ? (e.cardId || e.name || e) : e); if (s.includes(`【${want}】`)) c++; } } return c; }
-      case 'own_lost_zone_pokemon': return (pl.lostZone || pl.lost_zone || []).length;
+      // ⚠️ 「造成自己放逐区中宝可梦的张数×N伤害」计的是**宝可梦**，不是全部卡牌
+      case 'own_lost_zone_pokemon': return this._lostZonePokemonCount(pl);
+      case 'own_lost_zone_total': return (pl.lostZone || []).length;
       case 'opponent_field_ability_count': return [opp.active, ...(opp.bench || [])].filter(Boolean).filter(m => m.ability).length;
       case 'own_field_has_damage': return inPlay.filter(m => m && m.maxHp && m.hp < m.maxHp).length;
       case 'own_field_pokemon_type': { const ty = this._normalizeType(extra.type || ''); return inPlay.filter(m => m && this._normalizeType(m.element) === ty).length; }

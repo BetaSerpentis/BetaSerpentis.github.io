@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseEffect, extractToolAttacks } from '../js/core/EffectParser.js';
-import { executeEffects } from '../js/core/EffectExecutor.js';
+import { executeEffects, payDiscardCostFromHand } from '../js/core/EffectExecutor.js';
 import { GameState, PHASE } from '../js/core/GameState.js';
 import { BattleEngine } from '../js/core/BattleEngine.js';
 import { CardResolver } from '../js/core/CardResolver.js';
@@ -7189,6 +7189,115 @@ await test('二选一 人类玩家：按选择执行对应分支', async () => {
   await running;
   assert.equal(pl.active.name, '后排', '选第二分支应换位');
   assert.equal(pl.hand.length, 0, '不应执行第一分支（抽卡）');
+});
+
+
+// ============================================================
+//  P2-LZ：放逐区子系统（与弃牌区分离的真实区域）
+// ============================================================
+
+await test('LZ 放逐区不是弃牌区：剩余的卡牌进放逐区后弃牌区仍为空', async () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  pl.deck = ['d1', 'd2', 'd3', 'd4'];
+  pl.hand = [];
+  pl.discard = [];
+  pl.lostZone = [];
+  await executeEffects(gs, pl, [{ action:'peek_and_keep', params:{ peek:3, keep:1, maxCount:1, minCount:1, remainder:'lost_zone' } }]);
+  assert.equal(pl.hand.length, 1, '应拿 1 张到手牌');
+  assert.equal(pl.lostZone.length, 2, '剩余 2 张应进放逐区');
+  assert.equal(pl.discard.length, 0, '弃牌区必须仍为空（放逐的卡不能被回收）');
+});
+
+await test('LZ 「将剩余的卡牌放置于放逐区」并入 peek_and_keep', () => {
+  const e = parseEffect('查看自己牌库上方3张卡牌，选择其中1张卡牌，加入手牌。将剩余的卡牌放于放逐区。').effects;
+  const pk = e.find(x => x.action === 'peek_and_keep');
+  assert.ok(pk, '应解析出 peek_and_keep');
+  assert.equal(pk.params.remainder, 'lost_zone');
+  assert.ok(!e.some(x => x.action === 'action_count_override'), '不应留下未合并的改写句');
+});
+
+await test('LZ 各种「放于放逐区」措辞都能解析', () => {
+  const cases = [
+    ['将这只宝可梦，以及放于其身上的所有卡牌，放于放逐区。', 'discard_self_with_attachments', { toLostZone:true }],
+    ['然后，将这只宝可梦放于放逐区。', 'discard_self_with_attachments', { toLostZone:true }],
+    ['将对手的战斗宝可梦，以及放于其身上的所有卡牌，放于放逐区。', 'discard_self_with_attachments', { who:'opponent', toLostZone:true }],
+    ['将自己牌库上方3张卡牌放于放逐区。', 'lost_zone', { from:'deck_top', count:3 }],
+    ['将自己弃牌区中任意数量的「宝可梦道具」放于放逐区。', 'lost_zone', { from:'discard', count:'any' }],
+    ['选择附着于自己场上宝可梦身上的2个能量，放于放逐区。', 'lost_zone', { from:'field_energy', count:2 }],
+  ];
+  for (const [text, action, params] of cases) {
+    const e = parseEffect(text).effects;
+    const hit = e.find(x => x.action === action);
+    assert.ok(hit, `「${text}」应解析出 ${action}（实际 ${JSON.stringify(e.map(x => x.action))}）`);
+    for (const [k, v] of Object.entries(params)) assert.equal(hit.params[k], v, `${text} → ${k}`);
+  }
+});
+
+await test('LZ 手牌代价进放逐区：确实支付到放逐区', async () => {
+  const e = parseEffect('这张卡牌，只有将自己的1张手牌，放于放逐区后才可使用。').effects;
+  const cost = e.find(x => x.action === 'trainer_prerequisite');
+  assert.equal(cost.params.kind, 'discard_cost');
+  assert.equal(cost.params.toLostZone, true);
+  const gs = new GameState();
+  const pl = gs.player1;
+  pl.hand = ['h1', 'h2'];
+  pl.discard = [];
+  pl.lostZone = [];
+  const r = await payDiscardCostFromHand(gs, pl, cost.params);
+  assert.equal(r.ok, true, '代价应支付成功');
+  assert.equal(pl.lostZone.length, 1, '代价卡应进放逐区');
+  assert.equal(pl.discard.length, 0, '不应进弃牌区');
+  assert.equal(pl.hand.length, 1);
+});
+
+await test('LZ 前提：放逐区张数不足时卡不可用', () => {
+  const e = parseEffect('这张卡牌，只有在自己放逐区有10张以上（包含10张）时才可使用。').effects;
+  const pre = e.find(x => x.action === 'trainer_prerequisite');
+  assert.equal(pre.params.kind, 'lost_zone_min');
+  assert.equal(pre.params.count, 10);
+  const gs = new GameState();
+  const pl = gs.player1;
+  pl.lostZone = new Array(9).fill('x');
+  const cd = { cardType:'trainer', trainerType:'item', name:'测试', effects: e };
+  const bad = gs.canUseTrainer(pl, cd, 0);
+  assert.equal(bad.ok, false, '放逐区不足 10 张时应不可用');
+  assert.match(String(bad.message || ''), /放逐区/);
+  pl.lostZone = new Array(10).fill('x');
+  assert.equal(gs.canUseTrainer(pl, pl.hand[0] === undefined ? cd : cd, 0).ok, true, '达到 10 张后应可用');
+});
+
+await test('LZ 条件计数：只数放逐区里的宝可梦', () => {
+  const gs = new GameState();
+  const pl = gs.player1;
+  pl.lostZone = ['p1', 'p2', 't1'];
+  gs.cardResolver = { getCard: id => ({ p1:{ cardType:'pokemon' }, p2:{ cardType:'pokemon' }, t1:{ cardType:'trainer' } }[id] || null) };
+  assert.equal(gs._lostZonePokemonCount(pl), 2, '「放逐区中宝可梦的张数」不应把非宝可梦算进去');
+});
+
+await test('LZ 被动：放逐区够 N 张时招式能量需求全部消除', () => {
+  const e = parseEffect('如果自己放逐区有4张以上（包含4张）的话，则这只宝可梦使用招式所需能量，全部消除。').effects;
+  assert.equal(e[0].action, 'cost_eliminated_if_lost_zone');
+  assert.equal(e[0].params.minLostZone, 4);
+  const gs = new GameState();
+  const pl = gs.player1;
+  gs.currentPlayer = pl;
+  gs.phase = PHASE.BATTLE;
+  pl.active = mon('测试', 'm1', [{ name:'重击', cost:['fire','fire'], damage:30, effects:[] }]);
+  pl.active.ability = { name:'放逐之力', active:true, zone:'field', effects: e };
+  pl.active.energy = [];
+  assert.equal(gs.checkEnergy(pl.active, 0), false, '没能量时本来不可用');
+  pl.lostZone = [];
+  assert.equal(gs.canUseAttack(pl, pl.active, 0).ok, false, '放逐区不足时仍不可用');
+  pl.lostZone = ['a', 'b', 'c', 'd'];
+  assert.equal(gs.canUseAttack(pl, pl.active, 0).ok, true, '放逐区达到 4 张后应可用（能量需求被消除）');
+});
+
+await test('LZ 兜底规则已移除：无法识别的放逐区句子不再假装已建模', () => {
+  // 以前 `/放置于放逐区/` 兜底会把整句吃成一个空动作（执行时什么都不做）
+  const e = parseEffect('将这句无法识别的文本放于放逐区。').effects;
+  assert.ok(!e.some(x => x.action === 'lost_zone'), '不应再产出空的 lost_zone 动作');
+  assert.ok(e.some(x => x.action === 'usage_condition'), '应落成未建模标记，指标上可见');
 });
 
 await test('全卡牌效果文本解析覆盖率报告', () => {

@@ -630,6 +630,8 @@ export class PTCGBattleApp {
     });
     if (!items.length) items.push({ label: '（手牌为空）', disabled: true });
     items.push({ label: '查看弃牌区', meta: `${pl.discard?.length || 0} 张`, onSelect: () => this._showDiscardList() });
+    // 放逐区是独立区域（放进去的卡不能被回收），必须能单独查看
+    items.push({ label: '查看放逐区', meta: `${pl.lostZone?.length || 0} 张`, onSelect: () => this._showDiscardList('lostZone') });
     this._showListView(items, { onBack: () => { this._refresh(); this._showPanel('panel-main'); } });
   }
 
@@ -734,13 +736,16 @@ export class PTCGBattleApp {
     this._appendBattleLog('没有可放置的位置');
   }
 
-  _showDiscardList() {
+  /** zone: 'discard'（默认）| 'lostZone' —— 两个区域都不能回收，但必须分开显示 */
+  _showDiscardList(zone = 'discard') {
     const pl = this.gs.player1;
-    const items = (pl.discard || []).map(cid => {
-      const cd = this.resolver.getCard(cid);
+    const cards = zone === 'lostZone' ? (pl.lostZone || []) : (pl.discard || []);
+    const emptyText = zone === 'lostZone' ? '（放逐区为空）' : '（弃牌区为空）';
+    const items = cards.map(cid => {
+      const cd = this.resolver.getCard(typeof cid === 'object' && cid ? (cid.cardId || cid.name) : cid);
       return { label: cd?.name || String(cid), meta: this._cardMeta(cd), disabled: true };
     });
-    if (!items.length) items.push({ label: '（弃牌区为空）', disabled: true });
+    if (!items.length) items.push({ label: emptyText, disabled: true });
     this._showListView(items, { onBack: () => this._showHandList() });
   }
 

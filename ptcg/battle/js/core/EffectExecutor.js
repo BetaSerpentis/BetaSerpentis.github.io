@@ -42,11 +42,13 @@ export async function payDiscardCostFromHand(gs, pl, params = {}, options = {}) 
   }
 
   let adjustedTrainerIndex = originalTrainerIndex;
+  // toLostZone：代价是「放于放逐区」（如「这张卡，只有将自己的1张手牌放于放逐区后才可使用」）
+  const costZone = params.toLostZone ? (pl.lostZone = pl.lostZone || []) : pl.discard;
   for (const item of selected.sort((a, b) => b.index - a.index)) {
-    pl.discard.push(pl.hand.splice(item.index, 1)[0]);
+    costZone.push(pl.hand.splice(item.index, 1)[0]);
     if (item.index < adjustedTrainerIndex) adjustedTrainerIndex -= 1;
   }
-  gs.addLog(`支付费用：丢弃 ${selected.length} 张手牌`);
+  gs.addLog(params.toLostZone ? `支付费用：放逐 ${selected.length} 张手牌` : `支付费用：丢弃 ${selected.length} 张手牌`);
   return { ok: true, handIndex: adjustedTrainerIndex };
 }
 
@@ -925,6 +927,10 @@ const EXECUTORS = {
       // D「将剩余的卡牌丢到弃牌区」
       pl.discard.push(...remainder);
       gs.addLog(`剩余的 ${remainder.length} 张卡丢到弃牌区`);
+    } else if (remainderMode === 'lost_zone') {
+      // 「将剩余的卡牌放置于放逐区」：放逐区的卡不能再被回收，必须真的分开存
+      (pl.lostZone = pl.lostZone || []).push(...remainder);
+      gs.addLog(`剩余的 ${remainder.length} 张卡放于放逐区`);
     } else if (remainderMode === 'deck_bottom') {
       // D2「将剩余的卡牌全部翻到反面重洗，放回牌库下方」
       // draw() 用 deck.pop() 取牌，所以牌库下方 = 数组前端
@@ -1141,18 +1147,20 @@ const EXECUTORS = {
     const opp = _opponent(gs, pl);
     const owners = (p.target === 'both') ? [pl, opp] : [opp];
     const maxCount = p.maxCount || Infinity;
+    // toLostZone：这些卡进放逐区而不是弃牌区
+    const zoneOf = owner => (p.toLostZone ? (owner.lostZone = owner.lostZone || []) : owner.discard);
     let n = 0;
     for (const owner of owners) {
       for (const mon of [owner.active, ...(owner.bench || [])]) {
         if (!mon) continue;
         if (n >= maxCount) break;
-        if (p.tools && mon.tool) { owner.discard.push(_toolCardValue(mon.tool)); mon.tool = null; n++; }
+        if (p.tools && mon.tool) { zoneOf(owner).push(_toolCardValue(mon.tool)); mon.tool = null; n++; }
         if (n >= maxCount) break;
         if (p.specialEnergy && mon.energy?.length) {
           const kept = [];
           for (const e of mon.energy) {
             if (n >= maxCount) { kept.push(e); continue; }
-            if (_isSpecialEnergyAttachment(gs, e)) { owner.discard.push(toCardRef(e)); n++; }
+            if (_isSpecialEnergyAttachment(gs, e)) { zoneOf(owner).push(toCardRef(e)); n++; }
             else kept.push(e);
           }
           mon.energy = kept;
@@ -1791,24 +1799,28 @@ const EXECUTORS = {
    * 「这只宝可梦」= 特性/招式的来源（eff.source，由 BattleEngine 注入）；拿不到就退回出战宝可梦。
    */
   discard_self_with_attachments(gs, pl, p, eff) {
-    const mon = eff?.source || pl.active;
+    // who:'opponent' = 「将对手的战斗宝可梦，以及放置于其身上的所有卡牌，放置于放逐区」
+    const owner = p.who === 'opponent' ? _opponent(gs, pl) : pl;
+    const mon = p.who === 'opponent' ? owner.active : (eff?.source || pl.active);
     if (!mon) return;
-    if (![pl.active, ...(pl.bench || [])].filter(Boolean).includes(mon)) {
+    if (![owner.active, ...(owner.bench || [])].filter(Boolean).includes(mon)) {
       gs.addLog('（该宝可梦已不在场上）');
       return;
     }
-    pl.discard.push(_toolCardValue(mon));
-    for (const e of (mon.energy || [])) pl.discard.push(_toolCardValue(e));
-    if (mon.tool) pl.discard.push(_toolCardValue(mon.tool));
-    const wasActive = pl.active === mon;
-    const bi = (pl.bench || []).indexOf(mon);
-    if (bi >= 0) pl.bench.splice(bi, 1);
+    // toLostZone：放进放逐区而不是弃牌区（放逐区的卡不能被回收）
+    const zone = p.toLostZone ? (owner.lostZone = owner.lostZone || []) : owner.discard;
+    zone.push(_toolCardValue(mon));
+    for (const e of (mon.energy || [])) zone.push(_toolCardValue(e));
+    if (mon.tool) zone.push(_toolCardValue(mon.tool));
+    const wasActive = owner.active === mon;
+    const bi = (owner.bench || []).indexOf(mon);
+    if (bi >= 0) owner.bench.splice(bi, 1);
     if (wasActive) {
-      pl.active = pl.bench.length ? pl.bench.shift() : null;
-      if (pl.active) gs.addLog(`${pl.name} 换上 ${pl.active.name}`);
+      owner.active = owner.bench.length ? owner.bench.shift() : null;
+      if (owner.active) gs.addLog(`${owner.name} 换上 ${owner.active.name}`);
     }
     gs.recomputePassives?.();
-    gs.addLog(`${mon.name} 与身上的所有卡牌被丢到弃牌区`);
+    gs.addLog(`${mon.name} 与身上的所有卡牌被${p.toLostZone ? '放于放逐区' : '丢到弃牌区'}`);
   },
 
   /**
@@ -1941,7 +1953,74 @@ const EXECUTORS = {
   },
 
   // ===== 放逐区 =====
-  lost_zone(gs, pl, p) { gs.addLog('放入放逐区'); },
+  /**
+   * 放逐区：把卡真正移入 pl.lostZone。
+   * 「放逐」与「弃牌」必须分开存 —— 放逐区的卡不能被回收类效果拿回来，
+   * 而「放逐区张数」也是不少卡的条件（own_lost_zone_pokemon / lost_zone_min）。
+   */
+  async lost_zone(gs, pl, p = {}) {
+    const zone = pl.lostZone = pl.lostZone || [];
+    const move = (owner, cards) => { for (const c of cards) (owner.lostZone = owner.lostZone || []).push(c); };
+    const take = (arr, n) => (n === 'any' ? arr.splice(0, arr.length) : arr.splice(Math.max(0, arr.length - n), n));
+    switch (p.from) {
+      case 'deck_top': {
+        const n = Math.min(p.count || 1, pl.deck.length);
+        const cards = pl.deck.splice(pl.deck.length - n, n);
+        zone.push(...cards);
+        gs.addLog(`牌库上方 ${cards.length} 张放入放逐区`);
+        return;
+      }
+      case 'discard': {
+        // 「将自己弃牌区中任意数量的「宝可梦道具」放置于放逐区」
+        const n = p.count === 'any' ? 99 : (p.count || 1);
+        const sel = await _pickCardsFromZone(gs, pl, pl, pl.discard, n, {
+          source:'lost-zone-discard', filter: card => _cardMatchesFilter(gs, card, p.filter || null),
+          prompt:'选择要放于放逐区的卡', allowFewer:true, allowEmpty:true, optional:true,
+        });
+        for (const item of sel.sort((a, b) => b.index - a.index)) zone.push(pl.discard.splice(item.index, 1)[0]);
+        gs.addLog(`弃牌区 ${sel.length} 张放入放逐区`);
+        return;
+      }
+      case 'hand': {
+        const n = p.count === 'any' ? pl.hand.length : (p.count || 1);
+        const sel = await _pickCardsFromZone(gs, pl, pl, pl.hand, n, {
+          source:'lost-zone-hand', filter: card => _cardMatchesFilter(gs, card, p.filter || null),
+          prompt:'选择要放于放逐区的手牌', allowFewer:true, allowEmpty:true, optional:true,
+        });
+        for (const item of sel.sort((a, b) => b.index - a.index)) zone.push(pl.hand.splice(item.index, 1)[0]);
+        gs.addLog(`手牌 ${sel.length} 张放入放逐区`);
+        return;
+      }
+      case 'field_energy':
+      case 'self_energy': {
+        // 「选择附于（自己场上|这只）宝可梦身上的N个能量，放置于放逐区」
+        const mons = p.from === 'self_energy' ? [pl.active].filter(Boolean) : [pl.active, ...(pl.bench || [])].filter(Boolean);
+        const pool = [];
+        for (const mon of mons) for (const e of (mon.energy || [])) pool.push({ mon, e });
+        const want = p.count === 'any' ? pool.length : (p.count || 1);
+        const picked = [];
+        if (pl === gs.player1 && gs._onPendingPick && pool.length > want) {
+          const labels = pool.map(x => `【${x.mon.name}】${(x.e && (x.e.name || x.e.cardId)) || x.e}`);
+          const got = await gs.waitForPick(labels, want, { source:'lost-zone-energy', prompt:'选择要放于放逐区的能量', minCount:want, maxCount:want });
+          for (const i of (got || [])) if (pool[i]) picked.push(pool[i]);
+        } else {
+          for (const x of pool.slice(0, want)) picked.push(x);
+        }
+        for (const x of picked) {
+          const idx = x.mon.energy.indexOf(x.e);
+          if (idx >= 0) x.mon.energy.splice(idx, 1);
+          zone.push(toCardRef(x.e));
+        }
+        gs.addLog(`${picked.length} 个能量放入放逐区`);
+        return;
+      }
+      default:
+        gs.addLog('（放逐区：未识别的来源，什么都没做）');
+    }
+  },
+
+  // 被动标记：由 checkEnergy 读取（这里不做任何事，避免执行层记为「未实现」）
+  cost_eliminated_if_lost_zone() {},
 
   // ===== 消除能量费用 =====
   energy_cost_eliminate(gs, pl, p) {

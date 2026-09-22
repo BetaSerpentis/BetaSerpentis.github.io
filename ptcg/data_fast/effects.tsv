@@ -1,4 +1,4 @@
-#eff1 hash=74448d34d5039b87
+#eff1 hash=b39a5436738d752d
 151C-001	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-002	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-003	ability		0	usage_condition	{"kind":"requires_active"}
@@ -580,22 +580,13 @@
 30thC-149	attack	1	0	inflict_status	{"statuses":["poison"]}
 30thC-149	attack	1	1	usage_condition	{"kind":"poison_counters_set","raw":"因这个【中毒】而放置的伤害指示物数量变为2个"}
 30thC-149	attack	1	2	usage_condition	{"kind":"residual_sentence","raw":"在宝可梦检查时，。"}
-30thC-150	ability		0	lost_zone	{}
-30thC-150	ability		1	usage_condition	{"kind":"residual_sentence","raw":"若对手的宝可梦【昏厥】，将那只宝可梦。"}
-30thC-150	ability		2	usage_condition	{"kind":"residual_sentence","raw":"[除宝可梦以外的卡牌全部丢到弃牌区。"}
+30thC-150	ability		0	usage_condition	{"kind":"generic_effect","raw":"若对手的宝可梦【昏厥】，将那只宝可梦放置于放逐区。[除宝可梦以外的卡牌全部丢到弃牌区。]"}
 30thC-150	attack	1	0	look_at	{"target":"opponent_hand"}
-30thC-150	attack	1	1	lost_zone	{}
-30thC-150	attack	1	2	usage_condition	{"kind":"residual_sentence","raw":"选择其中最多与这只宝可梦身上附着的【超】能量数量相同数量的宝可梦，。"}
+30thC-150	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"选择其中最多与这只宝可梦身上附着的【超】能量数量相同数量的宝可梦，放置于放逐区。"}
 30thC-150	attack	2	0	damage_place	{"target":"opponent_any","count":4}
-30thC-151	attack	1	0	lost_zone	{}
-30thC-151	attack	1	1	lost_zone	{}
-30thC-151	attack	1	2	usage_condition	{"kind":"residual_sentence","raw":"将这只宝可梦身上附着的2个能量。"}
-30thC-151	attack	1	3	usage_condition	{"kind":"residual_sentence","raw":"将受到这个招式的伤害而【昏厥】的宝可梦以及放置于其身上的所有卡牌。"}
+30thC-151	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"将这只宝可梦身上附着的2个能量放置于放逐区。将受到这个招式的伤害而【昏厥】的宝可梦以及放置于其身上的所有卡牌放置于放逐区。"}
 30thC-151	attack	2	0	usage_condition	{"kind":"generic_effect","raw":"选择对手宝可梦身上放置的任意数量的伤害指示物，以任意方式转放置于对手的宝可梦身上。"}
-30thC-152	attack	1	0	lost_zone	{}
-30thC-152	attack	1	1	lost_zone	{}
-30thC-152	attack	1	2	usage_condition	{"kind":"residual_sentence","raw":"将这只宝可梦身上附着的2个能量。"}
-30thC-152	attack	1	3	usage_condition	{"kind":"residual_sentence","raw":"将受到这个招式的伤害而【昏厥】的宝可梦以及放置于其身上的所有卡牌。"}
+30thC-152	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"将这只宝可梦身上附着的2个能量放置于放逐区。将受到这个招式的伤害而【昏厥】的宝可梦以及放置于其身上的所有卡牌放置于放逐区。"}
 30thC-152	attack	2	0	usage_condition	{"kind":"generic_effect","raw":"选择对手宝可梦身上放置的任意数量的伤害指示物，以任意方式转放置于对手的宝可梦身上。"}
 30thC-154	attack	1	0	mill	{"target":"self","count":3}
 30thC-154	attack	2	0	usage_condition	{"kind":"generic_effect","raw":"将这只宝可梦身上附着的所有【火】或者【雷】的基本能量丢到弃牌区，造成丢到弃牌区的能量张数×60伤害。"}
@@ -1110,22 +1101,22 @@ CBB3C-0607	ability		1	attach_energy_from_discard	{"filter":"基本【超】能�
 CBB3C-0607	attack	1	0	heal_status	{"target":"self"}
 CBB3C-0701	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CBB3C-0701	ability		1	recover_from_discard	{"filter":"支援者","target":"hand","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
-CBB3C-0701	ability		2	lost_zone	{}
+CBB3C-0701	ability		2	discard_self_with_attachments	{"toLostZone":true}
 CBB3C-0702	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CBB3C-0702	ability		1	recover_from_discard	{"filter":"支援者","target":"hand","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
-CBB3C-0702	ability		2	lost_zone	{}
+CBB3C-0702	ability		2	discard_self_with_attachments	{"toLostZone":true}
 CBB3C-0703	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CBB3C-0703	ability		1	recover_from_discard	{"filter":"支援者","target":"hand","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
-CBB3C-0703	ability		2	lost_zone	{}
+CBB3C-0703	ability		2	discard_self_with_attachments	{"toLostZone":true}
 CBB3C-0704	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CBB3C-0704	ability		1	recover_from_discard	{"filter":"支援者","target":"hand","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
-CBB3C-0704	ability		2	lost_zone	{}
+CBB3C-0704	ability		2	discard_self_with_attachments	{"toLostZone":true}
 CBB3C-0705	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CBB3C-0705	ability		1	recover_from_discard	{"filter":"支援者","target":"hand","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
-CBB3C-0705	ability		2	lost_zone	{}
+CBB3C-0705	ability		2	discard_self_with_attachments	{"toLostZone":true}
 CBB3C-0706	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CBB3C-0706	ability		1	recover_from_discard	{"filter":"支援者","target":"hand","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
-CBB3C-0706	ability		2	lost_zone	{}
+CBB3C-0706	ability		2	discard_self_with_attachments	{"toLostZone":true}
 CBB3C-0707	attack	1	0	play_restriction	{"target":"opponent","what":"item","duration":"next_opp_turn"}
 CBB3C-0707	attack	2	0	look_at	{"target":"opponent_hand"}
 CBB3C-0707	attack	2	1	usage_condition	{"kind":"residual_sentence","raw":"造成其中训练家张数×60伤害。"}
@@ -6678,8 +6669,7 @@ CS6.1C-021	attack	1	0	conditional_damage_mod	{"amount":20,"condition":"total_ben
 CS6.1C-022	attack	1	0	conditional_damage_mod	{"amount":40,"condition":"self_energy","mode":"per_unit"}
 CS6.1C-022	attack	2	0	usage_condition	{"kind":"extra_turn_vstar","raw":"当这个回合结束时，自己的回合会再开始1次"}
 CS6.1C-022	attack	2	1	usage_condition	{"kind":"vstar_power_once","raw":"[对战中，己方的VSTAR力量只能使用1次。]"}
-CS6.1C-023	attack	1	0	lost_zone	{}
-CS6.1C-023	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"选择附于自己场上宝可梦身上的2个能量，。"}
+CS6.1C-023	attack	1	0	lost_zone	{"from":"field_energy","count":2,"filter":null}
 CS6.1C-023	attack	2	0	usage_condition	{"kind":"lostzone_ko","raw":"这个招式，只有在自己的放逐区有10张以上（包含10张）卡牌时才可使用。使对手的战斗宝可梦【昏厥】"}
 CS6.1C-023	attack	2	1	usage_condition	{"kind":"vstar_power_once","raw":"[对战中，己方的VSTAR力量只能使用1次。]"}
 CS6.1C-024	ability		0	usage_condition	{"kind":"vstar_usage_note","raw":"在自己的回合时可使用。。。[对战中，己方的【VSTAR】力量只能使用1次。]"}
@@ -6694,8 +6684,7 @@ CS6.5C-001	attack	2	0	conditional_damage_mod	{"amount":30,"condition":"self_ener
 CS6.5C-002	attack	1	0	heal	{"amount":10,"target":"self"}
 CS6.5C-003	attack	1	0	switch_pokemon	{"who":"opponent"}
 CS6.5C-004	attack	1	0	switch_pokemon	{"who":"opponent"}
-CS6.5C-004	attack	2	0	lost_zone	{}
-CS6.5C-004	attack	2	1	usage_condition	{"kind":"residual_sentence","raw":"将这只宝可梦，以及放置于其身上的所有卡牌，。"}
+CS6.5C-004	attack	2	0	discard_self_with_attachments	{"toLostZone":true}
 CS6.5C-005	attack	1	0	inflict_status	{"statuses":["poison","burn"]}
 CS6.5C-005	attack	2	0	cannot_retreat	{"target":"opponent","duration":"next_opp_turn"}
 CS6.5C-006	attack	1	0	shuffle_deck	{}
@@ -6708,12 +6697,11 @@ CS6.5C-008	attack	1	0	search_deck_to_hand	{"filter":null,"count":2,"maxCount":2,
 CS6.5C-008	attack	1	1	shuffle_deck	{}
 CS6.5C-008	attack	2	0	heal_all	{"amount":20}
 CS6.5C-009	attack	1	0	attach_energy_from_discard	{"filter":"【火】能量","target":"active","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
-CS6.5C-010	attack	2	0	lost_zone	{}
+CS6.5C-010	attack	2	0	usage_condition	{"kind":"generic_effect","raw":"将附于这只宝可梦身上的所有能量，放置于放逐区。"}
 CS6.5C-011	ability		0	conditional_effect	{"condition":"self_has_energy_type","type":"fire","effect":{"action":"retreat_cost_zero","params":{"target":"self"}}}
 CS6.5C-012	attack	1	0	inflict_status	{"statuses":["burn","confusion"]}
-CS6.5C-012	attack	2	0	lost_zone	{}
-CS6.5C-012	attack	2	1	damage_bench	{"target":"opponent_1","damage":120}
-CS6.5C-012	attack	2	2	usage_condition	{"kind":"residual_sentence","raw":"将附于这只宝可梦身上的2个能量，，。"}
+CS6.5C-012	attack	2	0	damage_bench	{"target":"opponent_1","damage":120}
+CS6.5C-012	attack	2	1	usage_condition	{"kind":"residual_sentence","raw":"将附于这只宝可梦身上的2个能量，放置于放逐区，。"}
 CS6.5C-013	attack	1	0	conditional_damage_mod	{"condition":"opponent_active_name","name":"宝可梦V","amount":50,"mode":"fixed"}
 CS6.5C-014	attack	1	0	ignore	{"what":"opponent_effects"}
 CS6.5C-014	attack	1	1	prevent_damage	{"source":"attack"}
@@ -6740,11 +6728,11 @@ CS6.5C-022	attack	1	0	conditional_damage_mod	{"condition":"custom","conditionTex
 CS6.5C-023	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CS6.5C-023	ability		1	draw	{"count":3}
 CS6.5C-023	ability		2	end_turn	{}
-CS6.5C-023	attack	1	0	usage_condition	{"kind":"discard_tools_any_damage","raw":"将自己弃牌区中任意数量的\\"宝可梦道具\\"，追加造成其张数×40伤害"}
-CS6.5C-023	attack	1	1	lost_zone	{}
+CS6.5C-023	attack	1	0	lost_zone	{"from":"discard","filter":"宝可梦道具","count":"any"}
+CS6.5C-023	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"追加造成其张数×40伤害。"}
 CS6.5C-024	ability		0	usage_condition	{"kind":"generic_effect","raw":"在自己的回合时可使用。将自己任意数量的手牌丢到弃牌区，从牌库抽出与其相同张数的卡牌。"}
-CS6.5C-024	attack	1	0	usage_condition	{"kind":"discard_tools_any_damage","raw":"将自己弃牌区中任意数量的\\"宝可梦道具\\"，追加造成其张数×40伤害"}
-CS6.5C-024	attack	1	1	lost_zone	{}
+CS6.5C-024	attack	1	0	lost_zone	{"from":"discard","filter":"宝可梦道具","count":"any"}
+CS6.5C-024	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"追加造成其张数×40伤害。"}
 CS6.5C-025	ability		0	trigger	{"event":"energy_attached","effect":{"action":"damage_place","params":{"target":"attacker","count":2}},"effects":[{"action":"damage_place","params":{"target":"attacker","count":2}}],"optional":false}
 CS6.5C-025	attack	1	0	damage_bench	{"target":"opponent_any","damage":30}
 CS6.5C-026	ability		0	usage_condition	{"kind":"generic_effect","raw":"这只宝可梦，即使受到对手\\"宝可梦【V】\\"的招式的伤害而【昏厥】，对手也无法拿取奖赏卡。"}
@@ -6825,20 +6813,19 @@ CS6.5C-074	ability		0	damage_place	{"target":"attacker","count":3}
 CS6.5C-074	ability		1	usage_condition	{"kind":"residual_sentence","raw":"自己战斗场上的\\"布里卡隆【V】\\"受到对手宝可梦的招式的伤害时，。"}
 CS6.5C-074	attack	1	0	heal	{"amount":30,"target":"self"}
 CS6.5C-075	attack	1	0	inflict_status	{"statuses":["burn","confusion"]}
-CS6.5C-075	attack	2	0	lost_zone	{}
-CS6.5C-075	attack	2	1	damage_bench	{"target":"opponent_1","damage":120}
-CS6.5C-075	attack	2	2	usage_condition	{"kind":"residual_sentence","raw":"将附于这只宝可梦身上的2个能量，，。"}
+CS6.5C-075	attack	2	0	damage_bench	{"target":"opponent_1","damage":120}
+CS6.5C-075	attack	2	1	usage_condition	{"kind":"residual_sentence","raw":"将附于这只宝可梦身上的2个能量，放置于放逐区，。"}
 CS6.5C-076	attack	1	0	conditional_damage_mod	{"condition":"opponent_active_name","name":"宝可梦V","amount":50,"mode":"fixed"}
 CS6.5C-077	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CS6.5C-077	ability		1	draw	{"count":3}
 CS6.5C-077	ability		2	end_turn	{}
-CS6.5C-077	attack	1	0	usage_condition	{"kind":"discard_tools_any_damage","raw":"将自己弃牌区中任意数量的\\"宝可梦道具\\"，追加造成其张数×40伤害"}
-CS6.5C-077	attack	1	1	lost_zone	{}
+CS6.5C-077	attack	1	0	lost_zone	{"from":"discard","filter":"宝可梦道具","count":"any"}
+CS6.5C-077	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"追加造成其张数×40伤害。"}
 CS6.5C-078	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CS6.5C-078	ability		1	draw	{"count":3}
 CS6.5C-078	ability		2	end_turn	{}
-CS6.5C-078	attack	1	0	usage_condition	{"kind":"discard_tools_any_damage","raw":"将自己弃牌区中任意数量的\\"宝可梦道具\\"，追加造成其张数×40伤害"}
-CS6.5C-078	attack	1	1	lost_zone	{}
+CS6.5C-078	attack	1	0	lost_zone	{"from":"discard","filter":"宝可梦道具","count":"any"}
+CS6.5C-078	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"追加造成其张数×40伤害。"}
 CS6.5C-079	attack	1	0	inflict_status	{"statuses":["confusion"]}
 CS6.5C-079	attack	2	0	usage_condition	{"kind":"instant_win_at_prize","raw":"用这个招式时，若自己的剩余奖赏卡张数为1张，则这场对战算作自己的胜利"}
 CS6.5C-080	attack	1	0	inflict_status	{"statuses":["confusion"]}
@@ -7192,7 +7179,7 @@ CS6bC-037	ability		0	usage_condition	{"kind":"generic_effect","raw":"若自己�
 CS6bC-037	attack	1	0	conditional_damage_mod	{"condition":"custom","conditionText":"对手场上有\\"宝可梦VMAX\\"","amount":90,"mode":"fixed"}
 CS6bC-039	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CS6bC-039	ability		1	recover_from_discard	{"filter":"支援者","target":"hand","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
-CS6bC-039	ability		2	lost_zone	{}
+CS6bC-039	ability		2	discard_self_with_attachments	{"toLostZone":true}
 CS6bC-040	attack	1	0	search_deck_to_hand	{"filter":"特殊能量","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CS6bC-040	attack	1	1	shuffle_deck	{}
 CS6bC-041	attack	1	0	cannot_attack_next	{"target":"opponent"}
@@ -7213,8 +7200,7 @@ CS6bC-051	ability		0	usage_condition	{"kind":"bench_basic_immune_supporter","raw
 CS6bC-051	attack	1	0	draw	{"count":2}
 CS6bC-052	ability		0	usage_condition	{"kind":"requires_active"}
 CS6bC-052	ability		1	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
-CS6bC-052	ability		2	peek_and_keep	{"peek":2,"keep":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
-CS6bC-052	ability		3	lost_zone	{}
+CS6bC-052	ability		2	peek_and_keep	{"peek":2,"keep":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false,"remainder":"lost_zone"}
 CS6bC-053	attack	1	0	inflict_status	{"statuses":["confusion"]}
 CS6bC-053	attack	2	0	conditional_damage_mod	{"amount":10,"condition":"counter","counter":"__zero","mode":"per_unit"}
 CS6bC-054	attack	1	0	conditional_damage_mod	{"amount":20,"condition":"both_active_energy_count","mode":"per_unit"}
@@ -7230,8 +7216,7 @@ CS6bC-060	ability		0	usage_condition	{"kind":"any_times_own_turn","raw":"在自�
 CS6bC-060	ability		1	move_energy	{"source":"self","dest":"bench","count":1,"filter":"【斗】能量"}
 CS6bC-060	attack	1	0	conditional_damage_mod	{"amount":30,"condition":"self_energy","mode":"per_unit"}
 CS6bC-061	attack	2	0	discard_energy	{"target":"opponent","count":1}
-CS6bC-062	attack	1	0	lost_zone	{}
-CS6bC-062	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"将自己的牌库上方3张卡。"}
+CS6bC-062	attack	1	0	lost_zone	{"from":"deck_top","count":3}
 CS6bC-062	attack	2	0	usage_condition	{"kind":"vstar_power_once","raw":"[对战中，己方的VSTAR力量只能使用1次。]"}
 CS6bC-062	attack	2	1	usage_condition	{"kind":"residual_sentence","raw":"这只宝可梦，在离开场上之前都拥有效果为\\"对手场上的『宝可梦V』（除『化石翼龙VSTAR』外）的特性，全部消除。"}
 CS6bC-062	attack	2	2	usage_condition	{"kind":"residual_sentence","raw":"\\"的特性。"}
@@ -7258,8 +7243,7 @@ CS6bC-080	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"这个招�
 CS6bC-081	attack	1	0	cannot_retreat	{"target":"opponent","duration":"next_opp_turn"}
 CS6bC-082	attack	1	0	damage_bench	{"target":"opponent_all_field","damage":30}
 CS6bC-083	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"选择自己手牌中最多2张【斗】能量，以任意方式附于自己的宝可梦身上。"}
-CS6bC-083	attack	2	0	lost_zone	{}
-CS6bC-083	attack	2	1	usage_condition	{"kind":"residual_sentence","raw":"将对手牌库上方的1张卡，。"}
+CS6bC-083	attack	2	0	usage_condition	{"kind":"generic_effect","raw":"将对手牌库上方的1张卡，放置于放逐区。"}
 CS6bC-084	attack	2	0	conditional_damage_mod	{"condition":"custom","conditionText":"自己的弃牌区中没有支援者","amount":130,"mode":"fixed"}
 CS6bC-086	attack	1	0	conditional_damage_mod	{"condition":"custom","conditionText":"自己场上有3个以上（包含3个）【恶】能量","amount":90,"mode":"fixed"}
 CS6bC-087	attack	1	0	damage_bench	{"target":"opponent_all_field","damage":10}
@@ -7297,11 +7281,9 @@ CS6bC-106	attack	2	1	attach_energy_from_hand	{"filter":"【水】或【雷】能
 CS6bC-106	attack	2	2	usage_condition	{"kind":"put_remaining_back","raw":"将剩余的卡牌放回牌库"}
 CS6bC-106	attack	2	3	shuffle_deck	{}
 CS6bC-106	attack	2	4	usage_condition	{"kind":"vstar_power_once","raw":"[对战中，己方的VSTAR力量只能使用1次。]"}
-CS6bC-107	attack	1	0	peek_and_keep	{"peek":4,"keep":2,"maxCount":2,"minCount":2,"allowFewer":false,"allowEmpty":false}
-CS6bC-107	attack	1	1	lost_zone	{}
+CS6bC-107	attack	1	0	peek_and_keep	{"peek":4,"keep":2,"maxCount":2,"minCount":2,"allowFewer":false,"allowEmpty":false,"remainder":"lost_zone"}
 CS6bC-107	attack	2	0	ignore	{"what":"opponent_effects"}
-CS6bC-108	attack	1	0	lost_zone	{}
-CS6bC-108	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"选择附于自己场上宝可梦身上的2个能量，。"}
+CS6bC-108	attack	1	0	lost_zone	{"from":"field_energy","count":2,"filter":null}
 CS6bC-108	attack	2	0	knockout	{"target":"opponent"}
 CS6bC-108	attack	2	1	usage_condition	{"kind":"vstar_power_once","raw":"[对战中，己方的VSTAR力量只能使用1次。]"}
 CS6bC-110	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"选择对手场上的1只\\"光辉宝可梦\\"，使其【昏厥】。"}
@@ -7323,8 +7305,7 @@ CS6bC-116	attack	1	0	cannot_attack_next	{"duration":"next_self_turn"}
 CS6bC-117	attack	1	0	search_deck_to_bench	{"filter":"【基础】宝可梦","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CS6bC-117	attack	1	1	shuffle_deck	{}
 CS6bC-118	attack	2	0	coin_flip_damage	{"count":3,"damage_per":50}
-CS6bC-119	attack	1	0	lost_zone	{}
-CS6bC-119	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"选择附于对手战斗宝可梦身上的1个能量，。"}
+CS6bC-119	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"选择附于对手战斗宝可梦身上的1个能量，放置于放逐区。"}
 CS6bC-120	ability		0	usage_condition	{"kind":"generic_effect","raw":"若这只宝可梦处于【睡眠】状态，则即使受到对手宝可梦的招式的伤害而【昏厥】，对手也无法拿取奖赏卡。"}
 CS6bC-120	attack	1	0	inflict_status_self	{"statuses":["sleep"]}
 CS6bC-132	attack	1	0	inflict_status	{"statuses":["paralysis"]}
@@ -7333,8 +7314,7 @@ CS6bC-133	ability		0	usage_condition	{"kind":"bench_basic_immune_supporter","raw
 CS6bC-133	attack	1	0	draw	{"count":2}
 CS6bC-134	ability		0	usage_condition	{"kind":"requires_active"}
 CS6bC-134	ability		1	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
-CS6bC-134	ability		2	peek_and_keep	{"peek":2,"keep":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
-CS6bC-134	ability		3	lost_zone	{}
+CS6bC-134	ability		2	peek_and_keep	{"peek":2,"keep":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false,"remainder":"lost_zone"}
 CS6bC-135	attack	1	0	damage_bench	{"target":"opponent_all_field","damage":10}
 CS6bC-135	attack	2	0	conditional_damage_mod	{"amount":70,"condition":"opponent_active_has_damage"}
 CS6bC-136	ability		0	usage_condition	{"kind":"generic_effect","raw":"若对手的剩余奖赏卡张数在2张以下（包含2张）则能生效。自己备战区的所有\\"宝可梦【V】\\"，当对手从手牌使出支援者时，不受其效果影响。"}
@@ -7362,11 +7342,9 @@ CS6bC-146	attack	2	0	conditional_damage_mod	{"amount":80,"condition":"counter","
 CS6bC-147	attack	1	0	inflict_status	{"statuses":["poison"]}
 CS6bC-147	attack	2	0	conditional_damage_mod	{"amount":80,"condition":"counter","counter":"__zero","mode":"per_unit"}
 CS6bC-148	attack	1	0	discard_energy	{"target":"opponent","count":1}
-CS6bC-149	attack	1	0	peek_and_keep	{"peek":4,"keep":2,"maxCount":2,"minCount":2,"allowFewer":false,"allowEmpty":false}
-CS6bC-149	attack	1	1	lost_zone	{}
+CS6bC-149	attack	1	0	peek_and_keep	{"peek":4,"keep":2,"maxCount":2,"minCount":2,"allowFewer":false,"allowEmpty":false,"remainder":"lost_zone"}
 CS6bC-149	attack	2	0	ignore	{"what":"opponent_effects"}
-CS6bC-150	attack	1	0	peek_and_keep	{"peek":4,"keep":2,"maxCount":2,"minCount":2,"allowFewer":false,"allowEmpty":false}
-CS6bC-150	attack	1	1	lost_zone	{}
+CS6bC-150	attack	1	0	peek_and_keep	{"peek":4,"keep":2,"maxCount":2,"minCount":2,"allowFewer":false,"allowEmpty":false,"remainder":"lost_zone"}
 CS6bC-150	attack	2	0	ignore	{"what":"opponent_effects"}
 CS6bC-151	ability		0	usage_condition	{"kind":"return_self_deck_with_cards","raw":"若这只宝可梦在备战区，则。将这只宝可梦，以及放置于其身上的所有卡牌，放回自己的牌库"}
 CS6bC-151	ability		1	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
@@ -7383,8 +7361,7 @@ CS6bC-159	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"将附于�
 CS6bC-160	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"在下个对手的回合，对手无法从手牌使出并附着\\"宝可梦道具\\"\\"特殊能量\\"。"}
 CS6bC-160	attack	2	0	conditional_damage_mod	{"amount":60,"condition":"self_energy","mode":"per_unit"}
 CS6bC-160	attack	2	1	usage_condition	{"kind":"vstar_power_once","raw":"[对战中，己方的VSTAR力量只能使用1次。]"}
-CS6bC-161	attack	1	0	lost_zone	{}
-CS6bC-161	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"将自己的牌库上方3张卡。"}
+CS6bC-161	attack	1	0	lost_zone	{"from":"deck_top","count":3}
 CS6bC-161	attack	2	0	usage_condition	{"kind":"vstar_power_once","raw":"[对战中，己方的VSTAR力量只能使用1次。]"}
 CS6bC-161	attack	2	1	usage_condition	{"kind":"residual_sentence","raw":"这只宝可梦，在离开场上之前都拥有效果为\\"对手场上的『宝可梦V』（除『化石翼龙VSTAR』外）的特性，全部消除。"}
 CS6bC-161	attack	2	2	usage_condition	{"kind":"residual_sentence","raw":"\\"的特性。"}
@@ -7398,12 +7375,10 @@ CS6bC-163	attack	2	1	attach_energy_from_hand	{"filter":"【水】或【雷】能
 CS6bC-163	attack	2	2	usage_condition	{"kind":"put_remaining_back","raw":"将剩余的卡牌放回牌库"}
 CS6bC-163	attack	2	3	shuffle_deck	{}
 CS6bC-163	attack	2	4	usage_condition	{"kind":"vstar_power_once","raw":"[对战中，己方的VSTAR力量只能使用1次。]"}
-CS6bC-164	attack	1	0	lost_zone	{}
-CS6bC-164	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"选择附于自己场上宝可梦身上的2个能量，。"}
+CS6bC-164	attack	1	0	lost_zone	{"from":"field_energy","count":2,"filter":null}
 CS6bC-164	attack	2	0	knockout	{"target":"opponent"}
 CS6bC-164	attack	2	1	usage_condition	{"kind":"vstar_power_once","raw":"[对战中，己方的VSTAR力量只能使用1次。]"}
-CS6bC-169	attack	1	0	lost_zone	{}
-CS6bC-169	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"选择附于自己场上宝可梦身上的2个能量，。"}
+CS6bC-169	attack	1	0	lost_zone	{"from":"field_energy","count":2,"filter":null}
 CS6bC-169	attack	2	0	knockout	{"target":"opponent"}
 CS6bC-169	attack	2	1	usage_condition	{"kind":"vstar_power_once","raw":"[对战中，己方的VSTAR力量只能使用1次。]"}
 CSAC-001	attack	1	0	search_deck_to_bench	{"filter":"【基础】宝可梦","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
@@ -7693,8 +7668,7 @@ CSJC-009	attack	1	0	prevent_damage	{"source":"attack"}
 CSM1.5C-002	attack	1	0	coin_flip	{"count":1}
 CSM1.5C-002	attack	1	1	discard_energy	{"target":"opponent","count":1}
 CSM1.5C-003	attack	1	0	inflict_status	{"statuses":["burn","confusion"]}
-CSM1.5C-003	attack	2	0	lost_zone	{}
-CSM1.5C-003	attack	2	1	usage_condition	{"kind":"residual_sentence","raw":"将附于自己场上宝可梦身上的任意数量的【火】能量，造成其张数×50伤害。"}
+CSM1.5C-003	attack	2	0	usage_condition	{"kind":"generic_effect","raw":"将附于自己场上宝可梦身上的任意数量的【火】能量放置于放逐区，造成其张数×50伤害。"}
 CSM1.5C-003	attack	3	0	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM1.5C-003	attack	3	1	usage_condition	{"kind":"residual_sentence","raw":"将自己的1张奖赏卡丢到弃牌区，若该奖赏卡是能量，则将其附于自己的宝可梦身上。"}
 CSM1.5C-004	attack	1	0	damage_bench	{"target":"opponent_any","damage":10}
@@ -7712,7 +7686,7 @@ CSM1.5C-008	ability		2	usage_condition	{"kind":"residual_sentence","raw":"将自
 CSM1.5C-008	attack	1	0	coin_flip_status	{"count":1,"statuses":["paralysis"]}
 CSM1.5C-009	ability		0	usage_condition	{"kind":"attach_discard_energy_bench","raw":"若这只宝可梦在备战区，则。给自己的2只备战宝可梦，各附着1张弃牌区中的【雷】能量。然后，将这张卡"}
 CSM1.5C-009	ability		1	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
-CSM1.5C-009	ability		2	lost_zone	{}
+CSM1.5C-009	ability		2	usage_condition	{"kind":"residual_sentence","raw":"放置于放逐区。"}
 CSM1.5C-010	ability		0	retreat_cost_zero	{"target":"own_field"}
 CSM1.5C-010	attack	1	0	cannot_attack_next	{"duration":"next_self_turn"}
 CSM1.5C-010	attack	2	0	attach_energy_from_discard	{"filter":"基本能量","target":"any","count":5,"maxCount":5,"minCount":5,"allowFewer":false,"allowEmpty":false}
@@ -7781,12 +7755,10 @@ CSM1.5C-036	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"给自己
 CSM1.5C-037	ability		0	usage_condition	{"kind":"generic_effect","raw":"在自己的回合，可以从手牌中使出【1阶进化】宝可梦，放置于这只宝可梦身上进行进化。"}
 CSM1.5C-038	attack	1	0	conditional_damage_mod	{"amount":30,"condition":"opponent_active_energy_count","mode":"per_unit"}
 CSM1.5C-038	attack	2	0	cannot_attack_next	{"move":"海神之刃"}
-CSM1.5C-038	attack	3	0	lost_zone	{}
+CSM1.5C-038	attack	3	0	discard_self_with_attachments	{"who":"opponent","toLostZone":true}
 CSM1.5C-038	attack	3	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
-CSM1.5C-038	attack	3	2	usage_condition	{"kind":"residual_sentence","raw":"将对手的战斗宝可梦，以及放置于其身上的所有卡牌，。"}
 CSM1.5C-061	attack	1	0	inflict_status	{"statuses":["burn","confusion"]}
-CSM1.5C-061	attack	2	0	lost_zone	{}
-CSM1.5C-061	attack	2	1	usage_condition	{"kind":"residual_sentence","raw":"将附于自己场上宝可梦身上的任意数量的【火】能量，造成其张数×50伤害。"}
+CSM1.5C-061	attack	2	0	usage_condition	{"kind":"generic_effect","raw":"将附于自己场上宝可梦身上的任意数量的【火】能量放置于放逐区，造成其张数×50伤害。"}
 CSM1.5C-061	attack	3	0	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM1.5C-061	attack	3	1	usage_condition	{"kind":"residual_sentence","raw":"将自己的1张奖赏卡丢到弃牌区，若该奖赏卡是能量，则将其附于自己的宝可梦身上。"}
 CSM1.5C-062	attack	1	0	conditional_damage_mod	{"amount":50,"condition":"self_energy","mode":"per_unit"}
@@ -7814,12 +7786,10 @@ CSM1.5C-066	attack	2	0	discard_energy	{"target":"self","count":3}
 CSM1.5C-066	attack	3	0	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM1.5C-067	attack	1	0	conditional_damage_mod	{"amount":30,"condition":"opponent_active_energy_count","mode":"per_unit"}
 CSM1.5C-067	attack	2	0	cannot_attack_next	{"move":"海神之刃"}
-CSM1.5C-067	attack	3	0	lost_zone	{}
+CSM1.5C-067	attack	3	0	discard_self_with_attachments	{"who":"opponent","toLostZone":true}
 CSM1.5C-067	attack	3	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
-CSM1.5C-067	attack	3	2	usage_condition	{"kind":"residual_sentence","raw":"将对手的战斗宝可梦，以及放置于其身上的所有卡牌，。"}
 CSM1.5C-074	attack	1	0	inflict_status	{"statuses":["burn","confusion"]}
-CSM1.5C-074	attack	2	0	lost_zone	{}
-CSM1.5C-074	attack	2	1	usage_condition	{"kind":"residual_sentence","raw":"将附于自己场上宝可梦身上的任意数量的【火】能量，造成其张数×50伤害。"}
+CSM1.5C-074	attack	2	0	usage_condition	{"kind":"generic_effect","raw":"将附于自己场上宝可梦身上的任意数量的【火】能量放置于放逐区，造成其张数×50伤害。"}
 CSM1.5C-074	attack	3	0	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM1.5C-074	attack	3	1	usage_condition	{"kind":"residual_sentence","raw":"将自己的1张奖赏卡丢到弃牌区，若该奖赏卡是能量，则将其附于自己的宝可梦身上。"}
 CSM1.5C-075	attack	1	0	conditional_damage_mod	{"amount":50,"condition":"self_energy","mode":"per_unit"}
@@ -7847,9 +7817,8 @@ CSM1.5C-079	attack	2	0	discard_energy	{"target":"self","count":3}
 CSM1.5C-079	attack	3	0	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM1.5C-080	attack	1	0	conditional_damage_mod	{"amount":30,"condition":"opponent_active_energy_count","mode":"per_unit"}
 CSM1.5C-080	attack	2	0	cannot_attack_next	{"move":"海神之刃"}
-CSM1.5C-080	attack	3	0	lost_zone	{}
+CSM1.5C-080	attack	3	0	discard_self_with_attachments	{"who":"opponent","toLostZone":true}
 CSM1.5C-080	attack	3	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
-CSM1.5C-080	attack	3	2	usage_condition	{"kind":"residual_sentence","raw":"将对手的战斗宝可梦，以及放置于其身上的所有卡牌，。"}
 CSM1.5C-081	ability		0	weakness_null	{"target":"own_field"}
 CSM1.5C-081	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"将自己弃牌区中2张基本能量，附于1只备战宝可梦身上。"}
 CSM1.5C-081	attack	2	0	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
@@ -8313,8 +8282,7 @@ CSM1aC-007	attack	1	1	coin_flip	{"count":1}
 CSM1aC-008	attack	2	0	inflict_status	{"statuses":["burn"]}
 CSM1aC-009	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CSM1aC-009	ability		1	usage_condition	{"kind":"residual_sentence","raw":"在这个回合结束前，将自己场上宝可梦身上附着的所有能量，都视作【火】能量。"}
-CSM1aC-009	attack	1	0	lost_zone	{}
-CSM1aC-009	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"将附于对手战斗宝可梦身上的2个能量，。"}
+CSM1aC-009	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"将附于对手战斗宝可梦身上的2个能量，放置于放逐区。"}
 CSM1aC-010	attack	1	0	cannot_retreat	{"target":"opponent","duration":"next_opp_turn"}
 CSM1aC-011	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CSM1aC-011	ability		1	usage_condition	{"kind":"residual_sentence","raw":"从自己的牌库选择任意1张卡。"}
@@ -8776,10 +8744,10 @@ CSM1bC-009	ability		1	evolve_rare_candy	{"stage":"2阶","targetStage":"基础","
 CSM1bC-010	attack	1	0	shuffle_deck	{}
 CSM1bC-010	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"将自己的牌库中的1张\\"毽子草\\"，放置于备战区。"}
 CSM1bC-011	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
-CSM1bC-011	ability		1	lost_zone	{}
+CSM1bC-011	ability		1	discard_self_with_attachments	{"toLostZone":true}
 CSM1bC-011	ability		2	shuffle_deck	{}
 CSM1bC-011	ability		3	usage_condition	{"kind":"residual_sentence","raw":"从自己的牌库选择1张\\"毽子棉\\"。"}
-CSM1bC-011	ability		4	usage_condition	{"kind":"residual_sentence","raw":"然后，将这只宝可梦，以及放置于其身上的所有卡牌，，将被选择的\\"毽子棉\\"，放置于这只宝可梦先前的位置。"}
+CSM1bC-011	ability		4	usage_condition	{"kind":"residual_sentence","raw":"，将被选择的\\"毽子棉\\"，放置于这只宝可梦先前的位置。"}
 CSM1bC-012	attack	1	0	conditional_damage_mod	{"amount":20,"condition":"counter","counter":"own_lost_zone_pokemon","mode":"per_unit"}
 CSM1bC-013	ability		0	trigger	{"event":"card_played","effect":{"action":"shuffle_deck","params":{}},"effects":[{"action":"shuffle_deck","params":{}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"可使用1次。"}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"将自己的牌库中最多3张基本能量，丢到弃牌区。"}}],"optional":false}
 CSM1bC-013	attack	1	0	attach_energy_from_discard	{"filter":"基本能量","target":"any","count":2,"maxCount":2,"minCount":2,"allowFewer":false,"allowEmpty":false}
@@ -8876,8 +8844,9 @@ CSM1bC-052	ability		1	usage_condition	{"kind":"once_per_turn","raw":"在自己�
 CSM1bC-052	ability		2	inflict_status	{"statuses":["sleep"]}
 CSM1bC-053	attack	1	0	inflict_status	{"statuses":["confusion"]}
 CSM1bC-054	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
-CSM1bC-054	ability		1	lost_zone	{}
-CSM1bC-054	ability		2	inflict_status	{"statuses":["paralysis"]}
+CSM1bC-054	ability		1	inflict_status	{"statuses":["paralysis"]}
+CSM1bC-054	ability		2	usage_condition	{"kind":"residual_sentence","raw":"将自己手牌中的2张【雷】能量，放置于放逐区。"}
+CSM1bC-054	ability		3	usage_condition	{"kind":"shell_fragment","raw":"然后，。"}
 CSM1bC-054	attack	1	0	damage_bench	{"target":"opponent_N","count":2,"damage":50}
 CSM1bC-055	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"将自己弃牌区中的所有\\"电气能量管\\"，在给对手看过后，加入手牌。"}
 CSM1bC-055	attack	2	0	discard_energy	{"target":"self","count":"all","filter":"【雷】能量"}
@@ -9203,8 +9172,7 @@ CSM1cC-009	attack	2	0	usage_condition	{"kind":"return_self_deck_opt","raw":"若�
 CSM1cC-009	attack	2	1	shuffle_deck	{}
 CSM1cC-010	attack	1	0	inflict_status	{"statuses":["sleep"]}
 CSM1cC-011	attack	1	0	look_at	{"target":"opponent_hand"}
-CSM1cC-011	attack	1	1	lost_zone	{}
-CSM1cC-011	attack	1	2	usage_condition	{"kind":"shell_fragment","raw":"将其中1张卡，。"}
+CSM1cC-011	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"将其中1张卡，放置于放逐区。"}
 CSM1cC-011	attack	2	0	conditional_damage_mod	{"amount":20,"condition":"opponent_active_energy_count","mode":"per_unit"}
 CSM1cC-012	ability		0	prevent_damage	{"source":"attack"}
 CSM1cC-012	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
@@ -9436,11 +9404,9 @@ CSM1cC-108	attack	1	0	coin_flip	{"count":1,"heads":[{"action":"prevent_damage","
 CSM1cC-108	attack	2	0	mill	{"target":"opponent","count":1}
 CSM1cC-109	attack	1	0	discard_tool	{"target":"opponent_active"}
 CSM1cC-110	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
-CSM1cC-110	ability		1	lost_zone	{}
-CSM1cC-110	ability		2	lost_zone	{}
-CSM1cC-110	ability		3	usage_condition	{"kind":"residual_sentence","raw":"若这张卡在手牌，，若使用了，则将这张卡。"}
-CSM1cC-110	ability		4	usage_condition	{"kind":"residual_sentence","raw":"查看对手牌库上方1张卡，再放回原处。"}
-CSM1cC-110	ability		5	usage_condition	{"kind":"residual_sentence","raw":"若那张卡是支援者，若希望，则可将其。"}
+CSM1cC-110	ability		1	usage_condition	{"kind":"residual_sentence","raw":"若这张卡在手牌，，若使用了，则将这张卡放置于放逐区。"}
+CSM1cC-110	ability		2	usage_condition	{"kind":"residual_sentence","raw":"查看对手牌库上方1张卡，再放回原处。"}
+CSM1cC-110	ability		3	usage_condition	{"kind":"residual_sentence","raw":"若那张卡是支援者，若希望，则可将其放置于放逐区。"}
 CSM1cC-111	attack	1	0	inflict_status	{"statuses":["burn"]}
 CSM1cC-111	attack	2	0	usage_condition	{"kind":"generic_effect","raw":"若在这个回合，这只宝可梦刚完成进化，则这个招式失败。"}
 CSM1cC-112	attack	1	0	look_at	{"target":"opponent_hand"}
@@ -11402,10 +11368,9 @@ CSM2cC-082	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己�
 CSM2cC-082	ability		1	coin_flip	{"count":1,"heads":[{"action":"attach_energy_from_discard","params":{"filter":"基本能量","target":"active","count":1}}]}
 CSM2cC-082	ability		2	end_turn	{}
 CSM2cC-083	attack	1	0	conditional_damage_mod	{"amount":20,"condition":"counter","counter":"own_lost_zone_pokemon","mode":"per_unit"}
-CSM2cC-084	attack	1	0	lost_zone	{}
-CSM2cC-084	attack	1	1	draw	{"count":3}
-CSM2cC-084	attack	1	2	usage_condition	{"kind":"residual_sentence","raw":"将自己的1张手牌，。"}
-CSM2cC-084	attack	1	3	usage_condition	{"kind":"shell_fragment","raw":"然后，。"}
+CSM2cC-084	attack	1	0	draw	{"count":3}
+CSM2cC-084	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"将自己的1张手牌，放置于放逐区。"}
+CSM2cC-084	attack	1	2	usage_condition	{"kind":"shell_fragment","raw":"然后，。"}
 CSM2cC-084	attack	2	0	conditional_damage_mod	{"amount":20,"condition":"counter","counter":"own_lost_zone_pokemon","mode":"per_unit"}
 CSM2cC-085	ability		0	coin_flip_damage_shield	{}
 CSM2cC-085	attack	1	0	conditional_damage_mod	{"amount":30,"condition":"self_energy","mode":"per_unit"}
@@ -11821,8 +11786,7 @@ CSMPgC-002	ability		0	trigger	{"event":"evolved","effect":{"action":"prevent_dam
 CSMPgC-003	attack	1	0	draw	{"count":2}
 CSMPgC-004	attack	1	0	damage_bench	{"target":"opponent_all_field","damage":30}
 CSMPgC-004	attack	2	0	conditional_damage_mod	{"condition":"opponent_active_name","name":"宝可梦GX・EX","amount":100,"mode":"fixed"}
-CSMPgC-005	ability		0	lost_zone	{}
-CSMPgC-005	ability		1	usage_condition	{"kind":"residual_sentence","raw":"若因这只宝可梦的招式的伤害，对手的宝可梦【昏厥】，则该【昏厥】的宝可梦，以及放置于其身上的所有卡牌不会被丢到弃牌区，而是被。"}
+CSMPgC-005	ability		0	usage_condition	{"kind":"generic_effect","raw":"若因这只宝可梦的招式的伤害，对手的宝可梦【昏厥】，则该【昏厥】的宝可梦，以及放置于其身上的所有卡牌不会被丢到弃牌区，而是被放置于放逐区。"}
 CSMPgC-005	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"给对手备战区的所有【基础】宝可梦，也各造成30伤害。"}
 CSMPgC-005	attack	2	0	ignore	{"what":"opponent_effects"}
 CSMPgC-005	attack	2	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
@@ -11915,8 +11879,7 @@ CSMPiC-045	attack	2	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战�
 CSMPiC-046	attack	1	0	conditional_damage_mod	{"condition":"custom","conditionText":"这只宝可梦从\\"利欧路\\"进化而来","amount":90,"mode":"fixed"}
 CSMPiC-046	attack	3	0	conditional_damage_mod	{"amount":30,"condition":"self_damage_counters","mode":"per_unit"}
 CSMPiC-046	attack	3	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
-CSMPiC-047	ability		0	lost_zone	{}
-CSMPiC-047	ability		1	usage_condition	{"kind":"residual_sentence","raw":"若因这只宝可梦的招式的伤害，对手的宝可梦【昏厥】，则该【昏厥】的宝可梦，以及放置于其身上的所有卡牌不会被丢到弃牌区，而是被。"}
+CSMPiC-047	ability		0	usage_condition	{"kind":"generic_effect","raw":"若因这只宝可梦的招式的伤害，对手的宝可梦【昏厥】，则该【昏厥】的宝可梦，以及放置于其身上的所有卡牌不会被丢到弃牌区，而是被放置于放逐区。"}
 CSMPiC-047	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"给对手备战区的所有【基础】宝可梦，也各造成30伤害。"}
 CSMPiC-047	attack	2	0	ignore	{"what":"opponent_effects"}
 CSMPiC-047	attack	2	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
@@ -17074,8 +17037,8 @@ CSVM1aC-004	ability		1	usage_condition	{"kind":"residual_sentence","raw":"自己
 CSVM1aC-005	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CSVM1aC-005	ability		1	draw	{"count":3}
 CSVM1aC-005	ability		2	end_turn	{}
-CSVM1aC-005	attack	1	0	usage_condition	{"kind":"discard_tools_any_damage","raw":"将自己弃牌区中任意数量的\\"宝可梦道具\\"，追加造成其张数×40伤害"}
-CSVM1aC-005	attack	1	1	lost_zone	{}
+CSVM1aC-005	attack	1	0	lost_zone	{"from":"discard","filter":"宝可梦道具","count":"any"}
+CSVM1aC-005	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"追加造成其张数×40伤害。"}
 CSVM1aC-006	ability		0	trigger	{"event":"evolved","effect":{"action":"attach_energy_from_deck","params":{"filter":"【火】能量","target":"any","count":3,"maxCount":3,"minCount":0,"allowFewer":true,"allowEmpty":true}},"effects":[{"action":"attach_energy_from_deck","params":{"filter":"【火】能量","target":"any","count":3,"maxCount":3,"minCount":0,"allowFewer":true,"allowEmpty":true}},{"action":"shuffle_deck","params":{}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"可使用1次。"}}],"optional":false}
 CSVM1aC-006	attack	1	0	conditional_damage_mod	{"amount":30,"condition":"opponent_prizes_taken","mode":"per_unit"}
 CSVM1aC-007	ability		0	bench_attack_shield	{"target":"own_bench","source":"opponent_attack","preventDamage":false,"preventEffect":true}
@@ -17361,10 +17324,8 @@ CSXC-001	attack	1	0	ignore	{"what":"weakness"}
 CSXC-002	attack	2	0	damage_place	{"target":"opponent_any","count":12}
 CSXC-003	ability		0	usage_condition	{"kind":"requires_active"}
 CSXC-003	ability		1	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
-CSXC-003	ability		2	peek_and_keep	{"peek":2,"keep":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
-CSXC-003	ability		3	lost_zone	{}
-CSXC-004	attack	1	0	peek_and_keep	{"peek":4,"keep":2,"maxCount":2,"minCount":2,"allowFewer":false,"allowEmpty":false}
-CSXC-004	attack	1	1	lost_zone	{}
+CSXC-003	ability		2	peek_and_keep	{"peek":2,"keep":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false,"remainder":"lost_zone"}
+CSXC-004	attack	1	0	peek_and_keep	{"peek":4,"keep":2,"maxCount":2,"minCount":2,"allowFewer":false,"allowEmpty":false,"remainder":"lost_zone"}
 CSXC-004	attack	2	0	ignore	{"what":"opponent_effects"}
 CSYC-002	attack	1	0	coin_flip	{"count":1,"fail_on_tails":true}
 CSYC-003	attack	1	0	coin_flip_status	{"count":1,"statuses":["confusion"]}
@@ -17785,15 +17746,13 @@ SSP-178	attack	1	0	damage_bench	{"target":"opponent_N","count":2,"damage":50}
 SSP-178	attack	2	0	cannot_attack_next	{"move":"3流台风"}
 SSP-179	attack	1	0	trainer_prerequisite	{"kind":"first_turn","raw":"这个招式，只有在后攻玩家的最初回合才可使用"}
 SSP-179	attack	1	1	prevent_damage	{"duration":"next_opp_turn"}
-SSP-180	attack	1	0	lost_zone	{}
-SSP-180	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"选择附于对手场上宝可梦身上的1个特殊能量，。"}
+SSP-180	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"选择附于对手场上宝可梦身上的1个特殊能量，放置于放逐区。"}
 SSP-180	attack	2	0	discard_energy	{"target":"self","count":1}
 SSP-181	ability		0	trigger	{"event":"evolved","effect":{"action":"coin_flip_status","params":{"count":1,"statuses":["paralysis"]}},"effects":[{"action":"coin_flip_status","params":{"count":1,"statuses":["paralysis"]}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"可使用1次。"}}],"optional":false}
 SSP-182	attack	1	0	heal	{"amount":20,"target":"self"}
 SSP-182	attack	2	0	conditional_damage_mod	{"condition":"hand_count_equal","amount":70,"mode":"fixed"}
 SSP-183	attack	1	0	discard_energy	{"target":"self","count":2}
-SSP-184	attack	2	0	lost_zone	{}
-SSP-184	attack	2	1	usage_condition	{"kind":"residual_sentence","raw":"在不看正面的前提下选择对手1张手牌，。"}
+SSP-184	attack	2	0	usage_condition	{"kind":"generic_effect","raw":"在不看正面的前提下选择对手1张手牌，放置于放逐区。"}
 SSP-185	attack	1	0	coin_flip	{"count":2}
 SSP-186	attack	1	0	damage_bench	{"target":"opponent_any","damage":50}
 SSP-186	attack	2	0	discard_energy	{"target":"self","count":1}
@@ -18604,14 +18563,10 @@ CS6bC-121	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"这张�
 CS6bC-122	trainer		0	trainer_prerequisite	{"kind":"lost_zone_min","raw":"这张卡，只有在自己放逐区有7张以上（包含7张）卡牌时才可使用"}
 CS6bC-122	trainer		1	attach_energy_from_deck	{"filter":"基本能量","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CS6bC-122	trainer		2	shuffle_deck	{}
-CS6bC-123	trainer		0	trainer_prerequisite	{"kind":"discard_one_hand_cond","raw":"这张卡，只有将自己的1张手牌，后才可使用"}
-CS6bC-123	trainer		1	lost_zone	{}
-CS6bC-123	trainer		2	discard_field_attachments	{"target":"any","tools":true,"stadium":true,"maxCount":1,"optional":true}
-CS6bC-123	trainer		3	lost_zone	{}
-CS6bC-170	trainer		0	trainer_prerequisite	{"kind":"discard_one_hand_cond","raw":"这张卡，只有将自己的1张手牌，后才可使用"}
-CS6bC-170	trainer		1	lost_zone	{}
-CS6bC-170	trainer		2	discard_field_attachments	{"target":"any","tools":true,"stadium":true,"maxCount":1,"optional":true}
-CS6bC-170	trainer		3	lost_zone	{}
+CS6bC-123	trainer		0	trainer_prerequisite	{"kind":"discard_cost","count":1,"toLostZone":true,"raw":"这张卡，只有将自己的1张手牌，放置于放逐区后才可使用"}
+CS6bC-123	trainer		1	discard_field_attachments	{"target":"both","tools":true,"stadium":true,"maxCount":1,"optional":true,"toLostZone":true}
+CS6bC-170	trainer		0	trainer_prerequisite	{"kind":"discard_cost","count":1,"toLostZone":true,"raw":"这张卡，只有将自己的1张手牌，放置于放逐区后才可使用"}
+CS6bC-170	trainer		1	discard_field_attachments	{"target":"both","tools":true,"stadium":true,"maxCount":1,"optional":true,"toLostZone":true}
 CSAC-010	trainer		0	trainer_prerequisite	{"kind":"discard_cost","raw":"这张卡，只有将自己的1张手牌丢到弃牌区才可使用","count":1,"zone":"hand"}
 CSAC-010	trainer		1	search_deck_to_hand	{"filter":"【基础】宝可梦","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSAC-010	trainer		2	shuffle_deck	{}
@@ -18803,11 +18758,9 @@ CSM1bC-125	trainer		1	usage_condition	{"kind":"heal_by_heads_value","raw":"将�
 CSM1bC-126	trainer		0	recover_from_discard	{"filter":"宝可梦","target":"hand","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSM1bC-126	trainer		1	shuffle_deck	{}
 CSM1bC-126	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"或者，将自己弃牌区中的3张宝可梦，在给对手看过后，放回牌库。"}
-CSM1bC-127	trainer		0	lost_zone	{}
-CSM1bC-127	trainer		1	draw	{"count":1}
-CSM1bC-127	trainer		2	lost_zone	{}
-CSM1bC-127	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"将自己的2张手牌，。"}
-CSM1bC-127	trainer		4	usage_condition	{"kind":"shell_fragment","raw":"然后，。"}
+CSM1bC-127	trainer		0	draw	{"count":1}
+CSM1bC-127	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"将自己的2张手牌，放置于放逐区。"}
+CSM1bC-127	trainer		2	usage_condition	{"kind":"shell_fragment","raw":"然后，。"}
 CSM1bC-197	trainer		0	search_deck_to_hand	{"filter":"【草】基础或【草】能量","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSM1bC-197	trainer		1	shuffle_deck	{}
 CSM1bC-198	trainer		0	evolve_rare_candy	{"stage":"2阶","targetStage":"基础","bypassStage":"1阶","noPlacedThisTurn":true,"noFirstTurn":true}
@@ -19755,10 +19708,8 @@ CSVM1aC-015	trainer		1	search_deck_to_hand	{"filter":"宝可梦","count":1,"maxC
 CSVM1aC-015	trainer		2	shuffle_deck	{}
 CSVM1aC-016	trainer		0	evolve_rare_candy	{"stage":"2阶","targetStage":"基础","bypassStage":"1阶","noPlacedThisTurn":true,"noFirstTurn":true}
 CSVM1aC-017	trainer		0	switch_pokemon	{"who":"self"}
-CSVM1aC-018	trainer		0	trainer_prerequisite	{"kind":"discard_one_hand_cond","raw":"这张卡，只有将自己的1张手牌，后才可使用"}
-CSVM1aC-018	trainer		1	lost_zone	{}
-CSVM1aC-018	trainer		2	discard_field_attachments	{"target":"any","tools":true,"stadium":true,"maxCount":1,"optional":true}
-CSVM1aC-018	trainer		3	lost_zone	{}
+CSVM1aC-018	trainer		0	trainer_prerequisite	{"kind":"discard_cost","count":1,"toLostZone":true,"raw":"这张卡，只有将自己的1张手牌，放置于放逐区后才可使用"}
+CSVM1aC-018	trainer		1	discard_field_attachments	{"target":"both","tools":true,"stadium":true,"maxCount":1,"optional":true,"toLostZone":true}
 CSVM1bC-015	trainer		0	trainer_prerequisite	{"kind":"own_prizes_more_than_opponent","raw":"这张卡，只有在自己的剩余奖赏卡张数，比对手的剩余奖赏卡张数多时才可使用"}
 CSVM1bC-015	trainer		1	switch_pokemon	{"who":"opponent"}
 CSVM1bC-016	trainer		0	recover_from_discard	{"count":1,"target":"hand"}
@@ -19774,10 +19725,8 @@ CSVM1bC-020	trainer		0	trainer_prerequisite	{"kind":"discard_cost","raw":"这张
 CSVM1bC-020	trainer		1	search_deck_to_hand	{"filter":"宝可梦","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSVM1bC-020	trainer		2	shuffle_deck	{}
 CSVM1bC-021	trainer		0	evolve_rare_candy	{"stage":"2阶","targetStage":"基础","bypassStage":"1阶","noPlacedThisTurn":true,"noFirstTurn":true}
-CSVM1bC-022	trainer		0	trainer_prerequisite	{"kind":"discard_one_hand_cond","raw":"这张卡，只有将自己的1张手牌，后才可使用"}
-CSVM1bC-022	trainer		1	lost_zone	{}
-CSVM1bC-022	trainer		2	discard_field_attachments	{"target":"any","tools":true,"stadium":true,"maxCount":1,"optional":true}
-CSVM1bC-022	trainer		3	lost_zone	{}
+CSVM1bC-022	trainer		0	trainer_prerequisite	{"kind":"discard_cost","count":1,"toLostZone":true,"raw":"这张卡，只有将自己的1张手牌，放置于放逐区后才可使用"}
+CSVM1bC-022	trainer		1	discard_field_attachments	{"target":"both","tools":true,"stadium":true,"maxCount":1,"optional":true,"toLostZone":true}
 CSVM1cC-008	trainer		0	switch_active_basic_heal_bench	{"heal":30}
 CSVM1cC-009	trainer		0	coin_flip	{"count":1}
 CSVM1cC-009	trainer		1	attach_energy_from_discard	{"filter":"基本能量","target":"bench","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
@@ -19793,10 +19742,8 @@ CSVM1cC-013	trainer		0	trainer_prerequisite	{"kind":"discard_cost","raw":"这张
 CSVM1cC-013	trainer		1	search_deck_to_hand	{"filter":"宝可梦","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSVM1cC-013	trainer		2	shuffle_deck	{}
 CSVM1cC-014	trainer		0	coin_flip	{"count":1,"heads":[{"action":"switch_pokemon","params":{"who":"opponent"}}]}
-CSVM1cC-015	trainer		0	trainer_prerequisite	{"kind":"discard_one_hand_cond","raw":"这张卡，只有将自己的1张手牌，后才可使用"}
-CSVM1cC-015	trainer		1	lost_zone	{}
-CSVM1cC-015	trainer		2	discard_field_attachments	{"target":"any","tools":true,"stadium":true,"maxCount":1,"optional":true}
-CSVM1cC-015	trainer		3	lost_zone	{}
+CSVM1cC-015	trainer		0	trainer_prerequisite	{"kind":"discard_cost","count":1,"toLostZone":true,"raw":"这张卡，只有将自己的1张手牌，放置于放逐区后才可使用"}
+CSVM1cC-015	trainer		1	discard_field_attachments	{"target":"both","tools":true,"stadium":true,"maxCount":1,"optional":true,"toLostZone":true}
 CSVM2aC-013	trainer		0	recover_from_discard	{"filter":"基本能量","target":"hand","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CSVM2aC-014	trainer		0	move_energy	{"source":"self","dest":"bench","count":1,"filter":"基本能量"}
 CSVM2aC-015	trainer		0	trainer_prerequisite	{"kind":"own_prizes_more_than_opponent","raw":"这张卡，只有在自己的剩余奖赏卡张数，比对手的剩余奖赏卡张数多时才可使用"}
@@ -19892,10 +19839,8 @@ CSXC-011	trainer		1	attach_energy_from_deck	{"filter":"基本能量","count":2,"
 CSXC-011	trainer		2	shuffle_deck	{}
 CSXC-012	trainer		0	search_deck_to_hand	{"filter":"HP为90以下的宝可梦","maxHp":90,"count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSXC-012	trainer		1	shuffle_deck	{}
-CSXC-013	trainer		0	trainer_prerequisite	{"kind":"discard_one_hand_cond","raw":"这张卡，只有将自己的1张手牌，后才可使用"}
-CSXC-013	trainer		1	lost_zone	{}
-CSXC-013	trainer		2	discard_field_attachments	{"target":"any","tools":true,"stadium":true,"maxCount":1,"optional":true}
-CSXC-013	trainer		3	lost_zone	{}
+CSXC-013	trainer		0	trainer_prerequisite	{"kind":"discard_cost","count":1,"toLostZone":true,"raw":"这张卡，只有将自己的1张手牌，放置于放逐区后才可使用"}
+CSXC-013	trainer		1	discard_field_attachments	{"target":"both","tools":true,"stadium":true,"maxCount":1,"optional":true,"toLostZone":true}
 CSYC-010	trainer		0	coin_flip	{"count":1}
 CSYC-010	trainer		1	search_deck_to_hand	{"filter":"宝可梦","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSYC-010	trainer		2	shuffle_deck	{}
@@ -19920,10 +19865,8 @@ CSZC-037	trainer		0	evolve_rare_candy	{"stage":"2阶","targetStage":"基础","by
 CSZC-038	trainer		0	switch_pokemon	{"who":"self"}
 CSZC-039	trainer		0	search_deck_to_hand	{"filter":"HP为90以下的宝可梦","maxHp":90,"count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSZC-039	trainer		1	shuffle_deck	{}
-CSZC-040	trainer		0	trainer_prerequisite	{"kind":"discard_one_hand_cond","raw":"这张卡，只有将自己的1张手牌，后才可使用"}
-CSZC-040	trainer		1	lost_zone	{}
-CSZC-040	trainer		2	lost_zone	{}
-CSZC-040	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"选择放置于双方场上宝可梦身上的\\"宝可梦道具\\"和场上的\\"竞技场\\"中的1张，。"}
+CSZC-040	trainer		0	trainer_prerequisite	{"kind":"discard_cost","count":1,"toLostZone":true,"raw":"这张卡，只有将自己的1张手牌，放置于放逐区后才可使用"}
+CSZC-040	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"选择放置于双方场上宝可梦身上的\\"宝可梦道具\\"和场上的\\"竞技场\\"中的1张，放置于放逐区。"}
 SMP-012	trainer		0	usage_condition	{"kind":"generic_effect","raw":"将对手弃牌区中的任意1张卡，在给对手看过后，放回对手的牌库下方。"}
 SMP-NaN1	trainer		0	search_deck_to_hand	{"filter":"基本能量","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 SMP-NaN1	trainer		1	shuffle_deck	{}
@@ -19958,10 +19901,8 @@ SSP-174	trainer		0	recover_from_discard	{"filter":"HP在\\"90\\"以下（包含\
 SSP-196	trainer		0	search_deck_to_hand	{"filter":"没有【撤退】所需能量的宝可梦","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 SSP-196	trainer		1	shuffle_deck	{}
 SSP-209	trainer		0	hikers_shoes	{"peek":1,"drawOnDiscard":1}
-SSP-210	trainer		0	trainer_prerequisite	{"kind":"discard_one_hand_cond","raw":"这张卡，只有将自己的1张手牌，后才可使用"}
-SSP-210	trainer		1	lost_zone	{}
-SSP-210	trainer		2	lost_zone	{}
-SSP-210	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"选择放置于双方场上宝可梦身上的\\"宝可梦道具\\"和场上的\\"竞技场\\"中的1张，。"}
+SSP-210	trainer		0	trainer_prerequisite	{"kind":"discard_cost","count":1,"toLostZone":true,"raw":"这张卡，只有将自己的1张手牌，放置于放逐区后才可使用"}
+SSP-210	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"选择放置于双方场上宝可梦身上的\\"宝可梦道具\\"和场上的\\"竞技场\\"中的1张，放置于放逐区。"}
 SSP-NaN1	trainer		0	peek_and_keep	{"peek":7,"filter":"宝可梦","keep":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 SSP-NaN1	trainer		1	usage_condition	{"kind":"put_remaining_back","raw":"将剩余的卡牌放回牌库"}
 SSP-NaN1	trainer		2	shuffle_deck	{}
@@ -20944,8 +20885,7 @@ CS6aC-165	trainer		4	usage_condition	{"kind":"residual_sentence","raw":"在这�
 CS6aC-166	trainer		0	usage_condition	{"kind":"put_remaining_back","raw":"将剩余的卡牌放回牌库"}
 CS6aC-166	trainer		1	shuffle_deck	{}
 CS6aC-166	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"查看对手牌库上方5张卡，选择其中任意数量的物品，丢到弃牌区。"}
-CS6bC-125	trainer		0	peek_and_keep	{"peek":5,"keep":3,"maxCount":3,"minCount":3,"allowFewer":false,"allowEmpty":false}
-CS6bC-125	trainer		1	lost_zone	{}
+CS6bC-125	trainer		0	peek_and_keep	{"peek":5,"keep":3,"maxCount":3,"minCount":3,"allowFewer":false,"allowEmpty":false,"remainder":"lost_zone"}
 CS6bC-126	trainer		0	search_deck_to_hand	{"filter":"基本能量","count":4,"maxCount":4,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CS6bC-126	trainer		1	shuffle_deck	{}
 CS6bC-127	trainer		0	trainer_prerequisite	{"kind":"only_last_hand_card","raw":"这张卡，只有在自己的手牌只剩这1张时才可使用"}
@@ -20956,8 +20896,7 @@ CS6bC-128	trainer		2	usage_condition	{"kind":"put_remaining_back","raw":"将剩�
 CS6bC-128	trainer		3	shuffle_deck	{}
 CS6bC-129	trainer		0	trainer_prerequisite	{"kind":"lost_zone_min","raw":"这张卡，只有在自己放逐区有10张以上（包含10张）卡牌时才可使用"}
 CS6bC-129	trainer		1	damage_received_mod	{"amount":-120,"target":"own_field","duration":"next_opp_turn"}
-CS6bC-152	trainer		0	peek_and_keep	{"peek":5,"keep":3,"maxCount":3,"minCount":3,"allowFewer":false,"allowEmpty":false}
-CS6bC-152	trainer		1	lost_zone	{}
+CS6bC-152	trainer		0	peek_and_keep	{"peek":5,"keep":3,"maxCount":3,"minCount":3,"allowFewer":false,"allowEmpty":false,"remainder":"lost_zone"}
 CS6bC-153	trainer		0	trainer_prerequisite	{"kind":"only_last_hand_card","raw":"这张卡，只有在自己的手牌只剩这1张时才可使用"}
 CS6bC-153	trainer		1	usage_condition	{"kind":"draw_total_bench","raw":"从自己的牌库抽出与双方备战宝可梦合计数量相同数量的卡牌"}
 CS6bC-154	trainer		0	peek_and_keep	{"peek":7,"keep":1}
@@ -20966,10 +20905,8 @@ CS6bC-154	trainer		2	usage_condition	{"kind":"put_remaining_back","raw":"将剩�
 CS6bC-154	trainer		3	shuffle_deck	{}
 CS6bC-155	trainer		0	trainer_prerequisite	{"kind":"lost_zone_min","raw":"这张卡，只有在自己放逐区有10张以上（包含10张）卡牌时才可使用"}
 CS6bC-155	trainer		1	damage_received_mod	{"amount":-120,"target":"own_field","duration":"next_opp_turn"}
-CS6bC-158	trainer		0	peek_and_keep	{"peek":5,"keep":3,"maxCount":3,"minCount":3,"allowFewer":false,"allowEmpty":false}
-CS6bC-158	trainer		1	lost_zone	{}
-CS6bC-165	trainer		0	peek_and_keep	{"peek":5,"keep":3,"maxCount":3,"minCount":3,"allowFewer":false,"allowEmpty":false}
-CS6bC-165	trainer		1	lost_zone	{}
+CS6bC-158	trainer		0	peek_and_keep	{"peek":5,"keep":3,"maxCount":3,"minCount":3,"allowFewer":false,"allowEmpty":false,"remainder":"lost_zone"}
+CS6bC-165	trainer		0	peek_and_keep	{"peek":5,"keep":3,"maxCount":3,"minCount":3,"allowFewer":false,"allowEmpty":false,"remainder":"lost_zone"}
 CS6bC-166	trainer		0	trainer_prerequisite	{"kind":"only_last_hand_card","raw":"这张卡，只有在自己的手牌只剩这1张时才可使用"}
 CS6bC-166	trainer		1	usage_condition	{"kind":"draw_total_bench","raw":"从自己的牌库抽出与双方备战宝可梦合计数量相同数量的卡牌"}
 CS6bC-167	trainer		0	peek_and_keep	{"peek":7,"keep":1}
@@ -21037,8 +20974,7 @@ CSM1.5C-044	trainer		0	search_deck_to_hand	{"filter":"宝可梦","maxHp":60,"cou
 CSM1.5C-044	trainer		1	shuffle_deck	{}
 CSM1.5C-045	trainer		0	search_deck_to_hand	{"filter":"物品+【雷】能量","count":2,"maxCount":2,"minCount":2,"allowFewer":false,"allowEmpty":false}
 CSM1.5C-045	trainer		1	shuffle_deck	{}
-CSM1.5C-046	trainer		0	lost_zone	{}
-CSM1.5C-046	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"将对手弃牌区中与自己场上【火】宝可梦数量相同张数的任意卡牌，。"}
+CSM1.5C-046	trainer		0	usage_condition	{"kind":"generic_effect","raw":"将对手弃牌区中与自己场上【火】宝可梦数量相同张数的任意卡牌，放置于放逐区。"}
 CSM1.5C-047	trainer		0	search_deck_to_hand	{"filter":"名字带球·物品","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CSM1.5C-047	trainer		1	shuffle_deck	{}
 CSM1.5C-048	trainer		0	search_deck_to_hand	{"filter":"◇（棱镜之星）卡","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
@@ -21174,8 +21110,7 @@ CSM1aC-137	trainer		1	shuffle_deck	{}
 CSM1aC-137	trainer		2	end_turn	{}
 CSM1aC-138	trainer		0	switch_pokemon	{"who":"opponent"}
 CSM1aC-138	trainer		1	switch_pokemon	{"who":"self"}
-CSM1aC-139	trainer		0	lost_zone	{}
-CSM1aC-139	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"选择放置于对手场上宝可梦身上的\\"宝可梦道具\\"\\"特殊能量\\"以及场上的\\"竞技场\\"中的1张卡，。"}
+CSM1aC-139	trainer		0	usage_condition	{"kind":"generic_effect","raw":"选择放置于对手场上宝可梦身上的\\"宝可梦道具\\"\\"特殊能量\\"以及场上的\\"竞技场\\"中的1张卡，放置于放逐区。"}
 CSM1aC-140	trainer		0	search_deck_to_hand	{"filter":null,"count":3,"maxCount":3,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CSM1aC-140	trainer		1	shuffle_deck	{}
 CSM1aC-140	trainer		2	end_turn	{}
@@ -22638,8 +22573,7 @@ CSVSC-065	trainer		0	coin_flip	{"count":1}
 CSVSC-065	trainer		1	draw	{"count":4}
 CSVSC-065	trainer		2	draw	{"count":2}
 CSVSC-066	trainer		0	switch_pokemon	{"who":"opponent"}
-CSXC-015	trainer		0	peek_and_keep	{"peek":5,"keep":3,"maxCount":3,"minCount":3,"allowFewer":false,"allowEmpty":false}
-CSXC-015	trainer		1	lost_zone	{}
+CSXC-015	trainer		0	peek_and_keep	{"peek":5,"keep":3,"maxCount":3,"minCount":3,"allowFewer":false,"allowEmpty":false,"remainder":"lost_zone"}
 CSXC-016	trainer		0	trainer_prerequisite	{"kind":"own_pokemon_knocked_out_last_opponent_turn","raw":"这张卡，只有在上一个对手的回合，自己的宝可梦【昏厥】时才可使用"}
 CSXC-016	trainer		1	attach_energy_from_discard	{"filter":"基本能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSXC-016	trainer		2	search_deck_to_hand	{"filter":null,"count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
@@ -22665,8 +22599,7 @@ CSYC-016	trainer		0	attach_energy_from_discard	{"filter":"【水】能量","targ
 CSYC-016	trainer		1	draw	{"count":3}
 CSYC-016	trainer		2	usage_condition	{"kind":"shell_fragment","raw":"V\\"身上。"}
 CSYC-016	trainer		3	usage_condition	{"kind":"shell_fragment","raw":"然后，。"}
-CSZC-044	trainer		0	peek_and_keep	{"peek":5,"keep":3,"maxCount":3,"minCount":3,"allowFewer":false,"allowEmpty":false}
-CSZC-044	trainer		1	lost_zone	{}
+CSZC-044	trainer		0	peek_and_keep	{"peek":5,"keep":3,"maxCount":3,"minCount":3,"allowFewer":false,"allowEmpty":false,"remainder":"lost_zone"}
 CSZC-045	trainer		0	search_deck_to_hand	{"filter":"【水】宝可梦+物品","count":2,"maxCount":2,"minCount":2,"allowFewer":false,"allowEmpty":false}
 CSZC-045	trainer		1	shuffle_deck	{}
 CSZC-046	trainer		0	trainer_prerequisite	{"kind":"own_pokemon_knocked_out_last_opponent_turn","raw":"这张卡，只有在上一个对手的回合，自己的宝可梦【昏厥】时才可使用"}
@@ -22872,7 +22805,7 @@ CS6.5C-095	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"［关�
 CS6.5C-095	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"（当这张卡被放置于场上时，备战区有5只以上宝可梦（包含5只）的玩家，将宝可梦丢到弃牌区直到备战区宝可梦变为4只为止。"}
 CS6.5C-095	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"丢到弃牌区的动作由这张卡的持有者开始执行。"}
 CS6aC-130	trainer		0	usage_condition	{"kind":"generic_effect","raw":"双方玩家，每次在自己的回合有1次机会，可查看自己的牌库上方的1张卡后放回原处。若希望，可将该卡牌丢到弃牌区。在自己的回合只可以将1张竞技场卡放置于战斗区旁。若有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区。"}
-CS6bC-130	trainer		0	trigger	{"event":"knocked_out","effect":{"action":"lost_zone","params":{}},"effects":[{"action":"lost_zone","params":{}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"不将该宝可梦丢到弃牌区，而是。"}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"（除宝可梦以外的卡牌，全部丢到弃牌区。"}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"）在自己的回合只可以将1张竞技场卡放置于战斗区旁。"}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"若有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区。"}}],"optional":true}
+CS6bC-130	trainer		0	trigger	{"event":"knocked_out","effect":{"action":"usage_condition","params":{"kind":"generic_effect","raw":"不将该宝可梦丢到弃牌区，而是放置于放逐区。（除宝可梦以外的卡牌，全部丢到弃牌区。）在自己的回合只可以将1张竞技场卡放置于战斗区旁。若有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区。"}},"effects":[{"action":"usage_condition","params":{"kind":"generic_effect","raw":"不将该宝可梦丢到弃牌区，而是放置于放逐区。（除宝可梦以外的卡牌，全部丢到弃牌区。）在自己的回合只可以将1张竞技场卡放置于战斗区旁。若有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区。"}}],"optional":true}
 CSAC-023	trainer		0	recover_from_discard	{"filter":"基本能量","target":"hand","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSAC-023	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"双方玩家，在自己的回合有1次机会，可。"}
 CSBC-017	trainer		0	usage_condition	{"kind":"single_strike_cost_cond","raw":"双方玩家，每次在自己的回合有1次机会，若将自己手牌中的1张\\"一击\\"卡丢到弃牌区，则可"}
@@ -23096,11 +23029,11 @@ CSVM2cC-032	trainer		0	trigger	{"event":"energy_attached","effect":{"action":"da
 CSVNC-039	trainer		0	heal_status	{"target":"self"}
 CSVNC-040	trainer		0	heal_all	{"amount":10}
 CSVNC-040	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"每次在自己的回合有1次机会，在这个回合，从手牌使出了支援者的玩家，可。"}
-CSXC-020	trainer		0	trigger	{"event":"knocked_out","effect":{"action":"lost_zone","params":{}},"effects":[{"action":"lost_zone","params":{}},{"action":"usage_condition","params":{"kind":"stadium_one_rule","raw":"在自己的回合，只可以将1张竞技场卡放置于战斗区旁。若有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区"}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"不将该宝可梦丢到弃牌区，而是。"}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"（除宝可梦以外的卡牌，全部丢到弃牌区。"}}],"optional":true}
+CSXC-020	trainer		0	trigger	{"event":"knocked_out","effect":{"action":"usage_condition","params":{"kind":"stadium_one_rule","raw":"在自己的回合，只可以将1张竞技场卡放置于战斗区旁。若有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区"}},"effects":[{"action":"usage_condition","params":{"kind":"stadium_one_rule","raw":"在自己的回合，只可以将1张竞技场卡放置于战斗区旁。若有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区"}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"不将该宝可梦丢到弃牌区，而是放置于放逐区。"}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"（除宝可梦以外的卡牌，全部丢到弃牌区。"}}],"optional":true}
 CSZC-054	trainer		0	ability_nullify	{"scope":"both_field","duration":"while_active","exceptAbilityNames":[],"sourceZone":"field"}
 CSZC-055	trainer		0	energy_provides	{"types":["colorless"],"count":1}
 CSZC-055	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"双方场上宝可梦身上附着的特殊能量的效果全部消除，。"}
-CSZC-056	trainer		0	trigger	{"event":"knocked_out","effect":{"action":"lost_zone","params":{}},"effects":[{"action":"lost_zone","params":{}},{"action":"usage_condition","params":{"kind":"stadium_one_rule","raw":"在自己的回合，只可以将1张竞技场卡放置于战斗区旁。若有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区"}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"不将该宝可梦丢到弃牌区，而是。"}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"（除宝可梦以外的卡牌，全部丢到弃牌区。"}}],"optional":true}
+CSZC-056	trainer		0	trigger	{"event":"knocked_out","effect":{"action":"usage_condition","params":{"kind":"stadium_one_rule","raw":"在自己的回合，只可以将1张竞技场卡放置于战斗区旁。若有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区"}},"effects":[{"action":"usage_condition","params":{"kind":"stadium_one_rule","raw":"在自己的回合，只可以将1张竞技场卡放置于战斗区旁。若有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区"}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"不将该宝可梦丢到弃牌区，而是放置于放逐区。"}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"（除宝可梦以外的卡牌，全部丢到弃牌区。"}}],"optional":true}
 SSP-187	trainer		0	block_status	{"status":"confusion","target":"both_field"}
 SSP-187	trainer		1	usage_condition	{"kind":"stadium_one_rule","raw":"在自己的回合，只可以将1张竞技场卡放置于战斗区旁。若有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区"}
 SSP-187	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"已经处于的【混乱】状态，也全部恢复。"}
