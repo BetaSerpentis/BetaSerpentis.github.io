@@ -86,6 +86,14 @@ export async function executeEffects(gs, player, effects, options = {}) {
   }
 }
 
+/** 返回宝可梦在己方场上的槽位名（'active' / 'bench-N'），不在场上返回 null */
+function _slotOfMon(pl, mon) {
+  if (!pl || !mon) return null;
+  if (pl.active === mon) return 'active';
+  const i = (pl.bench || []).indexOf(mon);
+  return i >= 0 ? `bench-${i}` : null;
+}
+
 function _toolCardValue(tool) {
   return (tool && typeof tool === 'object') ? (tool.cardId || tool.id || tool.name || tool) : tool;
 }
@@ -913,7 +921,16 @@ const EXECUTORS = {
     pl.hand.push(...selectedCards);
 
     const remainderMode = p.remainder || (p.keepOrder ? 'top_original' : 'shuffle');
-    if (remainderMode === 'shuffle') {
+    if (remainderMode === 'discard') {
+      // D「将剩余的卡牌丢到弃牌区」
+      pl.discard.push(...remainder);
+      gs.addLog(`剩余的 ${remainder.length} 张卡丢到弃牌区`);
+    } else if (remainderMode === 'deck_bottom') {
+      // D2「将剩余的卡牌全部翻到反面重洗，放回牌库下方」
+      // draw() 用 deck.pop() 取牌，所以牌库下方 = 数组前端
+      pl.deck.unshift(...remainder);
+      gs.addLog(`剩余的 ${remainder.length} 张卡放回牌库下方`);
+    } else if (remainderMode === 'shuffle') {
       pl.deck.push(...remainder);
       gs._shuffle(pl.deck);
     } else {
@@ -1171,6 +1188,11 @@ const EXECUTORS = {
   async heal(gs, pl, p, eff) {
     // 「恢复自己的身上附着能量的1只宝可梦「N」点HP」→ 需要选目标（且目标必须附有能量）
     let mon = pl.active;
+    if (p.target === 'previous_switched') {
+      // F 玛奥&水莲：「回复被换到备战区的宝可梦N点HP」
+      const rec = gs._switchToBench;
+      mon = (rec && rec.player === pl && (pl.bench || []).includes(rec.mon)) ? rec.mon : pl.active;
+    }
     if (p.target === 'choose') {
       const slot = await _pickPokemonTarget(gs, pl, pl, {
         mode:'heal', side:'self', allowActive:true, allowBench:true, prompt:'选择要回复的宝可梦',
@@ -1376,7 +1398,7 @@ const EXECUTORS = {
     } else {
       const slot = await _pickPokemonTarget(gs, pl, pl, { mode:'switch', side:'self', allowActive:false, allowBench:true, prompt:'选择换上场的备战宝可梦', failRequired, requiredAction:eff?.action });
       const idx = slot?.startsWith('bench-') ? parseInt(slot.replace('bench-', '')) : -1;
-      if (pl.bench[idx]) { const t = pl.active; pl.active = pl.bench.splice(idx,1)[0]; if (t) { pl.bench.push(t); gs._removeSpecialConditions?.(t); } gs.addLog('换位'); }
+      if (pl.bench[idx]) { const t = pl.active; pl.active = pl.bench.splice(idx,1)[0]; if (t) { pl.bench.push(t); gs._removeSpecialConditions?.(t); gs._switchToBench = { player: pl, mon: t }; } gs.addLog('换位'); }
       else if (failRequired) _requiredFailure(eff?.action, 'required_invalid_switch_target');
     }
   },
@@ -1524,10 +1546,14 @@ const EXECUTORS = {
 
   // ===== 牌库附能 =====
   async attach_energy_from_deck(gs, pl, p) {
+    // F 赤红&青绿：「附着于进化后的宝可梦身上」
+    const evolvedRec = gs._lastEvolved;
+    const evolvedSlot = p.target === 'previous_evolved' && evolvedRec && evolvedRec.player === pl
+      ? _slotOfMon(pl, evolvedRec.mon) : null;
     // target:'self' = 「附于这只宝可梦身上」（招式效果，指使用者自己），不要再弹目标选择
-    const slot = p.target === 'self' && pl.active
-      ? 'active'
-      : await _pickPokemonTarget(gs, pl, pl, { mode:'attach-energy', side:'self', allowActive:true, allowBench:true, prompt:'选择附能目标',
+    const slot = evolvedSlot
+      || (p.target === 'self' && pl.active ? 'active' : null)
+      || await _pickPokemonTarget(gs, pl, pl, { mode:'attach-energy', side:'self', allowActive:true, allowBench:true, prompt:'选择附能目标',
           // ② 同弃牌区版：排除会因指示物被昏厥的目标
           slotFilter: candidateSlot => !_wouldBeKnockedOutByCounters(_getMon(pl, candidateSlot), p.damageCountersOnAttachedTarget)
         });
@@ -1732,6 +1758,65 @@ const EXECUTORS = {
   // duration='next_opp_turn' 时（如大岩蛇「坚硬头锤」）：生效窗口是**对手的下一个回合**，
   // 用 attackShieldArmed 标记它，让 GameState.endTurn 在自己回合结束时不要清掉，
   // 改由对手回合结束时清除（见 GameState.endTurn 的 1 / 1.1 两段）。
+  /**
+   * E 「然后，将这只宝可梦，以及放置于其身上的所有卡牌，丢到弃牌区」
+   * ⚠️ 这**不是昏厥**：不拿奖赏卡，只把这张卡与它身上的能量/道具放进弃牌区。
+   * 「这只宝可梦」= 特性/招式的来源（eff.source，由 BattleEngine 注入）；拿不到就退回出战宝可梦。
+   */
+  discard_self_with_attachments(gs, pl, p, eff) {
+    const mon = eff?.source || pl.active;
+    if (!mon) return;
+    if (![pl.active, ...(pl.bench || [])].filter(Boolean).includes(mon)) {
+      gs.addLog('（该宝可梦已不在场上）');
+      return;
+    }
+    pl.discard.push(_toolCardValue(mon));
+    for (const e of (mon.energy || [])) pl.discard.push(_toolCardValue(e));
+    if (mon.tool) pl.discard.push(_toolCardValue(mon.tool));
+    const wasActive = pl.active === mon;
+    const bi = (pl.bench || []).indexOf(mon);
+    if (bi >= 0) pl.bench.splice(bi, 1);
+    if (wasActive) {
+      pl.active = pl.bench.length ? pl.bench.shift() : null;
+      if (pl.active) gs.addLog(`${pl.name} 换上 ${pl.active.name}`);
+    }
+    gs.recomputePassives?.();
+    gs.addLog(`${mon.name} 与身上的所有卡牌被丢到弃牌区`);
+  },
+
+  /**
+   * F 可选代价：「另外，当使用这张卡时，可将N张自己的手牌丢到弃牌区。在这种情况下，…」
+   * 支付成功才执行 then 里的效果；选不满 N 张视为不支付，整段跳过。
+   * AI（无 UI）路径直接不支付 —— 自动选择会「全选」，等于无条件支付代价，反而更差。
+   */
+  async optional_hand_cost(gs, pl, p, eff, options) {
+    const need = p.count || 1;
+    const then = Array.isArray(p.then) ? p.then : [];
+    if (!then.length) { gs.addLog('（该卡没有可选代价的后续效果）'); return; }
+    if (!gs._onPendingPick) { gs.addLog('（自动决策不支付可选代价，跳过后续效果）'); return; }
+    const sel = await _pickCardsFromZone(gs, pl, pl, pl.hand, need, {
+      source:'optional-cost', prompt:`可选择弃掉 ${need} 张手牌来发动后续效果（不选则跳过）`,
+      allowFewer:true, allowEmpty:true, maxCount:need, minCount:0, optional:true,
+    });
+    if (sel.length < need) { gs.addLog('未支付可选代价，跳过后续效果'); return; }
+    for (const item of sel.sort((a, b) => b.index - a.index)) pl.discard.push(pl.hand.splice(item.index, 1)[0]);
+    gs.addLog(`弃掉 ${need} 张手牌`);
+    await executeEffects(gs, pl, then);
+  },
+
+  /** F 古兹马&哈拉：「将「宝可梦道具」和「特殊能量」各1张加入手牌」→ 依次各检索 1 张 */
+  async search_deck_multi(gs, pl, p) {
+    for (const spec of (p.specs || [])) {
+      const selected = await _pickCardsFromZone(gs, pl, pl, pl.deck, spec.count || 1, {
+        source:'search-deck', filter: card => _cardMatchesFilter(gs, card, spec.filter),
+        allowFewer:true, optional:true, failRequired:false,
+      });
+      for (const item of selected.sort((a, b) => b.index - a.index)) pl.hand.push(pl.deck.splice(item.index, 1)[0]);
+      if (selected.length) gs.addLog(`从牌库拿了「${spec.filter}」${selected.length} 张`);
+    }
+    gs._shuffle?.(pl.deck);
+  },
+
   // ③ 招式版伤害硬币护盾（残影斩）：在下一个对手的回合，每次受到招式伤害都要重掷硬币
   attack_damage_flip_shield(gs, pl, p) {
     const mon = pl.active;

@@ -332,6 +332,8 @@ export class GameState {
     if(newCardId)t.cardId=newCardId;
     t.name=cd.name;t.maxHp=cd.hp;t.hp=Math.max(cd.hp-dmg,10);
     t.stage=cd.stage||t.stage;t.evolvesFrom=cd.evolvesFrom||null;t.ruleText=cd.ruleText||'';t.rule2Text=cd.rule2Text||'';t.ruleBox=cd.ruleBox||'';t.isEx=!!cd.isEx;t.isRadiant=!!cd.isRadiant;t.hasRuleBox=!!cd.hasRuleBox;
+    // 记录最近一次进化（供「附着于进化后的宝可梦身上」这类后续效果定位目标）
+    this._lastEvolved={player:pl,mon:t};
     t.attacks=cd.attacks;t.element=cd.element;t.weakness=cd.weakness||null;t.resistance=cd.resistance||null;t.weaknessMultiplier=cd.weaknessMultiplier||2;t.resistanceValue=cd.resistanceValue??-30;t.retreatCost=cd.retreatCost??1;t.ability=cd.ability||null;t.abilityUsed=false;t.abilityDisabled=false;t.abilityDisabledBy=null;t.placedThisTurn=false;t.evolvedThisTurn=true;
     this._removeSpecialConditions(t);
     this.addLog(`${pl.name} 的宝可梦进化成了 ${cd.name}！`);this.recomputePassives();this.emitTriggerEvent('evolved',{target:t,owner:pl});return true;}

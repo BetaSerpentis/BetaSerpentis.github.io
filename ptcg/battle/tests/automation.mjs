@@ -6888,6 +6888,120 @@ await test('P2-3 顺带措辞：甲贺忍蛙BREAK「巨大飞水手里剑」', (
   assert.ok(dp && dp.params.count === 6 && dp.params.target === 'opponent_any', '应解析出放置 6 个指示物');
 });
 
+
+// ============================================================
+//  P2 批 4：剩余卡牌处置 / 自身弃场 / 可选代价
+// ============================================================
+
+await test('P2-4 D 剩余卡牌丢弃牌区：并入前面的 peek_and_keep', () => {
+  const e = parseEffect('在自己的回合可以使用1次。查看自己牌库上方3张卡牌，选择其中1张卡牌，加入手牌。将剩余的卡牌放于弃牌区。').effects;
+  const pk = e.find(x => x.action === 'peek_and_keep');
+  assert.ok(pk, '应解析出 peek_and_keep');
+  assert.equal(pk.params.remainder, 'discard');
+  assert.ok(!e.some(x => x.action === 'action_count_override'), '不应留下未合并的改写句');
+});
+
+await test('P2-4 D2 剩余卡牌翻面放回牌库下方', () => {
+  const e = parseEffect('查看自己牌库上方4张卡牌，选择其中2张卡牌，加入手牌。将剩余的卡牌全部翻到反面重洗，放回牌库下方。').effects;
+  const pk = e.find(x => x.action === 'peek_and_keep');
+  assert.equal(pk.params.remainder, 'deck_bottom');
+});
+
+await test('P2-4 D2 执行：剩余卡牌进牌库下方（牌库顶仍是原来的顶）', async () => {
+  const eff = parseEffect('查看自己牌库上方4张卡牌，选择其中2张卡牌，加入手牌。将剩余的卡牌全部翻到反面重洗，放回牌库下方。').effects;
+  const gs = new GameState();
+  const pl = gs.player1;
+  // deck 末尾 = 牌库顶（draw 用 pop）：['底','a','b','c','d'] 的顶是 d
+  pl.deck = ['bottom', 'a', 'b', 'c', 'd'];
+  pl.hand = [];
+  await executeEffects(gs, pl, eff);
+  assert.equal(pl.hand.length, 2, '应拿 2 张到手牌');
+  // 剩余 2 张被放到「下方」，所以牌库顶（pop 出来的第一张）不应是那 2 张之一
+  const top = pl.deck[pl.deck.length - 1];
+  assert.ok(!(pl.hand.includes(top)), `牌库顶不应是放回下方的剩余卡：top=${top}`);
+});
+
+await test('P2-4 D 执行：剩余卡牌进弃牌区', async () => {
+  const eff = parseEffect('查看自己牌库上方3张卡牌，选择其中1张卡牌，加入手牌。将剩余的卡牌放于弃牌区。').effects;
+  const gs = new GameState();
+  const pl = gs.player1;
+  pl.deck = ['x1', 'x2', 'x3'];
+  pl.hand = [];
+  pl.discard = [];
+  await executeEffects(gs, pl, eff);
+  assert.equal(pl.hand.length, 1, '应拿 1 张');
+  assert.equal(pl.discard.length, 2, '剩余 2 张应进弃牌区');
+  assert.equal(pl.deck.length, 0, '牌库应清空');
+});
+
+await test('P2-4 E 自身弃场：不拿奖赏卡，但身上的卡牌一起进弃牌区', async () => {
+  const eff = parseEffect('给对手的1只宝可梦身上，放置2个伤害指示物。然后，将这只宝可梦，以及放于其身上的所有卡牌，放于弃牌区。').effects;
+  const discard = eff.find(x => x.action === 'discard_self_with_attachments');
+  assert.ok(discard, '应解析出自身弃场动作');
+
+  const gs = new GameState();
+  const pl = gs.player1, opp = gs.player2;
+  const self = mon('被弃者', 'self1');
+  self.energy = [{ cardId:'e1', name:'基本草能量' }];
+  self.tool = { cardId:'t1', name:'道具' };
+  const backup = mon('替补', 'backup1');
+  pl.active = self;
+  pl.bench = [backup];
+  pl.discard = [];
+  const prizesBefore = opp.prizes.length;
+  // 特性来源 = 被弃者自己
+  await executeEffects(gs, pl, eff.map(x => ({ ...x, params:{ ...x.params }, source:self, sourceZone:'active' })));
+  assert.equal(pl.active, backup, '应换上备战宝可梦');
+  assert.ok(pl.discard.includes('self1'), '自身卡应进弃牌区');
+  assert.ok(pl.discard.includes('e1'), '身上的能量应一起进弃牌区');
+  assert.ok(pl.discard.includes('t1'), '身上的道具应一起进弃牌区');
+  assert.equal(opp.prizes.length, prizesBefore, '这不是昏厥，不应拿奖赏卡');
+});
+
+await test('P2-4 F 可选代价：解析出 then 且不含内部字段', () => {
+  const e = parseEffect('将自己牌库中的1张「竞技场」，在给对手看过之后，加入手牌。并重洗牌库。另外，当使用这张卡牌时，可将2张自己的手牌放于弃牌区。在这种情况下，可将「宝可梦道具」和「特殊能量」各1张加入手牌。').effects;
+  const gate = e.find(x => x.action === 'optional_hand_cost');
+  assert.ok(gate, '应解析出可选代价');
+  assert.equal(gate.params.count, 2);
+  assert.equal(gate.params.then.length, 1, '后续效果应收进 then');
+  assert.equal(gate.params.then[0].action, 'search_deck_multi');
+  for (const t of gate.params.then) assert.ok(!('_pos' in t), 'then 里不应残留 _pos');
+});
+
+await test('P2-4 F 三种奖励条款都能解析', () => {
+  const 玛奥 = parseEffect('将自己的战斗宝可梦与备战宝可梦互换。另外，当使用这张卡牌时，可将2张自己的手牌放于弃牌区。在这种情况下，回复被换到备战区的宝可梦「120」点HP。').effects;
+  const 玛奥Then = 玛奥.find(x => x.action === 'optional_hand_cost').params.then;
+  assert.equal(玛奥Then[0].action, 'heal');
+  assert.equal(玛奥Then[0].params.target, 'previous_switched');
+
+  const 赤红 = parseEffect('从自己的牌库中选择1张，从自己场上1只宝可梦进化而来的「宝可梦GX」，放于该宝可梦身上进行进化。并重洗牌库。另外，当使用这张卡牌时，可将2张自己的手牌放于弃牌区。在这种情况下，将自己牌库中最多2张基本能量附着于进化后的宝可梦身上。').effects;
+  const 赤红Then = 赤红.find(x => x.action === 'optional_hand_cost').params.then;
+  assert.equal(赤红Then[0].action, 'attach_energy_from_deck');
+  assert.equal(赤红Then[0].params.target, 'previous_evolved');
+  assert.equal(赤红Then[0].params.count, 2);
+});
+
+await test('P2-4 F 可选代价：自动决策（无 UI）不支付、不执行后续', async () => {
+  const e = parseEffect('另外，当使用这张卡牌时，可将1张自己的手牌放于弃牌区。在这种情况下，从牌库上方抽取3张卡牌。').effects;
+  const gate = e.find(x => x.action === 'optional_hand_cost');
+  const gs = new GameState();
+  const pl = gs.player1;
+  pl.hand = ['h1', 'h2'];
+  pl.deck = ['d1', 'd2', 'd3', 'd4'];
+  pl.discard = [];
+  await executeEffects(gs, pl, [gate]);
+  assert.equal(pl.discard.length, 0, '不应弃手牌');
+  assert.equal(pl.hand.length, 2, '手牌不应减少');
+  assert.equal(pl.deck.length, 4, '后续的抽卡不应执行');
+});
+
+await test('P2-4 改写句找不到目标时转回未建模标记（不留在库里当空动作）', () => {
+  // 「将牌库上方N张翻到正面…将剩余的卡牌丢到弃牌区」这类前半句属别的机制，没有 peek_and_keep
+  const e = parseEffect('将自己的牌库上方6张卡牌翻到正面。造成其中【超】宝可梦数量×60点伤害。将正面朝上的【超】宝可梦放回牌库并重洗牌库。将剩余的卡牌放于弃牌区。').effects;
+  assert.ok(!e.some(x => x.action === 'action_count_override'), '不应留下孤儿改写句');
+  assert.ok(e.some(x => x.params?.kind === 'residual_sentence'), '应转成未建模标记，指标上仍算未完成');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

@@ -467,6 +467,20 @@ const RULES = [
   { re: /选择对手的1只宝可梦[，,]?放置(\d+)个伤害指示物/, act:'damage_place', p:m=>({ target:'opponent_any', count:+m[1] }) },
   { re: /选择自己手牌中的1张【(.+?)】能量[，,]?(?:丢到|放于)弃牌区/, act:'discard_hand', p:m=>({ filter:`【${m[1]}】能量`, count:1, zone:'hand' }) },
 
+  // ===== P2 批 4 =====
+  // D/D2「将剩余的卡牌丢到弃牌区 / 全部翻到反面重洗放回牌库下方」：
+  // 指的是前一句「查看牌库上方 N 张，选其中 M 张加入手牌」剩下没拿的那些 → 并入 peek_and_keep
+  { re: /将剩余的卡牌全部翻到反面重洗[，,]?放回牌库下方/, act:'action_count_override', p:m=>({ targets:['peek_and_keep'], set:{ remainder:'deck_bottom' }, raw:m[0] }) },
+  { re: /将剩余的卡牌(?:丢到|放于)弃牌区/, act:'action_count_override', p:m=>({ targets:['peek_and_keep'], set:{ remainder:'discard' }, raw:m[0] }) },
+  // E「然后，将这只宝可梦，以及放置于其身上的所有卡牌，丢到弃牌区」→ 自身弃场（**不是**昏厥，不拿奖赏卡）
+  { re: /然后[，,]?将这只宝可梦[，,]?以及放(?:置)?于其身上的所有卡牌[，,]?(?:丢到|放于)弃牌区/, act:'discard_self_with_attachments', p:()=>({}) },
+  // F 可选代价：「另外，当使用这张卡时，可将N张自己的手牌丢到弃牌区」→ 后续效果由解析末尾收进 then
+  { re: /另外[，,]?当使用这张卡时[，,]?可将(\d+)张自己的手牌(?:丢到|放于)弃牌区/, act:'optional_hand_cost', p:m=>({ count:+m[1] }) },
+  // F 的三种奖励条款
+  { re: /可将["“”「」]?宝可梦道具["“”「」]?和["“”「」]?特殊能量["“”「」]?各1张加入手牌/, act:'search_deck_multi', p:()=>({ specs:[{ filter:'宝可梦道具', count:1 }, { filter:'特殊能量', count:1 }] }) },
+  { re: /恢复被换到备战区的宝可梦["“”「」]?(\d+)["“”「」]?HP/, act:'heal', p:m=>({ amount:+m[1], target:'previous_switched' }) },
+  { re: /将自己的牌库中最多(\d+)张基本能量附(?:着)?于进化后的宝可梦身上/, act:'attach_energy_from_deck', p:m=>({ filter:'基本能量', count:+m[1], maxCount:+m[1], allowFewer:true, target:'previous_evolved' }) },
+
   // ===== HP恢复 =====
   // 条件回复量：如「派帕的三明治」——若是「派帕的宝可梦」则回复量由 30 变为 100
   { re: /恢复(?:自己的)?(?:战斗|战斗场)?宝可梦["“”「」]?(\d+)["“”「」]?HP[。.]若(?:那只|该)宝可梦是["“”「」]?(.+?的)宝可梦["“”「」]?[，,]?则恢复的HP变为["“”「」]?(\d+)["“”「」]?/, act:'heal', p:m=>({amount:+m[1],ifNamePrefix:m[2],amountThen:+m[3]}) },
@@ -1708,6 +1722,19 @@ export function parseEffect(text) {
     for (const e of rest) effects.push(e);
     for (const e of endTurns) effects.push(e); // 多个时保持原有相对顺序
   }
+  // 可选代价（「另外，当使用这张卡时，可将N张自己的手牌丢到弃牌区。在这种情况下，…」）：
+  // 把位置在它**之后**的动作收进 then，由执行端在支付代价后才执行；不支付就整段跳过。
+  // 位置排序已修好（见 posMap），所以「之后」是可靠的。
+  const gateIdx = [];
+  for (let i = 0; i < effects.length; i++) if (effects[i].action === 'optional_hand_cost') gateIdx.push(i);
+  for (const gi of gateIdx) {
+    const g = effects[gi];
+    const then = effects.slice(gi + 1);
+    if (!then.length) continue; // 没有后续效果就保持原样（执行端会记日志跳过）
+    for (const t of then) delete t._pos; // 收进 then 的动作同样不能泄漏内部字段
+    g.params = { ...g.params, then };
+    effects.length = gi + 1;
+  }
   for (const e of effects) delete e._pos;
   // 条件改写句合并：把 action_count_override 并入它的目标动作。
   // 这样执行端只需在目标动作里读条件参数，不必处理“改写发生在动作之后”的时序问题。
@@ -1734,8 +1761,13 @@ export function parseEffect(text) {
       if (target >= 0) {
         effects[target].params = { ...effects[target].params, ...set };
         drop.add(oi);
+        continue;
       }
-      // 找不到目标时保留原样，执行端会记为未实现而不是静默丢弃
+      // 找不到目标：说明这句改写所修饰的动作本身没解析出来（如「将牌库上方N张翻到正面…」这类
+      // 另属别的机制）。**转回未建模标记**而不是留在库里：
+      //   ① 执行端不必为一个空动作报「未实现」噪声；
+      //   ② 指标上仍算未建模，不会把问题藏起来。
+      effects[oi] = { action:'usage_condition', params:{ kind:'residual_sentence', raw: ov.params?.raw || '条件改写句（未找到目标动作）' } };
     }
     if (drop.size) {
       const kept = effects.filter((_, i) => !drop.has(i));
