@@ -659,9 +659,30 @@ export class GameState {
     return c;
   }
 
+  /**
+   * 判断一个「附着能量」表示是否属于某属性。
+   * 兼容：① 带 provides 的规范表示 ②「基本【火】能量」③「基本火能量」三种写法。
+   */
+  _energyCardMatchesType(e, wantCn){
+    const want = String(wantCn || '');
+    if (!want) return true;
+    const ELEM = { '草':'grass','火':'fire','水':'water','雷':'lightning','斗':'fighting','恶':'dark','钢':'metal','超':'psychic','无':'colorless','龙':'dragon','妖':'fairy' };
+    const wantKey = ELEM[want] || want;
+    const o = (e && typeof e === 'object') ? e : null;
+    if (o && o.provides) return o.provides === wantKey;
+    const s = String(o ? (o.name || o.cardId || '') : e);
+    return s.includes(`【${want}】`) || (s.includes('基本') && s.includes(want));
+  }
+
   /** damage_place 的计数来源取值（只读，给「与…张数相同数量的伤害指示物」用） */
-  _counterValueForDamage(pl, kind){
+  _counterValueForDamage(pl, kind, type){
     switch(kind){
+      // 「掷与这只宝可梦身上附有的（【X】）能量数量相同次数的硬币」
+      case 'self_energy': return pl.active?.energy?.length || 0;
+      // 能量属性判断要兼容两种卡名写法（「基本【火】能量」与「基本火能量」）：
+      // 优先用能量对象上的 provides（引擎规范的属性键），没有再做名字匹配。
+      case 'self_energy_type': return (pl.active?.energy||[]).filter(e=>this._energyCardMatchesType(e, type)).length;
+      case 'both_active_energy': return (pl.active?.energy?.length||0) + (this.getOpponent(pl).active?.energy?.length||0);
       case 'discard_pokemon': return (pl.discard||[]).filter(d=>{const cd=(typeof d==='object'&&d)?d:this.cardResolver?.getCard?.(d);return cd&&cd.cardType==='pokemon';}).length;
       case 'opponent_prizes_taken': { const opp=this.getOpponent(pl); return Math.max(0, (opp?.prizes?.length!=null? (6-(opp.prizes.length)) : 0)); }
       case 'hand_count': return pl?.hand?.length||0;

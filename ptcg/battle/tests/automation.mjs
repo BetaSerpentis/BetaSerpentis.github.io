@@ -8359,6 +8359,79 @@ await test('poison 状态被清除后，重新中毒回到默认 1 个指示物'
   assert.equal(opp.active.hp, 190, '重新中毒回到 1 个指示物 = 10 伤害');
 });
 
+
+// ============================================================
+//  coin：「掷与<来源>相同次数的硬币，造成正面次数×N伤害」（动态次数）
+// ============================================================
+
+await test('coin 四种计数来源都能解析（不再落到未建模标记）', () => {
+  const table = [
+    ['抛掷与这只宝可梦身上附有的能量数量相同次数的硬币，造成正面次数×90点伤害。', 'self_energy', null],
+    ['抛掷与这只宝可梦身上附着的【火】能量数量相同次数的硬币，造成正面次数×80伤害。', 'self_energy_type', '火'],
+    ['抛掷与自己场上宝可梦数量相同次数的硬币，造成「正面」次数×20伤害。', 'own_field_pokemon_count', null],
+    ['抛掷与双方战斗宝可梦身上附着的能量数量相同次数的硬币，造成正面次数×60伤害。', 'both_active_energy', null],
+  ];
+  for (const [text, countFrom, type] of table) {
+    const e = parseEffect(text).effects;
+    const m = e.find(x => x.action === 'coin_flip_damage');
+    assert.ok(m, `「${text}」应解析出 coin_flip_damage（实际 ${JSON.stringify(e.map(x => x.action))}）`);
+    assert.equal(m.params.countFrom, countFrom);
+    if (type) assert.equal(m.params.type, type);
+    assert.ok(!e.some(x => x.params?.kind === 'coin_per_energy_damage'), '不应再是未建模标记');
+  }
+});
+
+await test('coin 运行时：次数=身上能量数，伤害=正面次数×N', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('我', 'a1');
+  pl.active.energy = [{ cardId:'e1', name:'基本火能量' }, { cardId:'e2', name:'基本火能量' }, { cardId:'e3', name:'基本火能量' }];
+  opp.active = mon('敌', 'o1');
+  opp.active.hp = 300; opp.active.maxHp = 300;
+  const saved = Math.random;
+  Math.random = () => 0; // 全正面
+  try {
+    await executeEffects(gs, pl, parseEffect('抛掷与这只宝可梦身上附有的能量数量相同次数的硬币，造成正面次数×30点伤害。').effects);
+  } finally { Math.random = saved; }
+  assert.equal(opp.active.hp, 300 - 90, '3 个能量 → 3 次硬币全正面 → 90 伤害');
+});
+
+await test('coin 运行时：指定属性能量只数该属性', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('我', 'a1');
+  pl.active.energy = [
+    { cardId:'e1', name:'基本火能量' },
+    { cardId:'e2', name:'基本水能量' },
+  ];
+  opp.active = mon('敌', 'o1');
+  opp.active.hp = 300; opp.active.maxHp = 300;
+  const saved = Math.random;
+  Math.random = () => 0;
+  try {
+    await executeEffects(gs, pl, parseEffect('抛掷与这只宝可梦身上附着的【火】能量数量相同次数的硬币，造成正面次数×50伤害。').effects);
+  } finally { Math.random = saved; }
+  assert.equal(opp.active.hp, 300 - 50, '只有 1 个火能量 → 1 次硬币 → 50 伤害');
+});
+
+await test('coin 运行时：没有能量则掷 0 次、不造成伤害', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('我', 'a1');
+  pl.active.energy = [];
+  opp.active = mon('敌', 'o1');
+  opp.active.hp = 300; opp.active.maxHp = 300;
+  const saved = Math.random;
+  Math.random = () => 0;
+  try {
+    await executeEffects(gs, pl, parseEffect('抛掷与这只宝可梦身上附有的能量数量相同次数的硬币，造成正面次数×90点伤害。').effects);
+  } finally { Math.random = saved; }
+  assert.equal(opp.active.hp, 300, '0 个能量 → 0 次硬币 → 无伤害');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

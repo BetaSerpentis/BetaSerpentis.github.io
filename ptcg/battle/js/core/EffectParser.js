@@ -1249,7 +1249,8 @@ const RULES = [
   { re: /若使用了这个招式，则这只宝可梦，在离开战斗场之前无法使用["“”]([^"“”]+)["“”]/, act:'usage_condition', p:m=>trainerPrerequisite('move_lock_after_use', m[0]) },
   { re: /当这只宝可梦的HP为全满的状态下，这只宝可梦受到招式的伤害而【昏厥】时，这只宝可梦不会【昏厥】，而是以剩余HP为["“”]10["“”]的状态留在场上/, act:'usage_condition', p:m=>trainerPrerequisite('endure_at_10_when_full', m[0]) },
   { re: /掷硬币直到出现反面，从自己的牌库抽出与出现正面次数相同数量的卡牌/, act:'usage_condition', p:m=>trainerPrerequisite('coin_draw_till_tails', m[0]) },
-  { re: /掷与这只宝可梦身上附着的能量数量相同次数的硬币，造成正面次数[×x](\d+)伤害/, act:'usage_condition', p:m=>trainerPrerequisite('coin_per_energy_damage', m[0]) },
+  // 升级：原为未建模标记 → 掷硬币次数由「身上能量数」动态决定，伤害 = 正面次数 × N
+  { re: /掷与这只宝可梦身上附着的(?:【(.+?)】)?能量数量相同次数的硬币[，,]?造成正面次数[×x](\d+)伤害/, act:'coin_flip_damage', p:m=>({ countFrom:m[1]?'self_energy_type':'self_energy', type:m[1]||null, damage_per:+m[2] }) },
   // 升级：原为未建模标记 → 按「对手已获得的奖赏卡张数×N」放置伤害指示物
   { re: /将对手已经获得的奖赏卡张数[×x](\d+)个伤害指示物[，,]?放置于对手的战斗宝可梦身上/, act:'damage_place', p:m=>({ target:'opponent_active', countFrom:'opponent_prizes_taken', mult:+m[1] }) },
   { re: /在对手的1只宝可梦身上放置伤害指示物，直到其剩余HP变为["“”]?\d+["“”]?点为止/, act:'usage_condition', p:m=>trainerPrerequisite('counters_until_100hp', m[0]) },
@@ -1891,6 +1892,12 @@ const RULES = [
   { re: /造成自己弃牌区中能量张数[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({ amount:+m[1], condition:'discard_energy_total' }) },
   // ④「造成其中X张数×N伤害」——「其中」= 上一个动作处理过的卡
   { re: /造成其中(?:的)?(["“”「」]?[^"“”「」]{1,10}["“”「」]?)(?:卡)?(?:张数|数量)[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({ amount:+m[2], condition:'last_processed_kind', kind:String(m[1]).replace(/["“”「」]/g,'').replace(/的$/,'') }) },
+
+  // ===== 按计数掷硬币的伤害（其余措辞）=====
+  // 「掷与自己场上宝可梦数量相同次数的硬币，造成"正面"次数×N伤害」
+  { re: /掷与自己场上宝可梦数量相同次数的硬币[，,]?造成["“”「」]?正面["“”「」]?次数[×x](\d+)伤害/, act:'coin_flip_damage', p:m=>({ countFrom:'own_field_pokemon_count', damage_per:+m[1] }) },
+  // 「掷与双方战斗宝可梦身上附着的能量数量相同次数的硬币，造成正面次数×N伤害」
+  { re: /掷与双方战斗宝可梦身上附着的能量数量相同次数的硬币[，,]?造成正面次数[×x](\d+)伤害/, act:'coin_flip_damage', p:m=>({ countFrom:'both_active_energy', damage_per:+m[1] }) },
 
   { re: /这张卡，只有在上一个对手的回合，自己的【(.+?)】宝可梦【昏厥】时才可使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('condition', m[0]) },  // ===== 「造成其张数×N伤害」（**兜底**，必须放在最后）=====
   // ⚠️ 本项目早有专用实现：`discard_energy_for_damage`（5 条规则 + 真执行器，覆盖

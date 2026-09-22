@@ -1926,7 +1926,13 @@ const EXECUTORS = {
     } else { gs.addLog('硬币反面'); }
   },
   async coin_flip_damage(gs, pl, p) {
-    const count = p.count || 1;
+    // 「掷与<来源>相同次数的硬币」：次数可由计数动态决定（身上能量数 / 场上宝可梦数 / 双方战斗宝可梦能量数…）
+    let count = p.count || 1;
+    if (p.countFrom) {
+      count = gs._counterValueForDamage ? gs._counterValueForDamage(pl, p.countFrom, p.type) : 0;
+      gs.addLog(`掷硬币次数按${p.countFrom}计得 ${count} 次`);
+      if (count <= 0) return { heads:0 };
+    }
     let heads = 0;
     for (let i = 0; i < count; i++) { if (await _flipCoin(gs, pl)) heads++; }
     const damagePer = Number.isFinite(p.damage_per) ? p.damage_per : (Number.isFinite(p.damage) ? p.damage : 20);
