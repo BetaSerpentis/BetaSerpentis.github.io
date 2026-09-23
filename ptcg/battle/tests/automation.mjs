@@ -8971,6 +8971,57 @@ await test('r2 普通卡不受影响（对照）', async () => {
   assert.equal(pl.discard.length, 0);
 });
 
+
+// ============================================================
+//  ③ 「不看正面」时选项只显示卡背
+// ============================================================
+
+await test('r3 选择对手手牌时选项只显示「卡背 N」，不泄露卡名', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('我', 'a1');
+  opp.active = mon('敌', 'o1');
+  opp.hand = ['H1', 'H2'];
+  opp.deck = [];
+  gs.cardResolver = fakeResolver({
+    'H1': { card:{ cardType:'trainer', trainerType:'item', name:'秘密卡甲' }, info:{ name:'秘密卡甲' } },
+    'H2': { card:{ cardType:'trainer', trainerType:'supporter', name:'秘密卡乙' }, info:{ name:'秘密卡乙' } },
+  });
+  let pending = null;
+  gs._onPendingPick = p => { pending = p; };
+  const running = executeEffects(gs, pl, parseEffect('在不看正面的前提下选择对手1张手牌，查看该卡牌的正面后，放回对手牌库。').effects);
+  await new Promise(r => setTimeout(r, 5));
+  assert.ok(pending, '应弹出选择');
+  assert.deepEqual(pending.cards, ['卡背 1', '卡背 2'], '选项必须只有卡背');
+  assert.ok(!pending.cards.some(c => String(c).includes('秘密')), '不应出现卡名');
+  pending.resolve([0]);
+  await running;
+  assert.equal(opp.hand.length, 1, '对手手牌应少 1 张');
+  assert.equal(opp.deck.length, 1, '应有一张进对手牌库');
+});
+
+await test('r3 普通选择（自己的牌库/弃牌区）仍显示真实卡名', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  pl.active = mon('我', 'a1');
+  // 注意：只有 1 张候选时 picker 会自动选、不弹窗，所以这里给 2 张
+  pl.discard = ['D1', 'D2'];
+  gs.cardResolver = fakeResolver({
+    'D1': { card:{ cardType:'trainer', trainerType:'item', name:'可见物品甲' }, info:{ name:'可见物品甲' } },
+    'D2': { card:{ cardType:'trainer', trainerType:'item', name:'可见物品乙' }, info:{ name:'可见物品乙' } },
+  });
+  let pending = null;
+  gs._onPendingPick = p => { pending = p; };
+  const running = executeEffects(gs, pl, [{ action:'recover_from_discard', params:{ count:1, target:'hand' } }]);
+  await new Promise(r => setTimeout(r, 5));
+  assert.ok(pending, '应弹出选择');
+  assert.ok(String(pending.cards[0]).includes('可见物品'), `普通选择应显示真实卡名（实际 ${JSON.stringify(pending.cards)}）`);
+  pending.resolve([0]);
+  await running;
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

@@ -300,7 +300,12 @@ async function _pickCardsFromZone(gs, actingPlayer, owner, zoneCards, count, opt
   const shouldUsePicker = actingPlayer === gs.player1 && !options.auto && gs._onPendingPick;
   if (!shouldUsePicker) return candidates.slice(0, limit.max);
   if (candidates.length <= limit.max && !limit.allowFewer) return candidates.slice(0, limit.max);
-  const picked = await gs.waitForPick(candidates.map(c => _cardLabel(gs, c.card)), limit.max, { ...options, maxCount:limit.max, minCount:limit.min, allowFewer:limit.allowFewer, allowEmpty:limit.allowEmpty });
+  // hideNames：卡面写「在不看正面的前提下选择对手的手牌」时，选项必须**只显示卡背**，
+  // 否则玩家能直接看到对手手牌内容（3 处对手手牌相关的效果会受影响）。
+  const pickLabels = options.hideNames
+    ? candidates.map((_, i) => `卡背 ${i + 1}`)
+    : candidates.map(c => _cardLabel(gs, c.card));
+  const picked = await gs.waitForPick(pickLabels, limit.max, { ...options, maxCount:limit.max, minCount:limit.min, allowFewer:limit.allowFewer, allowEmpty:limit.allowEmpty });
   const selected = (picked || []).map(i => candidates[i]).filter(Boolean).slice(0, limit.max);
   if (selected.length < limit.min) {
     if (options.failRequired && limit.min > 0 && !limit.allowEmpty && !limit.allowFewer && !options.optional) _requiredFailure(options.requiredAction || 'pick_cards', 'required_pick_cancelled');
@@ -2627,7 +2632,8 @@ const EXECUTORS = {
     if (!want) { gs.addLog('对手没有手牌'); return; }
     const sel = await _pickCardsFromZone(gs, pl, opp, opp.hand, want, {
       source:'opponent-hand-to-deck',
-      prompt:`选择对手的 ${want} 张手牌（查看后放回其牌库）`,
+      prompt:`选择对手的 ${want} 张手牌（不看正面）`,
+      hideNames:true, // 卡面：「在不看正面的前提下选择对手的手牌」
       allowFewer:true, allowEmpty:true, optional:true,
     });
     for (const item of sel.sort((a, b) => b.index - a.index)) opp.deck.push(opp.hand.splice(item.index, 1)[0]);
