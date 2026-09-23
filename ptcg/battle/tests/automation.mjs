@@ -8734,6 +8734,78 @@ await test('长尾3 查看对手牌库顶并丢弃指定类别', async () => {
   assert.equal(opp.deck.length, 1, '宝可梦留在牌库');
 });
 
+
+// ============================================================
+//  长尾批次 4：「转放」伤害指示物
+// ============================================================
+
+function counterMon(name, cardId, hp, maxHp) {
+  const m = mon(name, cardId);
+  m.hp = hp; m.maxHp = maxHp;
+  return m;
+}
+
+await test('长尾4 六种转放措辞（含 5 条既有 marker 已升级）都能解析', () => {
+  const table = [
+    ['将对手场上1只宝可梦身上放置的最多3个伤害指示物，转放置于对手1只其他宝可梦身上。', 'opponent_field', 'opponent_other'],
+    ['选择对手场上宝可梦身上放置的任意数量的伤害指示物，以任意方式转放置于对手的场上宝可梦身上。', 'opponent_field', 'opponent_any'],
+    ['选择自己场上宝可梦身上放置的1个伤害指示物，转放置于这只宝可梦身上。', 'self_field', 'this'],
+    ['选择放置于自己场上宝可梦身上的1个伤害指示物，转放置于对手场上的宝可梦身上。', 'self_field', 'opponent_any'],
+    ['将自己所有宝可梦身上放置的全部伤害指示物，转放置于对手的战斗宝可梦身上。', 'self_field', 'opponent_active'],
+    ['将这只宝可梦身上放置的全部伤害指示物，转放置于对手的战斗宝可梦身上。', 'self_active', 'opponent_active'],
+    ['选择自己的1只备战宝可梦，将被选择的宝可梦身上放置的所有伤害指示物，转放置于对手的战斗宝可梦身上。', 'self_bench', 'opponent_active'],
+  ];
+  for (const [text, from, to] of table) {
+    const e = parseEffect(text).effects;
+    const m = e.find(x => x.action === 'move_damage_counters');
+    assert.ok(m, `「${text}」应解析出 move_damage_counters（实际 ${JSON.stringify(e.map(x => x.action))}）`);
+    assert.equal(m.params.from, from, `from: ${text}`);
+    assert.equal(m.params.to, to, `to: ${text}`);
+  }
+});
+
+await test('长尾4 运行时：来源回血、目标掉血（指示物 = 已损失HP/10）', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = counterMon('我', 'a1', 60, 100);   // 已损失 40 → 4 个指示物
+  opp.active = counterMon('敌', 'o1', 100, 100);
+  await executeEffects(gs, pl, parseEffect('选择放置于自己场上宝可梦身上的1个伤害指示物，转放置于对手场上的宝可梦身上。').effects);
+  assert.equal(pl.active.hp, 70, '转走 1 个 → 来源回 10');
+  assert.equal(opp.active.hp, 90, '目标受 1 个 → 掉 10');
+});
+
+await test('长尾4 运行时：全部转走 / 最多N个的上限', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = counterMon('我', 'a1', 60, 100);   // 4 个指示物
+  opp.active = counterMon('敌', 'o1', 100, 100);
+  await executeEffects(gs, pl, parseEffect('将这只宝可梦身上放置的全部伤害指示物，转放置于对手的战斗宝可梦身上。').effects);
+  assert.equal(pl.active.hp, 100, '全部转走应回满');
+  assert.equal(opp.active.hp, 60, '4 个指示物 → 40 伤害');
+
+  // 「最多2个」：只转 2 个
+  const gs2 = new GameState();
+  await executeEffects(gs2, gs2.player1, []);
+  const pl2 = gs2.player1, opp2 = gs2.player2;
+  pl2.active = counterMon('我', 'a1', 70, 100);  // 3 个指示物
+  pl2.bench = [counterMon('后备', 'b1', 90, 100)];
+  await executeEffects(gs2, pl2, parseEffect('选择自己场上1只宝可梦身上放置的最多2个伤害指示物，以任意方式转放置于自己的其他宝可梦身上。').effects);
+  assert.equal(pl2.active.hp, 90, '转走 2 个 → 70+20');
+  assert.equal(pl2.bench[0].hp, 70, '目标受 2 个 → 90-20');
+});
+
+await test('长尾4 运行时：没有伤害指示物时不空转', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = counterMon('我', 'a1', 100, 100); // 满血 = 0 个指示物
+  opp.active = counterMon('敌', 'o1', 100, 100);
+  await executeEffects(gs, pl, parseEffect('将这只宝可梦身上放置的全部伤害指示物，转放置于对手的战斗宝可梦身上。').effects);
+  assert.equal(opp.active.hp, 100, '没有指示物可转，目标不应掉血');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

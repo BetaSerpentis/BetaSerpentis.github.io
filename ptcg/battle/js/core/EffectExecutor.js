@@ -1405,6 +1405,128 @@ const EXECUTORS = {
     if (mon.hp <= 0) gs.knockout(pl);
   },
 
+  /**
+   * 「转放伤害指示物」：把伤害指示物从 A 身上的移走、放到 B 身上。
+   * 参数：
+   *   from: 'self_field' | 'self_active' | 'self_bench' | 'opponent_field' | 'both_field'
+   *   to:   'this'（招式使用者）| 'self_active' | 'self_any' | 'self_other'
+   *         | 'opponent_active' | 'opponent_any' | 'opponent_other'
+   *   count: N（个）| 'all'（全部）| 'per'（每只来源各 N 个，配合 per）
+   *   per:   count==='per' 时的每只个数
+   *   filter / sameFilter: 来源宝可梦的限定（如【超】属性 / 指定名字；sameFilter=目标需与来源同属性）
+   * ⚠️ 伤害指示物的「个数」= 已损失 HP / 10（不能把伤害值当个数）。
+   */
+  async move_damage_counters(gs, pl, p) {
+    const opp = _opponent(gs, pl);
+    const selfField = [pl.active, ...(pl.bench || [])].filter(Boolean);
+    const oppField = [opp.active, ...(opp.bench || [])].filter(Boolean);
+    const countersOf = mon => (mon && mon.maxHp ? Math.floor(Math.max(0, mon.maxHp - mon.hp) / 10) : 0);
+    const withCounters = list => list.filter(m => countersOf(m) > 0);
+
+    // ---- 选出来源 ----
+    let sources = [];
+    const from = p.from || 'self_field';
+    if (from === 'opponent_field' || from === 'opponent_any') {
+      const pool = withCounters(oppField);
+      if (!pool.length) { gs.addLog('对手场上没有带伤害指示物的宝可梦'); return; }
+      const slot = await _pickPokemonTarget(gs, pl, opp, {
+        mode:'damage-remove', side:'opponent', allowActive:true, allowBench:true,
+        prompt:'选择要移走伤害指示物的对手宝可梦',
+        slotFilter: s => countersOf(_getMon(opp, s)) > 0,
+      });
+      const m = _getMon(opp, slot) || pool[0];
+      sources = [{ mon: m, owner: opp }];
+    } else if (from === 'both_field') {
+      // 双方各取，逐个选择（同 1 只可重复）：简化为「先选自方、再选对方」两次任意选
+      const pool = withCounters([...selfField, ...oppField]);
+      if (!pool.length) { gs.addLog('场上没有带伤害指示物的宝可梦'); return; }
+      const slot = await _pickPokemonTarget(gs, pl, pl, {
+        mode:'damage-remove', side:'self', allowActive:true, allowBench:true,
+        prompt:'选择要移走伤害指示物的宝可梦（己方）',
+        slotFilter: s => countersOf(_getMon(pl, s)) > 0,
+      });
+      const m = _getMon(pl, slot) || pool[0];
+      sources = [{ mon: m, owner: [...selfField].includes(m) ? pl : opp }];
+    } else if (from === 'self_bench') {
+      const pool = withCounters(pl.bench || []);
+      if (!pool.length) { gs.addLog('备战区没有带伤害指示物的宝可梦'); return; }
+      const slot = await _pickPokemonTarget(gs, pl, pl, {
+        mode:'damage-remove', side:'self', allowActive:false, allowBench:true,
+        prompt:'选择要移走伤害指示物的备战宝可梦',
+        slotFilter: s => countersOf(_getMon(pl, s)) > 0,
+      });
+      sources = [{ mon: _getMon(pl, slot) || pool[0], owner: pl }];
+    } else if (from === 'self_active') {
+      const m = pl.active;
+      if (!m || countersOf(m) <= 0) { gs.addLog('这只宝可梦身上没有伤害指示物'); return; }
+      sources = [{ mon: m, owner: pl }];
+    } else { // self_field
+      const pool = withCounters(selfField);
+      if (!pool.length) { gs.addLog('己方场上没有带伤害指示物的宝可梦'); return; }
+      if (p.autoAll) {
+        sources = pool.map(m => ({ mon: m, owner: pl })); // 「自己所有宝可梦身上的全部指示物」
+      } else {
+        const slot = await _pickPokemonTarget(gs, pl, pl, {
+          mode:'damage-remove', side:'self', allowActive:true, allowBench:true,
+          prompt:'选择要移走伤害指示物的己方宝可梦',
+          slotFilter: s => countersOf(_getMon(pl, s)) > 0,
+        });
+        const m = _getMon(pl, slot) || pool[0];
+        sources = [{ mon: m, owner: pl }];
+      }
+    }
+
+    // ---- 计算每个来源移走的个数 ----
+    const per = Number.isFinite(p.per) ? +p.per : null;
+    const move = [];
+    for (const src of sources) {
+      const have = countersOf(src.mon);
+      const want = p.count === 'all' ? have : (p.count === 'per' ? Math.min(per || 1, have) : Math.min(+p.count || 1, have));
+      if (want > 0) move.push({ ...src, n: want });
+    }
+    if (!move.length) { gs.addLog('没有可转放的伤害指示物'); return; }
+
+    // ---- 选目标 ----
+    const destOwnerOf = (t) => (String(t).startsWith('opponent') ? opp : pl);
+    const allowActiveOf = (t) => !/bench/.test(String(t));
+    let destOwner = null, destMon = null;
+    const to = p.to || 'opponent_active';
+    if (to === 'this' || to === 'self') {
+      destOwner = pl; destMon = pl.active;
+    } else {
+      destOwner = destOwnerOf(to);
+      if (/_active$/.test(to)) {
+        destMon = destOwner.active;
+      } else {
+        const needOther = /other$/.test(to);
+        const firstSrc = move[0].mon;
+        const slot = await _pickPokemonTarget(gs, pl, destOwner, {
+          mode:'damage', side: destOwner === opp ? 'opponent' : 'self', allowActive:true, allowBench:true,
+          prompt:'选择要转放到的宝可梦',
+          slotFilter: s => {
+            const m = _getMon(destOwner, s);
+            if (!m) return false;
+            if (needOther && m === firstSrc) return false;                     // 「其他宝可梦」
+            if (p.sameFilter && String(m.element) !== String(firstSrc?.element)) return false; // 「自己其他【X】宝可梦」
+            return true;
+          },
+        });
+        destMon = _getMon(destOwner, slot) || destOwner.active;
+      }
+    }
+    if (!destMon) { gs.addLog('没有可转放的目标'); return; }
+
+    // ---- 结算：来源回血 10×n，目标掉血 10×n ----
+    let moved = 0;
+    for (const src of move) {
+      const heal = src.n * 10;
+      src.mon.hp = Math.min(src.mon.maxHp, src.mon.hp + heal);
+      moved += src.n;
+    }
+    _applyDamageToPokemon(gs, destOwner, destMon, moved * 10);
+    gs.addLog(`转放 ${moved} 个伤害指示物到 ${destMon.name}`);
+  },
+
   // ===== 伤害指示物放置 =====
   async damage_place(gs, pl, p) {
     const opp = _opponent(gs, pl);

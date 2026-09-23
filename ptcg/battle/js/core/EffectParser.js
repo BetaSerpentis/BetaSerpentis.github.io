@@ -1273,7 +1273,8 @@ const RULES = [
   { re: /从自己的弃牌区选择，1张名字中带有["“”]([^"“”]+)["“”]的["“”]宝可梦【ex】["“”]，与自己场上的，1只名字中带有["“”]([^"“”]+)["“”]的["“”]宝可梦【ex】["“”]互换（继承所有(?:放置|放)于其身上的卡牌/, act:'usage_condition', p:m=>trainerPrerequisite('swap_discard_ex_with_field', m[0]) },
   { re: /从自己的牌库选择任意(\d+)张卡。将剩余的牌库重洗，并将选择的卡牌以任意顺序重新排列，放回牌库上方/, act:'usage_condition', p:m=>trainerPrerequisite('search_rearrange_deck_top2', m[0]) },
   { re: /从自己的手牌将最多(\d+)张宝可梦（["“”]([^"“”]+)["“”]除外）丢到弃牌区，然后从自己的牌库抽出丢到弃牌区卡牌张数[×x](\d+)张卡/, act:'usage_condition', p:m=>trainerPrerequisite('discard_pokemon_draw_x', m[0]) },
-  { re: /将对手场上1只宝可梦身上放置的最多(\d+)个伤害指示物，转放置于对手1只其他宝可梦身上/, act:'usage_condition', p:m=>trainerPrerequisite('move_counters_opp', m[0]) },
+  // 升级：原为未建模标记 → 伤害指示物转移（对手某只 → 对手另 1 只）
+  { re: /将对手场上1只宝可梦身上放置的最多(\d+)个伤害指示物[，,]?转放置于对手1只其他宝可梦身上/, act:'move_damage_counters', p:m=>({ from:'opponent_field', to:'opponent_other', count:+m[1] }) },
   { re: /使用了这张卡的回合结束时，从自己的牌库抽出卡牌，直到自己的手牌张数为(\d+)张为止/, act:'usage_condition', p:m=>trainerPrerequisite('end_turn_draw_until', m[0]) },
   { re: /选择对手所有宝可梦身上附着的特殊能量各1个，丢到弃牌区/, act:'usage_condition', p:m=>trainerPrerequisite('discard_opp_special_each', m[0]) },
   { re: /选择自己场上1只宝可梦身上附着的最多(\d+)个能量，转附于自己的1只其他宝可梦身上/, act:'move_energy', p:m=>({source:'self',dest:'bench',count:+m[1]}) },
@@ -1426,12 +1427,13 @@ const RULES = [
   { re: /身上附着【(.+?)】能量的自己所有的宝可梦（除["“”]([^"“”]+)["“"]外），不会受到对手宝可梦的特性的效果影响/, act:'prevent_effect', p:()=>({source:'ability'}) },
   { re: /自己的战斗宝可梦【撤退】所需能量，减少(\d+)个/, act:'retreat_cost_reduce', p:m=>({amount:+m[1],target:'own_field'}) },
   { re: /(?:追加造成|造成)自己弃牌区中的宝可梦(?:张数|数量)[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'counter',counter:'discard_pokemon',mode:'per_unit'}) },
-  { re: /选择放置于自己所有宝可梦身上的伤害指示物各(\d+)个，转放置于对手的1只宝可梦身上/, act:'usage_condition', p:m=>trainerPrerequisite('move_counters_self_to_opp', m[0]) },
+  // 升级：自己所有宝可梦各 N 个 → 对手 1 只
+  { re: /选择放置于自己所有宝可梦身上的伤害指示物各(\d+)个[，,]?转放置于对手的1只宝可梦身上/, act:'move_damage_counters', p:m=>({ from:'self_field', to:'opponent_any', count:'per', per:+m[1], autoAll:true }) },
   { re: /这个招式，只有在自己放逐区有(\d+)张以上（包含\d+张）卡牌时才可使用。使对手战斗宝可梦【昏厥】/, act:'knockout', p:()=>({target:'opponent'}) },
   { re: /对手就无法从手牌使出竞技场/, act:'usage_condition', p:m=>trainerPrerequisite('opp_block_stadium', m[0]) },
   { re: /身上附着【(.+?)】能量的自己的所有宝可梦【撤退】所需能量，全部消除/, act:'retreat_cost_zero', p:()=>({target:'own_field'}) },
-  { re: /选择对手场上宝可梦身上放置的任意数量的伤害指示物，以任意方式转放置于对手的场上宝可梦身上/, act:'usage_condition', p:m=>trainerPrerequisite('move_counters_opp_field', m[0]) },
-  { re: /这只宝可梦，若是后攻玩家的最初回合，哪怕刚刚出场也可进行进化/, act:'usage_condition', p:m=>trainerPrerequisite('evolve_first_turn_after', m[0]) },
+  // 升级：对手场上任意数量 → 对手场上（以任意方式）
+  { re: /选择对手场上宝可梦身上放置的任意数量的伤害指示物[，,]?以任意方式转放置于对手的?场上宝可梦身上/, act:'move_damage_counters', p:()=>({ from:'opponent_field', to:'opponent_any', count:'all' }) },
   { re: /在不看对手手牌正面的前提下，将其中1张丢到弃牌区/, act:'discard_opponent_hand_random', p:()=>({count:1}) },
   { re: /若对手场上有["“”]([^"“”]+)["“”]，则这只宝可梦【撤退】所需能量，全部消除/, act:'retreat_cost_zero', p:()=>({target:'self'}) },
   { re: /这个招式，若双方的剩余奖赏卡张数共计(\d+)张，则仅需1个【(.+?)】能量便可使用/, act:'usage_condition', p:m=>trainerPrerequisite('cost_one_when_total_prizes', m[0]) },
@@ -1449,7 +1451,8 @@ const RULES = [
   { re: /双方场上【基础】宝可梦的["“"]宝可梦【V】["“"]的特性，全部消除/, act:'ability_nullify', p:m=>abilityNullifyParams(m[0],m.input) },
   { re: /双方场上【基础】宝可梦的特性（除["“"]恶作剧之锁["“"]外），全部消除/, act:'ability_nullify', p:m=>abilityNullifyParams(m[0],m.input) },
   { re: /若这只宝可梦身上附着了(\d+)个及以上【(.+?)】能量，则这只宝可梦的最大HP["“"]\+(\d+)["“"]/, act:'max_hp_mod', p:m=>({amount:+m[3]}) },
-  { re: /选择自己的1只备战宝可梦，将被选择的宝可梦身上放置的所有伤害指示物，转放置于对手的战斗宝可梦身上/, act:'usage_condition', p:m=>trainerPrerequisite('move_counters_bench_to_opp', m[0]) },
+  // 升级：自己的 1 只备战宝可梦身上的全部 → 对手战斗宝可梦
+  { re: /选择自己的1只备战宝可梦[，,]?将被选择的宝可梦身上放置的(?:所有|全部)伤害指示物[，,]?转放置于对手的战斗宝可梦身上/, act:'move_damage_counters', p:()=>({ from:'self_bench', to:'opponent_active', count:'all' }) },
   { re: /选择自己手牌中的1张["“"]([^"“”]+)["“"]，附于自己的宝可梦身上/, act:'attach_energy_from_hand', p:m=>({filter:m[1],target:'any'}) },
   { re: /若自己的场上有["“"]花椰猿["“"]["“"]爆香猿["“"]["“"]冷水猿["“"]，则这只宝可梦使用招式所需的【无】能量，全部消除/, act:'energy_cost_eliminate', p:()=>({target:'self'}) },
   { re: /双方各将牌库上方1张卡丢到弃牌区，追加造成其中能量张数[×x](\d+)伤害/, act:'usage_condition', p:m=>trainerPrerequisite('mill_both_energy_bonus', m[0]) },
@@ -1481,7 +1484,8 @@ const RULES = [
   { re: /对手处于【中毒】状态的宝可梦，因【中毒】而放置的伤害指示物数量增加(\d+)个/, act:'poison_damage_increase', p:m=>({amount:+m[1],target:'opponent_field'}) },
   { re: /在下个对手的回合，这只宝可梦的弱点，全部消除/, act:'weakness_null', p:()=>({target:'self'}) },
   { re: /查看自己的牌库下方(\d+)张卡，以任意顺序重新排列，放回牌库上方/, act:'manipulate_deck_top', p:m=>({target:'self',count:+m[1],mode:'bottom_reorder_top'}) },
-  { re: /选择自己场上1只宝可梦身上放置的最多(\d+)个伤害指示物，以任意方式转放置于自己的其他宝可梦身上/, act:'usage_condition', p:m=>trainerPrerequisite('move_counters_self', m[0]) },
+  // 升级：自己场上某只 → 自己其他宝可梦
+  { re: /选择自己场上1只宝可梦身上放置的最多(\d+)个伤害指示物[，,]?以任意方式转放置于自己的其他宝可梦身上/, act:'move_damage_counters', p:m=>({ from:'self_field', to:'self_other', count:+m[1] }) },
   { re: /查看自己的牌库上方1张卡，再放回原处。若希望，可选择1张反面朝上的自己的奖赏卡，将其与自己的牌库最上方的卡牌，在反面朝上的状态下互换/, act:'prize_deck_top_swap', p:()=>({optional:true}) },
   { re: /在这个回合结束前，对手战斗宝可梦的特性，全部消除/, act:'ability_nullify', p:m=>({scope:'opponent_active',duration:'turn',raw:m[0]}) },
   { re: /在不看正面的前提下选择对手1张手牌，查看其正面。若该卡牌是支援者，则丢到弃牌区。若不是支援者，则放回手牌/, act:'usage_condition', p:m=>trainerPrerequisite('peek_opp_discard_if_supporter', m[0]) },
@@ -1958,6 +1962,32 @@ const RULES = [
   { re: /查看所有反面朝上的(?:自己的|自己)?奖赏卡[，,]?再放回原处/, act:'look_at', p:()=>({ prizes:true }) },
   // ④「查看对手牌库上方N张卡，选择其中任意数量的X，丢到弃牌区」
   { re: /查看对手牌库上方(\d+)张卡[，,]?选择其中任意数量的(.+?)[，,]?丢到弃牌区/, act:'opponent_deck_top_to_discard', p:m=>({ count:+m[1], filter:m[2].replace(/["“”「」]/g,'').trim() }) },
+
+  // ===== 长尾批次 4：「转放」簇（伤害指示物转移）=====
+  // ① 对手场上某只 → 对手另 1 只（最多N个）
+  { re: /将对手场上1只宝可梦身上放置的最多(\d+)个伤害指示物[，,]?转放置于对手1只其他宝可梦身上/, act:'move_damage_counters', p:m=>({ from:'opponent_field', to:'opponent_other', count:+m[1] }) },
+  { re: /选择对手场上1只宝可梦身上放置的最多(\d+)个伤害指示物[，,]?转放置于对手1只其他宝可梦身上/, act:'move_damage_counters', p:m=>({ from:'opponent_field', to:'opponent_other', count:+m[1] }) },
+  // ② 对手场上任意数量 → 对手场上（以任意方式）
+  { re: /选择对手场上宝可梦身上放置的任意数量的伤害指示物[，,]?以任意方式转放置于对手的?场上宝可梦身上/, act:'move_damage_counters', p:()=>({ from:'opponent_field', to:'opponent_any', count:'all' }) },
+  { re: /选择对手宝可梦身上放置的任意数量的伤害指示物[，,]?以任意方式转放置于对手的?宝可梦身上/, act:'move_damage_counters', p:()=>({ from:'opponent_field', to:'opponent_any', count:'all' }) },
+  // ③ 自己场上 → 这只宝可梦
+  { re: /选择自己场上宝可梦身上放置的(\d+)个伤害指示物[，,]?转放置于这只宝可梦身上/, act:'move_damage_counters', p:m=>({ from:'self_field', to:'this', count:+m[1] }) },
+  // ④ 自己场上 → 对手场上 / 对手战斗宝可梦
+  { re: /选择放置于自己场上宝可梦身上的(\d+)个伤害指示物[，,]?转放置于对手场上的宝可梦身上/, act:'move_damage_counters', p:m=>({ from:'self_field', to:'opponent_any', count:+m[1] }) },
+  { re: /选择放置于自己场上宝可梦身上的最多(\d+)个伤害指示物[，,]?转放置于对手的?战斗宝可梦身上/, act:'move_damage_counters', p:m=>({ from:'self_field', to:'opponent_active', count:+m[1] }) },
+  // ⑤ 自己「所有宝可梦各N个」→ 对手 1 只
+  { re: /选择放置于自己所有宝可梦身上的伤害指示物各(\d+)个[，,]?转放置于对手的1只宝可梦身上/, act:'move_damage_counters', p:m=>({ from:'self_field', to:'opponent_any', count:'per', per:+m[1], autoAll:true }) },
+  // ⑥ 自己所有宝可梦身上的全部 → 对手战斗宝可梦
+  { re: /将自己所有宝可梦身上放置的全部伤害指示物[，,]?转放置于对手的战斗宝可梦身上/, act:'move_damage_counters', p:()=>({ from:'self_field', to:'opponent_active', count:'all', autoAll:true }) },
+  // ⑦ 这只宝可梦身上的全部 → 对手战斗宝可梦
+  { re: /将这只宝可梦身上放置的全部伤害指示物[，,]?转放置于对手的战斗宝可梦身上/, act:'move_damage_counters', p:()=>({ from:'self_active', to:'opponent_active', count:'all' }) },
+  // ⑧ 双方场上各 1 个 → 双方其他宝可梦
+  { re: /将双方场上宝可梦身上放置的(\d+)个伤害指示物[，,]?转放置于双方场上的其他宝可梦身上/, act:'move_damage_counters', p:m=>({ from:'both_field', to:'self_other', count:+m[1] }) },
+  // ⑨ 自己的 1 只备战宝可梦身上的全部 → 对手战斗宝可梦
+  { re: /选择自己的1只备战宝可梦[，,]?将被选择的宝可梦身上放置的(?:所有|全部)伤害指示物[，,]?转放置于对手的战斗宝可梦身上/, act:'move_damage_counters', p:()=>({ from:'self_bench', to:'opponent_active', count:'all' }) },
+  { re: /选择自己的1只备战宝可梦[，,]?将所有放置于被选择的宝可梦身上的伤害指示物[，,]?转放置于对手的战斗宝可梦身上/, act:'move_damage_counters', p:()=>({ from:'self_bench', to:'opponent_active', count:'all' }) },
+  // ⑩ 自己场上【X】宝可梦 1 个 → 自己其他【X】宝可梦（同属性）
+  { re: /选择放置于自己场上【(.+?)】宝可梦身上的(\d+)个伤害指示物[，,]?转放置于自己其他【\1】宝可梦身上/, act:'move_damage_counters', p:m=>({ from:'self_field', to:'self_other', count:+m[2], sameFilter:true }) },
 
   { re: /这张卡，只有在上一个对手的回合，自己的【(.+?)】宝可梦【昏厥】时才可使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('condition', m[0]) },  // ===== 「造成其张数×N伤害」（**兜底**，必须放在最后）=====
   // ⚠️ 本项目早有专用实现：`discard_energy_for_damage`（5 条规则 + 真执行器，覆盖
