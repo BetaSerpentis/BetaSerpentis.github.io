@@ -1923,6 +1923,29 @@ const RULES = [
   { re: /(?:若希望[，,]?)?可选择这只宝可梦身上附着的(\d+)个能量[，,]?放回牌库/, act:'energy_to_deck_for_damage', p:m=>({ source:'self', count:+m[1] }) },
   { re: /将附于对手场上宝可梦身上的能量[，,]?全部放回牌库/, act:'energy_to_deck_for_damage', p:()=>({ source:'opponent_field', count:'all' }) },
 
+  // ===== 长尾批次 2：「加入手牌」簇 =====
+  // ①「将自己的牌库中（最多）N张X，在给对手看过后，加入手牌」（既有规则只认「从…牌库选择」的写法）
+  { re: /将(?:自己的|自己)?牌库中(?:最多)?(\d+)张(.+?)(?:卡)?[，,]?(?:在给对手看过后)?[，,]?加入手牌/, act:'search_deck_to_hand', p:m=>withCount({ filter:m[2].replace(/["“”「」]/g,'').replace(/\d+张/g,'').trim() }, m[1], true) },
+  { re: /将(?:自己的|自己)?牌库中的1张(.+?)(?:卡)?[，,]?在给对手看过后[，,]?加入手牌/, act:'search_deck_to_hand', p:m=>withCount({ filter:m[1].replace(/["“”「」]/g,'').trim() }, 1, false) },
+  // ②「将自己弃牌区中的任意N张卡，在给对手看过后，加入手牌」（复用 recover_from_discard）
+  { re: /将(?:自己的|自己)?弃牌区中的任意(\d+)张卡[，,]?在给对手看过后[，,]?加入手牌/, act:'recover_from_discard', p:m=>({ count:+m[1], maxCount:+m[1], target:'hand', allowFewer:true, optional:true }) },
+  // ③「查看自己的牌库上方N张卡，将其中M张加入手牌」
+  { re: /查看(?:自己的|自己)?牌库上方(\d+)张卡(?:牌)?[，,。]?将其中(\d+)张(?:卡牌?)?加入手牌/, act:'peek_and_keep', p:m=>({ peek:+m[1], keep:+m[2], maxCount:+m[2], minCount:+m[2], allowFewer:false, allowEmpty:false }) },
+  // ③b「查看自己的牌库上方N张卡」单独成句（后半句用「将其中…」「将剩余…」另行描述）：
+  //    先给出默认 keep:1，后续的改写句再补 filter/keep
+  { re: /查看(?:自己的|自己)?牌库上方(\d+)张卡/, act:'peek_and_keep', p:m=>({ peek:+m[1], keep:1, maxCount:1, minCount:1, allowFewer:false, allowEmpty:false }) },
+  // ④「将其中N张X/所有X，在给对手看过后，加入手牌」→ 并入前面的查看动作（补 filter/keep）
+  { re: /(?:然后[，,]?)?将其中(\d+)张(.+?)[，,]?在给对手看过后[，,]?加入手牌/, act:'action_count_override', p:m=>({ targets:['peek_and_keep'], set:{ filter:m[2].replace(/["“”「」]/g,'').trim(), keep:+m[1], maxCount:+m[1], minCount:+m[1] }, raw:m[0] }) },
+  { re: /(?:然后[，,]?)?将其中所有(.+?)[，,]?在给对手看过后[，,]?加入手牌/, act:'action_count_override', p:m=>({ targets:['peek_and_keep'], set:{ filter:m[1].replace(/["“”「」]/g,'').trim(), keep:99, maxCount:99, minCount:0, allowFewer:true }, raw:m[0] }) },
+  // ⑤「将剩余的卡牌加入手牌」→ 并入前面的查看动作（全拿）
+  { re: /将剩余的卡牌加入手牌/, act:'action_count_override', p:m=>({ targets:['peek_and_keep'], set:{ keep:99, maxCount:99, minCount:0, allowFewer:true }, raw:m[0] }) },
+  // ⑥「从自己的牌库选择A和B各1张，在给对手看过后，加入手牌」→ 分别检索（复用 search_deck_multi）
+  { re: /从(?:自己的|自己)?牌库选择(.+?)和(.+?)各1张[，,]?在给对手看过后[，,]?加入手牌/, act:'search_deck_multi', p:m=>({ specs:[{ filter:m[1].replace(/["“”「」]/g,'').trim(), count:1 }, { filter:m[2].replace(/["“”「」]/g,'').trim(), count:1 }] }) },
+  // ⑦「数过自己的奖赏卡后，将其全部加入手牌」
+  { re: /数过(?:自己的|自己)?奖赏卡后[，,]?将其全部加入手牌/, act:'prizes_to_hand', p:()=>({ who:'self' }) },
+  // ⑧ 恢复限制：「这张卡，只要在弃牌区，就无法加入手牌，也无法放回牌库」（元数据；回收类效果暂未按此过滤）
+  { re: /这张卡[，,]?只要在弃牌区[，,]?就无法加入手牌[，,]?也无法放回牌库/, act:'usage_condition', p:()=>({ kind:'cannot_be_recovered' }) },
+
   { re: /这张卡，只有在上一个对手的回合，自己的【(.+?)】宝可梦【昏厥】时才可使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('condition', m[0]) },  // ===== 「造成其张数×N伤害」（**兜底**，必须放在最后）=====
   // ⚠️ 本项目早有专用实现：`discard_energy_for_damage`（5 条规则 + 真执行器，覆盖
   //    「从手牌/场上丢能量，造成其张数×N伤害」等固定措辞）。主循环是「按规则表顺序、先命中者先吃」，

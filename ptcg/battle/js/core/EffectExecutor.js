@@ -2222,6 +2222,17 @@ const EXECUTORS = {
     gs.addLog(`${cards.length} 张手牌放回牌库下方`);
   },
 
+  /** 「数过自己的奖赏卡后，将其全部加入手牌」——奖赏卡从奖赏区移到手牌（数量不变，对手可核对） */
+  prizes_to_hand(gs, pl, p) {
+    const targets = p.who === 'opponent' ? [_opponent(gs, pl)] : [pl];
+    for (const pp of targets) {
+      const n = (pp.prizes || []).length;
+      for (const c of pp.prizes || []) pp.hand.push(toCardRef(c));
+      pp.prizes = [];
+      gs.addLog(`${pp.name} 的 ${n} 张奖赏卡加入手牌`);
+    }
+  },
+
   /** 「双方玩家，各将自己所有的奖赏卡放回牌库」（奖赏卡回库后重洗） */
   prizes_to_deck(gs, pl, p) {
     const targets = p.who === 'both' ? [gs.player1, gs.player2] : (p.who === 'opponent' ? [_opponent(gs, pl)] : [pl]);

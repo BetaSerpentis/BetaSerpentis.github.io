@@ -8599,6 +8599,69 @@ await test('长尾1 对手场上能量 → 对手牌库', async () => {
   assert.equal(opp.deck.length, 1, '应回到**对手**牌库');
 });
 
+
+// ============================================================
+//  长尾批次 2：「加入手牌」簇
+// ============================================================
+
+await test('长尾2 「将自己的牌库中（最多）N张X」加入手牌（既有规则只认「从…牌库选择」）', () => {
+  const a = parseEffect('将自己的牌库中最多2张宝可梦，在给对手看过后，加入手牌。').effects;
+  const sa = a.find(x => x.action === 'search_deck_to_hand');
+  assert.ok(sa, `应解析出 search_deck_to_hand（实际 ${JSON.stringify(a.map(x => x.action))}）`);
+  assert.equal(sa.params.filter, '宝可梦');
+  assert.equal(sa.params.count, 2);
+  const b = parseEffect('将自己的牌库中的1张支援者，在给对手看过后，加入手牌。').effects;
+  const sb = b.find(x => x.action === 'search_deck_to_hand');
+  assert.equal(sb.params.count, 1);
+  assert.equal(sb.params.minCount, 1, '「1张」是必须拿的');
+});
+
+await test('长尾2 弃牌区任意N张 → 手牌（复用 recover_from_discard）', () => {
+  const e = parseEffect('将自己弃牌区中的任意3张卡，在给对手看过后，加入手牌。').effects;
+  const m = e.find(x => x.action === 'recover_from_discard');
+  assert.ok(m, '应解析出 recover_from_discard');
+  assert.equal(m.params.count, 3);
+  assert.equal(m.params.target, 'hand');
+});
+
+await test('长尾2 查看牌库上方 + 其中X / 剩余卡牌（改写句并入查看动作）', () => {
+  // 「将其中N张X」补 filter/keep
+  const a = parseEffect('查看自己的牌库上方3张卡。将其中1张训练家，在给对手看过后，加入手牌。').effects;
+  const pa = a.find(x => x.action === 'peek_and_keep');
+  assert.ok(pa, `应解析出 peek_and_keep（实际 ${JSON.stringify(a.map(x => x.action))}）`);
+  assert.equal(pa.params.peek, 3);
+  assert.equal(pa.params.keep, 1);
+  assert.equal(pa.params.filter, '训练家', 'filter 应由改写句补上');
+  assert.ok(!a.some(x => x.action === 'action_count_override'), '不应留下未合并的改写句');
+  // 「将其中所有X」
+  const b = parseEffect('查看自己的牌库上方3张卡。将其中所有物品，在给对手看过后，加入手牌。').effects;
+  assert.equal(b.find(x => x.action === 'peek_and_keep').params.filter, '物品');
+  // 「将剩余的卡牌加入手牌」= 全拿
+  const c = parseEffect('查看自己的牌库上方3张卡，将其中1张加入手牌。将剩余的卡牌加入手牌。').effects;
+  assert.ok(c.find(x => x.action === 'peek_and_keep').params.keep >= 99, '剩余卡牌应视为全拿');
+});
+
+await test('长尾2 「A和B各1张」→ 分别检索 / 奖赏卡全部加入手牌', () => {
+  const e = parseEffect('从自己的牌库选择宝可梦和支援者各1张，在给对手看过后，加入手牌。').effects;
+  const m = e.find(x => x.action === 'search_deck_multi');
+  assert.ok(m, '应解析出 search_deck_multi');
+  assert.deepEqual(m.params.specs.map(s => s.filter), ['宝可梦', '支援者']);
+
+  const g = parseEffect('数过自己的奖赏卡后，将其全部加入手牌。').effects;
+  assert.equal(g[0].action, 'prizes_to_hand');
+});
+
+await test('长尾2 运行时：奖赏卡全部加入手牌', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  pl.prizes = ['p1', 'p2', 'p3'];
+  pl.hand = [];
+  await executeEffects(gs, pl, parseEffect('数过自己的奖赏卡后，将其全部加入手牌。').effects);
+  assert.equal(pl.prizes.length, 0, '奖赏区应清空');
+  assert.equal(pl.hand.length, 3, '3 张应加入手牌');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',
