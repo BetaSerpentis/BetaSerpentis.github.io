@@ -8523,6 +8523,82 @@ await test('f 招式前提不满足时 BattleEngine 也判定失败（不会照�
   } finally { Math.random = saved; }
 });
 
+
+// ============================================================
+//  长尾批次 1：「放回牌库」簇
+// ============================================================
+
+await test('长尾1 弃牌区 → 牌库（复用 recover_from_discard 的 target:deck）', () => {
+  const a = parseEffect('或者，将自己弃牌区中的3张宝可梦，在给对手看过后，放回牌库。').effects;
+  const m = a.find(x => x.action === 'recover_from_discard');
+  assert.ok(m, '应解析出 recover_from_discard');
+  assert.equal(m.params.target, 'deck');
+  assert.equal(m.params.filter, '宝可梦');
+  assert.equal(m.params.count, 3);
+  const b = parseEffect('从自己弃牌区选择任意10张卡，在给对手看过后，放回牌库。').effects;
+  assert.equal(b.find(x => x.action === 'recover_from_discard').params.count, 10);
+});
+
+await test('长尾1 手牌 → 牌库（全部 / 下方 / 指定张数）', () => {
+  assert.equal(parseEffect('将自己的手牌全部放回牌库。').effects[0].action, 'shuffle_hand_to_deck');
+  const bottom = parseEffect('将自己所有的手牌翻到反面重洗，放回牌库下方。').effects;
+  assert.equal(bottom[0].action, 'hand_to_deck_bottom');
+  assert.equal(bottom[0].params.count, 'all');
+  const one = parseEffect('选择自己的1张手牌，放回牌库下方。').effects;
+  assert.equal(one[0].action, 'hand_to_deck_bottom');
+  assert.equal(one[0].params.count, 1);
+});
+
+await test('长尾1 「将剩余的卡牌，放回牌库下方」并入查看动作', () => {
+  const e = parseEffect('查看自己牌库上方3张卡牌，选择其中1张加入手牌。将剩余的卡牌，放回牌库下方。').effects;
+  const pk = e.find(x => x.action === 'peek_and_keep');
+  assert.ok(pk, '应解析出 peek_and_keep');
+  assert.equal(pk.params.remainder, 'deck_bottom');
+  assert.ok(!e.some(x => x.action === 'action_count_override'), '不应留下未合并的改写句');
+});
+
+await test('长尾1 运行时：手牌放回牌库下方后，抽牌会先抽到上面的牌', async () => {
+  const eff = parseEffect('将自己所有的手牌翻到反面重洗，放回牌库下方。').effects;
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  pl.hand = ['h1', 'h2'];
+  pl.deck = ['top1', 'top2']; // pop() 取牌 → top2 是牌库顶
+  await executeEffects(gs, pl, eff);
+  assert.equal(pl.hand.length, 0, '手牌应全部放回');
+  assert.equal(pl.deck.length, 4);
+  // 放回下方的卡在数组前端；牌库顶仍是原来的 top2
+  assert.equal(pl.deck[pl.deck.length - 1], 'top2', '牌库顶不应被放回的卡顶掉');
+});
+
+await test('长尾1 运行时：奖赏卡放回牌库', async () => {
+  const eff = parseEffect('双方玩家，各将自己所有的奖赏卡放回牌库。').effects;
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  gs.player1.prizes = ['p1', 'p2'];
+  gs.player2.prizes = ['q1'];
+  gs.player1.deck = []; gs.player2.deck = [];
+  await executeEffects(gs, gs.player1, eff);
+  assert.equal(gs.player1.prizes.length, 0);
+  assert.equal(gs.player2.prizes.length, 0);
+  assert.equal(gs.player1.deck.length, 2);
+  assert.equal(gs.player2.deck.length, 1);
+});
+
+await test('长尾1 对手场上能量 → 对手牌库', async () => {
+  const eff = parseEffect('将附于对手场上宝可梦身上的能量，全部放回牌库。').effects;
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('我', 'a1');
+  opp.active = mon('敌', 'o1');
+  opp.active.energy = [{ cardId:'oe', name:'能量' }];
+  opp.deck = [];
+  await executeEffects(gs, pl, eff);
+  assert.equal(opp.active.energy.length, 0, '对手能量应被移走');
+  assert.equal(opp.deck.length, 1, '应回到**对手**牌库');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

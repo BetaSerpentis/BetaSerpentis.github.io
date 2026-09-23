@@ -2200,6 +2200,40 @@ const EXECUTORS = {
     _applyCountedDamage(gs, pl, p, moved);
   },
 
+  /**
+   * 「（选择自己的N张手牌 / 所有手牌翻到反面重洗）放回牌库下方」。
+   * 与 shuffle_hand_to_deck 的区别：这些卡是放到牌库**下方**（deck 数组前端，因为 draw() 用 pop()），
+   * 且只洗这些被放回的卡，不做整库重洗。
+   */
+  async hand_to_deck_bottom(gs, pl, p) {
+    const all = p.count === 'all' || p.count == null;
+    let cards = [];
+    if (all) {
+      cards = pl.hand.splice(0, pl.hand.length);
+    } else {
+      const sel = await _pickCardsFromZone(gs, pl, pl, pl.hand, p.count || 1, {
+        source:'hand-to-deck-bottom', filter: card => _cardMatchesFilter(gs, card, p.filter || null),
+        prompt:'选择要放回牌库下方的手牌', allowFewer:true, allowEmpty:true, optional:true,
+      });
+      for (const item of sel.sort((a, b) => b.index - a.index)) cards.push(pl.hand.splice(item.index, 1)[0]);
+    }
+    if (!cards.length) return;
+    pl.deck.unshift(...cards);
+    gs.addLog(`${cards.length} 张手牌放回牌库下方`);
+  },
+
+  /** 「双方玩家，各将自己所有的奖赏卡放回牌库」（奖赏卡回库后重洗） */
+  prizes_to_deck(gs, pl, p) {
+    const targets = p.who === 'both' ? [gs.player1, gs.player2] : (p.who === 'opponent' ? [_opponent(gs, pl)] : [pl]);
+    for (const pp of targets) {
+      const n = (pp.prizes || []).length;
+      for (const c of pp.prizes || []) pp.deck.push(toCardRef(c));
+      pp.prizes = [];
+      gs._shuffle?.(pp.deck);
+      gs.addLog(`${pp.name} 的 ${n} 张奖赏卡放回牌库`);
+    }
+  },
+
   /** 「将自己手牌中任意数量的「X」给对手查看，造成其张数×N伤害」——只展示，不改动手牌 */
   async reveal_hand_for_damage(gs, pl, p) {
     const per = +p.per || 0;
@@ -2223,14 +2257,17 @@ const EXECUTORS = {
 
   /** 「将自己场上宝可梦身上附着的任意数量的能量放回牌库，造成其张数×N伤害」 */
   async energy_to_deck_for_damage(gs, pl, p) {
-    const candidates = [pl.active, ...(pl.bench || [])].filter(Boolean);
-    const items = candidates.flatMap(m => _attachedEnergyItems(gs, pl, m, _monSlot(pl, m), p.filter));
+    // source:'opponent_field' = 「将附于对手场上宝可梦身上的能量全部放回牌库」（回**对手**的牌库）
+    const toOpp = p.source === 'opponent_field';
+    const owner = toOpp ? _opponent(gs, pl) : pl;
+    const candidates = [owner.active, ...(owner.bench || [])].filter(Boolean);
+    const items = candidates.flatMap(m => _attachedEnergyItems(gs, owner, m, _monSlot(owner, m), p.filter));
     if (!items.length) return;
-    const selected = await _pickAttachedEnergy(gs, pl, items, 'all', { filter:p.filter || null, allowFewer:true, allowEmpty:true, optional:true });
+    const selected = await _pickAttachedEnergy(gs, pl, items, p.count === 'all' || p.count == null ? 'all' : (p.count || 1), { filter:p.filter || null, allowFewer:true, allowEmpty:true, optional:true });
     if (!selected.length) return;
-    for (const item of _removeAttachedEnergy(selected)) pl.deck.push(toCardRef(item.energy));
-    gs._shuffle?.(pl.deck);
-    gs.addLog(`${selected.length} 个能量放回牌库并重洗`);
+    for (const item of _removeAttachedEnergy(selected)) owner.deck.push(toCardRef(item.energy));
+    gs._shuffle?.(owner.deck);
+    gs.addLog(`${selected.length} 个能量放回${toOpp ? '对手' : '自己'}牌库并重洗`);
     const per = +p.per || 0;
     if (per) {
       const opp = _opponent(gs, pl);

@@ -1904,6 +1904,25 @@ const RULES = [
   // 这里处理其余前提，由 GameState._attackPreconditionFailure 判定（认不出的条件**不拦**，宽松放行）。
   { re: /若(.{2,40}?)[，,]?则这个招式失败/, act:'usage_condition', p:m=>({ kind:'attack_requires', conditionText:m[1].trim() }) },
 
+  // ===== 长尾批次 1：「放回牌库」簇 =====
+  // ① 弃牌区 → 牌库（带「给对手看过后」，复用既有 recover_from_discard 的 target:'deck'）
+  { re: /将(?:自己的|自己)?弃牌区中的(\d+)张(.+?)[，,]?在给对手看过后[，,]?放回牌库/, act:'recover_from_discard', p:m=>({ filter:m[2], count:+m[1], maxCount:+m[1], target:'deck', shuffle:true, allowFewer:true, optional:true }) },
+  { re: /从(?:自己的|自己)?弃牌区选择任意(\d+)张卡[，,]?在给对手看过后[，,]?放回牌库/, act:'recover_from_discard', p:m=>({ count:+m[1], maxCount:+m[1], target:'deck', shuffle:true, allowFewer:true, optional:true }) },
+  { re: /从(?:自己的|自己)?弃牌区选择任意数量的卡[，,]?在给对手看过后[，,]?放回牌库/, act:'recover_from_discard', p:()=>({ count:'all', target:'deck', shuffle:true, allowFewer:true, optional:true }) },
+  // ② 手牌 → 牌库（全部放回；既有规则要求「并重洗」，这里补不含重洗的写法）
+  { re: /将(?:自己的|自己)?(?:所有的|全部的)?手牌(?:全部)?放回牌库(?!并)/, act:'shuffle_hand_to_deck', p:()=>({ who:'self' }) },
+  // ③ 手牌 → 牌库**下方**
+  { re: /将(?:自己的|自己)?(?:所有的|全部的)?手牌(?:全部)?翻到反面重洗[，,]?放回牌库下方/, act:'hand_to_deck_bottom', p:()=>({ count:'all' }) },
+  { re: /选择自己的(\d+)张手牌[，,]?放回牌库下方/, act:'hand_to_deck_bottom', p:m=>({ count:+m[1] }) },
+  // ④「将剩余的卡牌，放回牌库下方」（并入前面的查看动作）
+  { re: /将剩余的卡牌[，,]?放回牌库下方/, act:'action_count_override', p:m=>({ targets:['peek_and_keep'], set:{ remainder:'deck_bottom' }, raw:m[0] }) },
+  // ⑤ 奖赏卡 → 牌库
+  { re: /双方玩家[，,]?各将自己(?:所有的|全部的)奖赏卡放回牌库/, act:'prizes_to_deck', p:()=>({ who:'both' }) },
+  { re: /将自己(?:所有的|全部的)奖赏卡放回牌库/, act:'prizes_to_deck', p:()=>({ who:'self' }) },
+  // ⑥ 能量 → 牌库（自身 / 对手场上），复用 energy_to_deck_for_damage（per 可缺省）
+  { re: /(?:若希望[，,]?)?可选择这只宝可梦身上附着的(\d+)个能量[，,]?放回牌库/, act:'energy_to_deck_for_damage', p:m=>({ source:'self', count:+m[1] }) },
+  { re: /将附于对手场上宝可梦身上的能量[，,]?全部放回牌库/, act:'energy_to_deck_for_damage', p:()=>({ source:'opponent_field', count:'all' }) },
+
   { re: /这张卡，只有在上一个对手的回合，自己的【(.+?)】宝可梦【昏厥】时才可使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('condition', m[0]) },  // ===== 「造成其张数×N伤害」（**兜底**，必须放在最后）=====
   // ⚠️ 本项目早有专用实现：`discard_energy_for_damage`（5 条规则 + 真执行器，覆盖
   //    「从手牌/场上丢能量，造成其张数×N伤害」等固定措辞）。主循环是「按规则表顺序、先命中者先吃」，
