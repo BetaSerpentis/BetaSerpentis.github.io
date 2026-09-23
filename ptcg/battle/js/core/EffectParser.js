@@ -1899,6 +1899,11 @@ const RULES = [
   // 「掷与双方战斗宝可梦身上附着的能量数量相同次数的硬币，造成正面次数×N伤害」
   { re: /掷与双方战斗宝可梦身上附着的能量数量相同次数的硬币[，,]?造成正面次数[×x](\d+)伤害/, act:'coin_flip_damage', p:m=>({ countFrom:'both_active_energy', damage_per:+m[1] }) },
 
+  // ===== 招式失败前提的泛化 =====
+  // 卡面：「若<条件>，则这个招式失败。」——「若为反面」那类已被 coin_flip 的 fail_on_tails 吃掉，
+  // 这里处理其余前提，由 GameState._attackPreconditionFailure 判定（认不出的条件**不拦**，宽松放行）。
+  { re: /若(.{2,40}?)[，,]?则这个招式失败/, act:'usage_condition', p:m=>({ kind:'attack_requires', conditionText:m[1].trim() }) },
+
   { re: /这张卡，只有在上一个对手的回合，自己的【(.+?)】宝可梦【昏厥】时才可使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('condition', m[0]) },  // ===== 「造成其张数×N伤害」（**兜底**，必须放在最后）=====
   // ⚠️ 本项目早有专用实现：`discard_energy_for_damage`（5 条规则 + 真执行器，覆盖
   //    「从手牌/场上丢能量，造成其张数×N伤害」等固定措辞）。主循环是「按规则表顺序、先命中者先吃」，

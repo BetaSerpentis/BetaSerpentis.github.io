@@ -480,6 +480,9 @@ export class BattleEngine {
       this.finishTurn();
       return false;
     }
+    // 通用招式前提（「若…则这个招式失败」）
+    { const pre = gs._attackPreconditionFailure?.(atk, atk.active, ai);
+      if (pre) { this.cb.onLog?.(`${pre}（「${move?.name || '这个招式'}」失败）`); this.finishTurn(); return false; } }
 
     let damage = move ? (parseInt(String(move.damage).match(/\d+/)?.[0]) || 0) : 20;
     damage += (atk.active.nextOwnTurnDamageBoost || 0);

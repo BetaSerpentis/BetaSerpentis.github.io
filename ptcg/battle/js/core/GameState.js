@@ -192,7 +192,7 @@ export class GameState {
     this.currentPlayer.supporterUsed=false;this.currentPlayer.energyAttached=false;this.currentPlayer.retreatUsed=false;this.currentPlayer.stadiumPlayedThisTurn=false;this.currentPlayer.abilityUsedThisTurn={};this.currentPlayer.stadiumUsedThisTurn={};this.currentPlayer.turnAttackModifiers=[];
     this.currentPlayer.playRestrictions=null;
     this.temporaryAbilityLocks=(this.temporaryAbilityLocks||[]).filter(lock=>lock.expires!=='turn'&&lock.owner!==this.currentPlayer);
-    for(const mon of[this.currentPlayer.active,...this.currentPlayer.bench]){if(mon){mon.placedThisTurn=false;mon.evolvedThisTurn=false;}}
+    for(const mon of[this.currentPlayer.active,...this.currentPlayer.bench]){if(mon){mon.placedThisTurn=false;mon.evolvedThisTurn=false;mon.cameFromBenchThisTurn=false;}}
     this.currentPlayer=(this.currentPlayer===this.player1)?this.player2:this.player1;
     this.turn++;this.setPhase(PHASE.DRAW);this.addLog(`第${this.turn}回合 — ${this.currentPlayer.name}`);
     if(this.currentPlayer.deck.length===0){this.winner=this.getOpponent(this.currentPlayer);this.phase=PHASE.GAME_OVER;this.addLog(`${this.currentPlayer.name} 牌库抽干，${this.winner.name} 胜利！`);}
@@ -714,6 +714,56 @@ export class GameState {
     return false;
   }
 
+  /**
+   * 招式前提判定：「若<条件>，则这个招式失败」。
+   * 返回失败原因（字符串）或 null（可以打）。**认不出的条件不拦**（宽松放行，
+   * 避免把卡直接变成不能用；那类条件句仍以残句形式留在索引里可见）。
+   */
+  _attackPreconditionFailure(pl, mon, attackIndex = 0){
+    const effs = this.getAttacks(mon)[attackIndex]?.effects || [];
+    // 前提有三种既有表示，都要认：
+    //   ① usage_condition{kind:'attack_requires', conditionText}（本批新增的通用写法）
+    //   ② conditional_effect{condition, effect:{action:'attack_fail'}}（引擎既有写法，
+    //      原来只在**执行时**抛 RequiredEffectFailed，canUseAttack 不知道 → 不会置灰）
+    //   ③ usage_condition{kind:'fail_if_hand_diff'}
+    const conds = [];
+    for (const e of effs) {
+      if (e.action === 'usage_condition' && e.params?.kind === 'attack_requires') conds.push({ text:String(e.params?.conditionText || '') });
+      else if (e.action === 'conditional_effect' && e.params?.effect?.action === 'attack_fail') conds.push({ key:String(e.params?.condition || '') });
+      else if (e.action === 'usage_condition' && e.params?.kind === 'fail_if_hand_diff') conds.push({ key:'hand_diff' });
+    }
+    if (!conds.length) return null;
+    const opp = this.getOpponent(pl);
+    for (const c of conds) {
+      if (c.key) {
+        if (c.key === 'stadium_not_in_play') { if (!this.getActiveStadium()) return '场上没有竞技场，这个招式会失败'; continue; }
+        if (c.key === 'opponent_active_no_damage') { const d = opp?.active; if (!d || !(d.maxHp && d.hp < d.maxHp)) return '对手战斗宝可梦身上没有伤害指示物，这个招式会失败'; continue; }
+        if (c.key === 'self_no_damage') { if (!(mon?.maxHp && mon.hp < mon.maxHp)) return '这只宝可梦身上没有伤害指示物，这个招式会失败'; continue; }
+        if (c.key === 'hand_diff') { if ((pl?.hand?.length || 0) !== (opp?.hand?.length || 0)) return '双方手牌张数不同，这个招式会失败'; continue; }
+        continue; // 其它条件键：宽松放行
+      }
+      const t = c.text;
+      // 「无法将卡牌放于弃牌区」——实测这批卡都是「先把场上的竞技场丢掉」的招式
+      if (/无法将卡牌(?:丢到|放于)弃牌区/.test(t)) { if (!this.getActiveStadium()) return '场上没有竞技场，这个招式会失败'; continue; }
+      if (/场上没有竞技场/.test(t)) { if (!this.getActiveStadium()) return '场上没有竞技场，这个招式会失败'; continue; }
+      if (/对手(?:的)?备战区没有宝可梦|对手没有备战宝可梦/.test(t)) { if (!(opp?.bench || []).filter(Boolean).length) return '对手没有备战宝可梦，这个招式会失败'; continue; }
+      if (/对手的战斗宝可梦身上没有放置伤害指示物/.test(t)) { const d = opp?.active; if (!d || !(d.maxHp && d.hp < d.maxHp)) return '对手战斗宝可梦身上没有伤害指示物，这个招式会失败'; continue; }
+      if (/这只宝可梦身上没有放置伤害指示物/.test(t)) { if (!(mon?.maxHp && mon.hp < mon.maxHp)) return '这只宝可梦身上没有伤害指示物，这个招式会失败'; continue; }
+      if (/自己的手牌与对手的手牌张数不同/.test(t)) { if ((pl?.hand?.length || 0) !== (opp?.hand?.length || 0)) return '双方手牌张数不同，这个招式会失败'; continue; }
+      { const m = t.match(/自己的手牌数量不为(\d+)张/); if (m) { if ((pl?.hand?.length || 0) !== +m[1]) return `手牌不是 ${m[1]} 张，这个招式会失败`; continue; } }
+      if (/自己的备战区中没有/.test(t)) {
+        const names = [...String(t).matchAll(/[「"“]([^」"”]+)[」"”]/g)].map(x => x[1]);
+        if (names.length && !(pl?.bench || []).filter(Boolean).some(x => names.some(n => String(x.name || '').includes(n)))) {
+          return `备战区没有${names.join('或')}，这个招式会失败`;
+        }
+        continue;
+      }
+      if (/这只宝可梦没有从备战区被放置于战斗场上/.test(t)) { if (!mon?.cameFromBenchThisTurn) return '这只宝可梦本回合不是从备战区上场的，这个招式会失败'; continue; }
+      // 认不出的条件：不拦（宽松放行）
+    }
+    return null;
+  }
+
   /** 该招式是否要求场上存在竞技场（无极汰那「世界终焉」：没有竞技场则招式失败） */
   _attackRequiresStadium(mon,attackIndex=0){
     const effs=this.getAttacks(mon)[attackIndex]?.effects||[];
@@ -758,6 +808,8 @@ export class GameState {
     if(!mon.costEliminated&&!this._passiveCostEliminatedByLostZone(mon)&&!this.checkEnergy(mon,attackIndex))return {ok:false,reason:'energy',message:'能量不足'};
     // 场上没有竞技场时「世界终焉」必定失败 → 直接置灰，别让玩家白费一个回合
     if(this._attackRequiresStadium(mon,attackIndex)&&!this.getActiveStadium())return {ok:false,reason:'requires_stadium',message:'场上没有竞技场，这个招式会失败'};
+    // 通用招式前提（「若…则这个招式失败」）：不满足时同样置灰并说明原因
+    { const pre=this._attackPreconditionFailure(pl,mon,attackIndex); if(pre)return {ok:false,reason:'attack_precondition',message:pre}; }
     return {ok:true};
   }
 

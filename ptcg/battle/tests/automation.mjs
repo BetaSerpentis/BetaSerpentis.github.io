@@ -8432,6 +8432,97 @@ await test('coin 运行时：没有能量则掷 0 次、不造成伤害', async 
   assert.equal(opp.active.hp, 300, '0 个能量 → 0 次硬币 → 无伤害');
 });
 
+
+// ============================================================
+//  f：招式失败前提（「若…则这个招式失败」）
+// ============================================================
+
+function failCase(text, setup) {
+  const gs = new GameState();
+  gs.phase = PHASE.BATTLE;
+  gs.currentPlayer = gs.player1;
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('我', 'a1', [{ name:'测试招式', cost:[], damage:50, effect:text, effects: parseEffect(text).effects }]);
+  opp.active = mon('敌', 'o1');
+  if (setup) setup(gs, pl, opp);
+  return gs.canUseAttack(pl, pl.active, 0);
+}
+
+await test('f 通用前提解析：三种既有表示都能识别', () => {
+  // ① 本批新增的通用写法
+  assert.equal(parseEffect('如果对手备战区没有宝可梦的话，则这个招式失败。').effects[0].params.kind, 'attack_requires');
+  // ② 引擎既有的 conditional_effect + attack_fail（原来 canUseAttack 不知道，不会置灰）
+  const cond = parseEffect('如果场上没有竞技场的话，则这个招式失败。').effects[0];
+  assert.equal(cond.action, 'conditional_effect');
+  assert.equal(cond.params.effect.action, 'attack_fail');
+  // ③ 既有的 fail_if_hand_diff
+  assert.equal(parseEffect('如果自己的手牌与对手的手牌张数不同的话，则这个招式失败。').effects[0].params.kind, 'fail_if_hand_diff');
+  // 硬币那半仍然走 fail_on_tails（不被通用规则抢走）
+  const coin = parseEffect('抛掷1次硬币如果为反面，则这个招式失败。').effects[0];
+  assert.equal(coin.action, 'coin_flip');
+  assert.equal(coin.params.fail_on_tails, true);
+});
+
+await test('f 前提不满足时置灰并给出原因（含既有表示）', () => {
+  let r = failCase('如果对手备战区没有宝可梦的话，则这个招式失败。', (g, p, o) => { o.bench = []; });
+  assert.equal(r.ok, false); assert.match(String(r.message || ''), /备战/);
+  r = failCase('如果对手备战区没有宝可梦的话，则这个招式失败。', (g, p, o) => { o.bench = [mon('替', 'o2')]; });
+  assert.equal(r.ok, true, '对手有备战应可用');
+
+  r = failCase('如果自己的手牌数量不为3张的话，则这个招式失败。', (g, p) => { p.hand = ['a', 'b']; });
+  assert.equal(r.ok, false); assert.match(String(r.message || ''), /手牌/);
+  r = failCase('如果自己的手牌数量不为3张的话，则这个招式失败。', (g, p) => { p.hand = ['a', 'b', 'c']; });
+  assert.equal(r.ok, true);
+
+  // 既有表示：场上没有竞技场（以前只有点下去才会失败，不会置灰）
+  r = failCase('如果场上没有竞技场的话，则这个招式失败。');
+  assert.equal(r.ok, false, '无竞技场应置灰');
+  r = failCase('如果场上没有竞技场的话，则这个招式失败。', (g) => { g.stadium = { cardId:'st', name:'深钵镇', effects:[] }; });
+  assert.equal(r.ok, true);
+
+  // 既有表示：对手前排没有伤害指示物 / 双方手牌张数不同
+  r = failCase('如果对手的战斗宝可梦身上没有放置伤害指示物的话，则这个招式失败。');
+  assert.equal(r.ok, false);
+  r = failCase('如果对手的战斗宝可梦身上没有放置伤害指示物的话，则这个招式失败。', (g, p, o) => { o.active.hp = 50; });
+  assert.equal(r.ok, true);
+  r = failCase('如果自己的手牌与对手的手牌张数不同的话，则这个招式失败。', (g, p, o) => { p.hand = ['a']; o.hand = ['b', 'c']; });
+  assert.equal(r.ok, false);
+});
+
+await test('f 备战区指定名字前提：有其一即可', () => {
+  const text = '如果自己的备战区中没有「由克希」「亚克诺姆」的话，则这个招式失败。';
+  let r = failCase(text, (g, p) => { p.bench = [mon('别的', 'b1')]; });
+  assert.equal(r.ok, false); assert.match(String(r.message || ''), /备战区没有/);
+  r = failCase(text, (g, p) => { p.bench = [mon('亚克诺姆', 'b1')]; });
+  assert.equal(r.ok, true, '有其中一个应可用');
+});
+
+await test('f 认不出的前提条件宽松放行（不把卡变成不能用）', () => {
+  const r = failCase('如果太阳从西边出来的话，则这个招式失败。');
+  assert.equal(r.ok, true, '认不出的条件不应拦');
+});
+
+await test('f 招式前提不满足时 BattleEngine 也判定失败（不会照常结算伤害）', async () => {
+  const gs = new GameState();
+  gs.phase = PHASE.BATTLE;
+  gs.currentPlayer = gs.player1;
+  const pl = gs.player1, opp = gs.player2;
+  const text = '如果对手备战区没有宝可梦的话，则这个招式失败。';
+  pl.active = mon('我', 'a1', [{ name:'测试招式', cost:[], damage:50, effect:text, effects: parseEffect(text).effects }]);
+  opp.active = mon('敌', 'o1');
+  opp.active.hp = 100; opp.active.maxHp = 100;
+  opp.bench = [];
+  pl.deck = ['a', 'b']; opp.deck = ['c', 'd'];
+  pl.prizes = ['p']; opp.prizes = ['q'];
+  const engine = makeEngine(gs);
+  const saved = Math.random; Math.random = () => 0;
+  try {
+    const ok = await engine.attack(0);
+    assert.equal(ok, false, '前提不满足时招式应失败');
+    assert.equal(opp.active.hp, 100, '失败时不应造成伤害');
+  } finally { Math.random = saved; }
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

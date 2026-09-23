@@ -1577,7 +1577,7 @@ const EXECUTORS = {
     } else {
       const slot = await _pickPokemonTarget(gs, pl, pl, { mode:'switch', side:'self', allowActive:false, allowBench:true, prompt:'选择换上场的备战宝可梦', failRequired, requiredAction:eff?.action });
       const idx = slot?.startsWith('bench-') ? parseInt(slot.replace('bench-', '')) : -1;
-      if (pl.bench[idx]) { const t = pl.active; pl.active = pl.bench.splice(idx,1)[0]; if (t) { pl.bench.push(t); gs._removeSpecialConditions?.(t); gs._switchToBench = { player: pl, mon: t }; } gs.addLog('换位'); }
+      if (pl.bench[idx]) { const t = pl.active; pl.active = pl.bench.splice(idx,1)[0]; if (t) { pl.bench.push(t); gs._removeSpecialConditions?.(t); gs._switchToBench = { player: pl, mon: t }; } if (pl.active) pl.active.cameFromBenchThisTurn = true; gs.addLog('换位'); }
       else if (failRequired) _requiredFailure(eff?.action, 'required_invalid_switch_target');
     }
   },
@@ -2286,7 +2286,7 @@ const EXECUTORS = {
     if (bi >= 0) pl.bench.splice(bi, 1);
     if (wasActive) {
       pl.active = pl.bench.length ? pl.bench.shift() : null;
-      if (pl.active) gs.addLog(`${pl.name} 换上 ${pl.active.name}`);
+      if (pl.active) { pl.active.cameFromBenchThisTurn = true; gs.addLog(`${pl.name} 换上 ${pl.active.name}`); }
     }
     gs._shuffle?.(pl.deck);
     gs.recomputePassives?.();
