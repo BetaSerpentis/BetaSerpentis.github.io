@@ -8912,6 +8912,65 @@ await test('r1 「给对手查看后放回牌库上方」：卡进牌库顶、�
   assert.deepEqual([...pl.deck].reverse(), ['s1', 'x1'], '支援者应放到牌库顶');
 });
 
+
+// ============================================================
+//  ② 「只要在弃牌区就无法加入手牌/放回牌库」的强制执行
+// ============================================================
+
+await test('r2 卡片文本解析出「不可回收」标记', () => {
+  const eff = parseEffect('回复自己1只宝可梦「150」HP。\n\n这张卡牌，只要在弃牌区，就无法加入手牌，也无法放回牌库。').effects;
+  assert.ok(eff.some(x => x.params?.kind === 'cannot_be_recovered'), `应解析出标记（实际 ${JSON.stringify(eff.map(x => x.params?.kind))}）`);
+});
+
+await test('r2 回收类效果不会取到被标记的卡', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  pl.active = mon('我', 'a1');
+  pl.hand = [];
+  pl.discard = ['ok1', 'bad1'];
+  gs.cardResolver = fakeResolver({
+    'ok1': { card:{ cardType:'trainer', trainerType:'item', name:'普通物品' }, info:{ name:'普通物品' } },
+    'bad1': { card:{ cardType:'trainer', trainerType:'item', name:'宝可生机剂A',
+      effects:[{ action:'usage_condition', params:{ kind:'cannot_be_recovered' } }] }, info:{ name:'宝可生机剂A' } },
+  });
+  await executeEffects(gs, pl, [{ action:'recover_from_discard', params:{ count:1, target:'hand' } }]);
+  assert.deepEqual(pl.hand, ['ok1'], '只能拿到普通卡');
+  assert.deepEqual(pl.discard, ['bad1'], '被标记的卡应留在弃牌区');
+});
+
+await test('r2 若弃牌区只有被标记的卡，回收视为无合法目标（不空发到手上）', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  pl.active = mon('我', 'a1');
+  pl.hand = [];
+  pl.discard = ['bad1'];
+  gs.cardResolver = fakeResolver({
+    'bad1': { card:{ cardType:'trainer', trainerType:'item', name:'宝可生机剂A',
+      effects:[{ action:'usage_condition', params:{ kind:'cannot_be_recovered' } }] }, info:{ name:'宝可生机剂A' } },
+  });
+  await executeEffects(gs, pl, [{ action:'recover_from_discard', params:{ count:1, target:'hand', optional:true } }]);
+  assert.deepEqual(pl.hand, [], '不应拿到被标记的卡');
+  assert.deepEqual(pl.discard, ['bad1'], '卡应留在弃牌区');
+});
+
+await test('r2 普通卡不受影响（对照）', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  pl.active = mon('我', 'a1');
+  pl.hand = [];
+  pl.discard = ['ok1', 'ok2'];
+  gs.cardResolver = fakeResolver({
+    'ok1': { card:{ cardType:'trainer', trainerType:'item', name:'普通物品A' }, info:{ name:'普通物品A' } },
+    'ok2': { card:{ cardType:'trainer', trainerType:'item', name:'普通物品B' }, info:{ name:'普通物品B' } },
+  });
+  await executeEffects(gs, pl, [{ action:'recover_from_discard', params:{ count:2, target:'hand' } }]);
+  assert.equal(pl.hand.length, 2, '普通卡应能全部回收');
+  assert.equal(pl.discard.length, 0);
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

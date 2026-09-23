@@ -203,6 +203,23 @@ function _emitEnergyAttached(gs, owner, mon, cards, fromHand) {
   }
 }
 
+/**
+ * 「这张卡牌，只要在弃牌区，就无法加入手牌，也无法放回牌库。」
+ * 这类卡**不能被回收类效果取用**（宝可生机剂A / 中立中心 等 3 张）。
+ * 只拦「从弃牌区取走」的效果；弃牌区内部移动（如放进放逐区）不受此限。
+ */
+function _canBeRecovered(gs, card) {
+  const isObj = card && typeof card === 'object';
+  const id = isObj ? (card.cardId || card.name) : card;
+  const cd = (isObj && Array.isArray(card.effects)) ? card : gs?.cardResolver?.getCard?.(id);
+  const effs = cd?.effects || [];
+  return !effs.some(e => e.action === 'usage_condition' && e.params?.kind === 'cannot_be_recovered');
+}
+/** 把「不可回收」限制叠加到原有 filter 上（base 可为字符串或函数，_cardMatchesFilter 都支持） */
+function _recoverableFilter(gs, base) {
+  return card => _canBeRecovered(gs, card) && _cardMatchesFilter(gs, card, base || null);
+}
+
 /** 道具显示名（与 GameState._toolLabel 同义，这里是模块级实现，供执行器使用） */
 function _toolLabelOf(gs, tool) {
   if (!tool) return '道具';
@@ -1861,7 +1878,7 @@ const EXECUTORS = {
   // ===== 弃牌区放备战 =====
   async discard_to_bench(gs, pl, p) {
     const selected = await _pickCardsFromZone(gs, pl, pl, pl.discard, p.count || 1, {
-      source:'discard-to-bench', filter:p.filter || '宝可梦', prompt:'选择放到备战区的宝可梦',
+      source:'discard-to-bench', filter:_recoverableFilter(gs, p.filter || '宝可梦'), prompt:'选择放到备战区的宝可梦',
       allowFewer:!!p.allowFewer, allowEmpty:!!p.allowEmpty, maxCount:p.maxCount, minCount:p.minCount, optional:!!p.optional
     });
     for (const item of selected) { const idx = pl.discard.indexOf(item.card); if (idx >= 0) pl.discard.splice(idx, 1); const mon = _makeBenchPokemonFromCard(gs, item.card); if (mon && pl.bench.length < 5) pl.bench.push(mon); }
@@ -1880,7 +1897,7 @@ const EXECUTORS = {
     });
     const mon = _getMon(pl, slot);
     if (!mon) return;
-    const selected = await _pickCardsFromZone(gs, pl, pl, pl.discard, p.count || 1, { source:'discard-energy', filter:card=>_isEnergyCard(gs, card, p.filter), allowFewer:!!p.allowFewer, allowEmpty:!!p.allowEmpty, maxCount:p.maxCount, minCount:p.minCount, optional:!!p.optional });
+    const selected = await _pickCardsFromZone(gs, pl, pl, pl.discard, p.count || 1, { source:'discard-energy', filter:card=>_canBeRecovered(gs, card) && _isEnergyCard(gs, card, p.filter), allowFewer:!!p.allowFewer, allowEmpty:!!p.allowEmpty, maxCount:p.maxCount, minCount:p.minCount, optional:!!p.optional });
     if (!selected.length) return;
     for (const item of selected.sort((a,b)=>b.index-a.index)) mon.energy.push(pl.discard.splice(item.index, 1)[0]);
     _emitEnergyAttached(gs, pl, mon, selected.map(x => x.card), false);
@@ -2028,7 +2045,7 @@ const EXECUTORS = {
 
   // ===== 弃牌区回收 =====
   async recover_from_discard(gs, pl, p) {
-    const selected = await _pickCardsFromZone(gs, pl, pl, pl.discard, p.count || 1, { source:'discard', filter:p.filter || null, allowFewer:!!p.allowFewer, allowEmpty:!!p.allowEmpty, maxCount:p.maxCount, minCount:p.minCount, optional:!!p.optional });
+    const selected = await _pickCardsFromZone(gs, pl, pl, pl.discard, p.count || 1, { source:'discard', filter:_recoverableFilter(gs, p.filter), allowFewer:!!p.allowFewer, allowEmpty:!!p.allowEmpty, maxCount:p.maxCount, minCount:p.minCount, optional:!!p.optional });
     if (!selected.length) {
       // 回收类效果：弃牌区没有合法目标时不能发动（否则会白用一张卡，甚至把不合规的卡回手）
       const required = (p.minCount ?? p.count ?? 1) > 0 && !p.optional && !p.allowEmpty && !p.allowFewer;
