@@ -122,6 +122,30 @@ async function _applySpreadDamage(gs, pl, per, picks) {
 }
 
 /**
+ * 「以任意顺序重新排列，放回牌库上方」的**多步选择**：
+ * 一次选 1 张放到当前最上面，重复到选完 —— 与用户口径一致（点完继续选，次数=卡数）。
+ * 无 UI（AI/自动）或只有 1 张时保持原顺序（确定性）。
+ * 返回顺序 = **从牌库顶往下**。
+ */
+async function _reorderForDeckTop(gs, pl, cards) {
+  const pool = [...(cards || [])];
+  if (!gs._onPendingPick || pool.length <= 1) return pool;
+  const ordered = [];
+  while (pool.length) {
+    const picked = await gs.waitForPick(pool.map(c => _cardLabel(gs, c)), 1, {
+      source:'deck-top-reorder',
+      prompt: ordered.length
+        ? `选择放到第 ${ordered.length + 1} 张（从牌库顶往下数）的卡`
+        : '选择放到牌库最上面的卡',
+      minCount:1, maxCount:1,
+    });
+    const idx = Math.min(Math.max(Number(picked?.[0]) || 0, 0), pool.length - 1);
+    ordered.push(pool.splice(idx, 1)[0]);
+  }
+  return ordered;
+}
+
+/**
  * 「造成其张数×N伤害」：伤害 = 本动作**实际移动的卡牌数** × N。
  * 卡面没有指定目标时，按规则打到对手的出战宝可梦。
  * 返回实际造成的伤害（0 表示这条卡面没有这个效果）。
@@ -902,6 +926,7 @@ const EXECUTORS = {
       gs.addLog('牌库为空，没有可检索的卡'); // 检索类允许空发
       return;
     }
+    // toTop：把选中的卡放到**牌库上方**而不是加入手牌（「给对手查看后放回牌库上方」）
     const cards = [...pl.deck].reverse();
     const count = p.dynamicCount === 'own_field_type_count' ? _ownFieldTypeCount(pl) : (p.count || 1);
     const selected = await _pickCardsFromZone(gs, pl, pl, cards, count, {
@@ -920,7 +945,9 @@ const EXECUTORS = {
     const selectedCards = selected.map(item => item.card);
     for (const card of selectedCards) { const idx = pl.deck.indexOf(card); if (idx >= 0) pl.deck.splice(idx, 1); }
     gs._shuffle(pl.deck);
-    pl.hand.push(...selectedCards);
+    // toTop：「给对手查看后放回牌库上方」——放到牌库顶（数组末尾）而不是加入手牌
+    if (p.toTop) { pl.deck.push(...[...selectedCards].reverse()); gs._shuffle0 ? null : null; gs.addLog(`将 ${selectedCards.length} 张放回牌库上方`); }
+    else pl.hand.push(...selectedCards);
     gs.addLog(`搜牌库拿了 ${selectedCards.length} 张`);
   },
 
@@ -1085,6 +1112,14 @@ const EXECUTORS = {
       // D「将剩余的卡牌丢到弃牌区」
       pl.discard.push(...remainder);
       gs.addLog(`剩余的 ${remainder.length} 张卡丢到弃牌区`);
+    } else if (remainderMode === 'reorder_top') {
+      // 「以任意顺序重新排列，放回牌库上方」：多步选择决定顺序。
+      // ⚠️ remainder 是按 **peeked 数组顺序（从下往上）** 来的，而给玩家看的选择界面必须是
+      // 「从牌库顶往下」，所以先 reverse 再排序；最后同样反转回来 push
+      //（牌库顶 = 数组末尾，因为 draw() 用 pop()）。
+      const ordered = await _reorderForDeckTop(gs, pl, [...remainder].reverse());
+      pl.deck.push(...[...ordered].reverse());
+      gs.addLog(`剩余的 ${ordered.length} 张以指定顺序放回牌库上方`);
     } else if (remainderMode === 'lost_zone') {
       // 「将剩余的卡牌放置于放逐区」：放逐区的卡不能再被回收，必须真的分开存
       (pl.lostZone = pl.lostZone || []).push(...remainder);
@@ -2353,6 +2388,47 @@ const EXECUTORS = {
       pp.prizes = [];
       gs.addLog(`${pp.name} 的 ${n} 张奖赏卡加入手牌`);
     }
+  },
+
+  /**
+   * 「从自己的牌库选择任意N张卡。将剩余的牌库重洗，将选择的卡牌以任意顺序重新排列，放回牌库上方」
+   * 交互：先选 N 张（可看牌库），再把剩余的重洗；然后对这 N 张走多步排序（逐个放到最上面）。
+   */
+  async deck_pick_and_reorder_top(gs, pl, p) {
+    const count = Math.min(p.count || 1, pl.deck.length);
+    if (!count) return;
+    const cards = [...pl.deck].reverse(); // 牌库顶在前，便于阅读
+    const sel = await _pickCardsFromZone(gs, pl, pl, cards, count, {
+      source:'deck-pick-reorder',
+      prompt:`选择要放到牌库上方的 ${count} 张卡`,
+      allowFewer:true, allowEmpty:true, optional:true,
+    });
+    const chosen = sel.map(x => x.card);
+    if (!chosen.length) return;
+    for (const c of chosen) { const i = pl.deck.lastIndexOf(c); if (i >= 0) pl.deck.splice(i, 1); }
+    gs._shuffle?.(pl.deck); // 剩余的牌库重洗
+    const ordered = await _reorderForDeckTop(gs, pl, chosen);
+    pl.deck.push(...[...ordered].reverse()); // 牌库顶 = 数组末尾
+    gs.addLog(`${ordered.length} 张以指定顺序放回牌库上方（其余已重洗）`);
+  },
+
+  /** 「选择自己的N张手牌，将其与牌库上方的卡牌互换」——手牌进牌库顶、牌库顶进手牌 */
+  async hand_deck_top_swap(gs, pl, p) {
+    const count = Math.min(p.count || 1, pl.hand.length, pl.deck.length);
+    if (!count) { gs.addLog('手牌或牌库不足，无法互换'); return; }
+    const sel = await _pickCardsFromZone(gs, pl, pl, pl.hand, count, {
+      source:'hand-deck-top-swap',
+      prompt:`选择要与牌库上方互换的 ${count} 张手牌`,
+      allowFewer:true, allowEmpty:true, optional:true,
+    });
+    if (!sel.length) return;
+    // 真正的「互换」：手牌 N 张 → 牌库顶；牌库顶 N 张 → 手牌（两边张数都不变）
+    const topCards = pl.deck.splice(pl.deck.length - sel.length, sel.length);
+    const handCards = [];
+    for (const item of sel.sort((a, b) => b.index - a.index)) handCards.push(pl.hand.splice(item.index, 1)[0]);
+    pl.deck.push(...handCards);
+    pl.hand.push(...topCards);
+    gs.addLog(`${handCards.length} 张手牌与牌库上方 ${topCards.length} 张互换`);
   },
 
   /** 「双方玩家，各将自己所有的奖赏卡放回牌库」（奖赏卡回库后重洗） */

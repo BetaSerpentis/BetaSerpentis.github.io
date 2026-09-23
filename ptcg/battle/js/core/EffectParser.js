@@ -1086,7 +1086,8 @@ const RULES = [
   // --- 弃牌区能量附全场备战（贮存泥巴：各附着1张）---
   { re: /给自己所有的备战宝可梦[，,]?各附着1张弃牌区中的(.+?)。/, act:'attach_energy_from_discard', p:m=>withCount({filter:m[1].replace(/["“”]/g,'').trim(),target:'bench'},1,false) },
   // --- 搜索重排置顶（暗码迷/七夕青鸟族：metadata）---
-  { re: /从自己的牌库选择任意(\d+)张卡。将剩余的牌库重洗，将选择的卡牌以任意顺序重新排列，放回牌库上方/, act:'usage_condition', p:m=>({kind:'search_rearrange_deck_top',count:+m[1],raw:m[0]}) },
+  // 升级：原为未建模标记 → 从牌库挑 N 张 + 其余重洗 + 多步排序放回牌库上方
+  { re: /从自己的牌库选择任意(\d+)张卡。将剩余的牌库重洗，将选择的卡牌以任意顺序重新排列，放回牌库上方/, act:'deck_pick_and_reorder_top', p:m=>({ count:+m[1] }) },
   { re: /从自己的牌库选择1张支援者，给对手查看。将剩余的牌库重洗，并将选择的卡牌放回牌库上方/, act:'usage_condition', p:()=>({kind:'search_reveal_deck_top',raw:'从自己的牌库选择1张支援者给对手查看后放回牌库上方'}) },
   // --- 招式伤害无视对手附加效果（波荡水ex）---
   { re: /这只宝可梦所使用的招式的伤害[，,]?不计算对手战斗宝可梦身上所附加的效果/, act:'ignore', p:()=>({what:'opponent_effects'}) },
@@ -1108,7 +1109,8 @@ const RULES = [
   // --- 任意数量基本能量手牌附着 ---
   { re: /选择自己手牌中任意数量的基本能量，以任意方式附于自己的宝可梦身上/, act:'attach_energy_from_hand', p:()=>({filter:'基本能量',target:'any',allowFewer:true,allowEmpty:true,maxCount:99}) },
   // --- 查看自己或对手牌库上方并重排（metadata）---
-  { re: /查看自己或者对手牌库上方(\d+)张卡[，,]?以任意顺序重新排列，放回牌库上方/, act:'usage_condition', p:m=>trainerPrerequisite('look_reorder_deck_top', m[0]) },
+  // 升级：原为未建模标记 → 查看牌库上方 N 张并以任意顺序重排（多步选择）
+  { re: /查看自己或者对手牌库上方(\d+)张卡[，,]?以任意顺序重新排列，放回牌库上方/, act:'peek_and_keep', p:m=>({ peek:+m[1], keep:0, maxCount:0, minCount:0, allowEmpty:true, remainder:'reorder_top' }) },
   // --- 攻能随对手场上 V 数量减少（伽勒尔闪电鸟V：metadata/passive）---
   { re: /这只宝可梦使用招式所需能量会减少与对手场上["“”]([^"“”]+)["“”]的数量相同数量的【无】能量/, act:'attack_cost_reduction', p:()=>({target:'self',type:'colorless',amount:'opponent_field_rule_count'}) },
   // --- 白马蕾冠王VMAX：弃附能→张数×120 ---
@@ -1271,7 +1273,8 @@ const RULES = [
   { re: /选择最多(\d+)张自己的奖赏卡，加入手牌。然后，选择与加入手牌张数相同张数的手牌，反面朝上作为奖赏卡放置/, act:'usage_condition', p:m=>trainerPrerequisite('prize_hand_swap', m[0]) },
   { re: /从自己的弃牌区选择1张【基础】宝可梦，与自己场上的1只【基础】宝可梦互换（继承所有(?:放置|放)于其身上的卡牌/, act:'usage_condition', p:m=>trainerPrerequisite('swap_discard_base_with_field_base', m[0]) },
   { re: /从自己的弃牌区选择，1张名字中带有["“”]([^"“”]+)["“”]的["“”]宝可梦【ex】["“”]，与自己场上的，1只名字中带有["“”]([^"“”]+)["“”]的["“”]宝可梦【ex】["“”]互换（继承所有(?:放置|放)于其身上的卡牌/, act:'usage_condition', p:m=>trainerPrerequisite('swap_discard_ex_with_field', m[0]) },
-  { re: /从自己的牌库选择任意(\d+)张卡。将剩余的牌库重洗，并将选择的卡牌以任意顺序重新排列，放回牌库上方/, act:'usage_condition', p:m=>trainerPrerequisite('search_rearrange_deck_top2', m[0]) },
+  // 升级：同上（「并」字的变体）
+  { re: /从自己的牌库选择任意(\d+)张卡。将剩余的牌库重洗，并将选择的卡牌以任意顺序重新排列，放回牌库上方/, act:'deck_pick_and_reorder_top', p:m=>({ count:+m[1] }) },
   { re: /从自己的手牌将最多(\d+)张宝可梦（["“”]([^"“”]+)["“”]除外）丢到弃牌区，然后从自己的牌库抽出丢到弃牌区卡牌张数[×x](\d+)张卡/, act:'usage_condition', p:m=>trainerPrerequisite('discard_pokemon_draw_x', m[0]) },
   // 升级：原为未建模标记 → 伤害指示物转移（对手某只 → 对手另 1 只）
   { re: /将对手场上1只宝可梦身上放置的最多(\d+)个伤害指示物[，,]?转放置于对手1只其他宝可梦身上/, act:'move_damage_counters', p:m=>({ from:'opponent_field', to:'opponent_other', count:+m[1] }) },
@@ -1317,7 +1320,8 @@ const RULES = [
   { re: /若因为这个招式的伤害，对手的【基础】宝可梦【昏厥】，则多拿取(\d+)张奖赏卡/, act:'extra_prize', p:m=>({count:+m[1]}) },
   { re: /对手可放置于备战区的宝可梦数量就会变为(\d+)只/, act:'usage_condition', p:m=>trainerPrerequisite('opp_bench_limit', m[0]) },
   { re: /选择对手弃牌区中的1张【基础】宝可梦，放置于对手的备战区/, act:'discard_to_bench', p:()=>({count:1,filter:'宝可梦',side:'opponent'}) },
-  { re: /选择自己的1张手牌，将其与牌库上方的卡牌互换/, act:'usage_condition', p:m=>trainerPrerequisite('hand_deck_top_swap', m[0]) },
+  // 升级：原为未建模标记 → 手牌与牌库顶互换
+  { re: /选择自己的1张手牌，将其与牌库上方的卡牌互换/, act:'hand_deck_top_swap', p:()=>({ count:1 }) },
   { re: /将对手战斗宝可梦身上附着的1个特殊能量，丢到弃牌区/, act:'discard_energy', p:()=>({target:'opponent_active',count:1,filter:'特殊能量'}) },
   { re: /对手战斗宝可梦【撤退】所需能量，就会增加1个/, act:'usage_condition', p:m=>trainerPrerequisite('opp_retreat_up_passive', m[0]) },
   { re: /选择对手场上宝可梦身上附着的1个特殊能量，丢到弃牌区/, act:'discard_energy', p:()=>({target:'opponent_field',count:1,filter:'特殊能量'}) },
@@ -1721,7 +1725,8 @@ const RULES = [
   { re: /将(?:自己的|自己)?牌库中最多(\d+)张◇（棱镜之星）卡，在给对手看过后，加入手牌/, act:'search_deck_to_hand', p:m=>withCount({filter:'◇（棱镜之星）卡'},m[1],true) },
   { re: /当从反面朝上的自己的奖赏卡中拿取了这张卡时，在加入手牌前，可将这张卡附于自己的宝可梦身上/, act:'usage_condition', p:m=>trainerPrerequisite('energy_prize_attach', m[0]) },
   { re: /从自己的牌库选择最多(\d+)张【(.+?)】能量，以任意方式附于自己的宝可梦身上/, act:'attach_energy_from_deck', p:m=>withCount({filter:`【${m[2]}】能量`,target:'any'},m[1],true) },
-  { re: /查看自己的牌库上方(\d+)张卡。选择其中任意数量的能量，在给对手看过后，加入手牌/, act:'usage_condition', p:m=>trainerPrerequisite('look_top_any_energy', m[0]) },
+  // 升级：原为未建模标记 → 查看牌库上方 N 张，任取其中能量
+  { re: /查看自己的牌库上方(\d+)张卡。选择其中任意数量的能量，在给对手看过后，加入手牌/, act:'peek_and_keep', p:m=>({ peek:+m[1], keep:99, maxCount:99, minCount:0, allowFewer:true, allowEmpty:true, filter:'能量' }) },
   { re: /将(?:自己的|自己)?手牌中1张【(.+?)】能量，附于自己的宝可梦身上/, act:'attach_energy_from_hand', p:m=>({filter:`【${m[1]}】能量`,target:'any'}) },
   { re: /将(?:自己的|自己)?弃牌区中的1张【(.+?)】或【(.+?)】能量，附于战斗宝可梦身上/, act:'attach_energy_from_discard', p:m=>withCount({filter:`【${m[1]}】或【${m[2]}】能量`,target:'active'},1,false) },
   { re: /将正面次数[×x](\d+)伤害作为数值，恢复该宝可梦的HP/, act:'usage_condition', p:m=>trainerPrerequisite('heal_by_heads_value', m[0]) },
@@ -1988,6 +1993,24 @@ const RULES = [
   { re: /选择自己的1只备战宝可梦[，,]?将所有放置于被选择的宝可梦身上的伤害指示物[，,]?转放置于对手的战斗宝可梦身上/, act:'move_damage_counters', p:()=>({ from:'self_bench', to:'opponent_active', count:'all' }) },
   // ⑩ 自己场上【X】宝可梦 1 个 → 自己其他【X】宝可梦（同属性）
   { re: /选择放置于自己场上【(.+?)】宝可梦身上的(\d+)个伤害指示物[，,]?转放置于自己其他【\1】宝可梦身上/, act:'move_damage_counters', p:m=>({ from:'self_field', to:'self_other', count:+m[2], sameFilter:true }) },
+
+  // ===== ① 牌库顶重排类 =====
+  // 「查看自己（或者对手）牌库上方N张卡，以任意顺序重新排列，放回牌库上方」→ 并入查看动作（remainder 模式）
+  { re: /查看(?:自己的|自己)?(?:或者对手)?牌库上方(\d+)张卡[。.]?以任意顺序重新排列后?[，,]?放回牌库上方/, act:'action_count_override', p:m=>({ targets:['peek_and_keep'], set:{ peek:+m[1], keep:0, maxCount:0, minCount:0, allowEmpty:true, remainder:'reorder_top' }, raw:m[0] }) },
+  // 「（其中任意数量的卡牌丢到弃牌区，）将剩余的卡牌以任意顺序重新排列，放回牌库上方」
+  // ⚠️ 必须排在下面那条之前：这条有「剩余的卡牌」，**不改 keep**（前面可能已经「选其中1张加入手牌」）。
+  { re: /将剩余的卡牌以任意顺序重新排列[，,]?放回牌库上方/, act:'action_count_override', p:m=>({ targets:['peek_and_keep'], set:{ remainder:'reorder_top' }, raw:m[0] }) },
+  // 「（查看牌库上方N张卡。）以任意顺序重新排列后，放回牌库上方」——全部重排、**不拿牌**（keep=0）
+  { re: /以任意顺序重新排列后?[，,]?放回牌库上方/, act:'action_count_override', p:m=>({ targets:['peek_and_keep'], set:{ keep:0, maxCount:0, minCount:0, allowEmpty:true, remainder:'reorder_top' }, raw:m[0] }) },
+  // 「从自己的牌库选择1张X给对手查看后放回牌库上方」→ 复用 search_deck_to_hand 的 toTop
+  { re: /从(?:自己的|自己)?牌库选择(\d+)张(.+?)(?:卡)?给对手查看后?放回牌库上方/, act:'search_deck_to_hand', p:m=>({ filter:m[2].replace(/["“”「」]/g,'').trim(), count:+m[1], maxCount:+m[1], minCount:+m[1], toTop:true }) },
+  // 「从自己的牌库选择任意N张卡。将剩余的牌库重洗，将选择的卡牌以任意顺序重新排列，放回牌库上方」
+  { re: /从(?:自己的|自己)?牌库选择任意(\d+)张卡[。.]?将剩余的牌库重洗[，,]?将?选择的卡牌以任意顺序重新排列[，,]?放回牌库上方/, act:'deck_pick_and_reorder_top', p:m=>({ count:+m[1] }) },
+  { re: /从(?:自己的|自己)?牌库选择任意(\d+)张卡[。.]?将剩余的牌库重洗[，,]?并?将?选择的卡牌以任意顺序重新排列[，,]?放回牌库上方/, act:'deck_pick_and_reorder_top', p:m=>({ count:+m[1] }) },
+  // 「选择自己的1张手牌，将其与牌库上方的卡牌互换」
+  { re: /选择自己的(\d+)张手牌[，,]?将其与牌库上方的?卡牌?互换/, act:'hand_deck_top_swap', p:m=>({ count:+m[1] }) },
+  // 「查看自己的牌库上方N张卡。选择其中任意数量的X，在给对手看过后，加入手牌」→ 并入查看动作（带 filter）
+  { re: /查看(?:自己的|自己)?牌库上方(\d+)张卡[。.]?选择其中任意数量的(.+?)[，,]?在给对手看过后[，,]?加入手牌/, act:'peek_and_keep', p:m=>({ peek:+m[1], keep:99, maxCount:99, minCount:0, allowFewer:true, allowEmpty:true, filter:m[2].replace(/["“”「」]/g,'').trim() }) },
 
   { re: /这张卡，只有在上一个对手的回合，自己的【(.+?)】宝可梦【昏厥】时才可使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('condition', m[0]) },  // ===== 「造成其张数×N伤害」（**兜底**，必须放在最后）=====
   // ⚠️ 本项目早有专用实现：`discard_energy_for_damage`（5 条规则 + 真执行器，覆盖

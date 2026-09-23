@@ -8806,6 +8806,112 @@ await test('长尾4 运行时：没有伤害指示物时不空转', async () => 
   assert.equal(opp.active.hp, 100, '没有指示物可转，目标不应掉血');
 });
 
+
+// ============================================================
+//  ① 牌库顶重排（多步选择 UI）
+// ============================================================
+
+const TOPMON = () => ({ name:'我', cardId:'a1', hp:100, maxHp:100, element:'colorless', attacks:[], energy:[], status:null, placedThisTurn:false, tool:null, ignore:[], retreatCost:1 });
+const SIMPLE_RESOLVER = { getCard: id => ({ cardType:'trainer', trainerType:'item', name:`卡${id}` }) };
+
+/** 用 picks 依次应答多步选择，返回执行完的 gameState */
+async function runReorder(effText, deck, picks, hand = []) {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  pl.active = TOPMON();
+  pl.deck = [...deck];
+  pl.hand = [...hand];
+  gs.cardResolver = SIMPLE_RESOLVER;
+  let pending = null;
+  gs._onPendingPick = p => { pending = p; };
+  const running = executeEffects(gs, pl, parseEffect(effText).effects);
+  const queue = [...picks];
+  for (let i = 0; i < 40; i++) {
+    await new Promise(r => setTimeout(r, 1));
+    if (!pending) continue;
+    const p = pending; pending = null;
+    p.resolve(queue.shift() || [0]);
+  }
+  await running;
+  return { gs, pl };
+}
+
+await test('r1 重排类七种措辞都能解析（5 条既有 marker 已升级）', () => {
+  const table = [
+    ['查看自己或者对手牌库上方3张卡，以任意顺序重新排列，放回牌库上方。', 'peek_and_keep'],
+    ['查看自己的牌库上方4张卡。以任意顺序重新排列后，放回牌库上方。', 'peek_and_keep'],
+    ['从自己的牌库选择任意2张卡。将剩余的牌库重洗，将选择的卡牌以任意顺序重新排列，放回牌库上方。', 'deck_pick_and_reorder_top'],
+    ['从自己的牌库选择1张支援者给对手查看后放回牌库上方。', 'search_deck_to_hand'],
+    ['选择自己的1张手牌，将其与牌库上方的卡牌互换。', 'hand_deck_top_swap'],
+    ['查看自己的牌库上方7张卡。选择其中任意数量的能量，在给对手看过后，加入手牌。', 'peek_and_keep'],
+  ];
+  for (const [text, action] of table) {
+    const e = parseEffect(text).effects;
+    assert.ok(e.some(x => x.action === action), `「${text}」应解析出 ${action}（实际 ${JSON.stringify(e.map(x => x.action))}）`);
+  }
+});
+
+await test('r1 多步重排：选择顺序 = 从牌库顶往下', async () => {
+  // 牌库 [A,B,C,D,E]，顶 3 张 = E,D,C；依次选 D→E→C
+  const { pl } = await runReorder('查看自己的牌库上方3张卡。以任意顺序重新排列后，放回牌库上方。', ['A','B','C','D','E'], [[1],[0],[0]]);
+  assert.deepEqual([...pl.deck].reverse(), ['D','E','C','B','A'], '新顺序应为 D,E,C 在顶');
+});
+
+await test('r1 多步重排：按原顺序选回则不变', async () => {
+  const { pl } = await runReorder('查看自己的牌库上方3张卡。以任意顺序重新排列后，放回牌库上方。', ['A','B','C','D','E'], [[0],[0],[0]]);
+  assert.deepEqual([...pl.deck].reverse(), ['E','D','C','B','A'], '按原顺序选回，牌库应不变');
+});
+
+await test('r1 重排是纯排列：不拿牌、不丢牌', async () => {
+  const { pl } = await runReorder('查看自己的牌库上方3张卡。以任意顺序重新排列后，放回牌库上方。', ['A','B','C','D','E'], [[2],[0],[0]]);
+  assert.equal(pl.hand.length, 0, '不应拿牌');
+  assert.equal(pl.deck.length, 5, '牌库张数不变');
+  assert.deepEqual([...pl.deck].sort(), ['A','B','C','D','E'], '只是换顺序');
+});
+
+await test('r1 无 UI（AI）时保持原顺序', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  pl.active = TOPMON();
+  pl.deck = ['A','B','C','D','E'];
+  gs.cardResolver = SIMPLE_RESOLVER;
+  await executeEffects(gs, pl, parseEffect('查看自己的牌库上方3张卡。以任意顺序重新排列后，放回牌库上方。').effects);
+  assert.deepEqual([...pl.deck].reverse(), ['E','D','C','B','A'], '无 UI 时应保持原顺序（确定性）');
+});
+
+await test('r1 「剩余的卡牌重排」保留已拿的那 1 张', async () => {
+  const e = parseEffect('查看自己的牌库上方4张卡，选择其中1张加入手牌。将剩余的卡牌以任意顺序重新排列，放回牌库上方。').effects;
+  const pk = e.find(x => x.action === 'peek_and_keep');
+  assert.equal(pk.params.keep, 1, 'keep 应保持 1（不被重排规则改掉）');
+  assert.equal(pk.params.remainder, 'reorder_top');
+});
+
+await test('r1 手牌与牌库顶互换', async () => {
+  const { pl } = await runReorder('选择自己的1张手牌，将其与牌库上方的卡牌互换。', ['A','B','C'], [[0]], ['H1']);
+  assert.equal(pl.hand.length, 1, '手牌数不变');
+  assert.equal(pl.deck.length, 3, '牌库数不变');
+  assert.ok(pl.deck.includes('H1'), '手牌应进牌库');
+  assert.ok(pl.hand.includes('C'), '原牌库顶应进手牌');
+});
+
+await test('r1 「给对手查看后放回牌库上方」：卡进牌库顶、不进手牌', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  pl.active = TOPMON();
+  pl.deck = ['s1', 'x1'];
+  pl.hand = [];
+  gs.cardResolver = fakeResolver({
+    's1': { card:{ cardType:'trainer', trainerType:'supporter', name:'某支援者' }, info:{ name:'某支援者' } },
+    'x1': { card:{ cardType:'trainer', trainerType:'item', name:'某物品' }, info:{ name:'某物品' } },
+  });
+  await executeEffects(gs, pl, parseEffect('从自己的牌库选择1张支援者给对手查看后放回牌库上方。').effects);
+  assert.equal(pl.hand.length, 0, '不应加入手牌');
+  assert.deepEqual([...pl.deck].reverse(), ['s1', 'x1'], '支援者应放到牌库顶');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',
