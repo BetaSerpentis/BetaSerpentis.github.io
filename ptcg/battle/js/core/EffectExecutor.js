@@ -2375,10 +2375,70 @@ const EXECUTORS = {
   },
 
   // ===== 查看对手手牌 =====
+  /**
+   * 「查看」类效果（只获取信息，不改变状态）：
+   *   · 默认：查看对手手牌
+   *   · deckTop:N + who:'opponent'|'self' → 查看该方牌库**上方** N 张（牌库顶 = 数组末尾，因为 draw() 用 pop()）
+   *   · prizes:true → 查看自己的奖赏卡
+   * 「其中」的后续引用仍走 gs._lastProcessed。
+   */
   look_at(gs, pl, p) {
     const opp = _opponent(gs, pl);
+    if (p?.deckTop) {
+      const who = p.who === 'self' ? pl : opp;
+      const n = Math.min(+p.deckTop || 1, (who.deck || []).length);
+      const top = (who.deck || []).slice(-n).reverse();
+      gs._lastProcessed = [...top];
+      gs.addLog(`查看${p.who === 'self' ? '自己' : '对手'}的牌库上方 ${n} 张卡（查看后放回原处）`);
+      return;
+    }
+    if (p?.prizes) {
+      const cards = [...(pl.prizes || [])];
+      gs._lastProcessed = cards;
+      gs.addLog(`查看了自己的 ${cards.length} 张反面朝上的奖赏卡（查看后放回原处）`);
+      return;
+    }
     gs._lastProcessed = [...(opp.hand || [])]; // 「其中」= 刚查看的对手手牌
     gs.addLog('查看了对手手牌');
+  },
+
+  /**
+   * 「在不看正面的前提下选择对手N张手牌，查看后放回对手牌库」——手牌干扰。
+   * 注：选择界面上**没做「背面朝上」的呈现**（玩家能看到卡名），这是已知的信息泄露，先记在案。
+   */
+  async opponent_hand_to_deck(gs, pl, p) {
+    const opp = _opponent(gs, pl);
+    const want = Math.min(p.count || 1, (opp.hand || []).length);
+    if (!want) { gs.addLog('对手没有手牌'); return; }
+    const sel = await _pickCardsFromZone(gs, pl, opp, opp.hand, want, {
+      source:'opponent-hand-to-deck',
+      prompt:`选择对手的 ${want} 张手牌（查看后放回其牌库）`,
+      allowFewer:true, allowEmpty:true, optional:true,
+    });
+    for (const item of sel.sort((a, b) => b.index - a.index)) opp.deck.push(opp.hand.splice(item.index, 1)[0]);
+    gs._shuffle?.(opp.deck);
+    gs.addLog(`对手 ${sel.length} 张手牌放回其牌库并重洗`);
+  },
+
+  /** 「查看对手牌库上方N张卡，选择其中任意数量的X，丢到弃牌区」 */
+  async opponent_deck_top_to_discard(gs, pl, p) {
+    const opp = _opponent(gs, pl);
+    const n = Math.min(p.count || 1, (opp.deck || []).length);
+    if (!n) return;
+    const top = (opp.deck || []).slice(-n).reverse(); // 牌库顶 = 数组末尾
+    const picked = await _pickCardsFromZone(gs, pl, opp, top, top.length, {
+      source:'opp-deck-top-discard',
+      filter: card => _cardMatchesFilter(gs, card, p.filter || null),
+      prompt:`查看对手牌库上方 ${n} 张，选择要丢到弃牌区的${p.filter || '卡'}`,
+      allowFewer:true, allowEmpty:true, optional:true,
+    });
+    let moved = 0;
+    for (const item of picked) {
+      const card = top[item.index];
+      const di = opp.deck.lastIndexOf(card);
+      if (di >= 0) { opp.deck.splice(di, 1); opp.discard.push(card); moved++; }
+    }
+    gs.addLog(`查看对手牌库上方 ${n} 张，其中 ${moved} 张丢到对手弃牌区`);
   },
 
   // ===== 随机丢弃对手手牌 =====

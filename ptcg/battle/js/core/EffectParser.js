@@ -1932,8 +1932,9 @@ const RULES = [
   // ③「查看自己的牌库上方N张卡，将其中M张加入手牌」
   { re: /查看(?:自己的|自己)?牌库上方(\d+)张卡(?:牌)?[，,。]?将其中(\d+)张(?:卡牌?)?加入手牌/, act:'peek_and_keep', p:m=>({ peek:+m[1], keep:+m[2], maxCount:+m[2], minCount:+m[2], allowFewer:false, allowEmpty:false }) },
   // ③b「查看自己的牌库上方N张卡」单独成句（后半句用「将其中…」「将剩余…」另行描述）：
-  //    先给出默认 keep:1，后续的改写句再补 filter/keep
-  { re: /查看(?:自己的|自己)?牌库上方(\d+)张卡/, act:'peek_and_keep', p:m=>({ peek:+m[1], keep:1, maxCount:1, minCount:1, allowFewer:false, allowEmpty:false }) },
+  //    先给出默认 keep:1，后续的改写句再补 filter/keep。
+  //    ⚠️ 必须排除「…再放回原处」（那是纯查看、不拿牌），否则会把 no-op 查看误判成「拿 1 张」。
+  { re: /查看(?:自己的|自己)?牌库上方(\d+)张卡(?![，,]?再放回原处)/, act:'peek_and_keep', p:m=>({ peek:+m[1], keep:1, maxCount:1, minCount:1, allowFewer:false, allowEmpty:false }) },
   // ④「将其中N张X/所有X，在给对手看过后，加入手牌」→ 并入前面的查看动作（补 filter/keep）
   { re: /(?:然后[，,]?)?将其中(\d+)张(.+?)[，,]?在给对手看过后[，,]?加入手牌/, act:'action_count_override', p:m=>({ targets:['peek_and_keep'], set:{ filter:m[2].replace(/["“”「」]/g,'').trim(), keep:+m[1], maxCount:+m[1], minCount:+m[1] }, raw:m[0] }) },
   { re: /(?:然后[，,]?)?将其中所有(.+?)[，,]?在给对手看过后[，,]?加入手牌/, act:'action_count_override', p:m=>({ targets:['peek_and_keep'], set:{ filter:m[1].replace(/["“”「」]/g,'').trim(), keep:99, maxCount:99, minCount:0, allowFewer:true }, raw:m[0] }) },
@@ -1945,6 +1946,18 @@ const RULES = [
   { re: /数过(?:自己的|自己)?奖赏卡后[，,]?将其全部加入手牌/, act:'prizes_to_hand', p:()=>({ who:'self' }) },
   // ⑧ 恢复限制：「这张卡，只要在弃牌区，就无法加入手牌，也无法放回牌库」（元数据；回收类效果暂未按此过滤）
   { re: /这张卡[，,]?只要在弃牌区[，,]?就无法加入手牌[，,]?也无法放回牌库/, act:'usage_condition', p:()=>({ kind:'cannot_be_recovered' }) },
+
+  // ===== 长尾批次 3：「查看」簇（最简单的那几类）=====
+  // ①「在不看正面的前提下选择对手N张手牌，查看后放回对手牌库」（手牌干扰，几种措辞）
+  { re: /在不看正面的前提下选择对手(\d+)张手牌[，,]?查看(?:该卡牌的正面|其正面|那张卡的正面)(?:之后|后)[，,]?放回对手的?牌库/, act:'opponent_hand_to_deck', p:m=>({ count:+m[1] }) },
+  { re: /在不看正面的前提下选择对手(\d+)张手牌[，,]?在查看过(?:该卡牌|那张卡)(?:的正面)?之后[，,]?放回对手的?牌库/, act:'opponent_hand_to_deck', p:m=>({ count:+m[1] }) },
+  // ②「查看对手牌库上方N张卡，再放回原处」（只获取信息）
+  { re: /(?:然后[，,]?)?查看对手牌库上方(\d+)张卡[，,]?再放回原处/, act:'look_at', p:m=>({ deckTop:+m[1], who:'opponent' }) },
+  { re: /(?:然后[，,]?)?查看(?:自己的|自己)?牌库上方(\d+)张卡[，,]?再放回原处/, act:'look_at', p:m=>({ deckTop:+m[1], who:'self' }) },
+  // ③「查看所有反面朝上的自己的奖赏卡，再放回原处」
+  { re: /查看所有反面朝上的(?:自己的|自己)?奖赏卡[，,]?再放回原处/, act:'look_at', p:()=>({ prizes:true }) },
+  // ④「查看对手牌库上方N张卡，选择其中任意数量的X，丢到弃牌区」
+  { re: /查看对手牌库上方(\d+)张卡[，,]?选择其中任意数量的(.+?)[，,]?丢到弃牌区/, act:'opponent_deck_top_to_discard', p:m=>({ count:+m[1], filter:m[2].replace(/["“”「」]/g,'').trim() }) },
 
   { re: /这张卡，只有在上一个对手的回合，自己的【(.+?)】宝可梦【昏厥】时才可使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('condition', m[0]) },  // ===== 「造成其张数×N伤害」（**兜底**，必须放在最后）=====
   // ⚠️ 本项目早有专用实现：`discard_energy_for_damage`（5 条规则 + 真执行器，覆盖

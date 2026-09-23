@@ -8662,6 +8662,78 @@ await test('长尾2 运行时：奖赏卡全部加入手牌', async () => {
   assert.equal(pl.hand.length, 3, '3 张应加入手牌');
 });
 
+
+// ============================================================
+//  长尾批次 3：「查看」簇
+// ============================================================
+
+await test('长尾3 对手手牌 → 对手牌库（三种措辞）', () => {
+  for (const text of [
+    '在不看正面的前提下选择对手2张手牌，查看该卡牌的正面后，放回对手牌库。',
+    '在不看正面的前提下选择对手1张手牌，在查看过该卡牌之后，放回对手牌库。',
+    '在不看正面的前提下选择对手1张手牌，查看那张卡的正面后放回对手牌库。',
+  ]) {
+    const e = parseEffect(text).effects;
+    const m = e.find(x => x.action === 'opponent_hand_to_deck');
+    assert.ok(m, `「${text}」应解析出 opponent_hand_to_deck（实际 ${JSON.stringify(e.map(x => x.action))}）`);
+  }
+});
+
+await test('长尾3 运行时：对手手牌被放回对手牌库（不是自己牌库）', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('我', 'a1');
+  opp.active = mon('敌', 'o1');
+  opp.hand = ['o1', 'o2', 'o3'];
+  opp.deck = []; pl.deck = ['mine'];
+  await executeEffects(gs, pl, parseEffect('在不看正面的前提下选择对手1张手牌，查看该卡牌的正面后，放回对手牌库。').effects);
+  assert.equal(opp.hand.length, 2, '对手手牌应少 1 张');
+  assert.equal(opp.deck.length, 1, '应回到**对手**牌库');
+  assert.equal(pl.deck.length, 1, '自己牌库不受影响');
+});
+
+await test('长尾3 「查看…再放回原处」是纯查看，不会拿牌（修一个真误判）', () => {
+  // 之前「查看自己的牌库上方N张卡」的裸规则会把这种 no-op 查看误判成「拿 1 张」
+  const a = parseEffect('查看自己的牌库上方2张卡，再放回原处。').effects;
+  assert.equal(a[0].action, 'look_at', `应解析为 look_at（实际 ${JSON.stringify(a.map(x => x.action))}）`);
+  assert.equal(a[0].params.deckTop, 2);
+  assert.ok(!a.some(x => x.action === 'peek_and_keep'), '不应被当成拿牌');
+  // 而「查看…将其中X加入手牌」仍然要拿牌
+  const b = parseEffect('查看自己的牌库上方3张卡。将其中1张训练家，在给对手看过后，加入手牌。').effects;
+  assert.equal(b.find(x => x.action === 'peek_and_keep').params.keep, 1);
+});
+
+await test('长尾3 查看对手牌库顶 / 查看奖赏卡（纯信息）', () => {
+  const a = parseEffect('查看对手牌库上方1张卡，再放回原处。').effects;
+  assert.equal(a[0].action, 'look_at');
+  assert.equal(a[0].params.who, 'opponent');
+  const b = parseEffect('查看所有反面朝上的自己的奖赏卡，再放回原处。').effects;
+  assert.equal(b[0].action, 'look_at');
+  assert.equal(b[0].params.prizes, true);
+});
+
+await test('长尾3 查看对手牌库顶并丢弃指定类别', async () => {
+  const eff = parseEffect('查看对手牌库上方5张卡，选择其中任意数量的物品，丢到弃牌区。').effects;
+  assert.equal(eff[0].action, 'opponent_deck_top_to_discard');
+  assert.equal(eff[0].params.filter, '物品');
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('我', 'a1');
+  opp.active = mon('敌', 'o1');
+  opp.deck = ['i1', 'p1', 'i2'];
+  opp.discard = [];
+  gs.cardResolver = fakeResolver({
+    'i1': { card:{ cardType:'trainer', trainerType:'item', name:'某物品' }, info:{ name:'某物品' } },
+    'i2': { card:{ cardType:'trainer', trainerType:'item', name:'某物品' }, info:{ name:'某物品' } },
+    'p1': { card:{ cardType:'pokemon', name:'某宝可梦' }, info:{ name:'某宝可梦' } },
+  });
+  await executeEffects(gs, pl, eff);
+  assert.equal(opp.discard.length, 2, '两张物品应进对手弃牌区');
+  assert.equal(opp.deck.length, 1, '宝可梦留在牌库');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',
