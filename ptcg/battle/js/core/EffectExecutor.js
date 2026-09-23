@@ -1060,6 +1060,13 @@ const EXECUTORS = {
 
   // ===== 搜牌库放备战 =====
   async search_deck_to_bench(gs, pl, p, eff, options) {
+    // who:'both' → 双方各自检索放备战区（竞技场「双方玩家，每次在自己的回合有1次机会…」）
+    if (p.who === 'both' && !p._bothDone) {
+      for (const pp of [gs.player1, gs.player2]) {
+        await EXECUTORS.search_deck_to_bench(gs, pp, { ...p, who:null, _bothDone:true }, eff, options);
+      }
+      return;
+    }
     if (pl.deck.length === 0) { gs.addLog('牌库为空，无法搜索宝可梦'); return; } // 检索类允许空发
     const openSlots = Math.max(0, 5 - pl.bench.length);
     if (openSlots <= 0) { gs.addLog('备战区已满，无法放置宝可梦'); gs._shuffle(pl.deck); return; } // 无位置可放也属空发
@@ -1805,6 +1812,23 @@ const EXECUTORS = {
 
   // ===== 丢弃手牌 =====
   async discard_hand(gs, pl, p = {}) {
+    // who:'both' → 双方各自弃 N 张（「双方玩家，各将N张自己的手牌丢到弃牌区」）
+    if (p.who === 'both' || p.who === 'opponent') {
+      const targets = p.who === 'both' ? [gs.player1, gs.player2] : [_opponent(gs, pl)];
+      for (const pp of targets) {
+        const n = p.count === 'all' ? pp.hand.length : Math.min(p.count || 1, pp.hand.length);
+        for (let i = 0; i < n; i++) {
+          const sel = await _pickCardsFromZone(gs, pl, pp, pp.hand, 1, {
+            source:'hand-discard-both', filter:p.filter || null,
+            prompt:`${pp === gs.player1 ? '我方' : '对手'}选择要丢弃的手牌`, allowEmpty:true, optional:true,
+          });
+          if (!sel.length) break;
+          pp.discard.push(pp.hand.splice(sel[0].index, 1)[0]);
+        }
+        gs.addLog(`${pp.name} 丢弃 ${n} 张手牌`);
+      }
+      return;
+    }
     const count = p.count === 'all' ? pl.hand.length : (p.count || 1);
     const selected = await _pickCardsFromZone(gs, pl, pl, pl.hand, count, {
       source:'hand-discard',
@@ -2385,6 +2409,16 @@ const EXECUTORS = {
    * 且只洗这些被放回的卡，不做整库重洗。
    */
   async hand_to_deck_bottom(gs, pl, p) {
+    // who:'both' → 双方各自把手牌放回牌库下方（「双方玩家，各将…放回牌库下方」）
+    if (p.who === 'both') {
+      for (const pp of [gs.player1, gs.player2]) {
+        const cards = pp.hand.splice(0, pp.hand.length);
+        if (!cards.length) continue;
+        pp.deck.unshift(...cards);
+        gs.addLog(`${pp.name} 的 ${cards.length} 张手牌放回牌库下方`);
+      }
+      return;
+    }
     const all = p.count === 'all' || p.count == null;
     let cards = [];
     if (all) {
@@ -2604,6 +2638,12 @@ const EXECUTORS = {
    */
   look_at(gs, pl, p) {
     const opp = _opponent(gs, pl);
+    if (p?.revealBoth) {
+      // 「双方玩家，各将自己的手牌翻到正面，互相展示」——纯展示，不改变任何状态
+      gs._lastProcessed = [...(gs.player1.hand || []), ...(gs.player2.hand || [])];
+      gs.addLog(`双方互相展示手牌（我方 ${gs.player1.hand?.length || 0} 张 / 对手 ${gs.player2.hand?.length || 0} 张）`);
+      return;
+    }
     if (p?.deckTop) {
       const who = p.who === 'self' ? pl : opp;
       const n = Math.min(+p.deckTop || 1, (who.deck || []).length);

@@ -1719,7 +1719,8 @@ const RULES = [
   { re: /选择自己手牌中最多(\d+)张["“"]([^"“"]+)["“"]，附于备战区中的1只["“"]([^"“"]+)["“"]身上/, act:'usage_condition', p:m=>trainerPrerequisite('hand_energy_to_bench_named', m[0]) },
   { re: /选择附于该宝可梦身上的(\d+)个能量，丢到弃牌区/, act:'discard_energy', p:m=>({target:'self',count:+m[1]}) },
   { re: /将(?:自己的|自己)?弃牌区中1张基本能量，附于这只宝可梦身上/, act:'attach_energy_from_discard', p:()=>withCount({filter:'基本能量',target:'self'},1,false) },
-  { re: /双方玩家，每次在自己的回合有1次机会，可将(?:自己的|自己)?牌库中的1张【(.+?)】或者【(.+?)】属性的【基础】宝可梦，放置于备战区/, act:'usage_condition', p:m=>trainerPrerequisite('stadium_basic_type_to_bench', m[0]) },
+  // 升级：原为未建模标记 → 双方各自从牌库把 1 张【基础】宝可梦放备战区（竞技场持续效果）
+  { re: /双方玩家[，,]?每次在自己的回合有1次机会[，,]?可将自己的牌库中的(\d+)张(?:【(.+?)】(?:或者【(.+?)】)?属性的)?【基础】宝可梦[，,]?放置于备战区/, act:'search_deck_to_bench', p:m=>({ who:'both', count:+m[1], filter:'【基础】宝可梦', allowFewer:true, optional:true }) },
   // ===== P30（2026-09）：前缀簇第五波 =====
   { re: /从自己的牌库选择最多(\d+)张["“"]([^"“"]+)["“"]，放置于备战区/, act:'search_deck_to_bench', p:m=>withCount({filter:m[2]},m[1],true) },
   { re: /将(?:自己的|自己)?牌库中最多(\d+)张◇（棱镜之星）卡，在给对手看过后，加入手牌/, act:'search_deck_to_hand', p:m=>withCount({filter:'◇（棱镜之星）卡'},m[1],true) },
@@ -1785,7 +1786,8 @@ const RULES = [
   { re: /将(?:自己的|自己)?手牌中的1张【(.+?)】能量，附于自己的宝可梦身上/, act:'attach_energy_from_hand', p:m=>({filter:`【${m[1]}】能量`,target:'any'}) },
   { re: /若追加附着1个【(.+?)】能量，则将(?:自己的|自己)?弃牌区中的所有卡牌放回牌库/, act:'usage_condition', p:m=>trainerPrerequisite('extra_energy_discard_all_back', m[0]) },
   { re: /选择其中1张宝可梦，放回对手的牌库下方/, act:'usage_condition', p:m=>trainerPrerequisite('return_opp_bottom', m[0]) },
-  { re: /双方玩家，每次在自己的回合有1次机会，可将(?:自己的|自己)?1张手牌，丢到弃牌区。在这种情况下，/, act:'usage_condition', p:m=>trainerPrerequisite('discard_one_hand_opt', m[0]) },
+  // 升级：原为未建模标记 → 可选代价（双方各自可在自己回合用 1 次：弃 1 张手牌换后续效果）
+  { re: /双方玩家[，,]?每次在自己的回合有1次机会[，,]?可将自己的(\d+)张手牌[，,]?(?:丢到|放于)弃牌区/, act:'optional_hand_cost', p:m=>({ count:+m[1] }) },
   { re: /这张卡只能附于["“"]([^"“"]+)["“"]宝可梦身上，若这张卡附于["“"]([^"“"]+)["“"]之外的宝可梦身上，则将其丢到弃牌区/, act:'usage_condition', p:m=>trainerPrerequisite('attach_only_rule_if', m[0]) },
   { re: /身上附着这张卡的宝可梦不会陷入【(.+?)】状态/, act:'block_status', p:m=>({status:STATUS_MAP[m[1]]||m[1],target:'self'}) },
   // ===== P37（2026-09）：前缀簇第十二波 =====
@@ -2011,6 +2013,23 @@ const RULES = [
   { re: /选择自己的(\d+)张手牌[，,]?将其与牌库上方的?卡牌?互换/, act:'hand_deck_top_swap', p:m=>({ count:+m[1] }) },
   // 「查看自己的牌库上方N张卡。选择其中任意数量的X，在给对手看过后，加入手牌」→ 并入查看动作（带 filter）
   { re: /查看(?:自己的|自己)?牌库上方(\d+)张卡[。.]?选择其中任意数量的(.+?)[，,]?在给对手看过后[，,]?加入手牌/, act:'peek_and_keep', p:m=>({ peek:+m[1], keep:99, maxCount:99, minCount:0, allowFewer:true, allowEmpty:true, filter:m[2].replace(/["“”「」]/g,'').trim() }) },
+
+  // ===== 长尾批次 5：「双方玩家」簇 =====
+  // ①「双方玩家，各将N张自己的手牌丢到弃牌区」/「各选择1张自己的手牌，丢到弃牌区」
+  { re: /双方玩家[，,]?各将(\d+)张自己的手牌[，,]?(?:丢到|放于)弃牌区/, act:'discard_hand', p:m=>({ who:'both', count:+m[1], allowFewer:true, allowEmpty:true, optional:true }) },
+  { re: /双方玩家[，,]?各选择(\d+)张自己的手牌[，,]?(?:丢到|放于)弃牌区/, act:'discard_hand', p:m=>({ who:'both', count:+m[1], allowFewer:true, allowEmpty:true, optional:true }) },
+  // ②「双方玩家，各将所有手牌放回牌库」（含「翻到正面/反面朝上重洗」的修饰）
+  { re: /双方玩家[，,]?各将(?:自己)?(?:所有的|全部的|所有|全部)?手牌(?:翻到正面|反面朝上)?重洗[，,]?放回牌库(?!下方)/, act:'shuffle_hand_to_deck', p:()=>({ who:'both' }) },
+  { re: /双方玩家[，,]?各将(?:自己)?(?:所有的|全部的|所有|全部)?手牌(?:全部)?放回牌库(?!下方)/, act:'shuffle_hand_to_deck', p:()=>({ who:'both' }) },
+  // ③「双方玩家，各将自己所有的手牌反面朝上重洗，放回牌库下方」
+  { re: /双方玩家[，,]?各将(?:自己)?(?:所有的|全部的)?手牌(?:反面朝上|翻到反面)?重洗[，,]?放回牌库下方/, act:'hand_to_deck_bottom', p:()=>({ who:'both', count:'all' }) },
+  // ④「双方玩家，各将自己的手牌翻到正面，互相展示」（纯展示）
+  { re: /双方玩家[，,]?各将自己的手牌翻到正面[，,]?互相展示/, act:'look_at', p:()=>({ revealBoth:true }) },
+  // ⑤「双方玩家，每次在自己的回合有1次机会，可将自己的1张手牌丢到弃牌区。在这种情况下，…」
+  //    → 复用「可选代价」机制（谁发动就由谁支付/受益）
+  { re: /双方玩家[，,]?每次在自己的回合有1次机会[，,]?可将自己的(\d+)张手牌[，,]?(?:丢到|放于)弃牌区/, act:'optional_hand_cost', p:m=>({ count:+m[1], effects:[] }) },
+  // ⑥「双方玩家，每次在自己的回合有1次机会，可将自己的牌库中的1张X，放置于备战区」（竞技场）
+  { re: /双方玩家[，,]?每次在自己的回合有1次机会[，,]?可将自己的牌库中的(\d+)张(?:【(.+?)】(?:或者【(.+?)】)?属性的)?【基础】宝可梦[，,]?放置于备战区/, act:'search_deck_to_bench', p:m=>({ who:'both', count:+m[1], filter:'【基础】宝可梦', allowFewer:true, optional:true }) },
 
   { re: /这张卡，只有在上一个对手的回合，自己的【(.+?)】宝可梦【昏厥】时才可使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('condition', m[0]) },  // ===== 「造成其张数×N伤害」（**兜底**，必须放在最后）=====
   // ⚠️ 本项目早有专用实现：`discard_energy_for_damage`（5 条规则 + 真执行器，覆盖
@@ -2433,7 +2452,11 @@ function _isLeadOnlySeg(seg) {
   const t = String(seg || '').trim().replace(/[。.]+$/, '');
   const core = t.replace(/[，,。.；;：:！!？?、\s]/g, '');
   if (core.length <= 6) return true;
-  return /(然后|在这种情况下|若希望，?可?|从自己的牌库选择|只要这张卡，被附于宝可梦身上，?就?|当这只宝可梦受到招式的伤害时，?自己|若这只宝可梦在战斗场上，?则?|若使用了，?则?|并且|而且|以及|则|的话)$/.test(t);
+  return /(然后|在这种情况下|若希望，?可?|从自己的牌库选择|只要这张卡，被附于宝可梦身上，?就?|当这只宝可梦受到招式的伤害时，?自己|若这只宝可梦在战斗场上，?则?|若使用了，?则?|并且|而且|以及|则|的话)$/.test(t)
+    // 纯引导语：以「可 / 可以」结尾且没有谓语（如「双方玩家，在自己的回合有1次机会，可。」）
+    // —— 这类残句的实质内容一定已经被别的规则解析成动作了（调用方还有 hasRealAction 保护）。
+    || /[，,]?(?:可|可以)$/.test(t)
+    || /(?:有机会|有1次机会)[，,]?(?:可|可以|则)?$/.test(t);
 }
 
 export function finalizeCoverage(effects, text, remaining, baseText) {

@@ -9022,6 +9022,83 @@ await test('r3 普通选择（自己的牌库/弃牌区）仍显示真实卡名'
   await running;
 });
 
+
+// ============================================================
+//  长尾批次 5：「双方玩家」簇
+// ============================================================
+
+await test('长尾5 双方各弃手牌 / 各手牌回牌库（含下方）', () => {
+  const a = parseEffect('双方玩家，各将2张自己的手牌，丢到弃牌区。').effects;
+  assert.equal(a[0].action, 'discard_hand');
+  assert.equal(a[0].params.who, 'both');
+  assert.equal(a[0].params.count, 2);
+  const b = parseEffect('双方玩家，各将所有手牌放回牌库。').effects;
+  assert.equal(b[0].action, 'shuffle_hand_to_deck');
+  assert.equal(b[0].params.who, 'both');
+  const c = parseEffect('双方玩家，各将自己所有的手牌反面朝上重洗，放回牌库下方。').effects;
+  assert.equal(c[0].action, 'hand_to_deck_bottom');
+  assert.equal(c[0].params.who, 'both');
+});
+
+await test('长尾5 运行时：双方各弃 2 张手牌', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('我', 'a1'); opp.active = mon('敌', 'o1');
+  pl.hand = ['p1', 'p2', 'p3']; opp.hand = ['o1', 'o2', 'o3'];
+  pl.discard = []; opp.discard = [];
+  await executeEffects(gs, pl, parseEffect('双方玩家，各将2张自己的手牌，丢到弃牌区。').effects);
+  assert.equal(pl.discard.length, 2, '我方应弃 2 张');
+  assert.equal(opp.discard.length, 2, '对手也应弃 2 张');
+});
+
+await test('长尾5 「…有机会，可。」这类纯引导语算空壳（不虚增未建模）', () => {
+  // 关键：必须是「残句 + 同一文本里还有其它已解析动作」才会归为空壳
+  //（只有残句、没有其它动作时，按保护条件必须仍算未建模）
+  const eff = parseEffect('双方玩家，在自己的回合有1次机会，可。从牌库上方抽取1张卡牌。').effects;
+  assert.ok(eff.some(x => x.action === 'draw'), '应解析出真实动作');
+  const kinds = eff.filter(x => x.action === 'usage_condition').map(x => x.params?.kind);
+  assert.ok(kinds.includes('shell_fragment'), `纯引导语应归空壳（实际 ${JSON.stringify(kinds)}）`);
+  assert.ok(!kinds.includes('residual_sentence'), '不应记为未建模');
+});
+
+await test('长尾5 可选代价：奖励只写在 then 里（不付代价不生效）', () => {
+  const e = parseEffect('双方玩家，每次在自己的回合有1次机会，可将自己的1张手牌，丢到弃牌区。在这种情况下，将自己牌库中的1张基本能量，在给对手看过之后，加入手牌。并重洗牌库。').effects;
+  const gate = e.find(x => x.action === 'optional_hand_cost');
+  assert.ok(gate, `应解析出 optional_hand_cost（实际 ${JSON.stringify(e.map(x => x.action))}）`);
+  assert.equal(gate.params.count, 1);
+  assert.deepEqual(gate.params.then.map(x => x.action), ['search_deck_to_hand', 'shuffle_deck'], '奖励应收进 then');
+  assert.ok(!e.some(x => x.action === 'search_deck_to_hand'), '奖励不应留在顶层（否则不付代价也能检索）');
+});
+
+await test('长尾5 运行时：不支付可选代价时不执行奖励', async () => {
+  const e = parseEffect('双方玩家，每次在自己的回合有1次机会，可将自己的1张手牌，丢到弃牌区。在这种情况下，将自己牌库中的1张基本能量，在给对手看过之后，加入手牌。并重洗牌库。').effects;
+  const gate = e.find(x => x.action === 'optional_hand_cost');
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  pl.hand = ['h1', 'h2'];
+  pl.deck = ['e1'];
+  pl.discard = [];
+  gs.cardResolver = fakeResolver({
+    'e1': { card:{ cardType:'energy', name:'基本火能量' }, info:{ name:'基本火能量', type:'energy' } },
+  });
+  await executeEffects(gs, pl, [gate]);
+  assert.equal(pl.discard.length, 0, '自动决策不支付代价');
+  assert.equal(pl.hand.length, 2, '手牌不变');
+  assert.equal(pl.deck.length, 1, '奖励（检索）不应执行');
+});
+
+await test('长尾5 双方互相展示手牌 / 竞技场双方放基础于备战区', () => {
+  const a = parseEffect('双方玩家，各将自己的手牌翻到正面，互相展示。').effects;
+  assert.equal(a[0].action, 'look_at');
+  assert.equal(a[0].params.revealBoth, true);
+  const b = parseEffect('双方玩家，每次在自己的回合有1次机会，可将自己的牌库中的1张【水】或者【斗】属性的【基础】宝可梦，放置于备战区。').effects;
+  const m = b.find(x => x.action === 'search_deck_to_bench');
+  assert.ok(m, '应解析出 search_deck_to_bench');
+  assert.equal(m.params.who, 'both');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',
