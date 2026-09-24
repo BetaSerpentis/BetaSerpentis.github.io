@@ -856,7 +856,8 @@ function _knockoutPokemon(gs, owner, mon) {
   const dest = gs._knockoutDestination ? gs._knockoutDestination(owner) : { toLostZone:false, withAttachments:false };
   const zone = dest.toLostZone ? (owner.lostZone = owner.lostZone || []) : owner.discard;
   zone.push(mon.cardId);
-  const attachZone = (dest.toLostZone && dest.withAttachments) ? zone : owner.discard;
+  // 「除宝可梦以外的卡牌全部放于弃牌区」→ 附着卡进弃牌区（与出战位路径一致）
+  const attachZone = (dest.toLostZone && dest.withAttachments && !gs._hasAttachmentsToDiscard?.(mon)) ? zone : owner.discard;
   for (const e of (mon.energy || [])) attachZone.push(_toolCardValue(e));
   if (mon.tool) attachZone.push(_toolCardValue(mon.tool));
   gs.addLog(`${owner.name} 的 ${mon.name} 被击倒！${dest.toLostZone ? '（放于放逐区）' : ''}`);
@@ -2328,8 +2329,11 @@ const EXECUTORS = {
     // toLostZone：放进放逐区而不是弃牌区（放逐区的卡不能被回收）
     const zone = p.toLostZone ? (owner.lostZone = owner.lostZone || []) : owner.discard;
     zone.push(_toolCardValue(mon));
-    for (const e of (mon.energy || [])) zone.push(_toolCardValue(e));
-    if (mon.tool) zone.push(_toolCardValue(mon.tool));
+    // 「（除宝可梦以外的卡牌，全部放于弃牌区。）」→ 附着卡进弃牌区，不跟着进放逐区
+    const attachToDiscard = p.toLostZone && (p.withAttachments === false || gs._hasAttachmentsToDiscard?.(mon));
+    const attachZone = attachToDiscard ? owner.discard : zone;
+    for (const e of (mon.energy || [])) attachZone.push(_toolCardValue(e));
+    if (mon.tool) attachZone.push(_toolCardValue(mon.tool));
     const wasActive = owner.active === mon;
     const bi = (owner.bench || []).indexOf(mon);
     if (bi >= 0) owner.bench.splice(bi, 1);

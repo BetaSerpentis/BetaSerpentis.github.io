@@ -1,4 +1,4 @@
-#eff1 hash=669adeb517d72105
+#eff1 hash=8cbbbd463740536a
 151C-001	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-002	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-003	ability		0	usage_condition	{"kind":"requires_active"}
@@ -582,7 +582,7 @@
 30thC-149	ability		0	trigger	{"event":"card_played","effect":{"action":"damage_place","params":{"target":"opponent_any","count":1}},"effects":[{"action":"damage_place","params":{"target":"opponent_any","count":1}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"可使用1次。"}}],"optional":false}
 30thC-149	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":2}
 30thC-149	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"在宝可梦检查时，。"}
-30thC-150	ability		0	ko_to_lost_zone	{"scope":"opponent"}
+30thC-150	ability		0	ko_to_lost_zone	{"scope":"opponent","withAttachments":false}
 30thC-150	ability		1	usage_condition	{"kind":"attachments_to_discard"}
 30thC-150	attack	1	0	look_at	{"target":"opponent_hand"}
 30thC-150	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"选择其中最多与这只宝可梦身上附着的【超】能量数量相同数量的宝可梦，放置于放逐区。"}
@@ -1097,27 +1097,27 @@ CBB3C-0607	ability		1	attach_energy_from_discard	{"filter":"基本【超】能�
 CBB3C-0607	attack	1	0	heal_status	{"target":"self"}
 CBB3C-0701	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CBB3C-0701	ability		1	recover_from_discard	{"filter":"支援者","target":"hand","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
-CBB3C-0701	ability		2	discard_self_with_attachments	{"toLostZone":true}
+CBB3C-0701	ability		2	discard_self_with_attachments	{"toLostZone":true,"withAttachments":false}
 CBB3C-0701	ability		3	usage_condition	{"kind":"attachments_to_discard"}
 CBB3C-0702	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CBB3C-0702	ability		1	recover_from_discard	{"filter":"支援者","target":"hand","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
-CBB3C-0702	ability		2	discard_self_with_attachments	{"toLostZone":true}
+CBB3C-0702	ability		2	discard_self_with_attachments	{"toLostZone":true,"withAttachments":false}
 CBB3C-0702	ability		3	usage_condition	{"kind":"attachments_to_discard"}
 CBB3C-0703	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CBB3C-0703	ability		1	recover_from_discard	{"filter":"支援者","target":"hand","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
-CBB3C-0703	ability		2	discard_self_with_attachments	{"toLostZone":true}
+CBB3C-0703	ability		2	discard_self_with_attachments	{"toLostZone":true,"withAttachments":false}
 CBB3C-0703	ability		3	usage_condition	{"kind":"attachments_to_discard"}
 CBB3C-0704	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CBB3C-0704	ability		1	recover_from_discard	{"filter":"支援者","target":"hand","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
-CBB3C-0704	ability		2	discard_self_with_attachments	{"toLostZone":true}
+CBB3C-0704	ability		2	discard_self_with_attachments	{"toLostZone":true,"withAttachments":false}
 CBB3C-0704	ability		3	usage_condition	{"kind":"attachments_to_discard"}
 CBB3C-0705	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CBB3C-0705	ability		1	recover_from_discard	{"filter":"支援者","target":"hand","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
-CBB3C-0705	ability		2	discard_self_with_attachments	{"toLostZone":true}
+CBB3C-0705	ability		2	discard_self_with_attachments	{"toLostZone":true,"withAttachments":false}
 CBB3C-0705	ability		3	usage_condition	{"kind":"attachments_to_discard"}
 CBB3C-0706	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CBB3C-0706	ability		1	recover_from_discard	{"filter":"支援者","target":"hand","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
-CBB3C-0706	ability		2	discard_self_with_attachments	{"toLostZone":true}
+CBB3C-0706	ability		2	discard_self_with_attachments	{"toLostZone":true,"withAttachments":false}
 CBB3C-0706	ability		3	usage_condition	{"kind":"attachments_to_discard"}
 CBB3C-0707	attack	1	0	play_restriction	{"target":"opponent","what":"item","duration":"next_opp_turn"}
 CBB3C-0707	attack	2	0	look_at	{"target":"opponent_hand"}
@@ -7145,7 +7145,7 @@ CS6bC-037	ability		0	usage_condition	{"kind":"generic_effect","raw":"若自己�
 CS6bC-037	attack	1	0	conditional_damage_mod	{"condition":"custom","conditionText":"对手场上有\\"宝可梦VMAX\\"","amount":90,"mode":"fixed"}
 CS6bC-039	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CS6bC-039	ability		1	recover_from_discard	{"filter":"支援者","target":"hand","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
-CS6bC-039	ability		2	discard_self_with_attachments	{"toLostZone":true}
+CS6bC-039	ability		2	discard_self_with_attachments	{"toLostZone":true,"withAttachments":false}
 CS6bC-039	ability		3	usage_condition	{"kind":"attachments_to_discard"}
 CS6bC-040	attack	1	0	search_deck_to_hand	{"filter":"特殊能量","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CS6bC-040	attack	1	1	shuffle_deck	{}
@@ -22745,7 +22745,7 @@ CS6.5C-095	trainer		1	usage_condition	{"kind":"bench_limit_priority_note","raw":
 CS6.5C-095	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"（当这张卡被放置于场上时，备战区有5只以上宝可梦（包含5只）的玩家，将宝可梦丢到弃牌区直到备战区宝可梦变为4只为止。"}
 CS6.5C-095	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"丢到弃牌区的动作由这张卡的持有者开始执行。"}
 CS6aC-130	trainer		0	usage_condition	{"kind":"generic_effect","raw":"双方玩家，每次在自己的回合有1次机会，可查看自己的牌库上方的1张卡后放回原处。若希望，可将该卡牌丢到弃牌区。在自己的回合只可以将1张竞技场卡放置于战斗区旁。若有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区。"}
-CS6bC-130	trainer		0	ko_to_lost_zone	{"scope":"both"}
+CS6bC-130	trainer		0	ko_to_lost_zone	{"scope":"both","withAttachments":false}
 CS6bC-130	trainer		1	usage_condition	{"kind":"attachments_to_discard"}
 CS6bC-130	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"）在自己的回合只可以将1张竞技场卡放置于战斗区旁。"}
 CS6bC-130	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"若有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区。"}
@@ -22960,13 +22960,13 @@ CSVM2cC-032	trainer		0	trigger	{"event":"energy_attached","effect":{"action":"da
 CSVNC-039	trainer		0	heal_status	{"target":"self"}
 CSVNC-040	trainer		0	heal_all	{"amount":10}
 CSVNC-040	trainer		1	usage_condition	{"kind":"shell_fragment","raw":"每次在自己的回合有1次机会，在这个回合，从手牌使出了支援者的玩家，可。"}
-CSXC-020	trainer		0	ko_to_lost_zone	{"scope":"both"}
+CSXC-020	trainer		0	ko_to_lost_zone	{"scope":"both","withAttachments":false}
 CSXC-020	trainer		1	usage_condition	{"kind":"attachments_to_discard"}
 CSXC-020	trainer		2	usage_condition	{"kind":"stadium_one_rule","raw":"在自己的回合，只可以将1张竞技场卡放置于战斗区旁。若有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区"}
 CSZC-054	trainer		0	ability_nullify	{"scope":"both_field","duration":"while_active","exceptAbilityNames":[],"sourceZone":"field"}
 CSZC-055	trainer		0	energy_provides	{"types":["colorless"],"count":1}
 CSZC-055	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"双方场上宝可梦身上附着的特殊能量的效果全部消除，。"}
-CSZC-056	trainer		0	ko_to_lost_zone	{"scope":"both"}
+CSZC-056	trainer		0	ko_to_lost_zone	{"scope":"both","withAttachments":false}
 CSZC-056	trainer		1	usage_condition	{"kind":"attachments_to_discard"}
 CSZC-056	trainer		2	usage_condition	{"kind":"stadium_one_rule","raw":"在自己的回合，只可以将1张竞技场卡放置于战斗区旁。若有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区"}
 SSP-187	trainer		0	block_status	{"status":"confusion","target":"both_field"}

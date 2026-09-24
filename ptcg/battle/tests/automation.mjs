@@ -9727,6 +9727,67 @@ await test('硬币失败 运行时：出现反面则招式失败（零伤害、�
   }
 });
 
+
+// ============================================================
+//  缺口④「除宝可梦以外的卡牌，全部放于弃牌区」
+// ============================================================
+
+const _AT_NOTE = '（除宝可梦以外的卡牌，全部放于弃牌区。）';
+const _atMon = (name, id, ability) => Object.assign(mon(name, id), {
+  ability: ability || null, energy:['E1', 'E2'], tool:{ cardId:'T1', name:'道具' },
+});
+
+await test('放逐区附着卡 解析：同一效果清单里的括号说明会把 withAttachments 关掉', () => {
+  const e = parseEffect('选择自己弃牌区中的1张支援者，在给对手看过之后，加入手牌。然后，将这只宝可梦放于放逐区。' + _AT_NOTE).effects;
+  const act = e.find(x => x.action === 'discard_self_with_attachments');
+  assert.ok(act, '应解析出送进放逐区的动作');
+  assert.equal(act.params.toLostZone, true);
+  assert.equal(act.params.withAttachments, false, '附着卡应改去弃牌区');
+});
+
+await test('放逐区附着卡 运行时：宝可梦自带该说明时，附着卡进弃牌区（不是放逐区）', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  const text = '只要这只宝可梦在战斗场上，如果对手的宝可梦【昏厥】的话，将那只宝可梦放于放逐区。' + _AT_NOTE;
+  const mon0 = _atMon('灾变兽', 'x1', { name:'灾变', zone:'field', effects: parseEffect(text).effects });
+  pl.active = mon0; pl.lostZone = []; pl.discard = [];
+  gs._koContext = { toLostZone:true, withAttachments:true };
+  gs.knockout(pl);
+  assert.deepEqual(pl.lostZone, ['x1'], '放逐区只应有宝可梦卡');
+  assert.equal(pl.discard.length, 3, '附着卡（2 能量 + 1 道具）应进弃牌区');
+});
+
+await test('放逐区附着卡 对照：没有该说明时，附着卡跟着进放逐区（行为不变）', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  const mon0 = Object.assign(mon('普通', 'y1'), { energy:['E1'], tool:null, ability:null });
+  pl.active = mon0; pl.lostZone = []; pl.discard = [];
+  gs._koContext = { toLostZone:true, withAttachments:true };
+  gs.knockout(pl);
+  assert.equal(pl.lostZone.length, 2, '宝可梦 + 能量都进放逐区');
+  assert.equal(pl.discard.length, 0);
+});
+
+await test('放逐区附着卡 运行时：玩偶类（改放逐区 + 括号说明）', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  const mon0 = _atMon('贡献玩偶', 'd1', null);
+  pl.active = mon0; pl.lostZone = []; pl.discard = [];
+  pl.hand = [];
+  gs.cardResolver = fakeResolver({
+    'SR1': { card:{ cardType:'trainer', trainerType:'supporter', name:'某支援者', cardId:'SR1' }, info:{ name:'某支援者' } },
+  });
+  pl.discard = ['SR1'];
+  const e = parseEffect('选择自己弃牌区中的1张支援者，在给对手看过之后，加入手牌。然后，将这只宝可梦放于放逐区。' + _AT_NOTE).effects;
+  await executeEffects(gs, pl, e, { source: mon0 });
+  assert.deepEqual(pl.lostZone, ['d1'], '放逐区只应有玩偶卡');
+  assert.equal(pl.hand.length, 1, '支援者应已加入手牌');
+  assert.equal(pl.discard.length, 3, '附着卡进弃牌区');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

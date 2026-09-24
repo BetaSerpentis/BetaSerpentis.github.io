@@ -2334,6 +2334,19 @@ export function parseEffect(text) {
     effects.length = gi + 1;
   }
   for (const e of effects) delete e._pos;
+  // 「（除宝可梦以外的卡牌，全部放于弃牌区。）」——同一条效果里既有把它送进放逐区的动作、
+  // 又有这条括号说明时，附着卡应进弃牌区而不是放逐区。这里统一把 withAttachments 关掉，
+  // 免得每个执行器各自判断（能力自带的那条由 GameState._hasAttachmentsToDiscard 兜底）。
+  {
+    const hasNote = effects.some(e => e.action === 'usage_condition' && e.params?.kind === 'attachments_to_discard');
+    if (hasNote) {
+      for (const e of effects) {
+        if (e.action === 'ko_to_lost_zone' || e.action === 'discard_self_with_attachments' || (e.action === 'lost_zone' && e.params?.from === 'self_field')) {
+          e.params = { ...(e.params || {}), withAttachments: false };
+        }
+      }
+    }
+  }
   // 条件改写句合并：把 action_count_override 并入它的目标动作。
   // 这样执行端只需在目标动作里读条件参数，不必处理“改写发生在动作之后”的时序问题。
   //

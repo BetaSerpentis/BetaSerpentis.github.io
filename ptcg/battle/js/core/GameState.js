@@ -1395,6 +1395,16 @@ export class GameState {
    *   耿鬼（战斗场上的对手方）：对手的宝可梦昏厥时进放逐区
    *   达克莱伊（本招式）/ 班基拉斯GX（本宝可梦的招式）：那个昏厥的宝可梦+身上所有卡牌进放逐区
    */
+  /**
+   * 「（除宝可梦以外的卡牌，全部放于弃牌区。）」
+   * —— 这只宝可梦被放入放逐区时，身上附着的能量/道具**进弃牌区**（而不是跟着进放逐区）。
+   * 卡面把这条写在括号里，解析端记成 `attachments_to_discard` 标记；此处据标记改目的地。
+   */
+  _hasAttachmentsToDiscard(mon){
+    if(!mon?.ability?.effects?.length)return false;
+    return (this._enabledAbilityEffects(mon)||[]).some(e=>e.action==='usage_condition'&&e.params?.kind==='attachments_to_discard');
+  }
+
   _knockoutDestination(ownerPl){
     const ctx=this._koContext||null;
     // ③ 招式型：由本招式的效果直接标记
@@ -1428,7 +1438,8 @@ export class GameState {
     const zone=dest.toLostZone?(pl.lostZone=pl.lostZone||[]):pl.discard;
     zone.push(knockedOut.cardId);
     // 身上的能量/道具：以前**直接丢失**（既没进弃牌区也没进放逐区）→ 现在按目的地放好
-    const attachZone=(dest.toLostZone&&dest.withAttachments)?zone:pl.discard;
+    // 「除宝可梦以外的卡牌全部放于弃牌区」→ 即便宝可梦进放逐区，附着卡也进弃牌区
+    const attachZone=(dest.toLostZone&&dest.withAttachments&&!this._hasAttachmentsToDiscard(knockedOut))?zone:pl.discard;
     for(const e of (knockedOut.energy||[]))attachZone.push(this._toolCardValue(e));
     if(knockedOut.tool)attachZone.push(this._toolCardValue(knockedOut.tool));
     this._recordKnockout(pl);
