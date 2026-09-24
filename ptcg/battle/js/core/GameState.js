@@ -117,6 +117,29 @@ export class GameState {
     i>=0&&i<o.length-1?this.setPhase(o[i+1]):(i===o.length-1&&this.endTurn());}
 
   endTurn(){
+    // 0. 「在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】」
+    //    标记打在受影响方身上、此刻正好轮到它自己的回合结束 → 在这里结算，随后再走常规清理。
+    {
+      for (const mon of [this.currentPlayer.active, ...(this.currentPlayer.bench || [])]) {
+        if (!mon || !mon.delayedKoAtOppTurnEnd) continue;
+        mon.delayedKoAtOppTurnEnd = 0;
+        const isActive = this.currentPlayer.active === mon;
+        this.addLog(`${mon.name} 的延迟昏厥结算`);
+        if (isActive) {
+          this.knockout(this.currentPlayer);
+        } else {
+          // 备战区：直接进弃牌区（备战位昏迷不拿奖赏卡）
+          const bi = this.currentPlayer.bench.indexOf(mon);
+          if (bi >= 0) this.currentPlayer.bench.splice(bi, 1);
+          this.currentPlayer.discard.push(mon.cardId);
+          for (const e of (mon.energy || [])) this.currentPlayer.discard.push(this._toolCardValue(e));
+          if (mon.tool) this.currentPlayer.discard.push(this._toolCardValue(mon.tool));
+          this.addLog(`${mon.name} 被昏厥（备战区）`);
+        }
+        this.recomputePassives?.();
+        if (this.phase === PHASE.GAME_OVER) return;
+      }
+    }
     // 1. 清除结束回合玩家的每回合临时效果
     //    例外：「在下一个对手的回合不受到招式的伤害和效果影响」（如大岩蛇「坚硬头锤」掷硬币正面）
     //    生效窗口是**对手的下一个回合**，所以不能在自己回合结束时就清掉，
@@ -131,6 +154,7 @@ export class GameState {
       // 时序正好：我在自己回合标记对手的宝可梦 → 我回合结束时不会清（它不是 currentPlayer 的）
       // → 对手回合内一直有效 → 对手回合结束时被清掉。
       mon.coinFailAttackNext=0;
+      mon.delayedKoAtOppTurnEnd=0;
       mon.costEliminated=false;mon.abilityUsed=false;
     }
     // 1.1 对手身上「活到对手回合结束」的防护：刚结束的这个回合就是它的生效窗口 → 到期清除
@@ -208,7 +232,7 @@ export class GameState {
     stage:cd?.stage||'基础',evolvesFrom:cd?.evolvesFrom||null,ruleText:cd?.ruleText||'',rule2Text:cd?.rule2Text||'',ruleBox:cd?.ruleBox||'',
     isEx:!!cd?.isEx,isRadiant:!!cd?.isRadiant,hasRuleBox:!!cd?.hasRuleBox,
     attacks:cd?.attacks||[{name:'撞击',damage:20,cost:[],effect:''}],energy:[],status:null,placedThisTurn:true,evolvedThisTurn:false,
-    tool:null,ability:cd?.ability||null,abilityUsed:false,abilityDisabled:false,abilityDisabledBy:null,damageMod:0,damageReceivedMod:0,preventDamage:false,preventEffect:false,cannotAttackNext:false,cannotRetreat:false,coinFailAttackNext:0,
+    tool:null,ability:cd?.ability||null,abilityUsed:false,abilityDisabled:false,abilityDisabledBy:null,damageMod:0,damageReceivedMod:0,preventDamage:false,preventEffect:false,cannotAttackNext:false,cannotRetreat:false,coinFailAttackNext:0,delayedKoAtOppTurnEnd:0,
     ignore:[],costEliminated:false,retreatCost:cd?.retreatCost??1};}
 
   placeActive(pl,idx,cd=null){
@@ -341,7 +365,7 @@ export class GameState {
     }
     return true;
   }
-  _removeSpecialConditions(mon){if(!mon)return;mon.status=null;mon.poisonCounters=null;mon.coinFailAttackNext=0;mon.cannotAttackNext=false;mon.cannotRetreat=false;mon.preventDamage=false;mon.preventEffect=false;mon.attackShieldArmed=false;mon.damageMod=0;mon.damageReceivedMod=0;mon.ignore=[];mon.costEliminated=false;mon.retreatCostIncrease=0;mon.attackCostIncrease=0;}
+  _removeSpecialConditions(mon){if(!mon)return;mon.status=null;mon.poisonCounters=null;mon.coinFailAttackNext=0;mon.delayedKoAtOppTurnEnd=0;mon.cannotAttackNext=false;mon.cannotRetreat=false;mon.preventDamage=false;mon.preventEffect=false;mon.attackShieldArmed=false;mon.damageMod=0;mon.damageReceivedMod=0;mon.ignore=[];mon.costEliminated=false;mon.retreatCostIncrease=0;mon.attackCostIncrease=0;}
 
   retreat(pl,benchIndex,selectedEnergyIndices=null){if(pl.retreatUsed){this.addLog('本回合已撤退过');return false;}if(!pl.active||!pl.bench[benchIndex]){this.addLog('撤退目标不存在');return false;}
     // dollNoRetreat 是**永久**被动（玩偶/化石「无法撤退」），不能依赖每回合被清理的 cannotRetreat

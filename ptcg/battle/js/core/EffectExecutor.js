@@ -2906,6 +2906,18 @@ const EXECUTORS = {
     gs.addLog(`${pl.name} 将「${mon.name}」作为${hp}HP的【无】属性基础宝可梦放置于备战区`);
     gs.recomputePassives?.();
   },
+  /**
+   * 「在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】」
+   * —— 在**受影响的宝可梦**身上打延迟标记；轮到它自己回合结束时由 GameState.endTurn 结算。
+   */
+  ko_next_opp_end(gs, pl, p) {
+    const opp = _opponent(gs, pl);
+    const mon = opp?.active;
+    if (!mon) { gs.addLog('没有可标记的宝可梦'); return; }
+    mon.delayedKoAtOppTurnEnd = 1;
+    gs.addLog(`${mon.name} 将在下个对手的回合结束时昏厥`);
+  },
+
   /** 玩偶/化石的「可从场上主动弃掉」 */
   discard_doll_self(gs, pl, p, eff) {
     const mon = eff?.source || eff?.params?.triggerSource;

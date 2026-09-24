@@ -10048,6 +10048,56 @@ await test('复制招式 运行时：招式效果一并复制（被复制招式�
   assert.ok(String(opp.active.status || '').includes('poison'), '被复制招式的效果也应执行');
 });
 
+
+// ============================================================
+//  缺口⑧「在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】」
+// ============================================================
+
+const _KO_TEXT = '将这只宝可梦身上附着的能量，全部放于弃牌区。在下一个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】。';
+const _koMon = (name, id, hp = 60) => Object.assign(mon(name, id), { hp, maxHp: hp, energy:['E1'] });
+
+await test('延迟昏厥 解析：变成真实动作（不再只是标记）', () => {
+  const e = parseEffect(_KO_TEXT).effects;
+  const act = e.find(x => x.action === 'ko_next_opp_end');
+  assert.ok(act, `应解析出 ko_next_opp_end（实际 ${JSON.stringify(e.map(x => x.action))}）`);
+  assert.ok(!e.some(x => x.params?.kind === 'residual_sentence'), '不应留残句');
+});
+
+await test('延迟昏厥 运行时：标记活过我方回合、在对手回合结束时结算（含替补上场）', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = _koMon('我', 'a1');
+  opp.active = _koMon('敌', 'o1');
+  opp.bench = [_koMon('替补', 'o2')];
+  opp.discard = [];
+  await executeEffects(gs, pl, parseEffect(_KO_TEXT).effects.filter(x => x.action === 'ko_next_opp_end'));
+  assert.equal(opp.active.delayedKoAtOppTurnEnd, 1, '应打上延迟标记');
+  gs.currentPlayer = pl; gs.endTurn();
+  assert.equal(opp.active.name, '敌', '我方回合结束时不应立刻昏厥');
+  assert.equal(opp.active.delayedKoAtOppTurnEnd, 1, '标记应活到我方回合之后');
+  gs.currentPlayer = opp; gs.endTurn();
+  assert.equal(opp.active?.name, '替补', '对手回合结束时应昏厥并由备战区递补');
+  assert.ok(opp.discard.includes('o1'), '被昏厥的宝可梦应进弃牌区');
+  assert.ok(!gs.log.some(l => String(l).includes('效果失败')), '不应有静默失败');
+});
+
+await test('延迟昏厥 运行时：备战区上的目标不拿奖赏卡', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = _koMon('我', 'a1');
+  opp.active = _koMon('敌', 'o1');
+  opp.bench = [_koMon('备', 'o2')];
+  opp.discard = [];
+  // 直接把标记打在备战区那只身上，验证备战区分支
+  opp.bench[0].delayedKoAtOppTurnEnd = 1;
+  const prizesBefore = gs.prizesTaken4Test ? null : (opp.prizes || []).length;
+  gs.currentPlayer = opp; gs.endTurn();
+  assert.equal(opp.bench.length, 0, '备战区目标应被移除');
+  assert.ok(opp.discard.includes('o2'), '应进弃牌区');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

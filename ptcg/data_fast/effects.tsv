@@ -1,4 +1,4 @@
-#eff1 hash=1d315c77e39ac2a3
+#eff1 hash=bb2cdc4955359e06
 151C-001	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-002	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-003	ability		0	usage_condition	{"kind":"requires_active"}
@@ -1261,19 +1261,19 @@ CBB4C-0206	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"选择�
 CBB4C-0207	attack	1	0	look_at	{"target":"opponent_hand"}
 CBB4C-0207	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"选择其中最多2张【基础】宝可梦，放置于对手的备战区。"}
 CBB4C-0301	attack	1	0	discard_energy	{"target":"self","count":"all"}
-CBB4C-0301	attack	1	1	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】"}
+CBB4C-0301	attack	1	1	ko_next_opp_end	{}
 CBB4C-0302	attack	1	0	discard_energy	{"target":"self","count":"all"}
-CBB4C-0302	attack	1	1	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】"}
+CBB4C-0302	attack	1	1	ko_next_opp_end	{}
 CBB4C-0303	attack	1	0	discard_energy	{"target":"self","count":"all"}
-CBB4C-0303	attack	1	1	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】"}
+CBB4C-0303	attack	1	1	ko_next_opp_end	{}
 CBB4C-0304	attack	1	0	discard_energy	{"target":"self","count":"all"}
-CBB4C-0304	attack	1	1	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】"}
+CBB4C-0304	attack	1	1	ko_next_opp_end	{}
 CBB4C-0305	attack	1	0	discard_energy	{"target":"self","count":"all"}
-CBB4C-0305	attack	1	1	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】"}
+CBB4C-0305	attack	1	1	ko_next_opp_end	{}
 CBB4C-0306	attack	1	0	discard_energy	{"target":"self","count":"all"}
-CBB4C-0306	attack	1	1	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】"}
+CBB4C-0306	attack	1	1	ko_next_opp_end	{}
 CBB4C-0307	attack	1	0	discard_energy	{"target":"self","count":"all"}
-CBB4C-0307	attack	1	1	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】"}
+CBB4C-0307	attack	1	1	ko_next_opp_end	{}
 CBB4C-0401	attack	1	0	evolve_from_deck	{"target":"self"}
 CBB4C-0401	attack	1	1	shuffle_deck	{}
 CBB4C-0401	attack	2	0	coin_flip_damage	{"count":1,"damage":20}
@@ -3908,7 +3908,7 @@ CS3DC-088	attack	1	0	look_at	{"target":"opponent_hand"}
 CS3DC-089	ability		0	block_status	{"status":"sleep","target":"self"}
 CS3DC-089	attack	1	0	conditional_damage_mod	{"condition":"custom","conditionText":"对手的战斗宝可梦身上附着特殊能量","amount":80,"mode":"fixed"}
 CS3DC-090	attack	1	0	draw	{"count":3}
-CS3DC-090	attack	2	0	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】"}
+CS3DC-090	attack	2	0	ko_next_opp_end	{}
 CS3DC-091	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":12}
 CS3DC-093	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CS3DC-093	ability		1	attach_energy_from_deck	{"filter":"一击能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false,"damageCountersOnAttachedTarget":2}
@@ -3974,9 +3974,9 @@ CS3DC-172	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的
 CS3DC-172	ability		1	attach_energy_from_deck	{"filter":"一击能量","target":"any","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false,"damageCountersOnAttachedTarget":2}
 CS3DC-172	ability		2	shuffle_deck	{}
 CS3DC-173	attack	1	0	draw	{"count":3}
-CS3DC-173	attack	2	0	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】"}
+CS3DC-173	attack	2	0	ko_next_opp_end	{}
 CS3DC-174	attack	1	0	draw	{"count":3}
-CS3DC-174	attack	2	0	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】"}
+CS3DC-174	attack	2	0	ko_next_opp_end	{}
 CS3DC-175	attack	1	0	cannot_retreat	{"target":"opponent","duration":"next_opp_turn"}
 CS3DC-175	attack	2	0	cannot_attack_next	{"move":"冲天飓风"}
 CS3DC-176	attack	1	0	conditional_damage_mod	{"condition":"stadium_in_play","amount":20,"mode":"fixed"}
@@ -4116,7 +4116,7 @@ CS3aC-079	attack	1	0	look_at	{"target":"opponent_hand"}
 CS3aC-080	ability		0	block_status	{"status":"sleep","target":"self"}
 CS3aC-080	attack	1	0	conditional_damage_mod	{"condition":"custom","conditionText":"对手的战斗宝可梦身上附着特殊能量","amount":80,"mode":"fixed"}
 CS3aC-081	attack	1	0	draw	{"count":3}
-CS3aC-081	attack	2	0	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】"}
+CS3aC-081	attack	2	0	ko_next_opp_end	{}
 CS3aC-082	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":12}
 CS3aC-083	ability		0	trigger	{"event":"knocked_out","effect":{"action":"damage_place","params":{"target":"attacker","count":6}},"effects":[{"action":"damage_place","params":{"target":"attacker","count":6}}],"optional":false}
 CS3aC-083	attack	1	0	inflict_status	{"statuses":["poison"]}
@@ -5025,7 +5025,7 @@ CS4DaC-257	ability		3	usage_condition	{"kind":"residual_sentence","raw":"选择�
 CS4DaC-257	ability		4	usage_condition	{"kind":"residual_sentence","raw":"若为正面，则恢复该宝可梦\\"90\\"HP。"}
 CS4DaC-257	ability		5	usage_condition	{"kind":"shell_fragment","raw":"若为反面，则。"}
 CS4DaC-258	attack	1	0	draw	{"count":3}
-CS4DaC-258	attack	2	0	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】"}
+CS4DaC-258	attack	2	0	ko_next_opp_end	{}
 CS4DaC-259	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":12}
 CS4DaC-260	ability		0	trigger	{"event":"knocked_out","effect":{"action":"damage_place","params":{"target":"attacker","count":6}},"effects":[{"action":"damage_place","params":{"target":"attacker","count":6}}],"optional":false}
 CS4DaC-260	attack	1	0	inflict_status	{"statuses":["poison"]}
@@ -5810,7 +5810,7 @@ CS5.5C-037	attack	1	0	coin_flip	{"count":3}
 CS5.5C-037	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"从自己的弃牌区选择最多与出现正面次数相同数量的基本能量，以任意方式附于备战宝可梦身上。"}
 CS5.5C-037	attack	2	0	conditional_damage_mod	{"amount":30,"condition":"opponent_active_energy_count","mode":"per_unit"}
 CS5.5C-038	attack	1	0	draw	{"count":1}
-CS5.5C-039	attack	1	0	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】"}
+CS5.5C-039	attack	1	0	ko_next_opp_end	{}
 CS5.5C-039	attack	2	0	recover_from_discard	{"count":1,"target":"hand"}
 CS5.5C-040	attack	1	0	coin_flip	{"count":1,"heads":[{"action":"prevent_damage","params":{"duration":"next_opp_turn"}}]}
 CS5.5C-041	attack	1	0	conditional_damage_mod	{"condition":"self_no_hand","amount":150,"mode":"fixed"}
@@ -7373,7 +7373,7 @@ CSBC-003	attack	1	0	attach_energy_from_deck	{"filter":"【斗】能量","target"
 CSBC-003	attack	1	1	shuffle_deck	{}
 CSBC-003	attack	2	0	cannot_attack_next	{"move":"冲击重拳"}
 CSBC-004	attack	1	0	draw	{"count":3}
-CSBC-004	attack	2	0	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】"}
+CSBC-004	attack	2	0	ko_next_opp_end	{}
 CSBC-005	attack	1	0	conditional_damage_mod	{"condition":"stadium_in_play","amount":20,"mode":"fixed"}
 CSBC-005	attack	2	0	discard_energy	{"target":"self","count":1}
 CSCC-001	attack	1	0	attack_cost_increase	{"amount":2}
@@ -9616,7 +9616,7 @@ CSM2.5C-015	ability		0	usage_condition	{"kind":"no_stack_note","raw":"这个效�
 CSM2.5C-015	ability		1	usage_condition	{"kind":"residual_sentence","raw":"自己场上的从\\"伊布\\"进化而来的\\"宝可梦GX\\"使用招式所需能量，各减少1个【无】能量。"}
 CSM2.5C-016	attack	1	0	opponent_hand_to_deck	{"count":2}
 CSM2.5C-016	attack	1	1	shuffle_deck	{}
-CSM2.5C-016	attack	2	0	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】"}
+CSM2.5C-016	attack	2	0	ko_next_opp_end	{}
 CSM2.5C-016	attack	2	1	usage_condition	{"kind":"extra_energy_discard_opp_all","raw":"若追加附着1个【超】能量，则将附于对手战斗宝可梦身上的能量，全部丢到弃牌区"}
 CSM2.5C-016	attack	2	2	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM2.5C-017	ability		0	damage_place	{"target":"opponent_all","count":1}
@@ -9731,12 +9731,12 @@ CSM2.5C-065	attack	2	1	inflict_status	{"statuses":["burn","confusion"]}
 CSM2.5C-065	attack	2	2	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM2.5C-066	attack	1	0	opponent_hand_to_deck	{"count":2}
 CSM2.5C-066	attack	1	1	shuffle_deck	{}
-CSM2.5C-066	attack	2	0	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】"}
+CSM2.5C-066	attack	2	0	ko_next_opp_end	{}
 CSM2.5C-066	attack	2	1	usage_condition	{"kind":"extra_energy_discard_opp_all","raw":"若追加附着1个【超】能量，则将附于对手战斗宝可梦身上的能量，全部丢到弃牌区"}
 CSM2.5C-066	attack	2	2	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM2.5C-067	attack	1	0	opponent_hand_to_deck	{"count":2}
 CSM2.5C-067	attack	1	1	shuffle_deck	{}
-CSM2.5C-067	attack	2	0	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】"}
+CSM2.5C-067	attack	2	0	ko_next_opp_end	{}
 CSM2.5C-067	attack	2	1	usage_condition	{"kind":"extra_energy_discard_opp_all","raw":"若追加附着1个【超】能量，则将附于对手战斗宝可梦身上的能量，全部丢到弃牌区"}
 CSM2.5C-067	attack	2	2	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM2.5C-068	ability		0	usage_condition	{"kind":"own_pokemon_knocked_out_last_opponent_turn","raw":"上一个对手回合己方宝可梦昏厥"}
@@ -9806,7 +9806,7 @@ CSM2.5C-084	attack	2	1	inflict_status	{"statuses":["burn","confusion"]}
 CSM2.5C-084	attack	2	2	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM2.5C-085	attack	1	0	opponent_hand_to_deck	{"count":2}
 CSM2.5C-085	attack	1	1	shuffle_deck	{}
-CSM2.5C-085	attack	2	0	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】"}
+CSM2.5C-085	attack	2	0	ko_next_opp_end	{}
 CSM2.5C-085	attack	2	1	usage_condition	{"kind":"extra_energy_discard_opp_all","raw":"若追加附着1个【超】能量，则将附于对手战斗宝可梦身上的能量，全部丢到弃牌区"}
 CSM2.5C-085	attack	2	2	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM2.5C-086	ability		0	usage_condition	{"kind":"own_pokemon_knocked_out_last_opponent_turn","raw":"上一个对手回合己方宝可梦昏厥"}
@@ -10169,7 +10169,7 @@ CSM2DC-168	attack	1	0	damage_place	{"target":"attacker","count":8}
 CSM2DC-170	ability		0	trigger	{"event":"evolved","effect":{"action":"attach_energy_from_deck","params":{"filter":"【恶】能量","target":"active","count":99,"maxCount":99,"minCount":0,"allowFewer":true,"allowEmpty":true}},"effects":[{"action":"attach_energy_from_deck","params":{"filter":"【恶】能量","target":"active","count":99,"maxCount":99,"minCount":0,"allowFewer":true,"allowEmpty":true}},{"action":"usage_condition","params":{"kind":"put_remaining_back","raw":"将剩余的卡牌放回牌库"}},{"action":"shuffle_deck","params":{}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"可使用1次。"}}],"optional":false}
 CSM2DC-170	attack	1	0	conditional_damage_mod	{"amount":20,"condition":"self_energy","mode":"per_unit"}
 CSM2DC-171	attack	1	0	peek_and_keep	{"peek":4,"keep":0,"maxCount":0,"minCount":0,"allowEmpty":true,"remainder":"reorder_top"}
-CSM2DC-171	attack	2	0	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】"}
+CSM2DC-171	attack	2	0	ko_next_opp_end	{}
 CSM2DC-171	attack	2	1	usage_condition	{"kind":"residual_sentence","raw":"将附于这只宝可梦身上的所有能量，放回手牌。"}
 CSM2DC-172	attack	1	0	coin_flip_damage	{"count":4,"damage_per":50}
 CSM2DC-172	attack	1	1	inflict_status	{"statuses":["poison"]}
@@ -13754,7 +13754,7 @@ CSV6C-071	attack	1	0	coin_flip_damage	{"count":3,"damage_per":20}
 CSV6C-071	attack	2	0	conditional_damage_mod	{"condition":"custom","conditionText":"从手牌将\\"宝可梦道具\\"放置于这只宝可梦身上","amount":70,"mode":"fixed"}
 CSV6C-072	attack	2	0	mill	{"target":"opponent","count":1}
 CSV6C-073	attack	1	0	ignore	{"what":"resistance"}
-CSV6C-074	attack	1	0	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】"}
+CSV6C-074	attack	1	0	ko_next_opp_end	{}
 CSV6C-075	attack	2	0	coin_flip_damage	{"count":1,"damage":20}
 CSV6C-076	attack	1	0	self_damage	{"amount":30}
 CSV6C-077	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
@@ -13894,7 +13894,7 @@ CSV7C-002	ability		0	damage_received_mod	{"amount":-30,"target":"self"}
 CSV7C-002	attack	1	0	conditional_damage_mod	{"amount":10,"condition":"self_damage_counters","mode":"reduce"}
 CSV7C-003	attack	2	0	cannot_attack_next	{"move":"斩落"}
 CSV7C-004	attack	1	0	discard_energy	{"target":"self","count":"all"}
-CSV7C-004	attack	1	1	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】"}
+CSV7C-004	attack	1	1	ko_next_opp_end	{}
 CSV7C-006	ability		0	usage_condition	{"kind":"generic_effect","raw":"对手战斗场上的进化宝可梦【撤退】所需能量，就会增加1个。"}
 CSV7C-006	attack	1	0	conditional_damage_mod	{"amount":30,"condition":"opponent_retreat_cost","mode":"per_unit"}
 CSV7C-007	attack	1	0	coin_flip_damage	{"count":4,"damage_per":10}
@@ -17897,7 +17897,7 @@ SVP-122	attack	1	0	ignore	{"what":"resistance"}
 SVP-123	attack	2	0	damage_bench	{"target":"opponent_1","damage":30}
 SVP-124	attack	2	0	discard_energy	{"target":"self","count":3}
 SVP-126	attack	1	0	discard_energy	{"target":"self","count":"all"}
-SVP-126	attack	1	1	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】"}
+SVP-126	attack	1	1	ko_next_opp_end	{}
 SVP-127	attack	1	0	search_deck_to_hand	{"filter":"基本【草】能量","count":3,"maxCount":3,"minCount":0,"allowFewer":true,"allowEmpty":true}
 SVP-127	attack	1	1	shuffle_deck	{}
 SVP-127	attack	2	0	cannot_attack_next	{"duration":"next_self_turn"}

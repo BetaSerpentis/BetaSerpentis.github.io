@@ -63,7 +63,6 @@ const KNOWN_GAPS = new Set([
   'extra_turn_vstar',
   'fail_unless_from_bench',
   'hand_to_deck_like_opp',
-  'ko_next_opp_end',
   'mirror_last_damage_taken',
   'only_single_hand_card',
   'opp_choose_move_copy',
