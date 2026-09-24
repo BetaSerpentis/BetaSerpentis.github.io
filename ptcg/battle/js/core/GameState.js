@@ -56,7 +56,7 @@ export class PlayerState {
   constructor(name){this.name=name;this.deck=[];this.hand=[];this.discard=[];this.prizes=[];this.active=null;this.bench=[];
     // 放逐区：与弃牌区**分开**的区域。放进去的卡不能被回收（部分卡的效果以此为条件）。
     this.lostZone=[];
-    this.stadium=null;this.supporterUsed=false;this.energyAttached=false;this.retreatUsed=false;this.stadiumPlayedThisTurn=false;this.abilityUsedThisTurn={};this.stadiumUsedThisTurn={};this.turnAttackModifiers=[];}
+    this.stadium=null;this.supporterUsed=false;this.energyAttached=false;this.retreatUsed=false;this.stadiumPlayedThisTurn=false;this.abilityUsedThisTurn={};this.stadiumUsedThisTurn={};this.turnAttackModifiers=[];this.extraTurnPending=false;}
   draw(n=1){const d=[];for(let i=n;i>0&&this.deck.length;i--){const c=this.deck.pop();this.hand.push(c);d.push(c);}return d;}
 }
 
@@ -223,7 +223,14 @@ export class GameState {
     this.currentPlayer.playRestrictions=null;
     this.temporaryAbilityLocks=(this.temporaryAbilityLocks||[]).filter(lock=>lock.expires!=='turn'&&lock.owner!==this.currentPlayer);
     for(const mon of[this.currentPlayer.active,...this.currentPlayer.bench]){if(mon){mon.placedThisTurn=false;mon.evolvedThisTurn=false;mon.cameFromBenchThisTurn=false;}}
-    this.currentPlayer=(this.currentPlayer===this.player1)?this.player2:this.player1;
+    // ⑩「当这个回合结束时，自己的回合会再开始1次」——VSTAR 力量等给的额外回合：
+    //    此时**不切换** currentPlayer，直接再开一轮自己的回合（回合数照常 +1，抽牌/牌库耗尽判定照旧）。
+    if(this.currentPlayer.extraTurnPending){
+      this.currentPlayer.extraTurnPending=false;
+      this.addLog(`${this.currentPlayer.name} 的回合再次开始（额外回合）`);
+    }else{
+      this.currentPlayer=(this.currentPlayer===this.player1)?this.player2:this.player1;
+    }
     this.turn++;this.setPhase(PHASE.DRAW);this.addLog(`第${this.turn}回合 — ${this.currentPlayer.name}`);
     if(this.currentPlayer.deck.length===0){this.winner=this.getOpponent(this.currentPlayer);this.phase=PHASE.GAME_OVER;this.addLog(`${this.currentPlayer.name} 牌库抽干，${this.winner.name} 胜利！`);}
     else{this.currentPlayer.draw(1);}
@@ -814,7 +821,10 @@ export class GameState {
   markStadiumUsed(pl,stadium=this.getActiveStadium()){pl.stadiumUsedThisTurn=pl.stadiumUsedThisTurn||{};pl.stadiumUsedThisTurn[this._stadiumUseKey(stadium)]=true;}
 
   getOpponent(pl){return pl===this.player1?this.player2:this.player1;}
-  _recordKnockout(owner){this.knockoutHistory=this.knockoutHistory||[];this.knockoutHistory.push({owner,turn:this.turn,by:this.getOpponent(owner),phase:this.phase});}
+  _recordKnockout(owner){
+    // 「如果因为这个招式对手的宝可梦【昏厥】的话」→ 用招式窗口(_koContext)内的 KO 计数精确判定
+    if(this._koContext)this._koContext.koCount=(this._koContext.koCount||0)+1;
+    this.knockoutHistory=this.knockoutHistory||[];this.knockoutHistory.push({owner,turn:this.turn,by:this.getOpponent(owner),phase:this.phase});}
   wasOwnPokemonKnockedOutLastOpponentTurn(pl){
     const opp=this.getOpponent(pl);
     const turn=this.turn-1;

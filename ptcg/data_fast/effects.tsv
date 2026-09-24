@@ -1,4 +1,4 @@
-#eff1 hash=dff3616c86ccfbc3
+#eff1 hash=62d7b17b39a86d5e
 151C-001	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-002	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-003	ability		0	usage_condition	{"kind":"requires_active"}
@@ -4967,7 +4967,7 @@ CS4DaC-217	attack	1	1	usage_condition	{"kind":"shell_fragment","raw":"在造成�
 CS4DaC-218	attack	1	0	draw	{"count":1}
 CS4DaC-220	ability		0	trigger	{"event":"knocked_out","effect":{"action":"coin_flip","params":{"count":1}},"effects":[{"action":"coin_flip","params":{"count":1}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"自己。"}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"若为正面，则这只宝可梦不会【昏厥】，而是以剩余HP为\\"10\\"点的状态留在场上。"}}],"optional":false}
 CS4DaC-221	attack	1	0	damage_place	{"target":"opponent_any","count":2}
-CS4DaC-221	attack	1	1	usage_condition	{"kind":"extra_turn_vstar","raw":"当这个回合结束时，自己的回合会再开始1次"}
+CS4DaC-221	attack	1	1	extra_turn_self	{"requireKoThisAttack":true}
 CS4DaC-221	attack	1	2	usage_condition	{"kind":"shell_fragment","raw":"若因为这个招式对手的宝可梦【昏厥】，则。"}
 CS4DaC-221	attack	1	3	usage_condition	{"kind":"residual_sentence","raw":"在上一个自己的回合，若自己的宝可梦使用了\\"瑜伽循环\\"，则无法使用这个招式。"}
 CS4DaC-221	attack	2	0	ignore	{"what":"resistance"}
@@ -5331,7 +5331,7 @@ CS4aC-078	attack	1	0	inflict_status	{"statuses":["poison"]}
 CS4aC-079	attack	1	0	discard_energy	{"target":"opponent","count":1}
 CS4aC-079	attack	2	0	inflict_status	{"statuses":["poison"]}
 CS4aC-080	attack	1	0	damage_place	{"target":"opponent_any","count":2}
-CS4aC-080	attack	1	1	usage_condition	{"kind":"extra_turn_vstar","raw":"当这个回合结束时，自己的回合会再开始1次"}
+CS4aC-080	attack	1	1	extra_turn_self	{"requireKoThisAttack":true}
 CS4aC-080	attack	1	2	usage_condition	{"kind":"shell_fragment","raw":"若因为这个招式对手的宝可梦【昏厥】，则。"}
 CS4aC-080	attack	1	3	usage_condition	{"kind":"residual_sentence","raw":"在上一个自己的回合，若自己的宝可梦使用了\\"瑜伽循环\\"，则无法使用这个招式。"}
 CS4aC-080	attack	2	0	ignore	{"what":"resistance"}
@@ -5427,12 +5427,12 @@ CS4aC-148	ability		1	search_deck_to_hand	{"filter":"物品","count":1,"maxCount"
 CS4aC-148	ability		2	shuffle_deck	{}
 CS4aC-148	ability		3	end_turn	{}
 CS4aC-149	attack	1	0	damage_place	{"target":"opponent_any","count":2}
-CS4aC-149	attack	1	1	usage_condition	{"kind":"extra_turn_vstar","raw":"当这个回合结束时，自己的回合会再开始1次"}
+CS4aC-149	attack	1	1	extra_turn_self	{"requireKoThisAttack":true}
 CS4aC-149	attack	1	2	usage_condition	{"kind":"shell_fragment","raw":"若因为这个招式对手的宝可梦【昏厥】，则。"}
 CS4aC-149	attack	1	3	usage_condition	{"kind":"residual_sentence","raw":"在上一个自己的回合，若自己的宝可梦使用了\\"瑜伽循环\\"，则无法使用这个招式。"}
 CS4aC-149	attack	2	0	ignore	{"what":"resistance"}
 CS4aC-150	attack	1	0	damage_place	{"target":"opponent_any","count":2}
-CS4aC-150	attack	1	1	usage_condition	{"kind":"extra_turn_vstar","raw":"当这个回合结束时，自己的回合会再开始1次"}
+CS4aC-150	attack	1	1	extra_turn_self	{"requireKoThisAttack":true}
 CS4aC-150	attack	1	2	usage_condition	{"kind":"shell_fragment","raw":"若因为这个招式对手的宝可梦【昏厥】，则。"}
 CS4aC-150	attack	1	3	usage_condition	{"kind":"residual_sentence","raw":"在上一个自己的回合，若自己的宝可梦使用了\\"瑜伽循环\\"，则无法使用这个招式。"}
 CS4aC-150	attack	2	0	ignore	{"what":"resistance"}
@@ -6504,7 +6504,7 @@ CS5bC-094	attack	1	1	damage_place	{"target":"opponent_active","count":40}
 CS5bC-094	attack	2	0	self_damage	{"amount":20}
 CS5bC-095	attack	1	0	attach_energy_from_discard	{"filter":"【钢】能量","target":"active","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CS5bC-096	attack	1	0	conditional_damage_mod	{"amount":40,"condition":"self_energy","mode":"per_unit"}
-CS5bC-096	attack	2	0	usage_condition	{"kind":"extra_turn_vstar","raw":"当这个回合结束时，自己的回合会再开始1次"}
+CS5bC-096	attack	2	0	extra_turn_self	{"requireKoThisAttack":true}
 CS5bC-096	attack	2	1	usage_condition	{"kind":"vstar_power_once","raw":"[对战中，己方的VSTAR力量只能使用1次。]"}
 CS5bC-097	attack	1	0	damage_received_mod	{"amount":-30,"target":"self","duration":"next_opp_turn"}
 CS5bC-097	attack	2	0	conditional_damage_mod	{"condition":"self_has_energy_type","type":"fire","amount":80,"mode":"fixed"}
@@ -6610,7 +6610,7 @@ CS5bC-164	attack	1	0	damage_bench	{"target":"opponent_1","damage":60}
 CS5bC-164	attack	2	0	conditional_damage_mod	{"amount":30,"mode":"per_unit","condition":"discard_pokemon"}
 CS5bC-164	attack	2	1	usage_condition	{"kind":"vstar_power_once","raw":"[对战中，己方的VSTAR力量只能使用1次。]"}
 CS5bC-165	attack	1	0	conditional_damage_mod	{"amount":40,"condition":"self_energy","mode":"per_unit"}
-CS5bC-165	attack	2	0	usage_condition	{"kind":"extra_turn_vstar","raw":"当这个回合结束时，自己的回合会再开始1次"}
+CS5bC-165	attack	2	0	extra_turn_self	{"requireKoThisAttack":true}
 CS5bC-165	attack	2	1	usage_condition	{"kind":"vstar_power_once","raw":"[对战中，己方的VSTAR力量只能使用1次。]"}
 CS5bC-166	attack	1	0	usage_condition	{"kind":"bonus_damage_extra_energy","raw":"追加造成比起使用这个招式的所需能量，多附着的【钢】能量的数量×60伤害"}
 CS5bC-166	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"最多可追加的伤害为相当于2个【钢】能量的数值。"}
@@ -6622,7 +6622,7 @@ CS5bC-173	ability		0	usage_condition	{"kind":"vstar_usage_note","raw":"在自己
 CS5bC-173	ability		1	attach_energy_from_discard	{"filter":"【水】能量","target":"any","targetType":"water","count":3,"maxCount":3,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CS5bC-173	attack	1	0	conditional_damage_mod	{"amount":20,"condition":"total_bench","mode":"per_unit"}
 CS5bC-174	attack	1	0	conditional_damage_mod	{"amount":40,"condition":"self_energy","mode":"per_unit"}
-CS5bC-174	attack	2	0	usage_condition	{"kind":"extra_turn_vstar","raw":"当这个回合结束时，自己的回合会再开始1次"}
+CS5bC-174	attack	2	0	extra_turn_self	{"requireKoThisAttack":true}
 CS5bC-174	attack	2	1	usage_condition	{"kind":"vstar_power_once","raw":"[对战中，己方的VSTAR力量只能使用1次。]"}
 CS6.1C-002	attack	1	0	draw	{"count":2}
 CS6.1C-003	attack	1	0	attach_energy_from_hand	{"filter":"基本能量","target":"active"}
@@ -6639,7 +6639,7 @@ CS6.1C-021	ability		0	usage_condition	{"kind":"vstar_usage_note","raw":"在自�
 CS6.1C-021	ability		1	attach_energy_from_discard	{"filter":"【水】能量","target":"any","targetType":"water","count":3,"maxCount":3,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CS6.1C-021	attack	1	0	conditional_damage_mod	{"amount":20,"condition":"total_bench","mode":"per_unit"}
 CS6.1C-022	attack	1	0	conditional_damage_mod	{"amount":40,"condition":"self_energy","mode":"per_unit"}
-CS6.1C-022	attack	2	0	usage_condition	{"kind":"extra_turn_vstar","raw":"当这个回合结束时，自己的回合会再开始1次"}
+CS6.1C-022	attack	2	0	extra_turn_self	{"requireKoThisAttack":true}
 CS6.1C-022	attack	2	1	usage_condition	{"kind":"vstar_power_once","raw":"[对战中，己方的VSTAR力量只能使用1次。]"}
 CS6.1C-023	attack	1	0	lost_zone	{"from":"field_energy","count":2,"filter":null}
 CS6.1C-023	attack	2	0	usage_condition	{"kind":"lostzone_ko","raw":"这个招式，只有在自己的放逐区有10张以上（包含10张）卡牌时才可使用。使对手的战斗宝可梦【昏厥】"}
@@ -8436,7 +8436,7 @@ CSM1aC-080	ability		0	prevent_damage	{"source":"attack"}
 CSM1aC-080	attack	1	0	inflict_status	{"statuses":["confusion"]}
 CSM1aC-081	attack	1	0	draw_until	{"target":6}
 CSM1aC-081	attack	2	0	ignore	{"what":"opponent_effects"}
-CSM1aC-081	attack	3	0	usage_condition	{"kind":"extra_turn_vstar","raw":"当这个回合结束时，自己的回合会再开始1次"}
+CSM1aC-081	attack	3	0	extra_turn_self	{"requireKoThisAttack":true}
 CSM1aC-081	attack	3	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM1aC-082	attack	1	0	coin_flip_until_tails	{"damage_per":20}
 CSM1aC-083	attack	1	0	damage_received_mod	{"amount":-20,"target":"self","duration":"next_opp_turn"}
@@ -10219,7 +10219,7 @@ CSM2DC-194	attack	1	0	conditional_damage_mod	{"amount":20,"condition":"self_ener
 CSM2DC-194	attack	2	0	attach_energy_from_discard	{"filter":"【钢】能量","target":"self","count":"all"}
 CSM2DC-194	attack	2	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM2DC-195	attack	1	0	coin_flip_until_tails	{"damage_per":30}
-CSM2DC-195	attack	2	0	usage_condition	{"kind":"extra_turn_vstar","raw":"当这个回合结束时，自己的回合会再开始1次"}
+CSM2DC-195	attack	2	0	extra_turn_self	{"requireKoThisAttack":true}
 CSM2DC-195	attack	2	1	shuffle_deck	{}
 CSM2DC-195	attack	2	2	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM2DC-195	attack	2	3	usage_condition	{"kind":"residual_sentence","raw":"若追加附着14个【妖】能量，则将对手备战区的所有宝可梦，及放置于其身上的所有卡牌，放回对手的牌库。"}
@@ -11292,7 +11292,7 @@ CSM2cC-069	attack	2	0	ignore	{"what":"weakness_resistance"}
 CSM2cC-070	attack	1	0	mill	{"target":"opponent","count":1}
 CSM2cC-070	attack	2	0	extra_prize	{"count":1,"condition":"knocked_out_by_damage"}
 CSM2cC-071	attack	1	0	coin_flip_until_tails	{"damage_per":30}
-CSM2cC-071	attack	2	0	usage_condition	{"kind":"extra_turn_vstar","raw":"当这个回合结束时，自己的回合会再开始1次"}
+CSM2cC-071	attack	2	0	extra_turn_self	{"requireKoThisAttack":true}
 CSM2cC-071	attack	2	1	shuffle_deck	{}
 CSM2cC-071	attack	2	2	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM2cC-071	attack	2	3	usage_condition	{"kind":"residual_sentence","raw":"若追加附着14个【妖】能量，则将对手备战区的所有宝可梦，及放置于其身上的所有卡牌，放回对手的牌库。"}
@@ -11468,12 +11468,12 @@ CSM2cC-163	attack	2	0	look_at	{"target":"opponent_hand"}
 CSM2cC-163	attack	2	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM2cC-163	attack	2	2	usage_condition	{"kind":"residual_sentence","raw":"将其中2张卡，丢到弃牌区。"}
 CSM2cC-164	attack	1	0	coin_flip_until_tails	{"damage_per":30}
-CSM2cC-164	attack	2	0	usage_condition	{"kind":"extra_turn_vstar","raw":"当这个回合结束时，自己的回合会再开始1次"}
+CSM2cC-164	attack	2	0	extra_turn_self	{"requireKoThisAttack":true}
 CSM2cC-164	attack	2	1	shuffle_deck	{}
 CSM2cC-164	attack	2	2	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM2cC-164	attack	2	3	usage_condition	{"kind":"residual_sentence","raw":"若追加附着14个【妖】能量，则将对手备战区的所有宝可梦，及放置于其身上的所有卡牌，放回对手的牌库。"}
 CSM2cC-165	attack	1	0	coin_flip_until_tails	{"damage_per":30}
-CSM2cC-165	attack	2	0	usage_condition	{"kind":"extra_turn_vstar","raw":"当这个回合结束时，自己的回合会再开始1次"}
+CSM2cC-165	attack	2	0	extra_turn_self	{"requireKoThisAttack":true}
 CSM2cC-165	attack	2	1	shuffle_deck	{}
 CSM2cC-165	attack	2	2	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM2cC-165	attack	2	3	usage_condition	{"kind":"residual_sentence","raw":"若追加附着14个【妖】能量，则将对手备战区的所有宝可梦，及放置于其身上的所有卡牌，放回对手的牌库。"}
@@ -11604,7 +11604,7 @@ CSMJC-013	attack	3	0	usage_condition	{"kind":"gx_once_per_game","raw":"[对战�
 CSMJC-013	attack	3	1	usage_condition	{"kind":"residual_sentence","raw":"若对手的战斗宝可梦身上放置有4个伤害指示物，则使该宝可梦【昏厥】。"}
 CSMJC-014	attack	1	0	draw_until	{"target":6}
 CSMJC-014	attack	2	0	ignore	{"what":"opponent_effects"}
-CSMJC-014	attack	3	0	usage_condition	{"kind":"extra_turn_vstar","raw":"当这个回合结束时，自己的回合会再开始1次"}
+CSMJC-014	attack	3	0	extra_turn_self	{"requireKoThisAttack":true}
 CSMJC-014	attack	3	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSMJC-015	attack	1	0	damage_bench	{"target":"opponent_1","damage":20}
 CSMJC-015	attack	3	0	move_damage_counters	{"from":"self_field","to":"opponent_active","count":"all","autoAll":true}
@@ -11803,7 +11803,7 @@ CSMPiC-009	attack	3	0	usage_condition	{"kind":"gx_once_per_game","raw":"[对战�
 CSMPiC-009	attack	3	1	usage_condition	{"kind":"residual_sentence","raw":"将对手2只备战宝可梦，以及放置于其身上的所有卡牌，放回对手的手牌。"}
 CSMPiC-010	attack	1	0	draw_until	{"target":6}
 CSMPiC-010	attack	2	0	ignore	{"what":"opponent_effects"}
-CSMPiC-010	attack	3	0	usage_condition	{"kind":"extra_turn_vstar","raw":"当这个回合结束时，自己的回合会再开始1次"}
+CSMPiC-010	attack	3	0	extra_turn_self	{"requireKoThisAttack":true}
 CSMPiC-010	attack	3	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSMPiC-011	attack	1	0	move_energy	{"source":"bench","dest":"active","count":"all"}
 CSMPiC-011	attack	2	0	conditional_damage_mod	{"amount":20,"condition":"self_energy","mode":"per_unit"}
@@ -15890,7 +15890,7 @@ CSVE2C-101	ability		3	usage_condition	{"kind":"put_remaining_back","raw":"将剩
 CSVE2C-101	ability		4	shuffle_deck	{}
 CSVE2C-102	attack	1	0	attach_energy_from_discard	{"filter":"【钢】能量","target":"active","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CSVE2C-103	attack	1	0	conditional_damage_mod	{"amount":40,"condition":"self_energy","mode":"per_unit"}
-CSVE2C-103	attack	2	0	usage_condition	{"kind":"extra_turn_vstar","raw":"当这个回合结束时，自己的回合会再开始1次"}
+CSVE2C-103	attack	2	0	extra_turn_self	{"requireKoThisAttack":true}
 CSVE2C-103	attack	2	1	usage_condition	{"kind":"vstar_power_once","raw":"[对战中，己方的VSTAR力量只能使用1次。]"}
 CSVE2C-105	ability		0	damage_received_mod	{"amount":-30,"target":"self"}
 CSVE2C-105	attack	1	0	damage_boost_next_self	{"amount":100}

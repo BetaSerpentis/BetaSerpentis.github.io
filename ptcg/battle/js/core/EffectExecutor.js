@@ -2930,6 +2930,21 @@ const EXECUTORS = {
     gs.addLog(`${mon.name} 下回合无法从手牌被附着能量`);
   },
 
+  /**
+   * ⑩「当这个回合结束时，自己的回合会再开始1次」（VSTAR 力量等）
+   * 卡面通常带条件「**如果因为这个招式对手的宝可梦【昏厥】的话**，则…」——
+   * 用招式窗口 `_koContext.koCount`（由 GameState._recordKnockout 累加）精确判定，
+   * 不满足则不设置额外回合。
+   */
+  extra_turn_self(gs, pl, p) {
+    if (p.requireKoThisAttack && !(gs._koContext?.koCount > 0)) {
+      gs.addLog('本招式没有造成昏厥，不会获得额外回合');
+      return;
+    }
+    pl.extraTurnPending = true;
+    gs.addLog(`${pl.name} 在本回合结束后将再次开始自己的回合`);
+  },
+
   /** 玩偶/化石的「可从场上主动弃掉」 */
   discard_doll_self(gs, pl, p, eff) {
     const mon = eff?.source || eff?.params?.triggerSource;

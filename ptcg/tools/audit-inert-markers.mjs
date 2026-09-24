@@ -54,7 +54,6 @@ const KNOWN_GAPS = new Set([
   'bonus_damage_extra_energy',
   'coin_heads_draw_any',
   'draw_matching_opponent_field_count',
-  'extra_turn_vstar',
   'fail_unless_from_bench',
   'hand_to_deck_like_opp',
   'mirror_last_damage_taken',

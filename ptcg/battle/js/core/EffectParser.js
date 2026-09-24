@@ -1197,7 +1197,9 @@ const RULES = [
   // --- 无竞技场时招式失败 ---
   { re: /若场上没有竞技场，则这个招式失败/, act:'conditional_effect', p:()=>({condition:'stadium_not_in_play',effect:{action:'attack_fail'}}) },
   // --- VSTAR 再回合 / GXEX 特性消除 / 特性限定场地（metadata）---
-  { re: /当这个回合结束时，自己的回合会再开始1次/, act:'usage_condition', p:m=>trainerPrerequisite('extra_turn_vstar', m[0]) },
+  // 升级：原为未接线标记 → 真实动作。这 16 张卡的卡面都带同一条件
+  // 「如果因为这个招式对手的宝可梦【昏厥】的话」→ 默认要求本招式造成过昏厥（由 koContext 判定）。
+  { re: /当这个回合结束时[，,]?自己的回合会再开始1次/, act:'extra_turn_self', p:()=>({ requireKoThisAttack:true }) },
   { re: /就将对手场上、手牌中、弃牌区中的所有["“”]宝可梦GX・EX["“”]的特性（除["“”]([^"“”]+)["“”]外），全部消除/, act:'ability_nullify', p:m=>abilityNullifyParams(m[0],m.input) },
   { re: /这个特性只有当自己场上所有的宝可梦都是【(.+?)】属性的场合才生效/, act:'usage_condition', p:m=>({ kind:'type_mono_ability', type:m[1], raw:m[0] }) },
   { re: /这只宝可梦，在自己的回合，可以从手牌使出从["“”]伊布["“”]进化而来的卡牌/, act:'usage_condition', p:m=>trainerPrerequisite('eevee_evolve_anytime', m[0]) },

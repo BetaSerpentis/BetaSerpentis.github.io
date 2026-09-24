@@ -10158,6 +10158,70 @@ await test('延迟封锁 运行时：玩家级四项（支援者/竞技场/奖�
   assert.equal(gs.attachEnergy(opp, 0, { cardType:'energy', name:'基本火能量' }, 'active'), true, '基本能量不受影响（只封锁特殊能量）');
 });
 
+
+// ============================================================
+//  缺口⑩ 额外回合「当这个回合结束时，自己的回合会再开始1次」
+// ============================================================
+
+const _ET_TEXT = '给对手的1只宝可梦身上，放置2个伤害指示物。如果因为这个招式对手的宝可梦【昏厥】的话，则当这个回合结束时，自己的回合会再开始1次。';
+const _etGs = async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  gs.player1.active = mon('我', 'a1');
+  gs.player2.active = mon('敌', 'o1');
+  gs.player1.deck = ['d1', 'd2', 'd3'];
+  gs.player2.deck = ['e1', 'e2', 'e3'];
+  gs.currentPlayer = gs.player1;
+  return gs;
+};
+const _etEff = () => parseEffect(_ET_TEXT).effects.filter(x => x.action === 'extra_turn_self');
+
+await test('额外回合 解析：变成真实动作，并默认要求「本招式造成过昏厥」', () => {
+  const e = parseEffect(_ET_TEXT).effects;
+  const act = e.find(x => x.action === 'extra_turn_self');
+  assert.ok(act, `应解析出 extra_turn_self（实际 ${JSON.stringify(e.map(x => x.action))}）`);
+  assert.equal(act.params.requireKoThisAttack, true, '卡面带「如果因为这个招式…昏厥的话」条件');
+});
+
+await test('额外回合 条件门槛：本招式没造成昏厥时不获得额外回合', async () => {
+  const gs = await _etGs();
+  gs._koContext = { attacker: gs.player1.active }; // 招式窗口存在但 koCount 为 0
+  await executeEffects(gs, gs.player1, _etEff());
+  assert.equal(gs.player1.extraTurnPending, false, '不应设置额外回合');
+});
+
+await test('额外回合 运行时：回合结束后自己再行动一次，且只给一次、不跳过对手', async () => {
+  const gs = await _etGs();
+  gs._koContext = { attacker: gs.player1.active, koCount:1 };
+  await executeEffects(gs, gs.player1, _etEff());
+  assert.equal(gs.player1.extraTurnPending, true, '应设置额外回合');
+  const before = gs.turn;
+  gs.endTurn();
+  assert.equal(gs.currentPlayer, gs.player1, '应仍是自己（额外回合）');
+  assert.equal(gs.turn, before + 1, '回合数照常 +1');
+  assert.equal(gs.player1.extraTurnPending, false, '标记应被消费，只给一次');
+  gs.endTurn();
+  assert.equal(gs.currentPlayer, gs.player2, '之后应轮到对手（不会被永久跳过）');
+});
+
+await test('额外回合 只生效一次（不会连续叠加）', async () => {
+  const gs = await _etGs();
+  gs.player1.extraTurnPending = true;
+  gs.endTurn();
+  assert.equal(gs.currentPlayer, gs.player1, '第一次：自己');
+  gs.endTurn();
+  assert.equal(gs.currentPlayer, gs.player2, '第二次：对手（不叠加）');
+});
+
+await test('额外回合 对双方对称（对手也能拿到自己的额外回合）', async () => {
+  const gs = await _etGs();
+  gs.endTurn(); // 玩家1 结束 → 轮到玩家2
+  assert.equal(gs.currentPlayer, gs.player2);
+  gs.player2.extraTurnPending = true;
+  gs.endTurn();
+  assert.equal(gs.currentPlayer, gs.player2, '玩家2 应获得额外回合');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',
