@@ -9099,6 +9099,93 @@ await test('长尾5 双方互相展示手牌 / 竞技场双方放基础于备战
   assert.equal(m.params.who, 'both');
 });
 
+
+// ============================================================
+//  长尾批次 6：「放置于备战区」簇
+// ============================================================
+
+await test('长尾6 「查看…其中任意数量…放置于备战区」并入查看动作（不是两条独立动作）', () => {
+  const e = parseEffect('查看自己牌库上方8张卡牌，选择其中任意数量的宝可梦，放于备战区。将剩余的卡牌放回牌库并重洗牌库。').effects;
+  const peek = e.find(x => x.action === 'peek_and_keep');
+  assert.ok(peek, `应解析出 peek_and_keep（实际 ${JSON.stringify(e.map(x => x.action))}）`);
+  assert.equal(peek.params.pick, 'bench', '选中卡应放到备战区');
+  assert.equal(peek.params.filter, '宝可梦');
+  assert.ok(!e.some(x => x.params?.kind === 'residual_sentence'), '不应留下残句');
+});
+
+await test('长尾6 运行时：查看后选中的宝可梦进备战区（不进手牌），其余回牌库', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  pl.active = mon('我', 'a1');
+  pl.bench = []; pl.hand = [];
+  pl.deck = ['P1', 'P2', 'P3', 'T1', 'T2']; // 牌库顶 = 数组末尾 → 顶 3 张是 P3,T1,T2
+  gs.cardResolver = fakeResolver({
+    'P1': { card:{ cardType:'pokemon', name:'宝可梦P1', hp:60, cardId:'P1', stage:'基础', element:'colorless', attacks:[], retreatCost:1 }, info:{ name:'宝可梦P1' } },
+    'P2': { card:{ cardType:'pokemon', name:'宝可梦P2', hp:60, cardId:'P2', stage:'基础', element:'colorless', attacks:[], retreatCost:1 }, info:{ name:'宝可梦P2' } },
+    'P3': { card:{ cardType:'pokemon', name:'宝可梦P3', hp:60, cardId:'P3', stage:'基础', element:'colorless', attacks:[], retreatCost:1 }, info:{ name:'宝可梦P3' } },
+    'T1': { card:{ cardType:'trainer', trainerType:'item', name:'物品T1', cardId:'T1' }, info:{ name:'物品T1' } },
+    'T2': { card:{ cardType:'trainer', trainerType:'item', name:'物品T2', cardId:'T2' }, info:{ name:'物品T2' } },
+  });
+  let pending = null;
+  gs._onPendingPick = p => { pending = p; };
+  const running = executeEffects(gs, pl, parseEffect('查看自己牌库上方3张卡牌，选择其中任意数量的宝可梦，放于备战区。将剩余的卡牌放回牌库并重洗牌库。').effects);
+  await new Promise(r => setTimeout(r, 5));
+  assert.deepEqual(pending.cards, ['宝可梦P3'], '只能选到宝可梦（T1/T2 被过滤）');
+  pending.resolve([0]);
+  await running;
+  assert.equal(pl.bench.length, 1, '选中的宝可梦应进备战区');
+  assert.equal(pl.hand.length, 0, '不应进手牌');
+  assert.equal(pl.deck.length, 4, '没查看的 2 张 + 剩余的 2 张都回牌库');
+  assert.ok(!gs.log.some(l => String(l).includes('效果失败')), `不应有静默失败（${gs.log.filter(l => String(l).includes('效果失败'))}）`);
+});
+
+await test('长尾6 「最多与对手备战宝可梦数量相同数量」按对手备战数取牌', async () => {
+  const e = parseEffect('将自己牌库中最多与对手备战宝可梦数量相同数量的【基础】宝可梦，放于备战区。并重洗牌库。').effects;
+  assert.equal(e[0].action, 'search_deck_to_bench');
+  assert.equal(e[0].params.countFrom, 'opponent_bench');
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('我', 'a1'); pl.bench = []; pl.deck = ['B1', 'B2', 'B3', 'B4'];
+  opp.bench = [mon('x', 'o1'), mon('y', 'o2'), mon('z', 'o3')];
+  const entries = {};
+  for (const id of ['B1', 'B2', 'B3', 'B4']) entries[id] = { card:{ cardType:'pokemon', name:'基础'+id, hp:60, cardId:id, stage:'基础', element:'colorless', attacks:[], retreatCost:1 }, info:{ name:'基础'+id } };
+  gs.cardResolver = fakeResolver(entries);
+  await executeEffects(gs, pl, e);
+  assert.equal(pl.bench.length, 3, `对手备战 3 只 → 应放 3 只（实际 ${pl.bench.length}）`);
+});
+
+await test('长尾6 「最多与出现正面次数相同数量」按硬币正面数取牌', async () => {
+  const e = parseEffect('抛掷2次硬币，选择自己牌库中最多与出现正面次数相同数量的【草】宝可梦，放于备战区。并重洗牌库。').effects;
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  pl.active = mon('我', 'a1'); pl.bench = []; pl.deck = ['C1', 'C2', 'C3', 'C4'];
+  const entries = {};
+  for (const id of ['C1', 'C2', 'C3', 'C4']) entries[id] = { card:{ cardType:'pokemon', name:'草'+id, hp:60, cardId:id, stage:'基础', element:'grass', attacks:[], retreatCost:1 }, info:{ name:'草'+id } };
+  gs.cardResolver = fakeResolver(entries);
+  await executeEffects(gs, pl, e);
+  assert.equal(pl.bench.length, gs._lastCoinHeads || 0, '放置数应等于正面数');
+  assert.ok(pl.bench.length <= 2, '2 次硬币最多 2 只');
+});
+
+await test('长尾6 「将任意数量的被丢到弃牌区的X放置于备战区」', async () => {
+  const e = parseEffect('将自己牌库上方5张卡牌放于弃牌区，追加造成其中宝可梦张数×60点伤害。然后，将任意数量的被放于弃牌区的【火】宝可梦，放于备战区。').effects;
+  const d = e.find(x => x.action === 'discard_to_bench');
+  assert.ok(d, `应解析出 discard_to_bench（实际 ${JSON.stringify(e.map(x => x.action))}）`);
+  assert.equal(d.params.count, 'all');
+  assert.equal(d.params.filter, '【火】宝可梦');
+});
+
+await test('长尾6 「选择自己牌库中的N张宝可梦」（未写【基础】）也能检索', () => {
+  const e = parseEffect('选择自己牌库中的1张宝可梦，放于备战区。并重洗牌库。').effects;
+  const s = e.find(x => x.action === 'search_deck_to_bench');
+  assert.ok(s, '应解析出 search_deck_to_bench');
+  assert.equal(s.params.count, 1);
+  assert.equal(s.params.filter, '宝可梦');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

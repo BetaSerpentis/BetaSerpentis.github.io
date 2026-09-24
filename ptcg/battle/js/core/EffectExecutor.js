@@ -1070,7 +1070,12 @@ const EXECUTORS = {
     if (pl.deck.length === 0) { gs.addLog('牌库为空，无法搜索宝可梦'); return; } // 检索类允许空发
     const openSlots = Math.max(0, 5 - pl.bench.length);
     if (openSlots <= 0) { gs.addLog('备战区已满，无法放置宝可梦'); gs._shuffle(pl.deck); return; } // 无位置可放也属空发
-    const count = Math.min(p.count || 1, openSlots);
+    // countFrom：张数由场上/硬币决定
+    //（「最多与对手备战宝可梦数量相同数量」「最多与出现正面次数相同数量」）
+    let wantCount = p.count === 'all' || p.count === 99 ? openSlots : (p.count || 1);
+    if (p.countFrom) wantCount = Math.min(gs._counterValueForDamage(pl, p.countFrom) || 0, openSlots);
+    const count = Math.min(wantCount, openSlots);
+    if (count <= 0) { gs.addLog('按前提条件没有可放置的宝可梦'); gs._shuffle(pl.deck); return; }
     const cards = [...pl.deck].reverse();
     const filter = card => _cardMatchesFilter(gs, card, { filter:p.filter || '宝可梦', maxHp:p.maxHp, nonRuleBox:p.nonRuleBox }) && _isBasicPokemonCard(gs, card);
     const hasCandidates = cards.some(filter);
@@ -1134,6 +1139,24 @@ const EXECUTORS = {
     const selectedTopPositions = new Set(selected.map(item => item.topIndex));
     const selectedCards = selected.map(item => item.card);
     const remainder = peeked.filter((_, peekedIndex) => !selectedTopPositions.has(peek - 1 - peekedIndex));
+    // pick:'bench' —— 「查看…选择其中任意数量的宝可梦，放置于备战区」
+    // 选中的卡**不进手牌**，而是作为宝可梦放到备战区（非宝可梦卡退回剩余卡处理）。
+    if (p.pick === 'bench') {
+      let placed = 0;
+      const rejected = [];
+      for (const card of selectedCards) {
+        if (pl.bench.length >= 5) { rejected.push(card); continue; }
+        const mon = _makeBenchPokemonFromCard(gs, card);
+        if (mon) { pl.bench.push(mon); placed++; } else rejected.push(card);
+      }
+      // 非宝可梦的与备战区已满的，按剩余卡规则处理
+      const rest = [...remainder, ...rejected];
+      const mode2 = p.remainder || 'shuffle';
+      if (mode2 === 'discard') { pl.discard.push(...rest); gs.addLog(`剩余的 ${rest.length} 张卡丢到弃牌区`); }
+      else { pl.deck.push(...rest); gs._shuffle(pl.deck); }
+      gs.addLog(`从查看的卡中放置 ${placed} 只宝可梦到备战区`);
+      return;
+    }
     pl.hand.push(...selectedCards);
 
     const remainderMode = p.remainder || (p.keepOrder ? 'top_original' : 'shuffle');
@@ -1906,7 +1929,9 @@ const EXECUTORS = {
 
   // ===== 弃牌区放备战 =====
   async discard_to_bench(gs, pl, p) {
-    const selected = await _pickCardsFromZone(gs, pl, pl, pl.discard, p.count || 1, {
+    // count:'all' / 99 → 「将任意数量的…放置于备战区」
+    const want = (p.count === 'all' || p.count === 99) ? Math.max(1, 5 - pl.bench.length) : (p.count || 1);
+    const selected = await _pickCardsFromZone(gs, pl, pl, pl.discard, want, {
       source:'discard-to-bench', filter:_recoverableFilter(gs, p.filter || '宝可梦'), prompt:'选择放到备战区的宝可梦',
       allowFewer:!!p.allowFewer, allowEmpty:!!p.allowEmpty, maxCount:p.maxCount, minCount:p.minCount, optional:!!p.optional
     });
@@ -2115,6 +2140,9 @@ const EXECUTORS = {
     const count = p.count || 1;
     let heads = 0;
     for (let i = 0; i < count; i++) { if (await _flipCoin(gs, pl)) heads++; }
+    // 记录本次掷硬币的正面数：后续动作可用 countFrom:'coin_heads' 引用
+    //（例：「掷2次硬币，从自己的牌库选择最多与出现正面次数相同数量的【草】宝可梦，放置于备战区」）
+    gs._lastCoinHeads = heads;
     gs.addLog(`掷${count}次硬币: ${heads}正${count - heads}反`);
     if (p.fail_on_tails && heads < count) { gs.addLog('招式失败'); throw new Error('attack_failed'); }
     if (p.heads && heads > 0) {

@@ -687,6 +687,10 @@ export class GameState {
       case 'opponent_prizes_taken': { const opp=this.getOpponent(pl); return Math.max(0, (opp?.prizes?.length!=null? (6-(opp.prizes.length)) : 0)); }
       case 'hand_count': return pl?.hand?.length||0;
       case 'own_field_pokemon_count': return [pl.active,...(pl.bench||[])].filter(Boolean).length;
+      // 「最多与对手备战宝可梦数量相同数量」——数对手备战区的只数
+      case 'opponent_bench': return (this.getOpponent(pl).bench||[]).filter(Boolean).length;
+      // 「最多与出现正面次数相同数量」——读同一次效果里前面 coin_flip 记下的正面数
+      case 'coin_heads': return this._lastCoinHeads || 0;
       default: return 0;
     }
   }

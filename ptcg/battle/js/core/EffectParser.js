@@ -2014,6 +2014,21 @@ const RULES = [
   // 「查看自己的牌库上方N张卡。选择其中任意数量的X，在给对手看过后，加入手牌」→ 并入查看动作（带 filter）
   { re: /查看(?:自己的|自己)?牌库上方(\d+)张卡[。.]?选择其中任意数量的(.+?)[，,]?在给对手看过后[，,]?加入手牌/, act:'peek_and_keep', p:m=>({ peek:+m[1], keep:99, maxCount:99, minCount:0, allowFewer:true, allowEmpty:true, filter:m[2].replace(/["“”「」]/g,'').trim() }) },
 
+  // ===== 长尾批次 6：「放置于备战区」簇 =====
+  // ①「查看…选择其中任意数量的X，放置于备战区」——**并入前面的查看动作**（写成改写句）
+  //    例：CBB6C-1301「查看自己牌库上方8张卡，选择其中任意数量的宝可梦，放置于备战区。」
+  { re: /其中任意数量的(.+?)[，,]?放置于备战区/, act:'action_count_override', p:m=>({ targets:['peek_and_keep'], set:{ pick:'bench', keep:99, allowFewer:true, minCount:0, allowEmpty:true, filter:m[1] } }) },
+  // ②「将自己牌库中任意数量的X，放置于备战区」
+  { re: /将(?:自己的|自己)?牌库中任意数量的(.+?)[，,]?放置于备战区/, act:'search_deck_to_bench', p:m=>({ count:'all', filter:m[1], allowFewer:true, minCount:0, allowEmpty:true, optional:true }) },
+  // ③「最多与对手备战宝可梦数量相同数量」
+  { re: /(?:从)?(?:自己的|自己)?牌库(?:中)?最多与对手备战宝可梦数量相同数量的(.+?)[，,]?放置于备战区/, act:'search_deck_to_bench', p:m=>({ countFrom:'opponent_bench', filter:m[1], allowFewer:true, minCount:0, allowEmpty:true, optional:true }) },
+  // ④「最多与出现正面次数相同数量」（同一次效果里前面已有 coin_flip）
+  { re: /(?:从)?(?:自己的|自己)?牌库(?:中)?选择最多与(?:出现)?正面次数相同数量的(.+?)[，,]?放置于备战区/, act:'search_deck_to_bench', p:m=>({ countFrom:'coin_heads', filter:m[1], allowFewer:true, minCount:0, allowEmpty:true, optional:true }) },
+  // ⑤「选择自己牌库中的N张宝可梦，放置于备战区」（未写【基础】也要能放；引擎本身只允许基础宝可梦上场）
+  { re: /(?:从)?(?:自己的|自己)?牌库(?:中|里)?(?:选择|抽出)?(\d+)张宝可梦[，,]?放置于备战区/, act:'search_deck_to_bench', p:m=>({ count:+m[1], filter:'宝可梦' }) },
+  // ⑥「将任意数量的被丢到弃牌区的X，放置于备战区」
+  { re: /将任意数量的被丢到弃牌区的(.+?)[，,]?放置于备战区/, act:'discard_to_bench', p:m=>({ count:'all', filter:m[1], allowFewer:true, minCount:0, allowEmpty:true, optional:true }) },
+
   // ===== 长尾批次 5：「双方玩家」簇 =====
   // ①「双方玩家，各将N张自己的手牌丢到弃牌区」/「各选择1张自己的手牌，丢到弃牌区」
   { re: /双方玩家[，,]?各将(\d+)张自己的手牌[，,]?(?:丢到|放于)弃牌区/, act:'discard_hand', p:m=>({ who:'both', count:+m[1], allowFewer:true, allowEmpty:true, optional:true }) },
