@@ -9849,6 +9849,82 @@ await test('自身回牌库 「若希望」可选：无 UI 时不主动回收自
   assert.equal(pl.active.name, '我', '宝可梦应留在场上');
 });
 
+
+// ============================================================
+//  缺口⑥-A「将这张卡放置于备战区」（卡牌自身从手牌/弃牌区上场）
+// ============================================================
+
+const _PSB_ENTRIES = (extra = {}) => {
+  const o = {};
+  for (const [id, hp] of [['大针蜂', 130], ['耿鬼', 130], ['凤王V', 200], ['D1', 60], ['D2', 60], ['D3', 60]]) {
+    o[id] = { card:{ cardType:'pokemon', name:id, hp, cardId:id, stage:'基础', element:'colorless', attacks:[], retreatCost:1 }, info:{ name:id } };
+  }
+  return Object.assign(o, extra);
+};
+const _psbGs = async (entries) => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  gs.cardResolver = fakeResolver(entries || _PSB_ENTRIES());
+  gs.player1.active = Object.assign(mon('出战', 'ACT'), { hp:90, maxHp:90 });
+  return gs;
+};
+const _psbRun = (gs, text, sourceId, zone) => executeEffects(
+  gs, gs.player1,
+  parseEffect(text).effects.map(e => ({ ...e, source:{ cardId:sourceId }, sourceZone:zone })),
+);
+
+await test('自身上场 解析：变成真实动作（不再只是标记）', () => {
+  const e = parseEffect('将这张卡牌放于备战区。').effects;
+  assert.equal(e[0].action, 'place_self_to_bench');
+  assert.ok(!e.some(x => x.params?.kind === 'residual_sentence'));
+});
+
+await test('自身上场 运行时：手牌仅有这一张时从手牌上备战区，然后抽 3 张', async () => {
+  const gs = await _psbGs();
+  const pl = gs.player1;
+  pl.hand = ['大针蜂']; pl.bench = []; pl.deck = ['D1', 'D2', 'D3', 'D4'];
+  await _psbRun(gs, '在自己的回合，如果自己的手牌仅有这1张卡牌的话，则可使用1次。将这张卡牌放于备战区。然后，从自己牌库上方抽取3张卡牌。', '大针蜂', 'hand');
+  assert.deepEqual(pl.bench.map(m => m.name), ['大针蜂'], '应放到备战区');
+  assert.equal(pl.hand.length, 3, '应抽 3 张');
+  assert.equal(pl.deck.length, 1);
+  assert.ok(!gs.log.some(l => String(l).includes('效果失败')), '不应有静默失败');
+});
+
+await test('自身上场 运行时：从弃牌区上场并给自己放 3 个伤害指示物', async () => {
+  const gs = await _psbGs();
+  const pl = gs.player1;
+  pl.hand = []; pl.bench = []; pl.discard = ['耿鬼']; pl.deck = [];
+  await _psbRun(gs, '如果这张卡牌在弃牌区的话，则在自己的回合可以使用1次。将这张卡牌放于备战区。然后，给这只宝可梦身上放置3个伤害指示物。', '耿鬼', 'discard');
+  assert.deepEqual(pl.bench.map(m => m.name), ['耿鬼']);
+  assert.equal(pl.bench[0].hp, pl.bench[0].maxHp - 30, '「这只宝可梦」应指刚上场的这张卡');
+  assert.equal(pl.discard.length, 0, '卡应从弃牌区移出');
+});
+
+await test('自身上场 运行时：「附着于这只宝可梦身上」应附到刚上场的卡，而不是出战位', async () => {
+  const gs = await _psbGs({
+    ..._PSB_ENTRIES(),
+    'E1': { card:{ cardType:'energy', name:'基本火能量', cardId:'E1' }, info:{ name:'基本火能量' } },
+    'E2': { card:{ cardType:'energy', name:'基本火能量', cardId:'E2' }, info:{ name:'基本火能量' } },
+  });
+  const pl = gs.player1;
+  pl.hand = []; pl.bench = []; pl.discard = ['凤王V', 'E1', 'E2']; pl.deck = [];
+  await _psbRun(gs, '如果这张卡牌在弃牌区的话，则在自己的回合可以使用1次。将这张卡牌放于备战区。然后，选择自己弃牌区中最多4张基本能量，附着于这只宝可梦身上。', '凤王V', 'discard');
+  assert.deepEqual(pl.bench.map(m => m.name), ['凤王V']);
+  assert.equal(pl.bench[0].energy.length, 2, '能量应附到刚上场的这张卡');
+  assert.equal(pl.active.energy.length, 0, '不应附到出战位');
+});
+
+await test('自身上场 备战区已满时不放置（卡留在原区域）', async () => {
+  const gs = await _psbGs();
+  const pl = gs.player1;
+  pl.hand = ['大针蜂'];
+  pl.bench = [1, 2, 3, 4, 5].map(i => Object.assign(mon('b' + i, 'b' + i), {}));
+  pl.deck = [];
+  await _psbRun(gs, '将这张卡牌放于备战区。', '大针蜂', 'hand');
+  assert.equal(pl.bench.length, 5, '不应超上限');
+  assert.ok(pl.hand.includes('大针蜂'), '卡应留在手牌');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

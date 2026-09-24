@@ -1556,7 +1556,8 @@ const RULES = [
   { re: /将(?:自己的|自己)?手牌全部放回牌库并且重洗牌库。然后，从(?:自己的|自己)?牌库(?:上方)?抽出与对手的手牌(?:张数|数量)相同数量的卡牌/, act:'usage_condition', p:m=>trainerPrerequisite('hand_to_deck_draw_like_opp', m[0]) },
   // --- 大针蜂特性：手牌仅 1 张时自身入场 + 抽 3 ---
   { re: /若自己的手牌仅有这1张卡[，,]?/, act:'usage_condition', p:m=>trainerPrerequisite('only_single_hand_card', m[0]) },
-  { re: /将这张卡(?:牌)?放置于备战区/, act:'usage_condition', p:m=>trainerPrerequisite('place_self_to_bench', m[0]) },
+    // 升级：原为未接线标记 → 真实动作（卡牌自身从手牌/弃牌区上备战区）
+  { re: /将这张卡(?:牌)?放置于备战区/, act:'place_self_to_bench', p:()=>({}) },
   // ===== P16（2026-09）：unparsed 真实效果段补建 IV =====
   // --- 高级球/尼多后特性：牌库 1 张宝可梦加手（允许（X除外）括注）---
   { re: /将(?:自己的|自己)?牌库中的1张宝可梦(?:（[^）]*）)?，在给对手看过后，加入手牌/, act:'search_deck_to_hand', p:m=>withCount({filter:'宝可梦'},1,false) },

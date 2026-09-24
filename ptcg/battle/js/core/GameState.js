@@ -47,7 +47,7 @@ const BENCH_MAX = 5;
  * 在备战区已满时**不能空发**，使用前就应该置灰。
  * 注意只列“放置到备战区”的动作；switch_active_basic_heal_bench（换位）不需要空位。
  */
-const BENCH_SLOT_ACTIONS = new Set(['search_deck_to_bench', 'discard_to_bench']);
+const BENCH_SLOT_ACTIONS = new Set(['search_deck_to_bench', 'discard_to_bench', 'place_self_to_bench']);
 
 /** 附带动作：不影响「这张卡能不能用」的判断（如检索后必然附带的重洗牌库） */
 const INCIDENTAL_ACTIONS = new Set(['shuffle_deck']);

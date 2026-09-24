@@ -79,7 +79,12 @@ export async function executeEffects(gs, player, effects, options = {}) {
     try {
       const fn = EXECUTORS[eff.action];
       if (fn) {
-        await fn(gs, player, eff.params || {}, eff, options);
+        // 卡牌自身特性（来源区域是手牌/弃牌区）里的后续效果常写「这只宝可梦」，
+        // 指的是刚被 place_self_to_bench 放到备战区的那张卡。这里在**分发层**统一把 source
+        // 换成那只宝可梦，下游所有执行器（附能 / 放指示物 …）就能照常按 source 解析目标，
+        // 不必每个执行器各自判断。
+        const eff2 = _withSelfCardSource(gs, player, eff);
+        await fn(gs, player, eff2.params || {}, eff2, options);
       } else {
         gs.addLog(`[未实现: ${eff.action}]`);
       }
@@ -508,6 +513,36 @@ function _isBasicPokemonCard(gs, card) {
   if (!stage) return meta.info?.type === 'pokemon' || meta.full?.cardType === 'pokemon' || card?.cardType === 'pokemon';
   return stage === '基础' || /^basic$/i.test(stage);
 }
+/** 分发层用：卡牌自身特性的后续效果，把 source 换成刚上场的自身卡牌 */
+function _withSelfCardSource(gs, pl, eff) {
+  const zone = eff?.sourceZone;
+  if (zone !== 'hand' && zone !== 'discard') return eff;
+  const rec = gs?._lastPlacedSelfMon;
+  if (!rec || rec.player !== pl || !rec.mon) return eff;
+  if (eff.source === rec.mon) return eff;
+  if (![pl.active, ...(pl.bench || [])].includes(rec.mon)) return eff;
+  // ⚠️ 保留原 sourceZone：下游的判断（如 _selfCardRefMon）还要靠它识别「这是卡牌自身特性」
+  return { ...eff, source: rec.mon };
+}
+
+/**
+ * 「这只宝可梦」在**卡牌自身特性**（来源区域是手牌/弃牌区）里的指代：
+ * 指的是刚被 `place_self_to_bench` 放到备战区的那张卡，而不是出战位宝可梦。
+ * 用 `eff.sourceZone` 限定作用域——只有这类特性才会命中，其它效果一律走原有逻辑。
+ */
+function _selfCardRefMon(gs, pl, eff, p) {
+  const zone = eff?.sourceZone;
+  if (zone !== 'hand' && zone !== 'discard') return null;
+  // 「这只宝可梦」在这类特性里会被解析成 target:'self' / 'attacker' / 'active'（都指使用者自身）。
+  // 因为外层已经用 sourceZone（手牌/弃牌区）把作用域限死在这类「卡牌自身特性」上，放行是安全的。
+  if (p?.target && !['self', 'attacker', 'active'].includes(p.target)) return null;
+  const rec = gs?._lastPlacedSelfMon;
+  if (!rec || rec.player !== pl) return null;
+  const mon = rec.mon;
+  if (!mon) return null;
+  return [pl.active, ...(pl.bench || [])].includes(mon) ? mon : null;
+}
+
 function _makeBenchPokemonFromCard(gs, cid) {
   const meta = _resolveZoneCard(gs, cid);
   const cd = meta.full && meta.full.cardType === 'pokemon' ? meta.full : (cid?.cardType === 'pokemon' ? cid : null);
@@ -1651,8 +1686,14 @@ const EXECUTORS = {
   },
 
   // ===== 伤害指示物放置 =====
-  async damage_place(gs, pl, p) {
+  async damage_place(gs, pl, p, eff) {
     const opp = _opponent(gs, pl);
+    // 「给这只宝可梦身上放置N个伤害指示物」——来自手牌/弃牌区的特性指刚上场的自身卡牌
+    const selfCardMon = _selfCardRefMon(gs, pl, eff, p);
+    if (selfCardMon) {
+      _applyDamageToPokemon(gs, pl, selfCardMon, (p.count || 1) * 10);
+      return;
+    }
     // 「与…张数相同数量的伤害指示物」/「…张数×N 个伤害指示物」：个数来自计数
     let counters = p.count || 1;
     if (p.countFrom) {
@@ -2018,10 +2059,12 @@ const EXECUTORS = {
   },
 
   // ===== 弃牌区附能 =====
-  async attach_energy_from_discard(gs, pl, p) {
+  async attach_energy_from_discard(gs, pl, p, eff) {
+    // 「附着于这只宝可梦身上」在卡牌自身特性里指刚上场的自身卡牌（凤王V 等）
+    const selfCardMon = _selfCardRefMon(gs, pl, eff, p);
     const allowActive = p.target !== 'bench';
     const allowBench = p.target !== 'active';
-    const slot = await _pickPokemonTarget(gs, pl, pl, {
+    const slot = selfCardMon ? _slotOfMon(pl, selfCardMon) : await _pickPokemonTarget(gs, pl, pl, {
       mode:'attach-energy', side:'self', allowActive, allowBench, prompt:'选择附能目标',
       // ② 卡面写明「对会被【昏厥】的宝可梦，无法使用这个特性」→ 排除会因指示物被昏厥的目标
       slotFilter: candidateSlot => _monMatchesType(_getMon(pl, candidateSlot), p.targetType)
@@ -2038,13 +2081,16 @@ const EXECUTORS = {
   },
 
   // ===== 牌库附能 =====
-  async attach_energy_from_deck(gs, pl, p) {
+  async attach_energy_from_deck(gs, pl, p, eff) {
     // F 赤红&青绿：「附着于进化后的宝可梦身上」
     const evolvedRec = gs._lastEvolved;
     const evolvedSlot = p.target === 'previous_evolved' && evolvedRec && evolvedRec.player === pl
       ? _slotOfMon(pl, evolvedRec.mon) : null;
     // target:'self' = 「附于这只宝可梦身上」（招式效果，指使用者自己），不要再弹目标选择
+    // 「这只宝可梦」：来自手牌/弃牌区的特性里指的是刚上场的自身卡牌
+    const selfCardMon = _selfCardRefMon(gs, pl, eff, p);
     const slot = evolvedSlot
+      || (selfCardMon ? _slotOfMon(pl, selfCardMon) : null)
       || (p.target === 'self' && pl.active ? 'active' : null)
       || await _pickPokemonTarget(gs, pl, pl, { mode:'attach-energy', side:'self', allowActive:p.target !== 'bench', allowBench:true, prompt:'选择附能目标',
           // ② 同弃牌区版：排除会因指示物被昏厥的目标
@@ -2815,6 +2861,34 @@ const EXECUTORS = {
       gs._prizeFlipBonus = (gs._prizeFlipBonus || 0) + p.thenDamage;
       gs.addLog(`追加造成 ${p.thenDamage} 伤害`);
     }
+  },
+
+  /**
+   * 「将这张卡（牌）放置于备战区」——**卡牌自身**从手牌/弃牌区直接上备战区。
+   * 典型：大针蜂（手牌仅此一张时）、帝王拿波/耿鬼/凤王V（在弃牌区时）。
+   * 来源区域由引擎注入的 `eff.sourceZone`（'hand' / 'discard'，见 CardResolver._abilityZone）决定；
+   * 后续效果（抽 3 张 / 放指示物 / 附能量 / 结束回合）是同一特性里的其它动作，照常顺序执行。
+   */
+  async place_self_to_bench(gs, pl, p, eff) {
+    const src = eff?.source;
+    const cardId = (src && typeof src === 'object') ? src.cardId : src;
+    const zone = eff?.sourceZone || p?.zone || 'hand';
+    const arr = zone === 'discard' ? pl.discard : (zone === 'hand' ? pl.hand : null);
+    if (!cardId || !arr) { gs.addLog('（这张卡当前不在手牌/弃牌区，无法放置）'); return; }
+    const idx = arr.indexOf(cardId);
+    if (idx < 0) { gs.addLog('（这张卡已不在该区域）'); return; }
+    if ((pl.bench || []).length >= gs.benchLimitOf(pl)) { gs.addLog('备战区已满，无法放置'); return; }
+    const mon = _makeBenchPokemonFromCard(gs, cardId);
+    if (!mon) { gs.addLog('这张卡不能作为宝可梦放置'); return; }
+    arr.splice(idx, 1);
+    mon.placedThisTurn = true;
+    pl.bench.push(mon);
+    gs.addLog(`${pl.name} 将「${mon.name}」放置于备战区`);
+    // 同一特性的后续效果常写「这只宝可梦」（如「给这只宝可梦身上放置3个伤害指示物」
+    // 「附着于这只宝可梦身上」）——此时指的是**刚上场的这张卡**，不是出战位。
+    // 用 sourceZone 限定作用域（只有来自手牌/弃牌区的特性才会命中），避免误伤别的效果。
+    gs._lastPlacedSelfMon = { player: pl, mon };
+    gs.recomputePassives?.();
   },
 
   /**
