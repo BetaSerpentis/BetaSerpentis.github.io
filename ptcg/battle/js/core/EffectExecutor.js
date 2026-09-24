@@ -2918,6 +2918,18 @@ const EXECUTORS = {
     gs.addLog(`${mon.name} 将在下个对手的回合结束时昏厥`);
   },
 
+  /**
+   * ⑨「在下个对手的回合，无法从手牌将能量附于**受到这个招式影响的宝可梦**身上」
+   * —— 与另外几种「对手无法…」的玩家级封锁不同，这条是**打在宝可梦身上**的。
+   */
+  block_hand_energy_next(gs, pl, p) {
+    const opp = _opponent(gs, pl);
+    const mon = opp?.active;
+    if (!mon) { gs.addLog('没有可标记的宝可梦'); return; }
+    mon.noHandEnergyNext = 1;
+    gs.addLog(`${mon.name} 下回合无法从手牌被附着能量`);
+  },
+
   /** 玩偶/化石的「可从场上主动弃掉」 */
   discard_doll_self(gs, pl, p, eff) {
     const mon = eff?.source || eff?.params?.triggerSource;

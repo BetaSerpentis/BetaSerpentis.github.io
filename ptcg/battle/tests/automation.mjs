@@ -10098,6 +10098,66 @@ await test('延迟昏厥 运行时：备战区上的目标不拿奖赏卡', asyn
   assert.ok(opp.discard.includes('o2'), '应进弃牌区');
 });
 
+
+// ============================================================
+//  缺口⑨ 延迟封锁 block_* 族（下个对手回合的限制）
+// ============================================================
+
+const _blkGs = async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  pl.active = mon('我', 'a1');
+  opp.active = mon('敌', 'o1');
+  opp.hand = []; opp.prizes = ['p1', 'p2', 'p3'];
+  return { gs, pl, opp };
+};
+
+await test('延迟封锁 解析：六种措辞都变成真实动作', () => {
+  const cases = [
+    ['在下一个对手的回合，无法从手牌将能量附着于受到这个招式影响的宝可梦身上。', 'block_hand_energy_next'],
+    ['在下一个对手的回合，对手无法从手牌将特殊能量附于宝可梦身上。', 'play_restriction'],
+    ['在下一个对手的回合，对手无法从手牌使出并附着特殊能量，也无法放置竞技场。', 'play_restriction'],
+    ['在下个对手的回合，即，对手也无法拿取奖赏卡。', 'play_restriction'],
+    ['若为正面，则在下个对手的回合，对手无法从手牌使出支援者。', 'play_restriction'],
+  ];
+  for (const [text, action] of cases) {
+    const e = parseEffect(text).effects;
+    assert.ok(e.some(x => x.action === action), `${text} → 应含 ${action}（实际 ${JSON.stringify(e.map(x => x.action))}）`);
+    assert.ok(!e.some(x => x.params?.kind === 'residual_sentence'), `${text} 不应留残句`);
+  }
+});
+
+await test('延迟封锁 运行时：宝可梦级（不能从手牌被附能），时序与③⑧一致', async () => {
+  const { gs, pl, opp } = await _blkGs();
+  await executeEffects(gs, pl, parseEffect('在下一个对手的回合，无法从手牌将能量附着于受到这个招式影响的宝可梦身上。').effects);
+  assert.equal(opp.active.noHandEnergyNext, 1, '应打上标记');
+  opp.hand = ['E1']; opp.energyAttached = false;
+  assert.equal(gs.attachEnergy(opp, 0, { cardType:'energy', name:'基本火能量' }, 'active'), false, '应无法附能');
+  assert.equal(opp.hand.length, 1, '手牌应保留');
+  gs.currentPlayer = pl; gs.endTurn();
+  assert.equal(opp.active.noHandEnergyNext, 1, '我方回合结束后仍有效');
+  gs.currentPlayer = opp; gs.endTurn();
+  assert.equal(opp.active.noHandEnergyNext, 0, '对手回合结束后清除');
+});
+
+await test('延迟封锁 运行时：玩家级四项（支援者/竞技场/奖赏卡/特殊能量）', async () => {
+  const { gs, pl, opp } = await _blkGs();
+  await executeEffects(gs, pl, parseEffect('在下一个对手的回合，对手无法从手牌使出并附着特殊能量，也无法放置竞技场。').effects);
+  await executeEffects(gs, pl, parseEffect('若为正面，则在下个对手的回合，对手无法从手牌使出支援者。').effects);
+  await executeEffects(gs, pl, parseEffect('在下个对手的回合，即，对手也无法拿取奖赏卡。').effects);
+  const mkTrainer = (type, name) => ({ cardType:'trainer', trainerType:type, name, effects:[] });
+  assert.equal(gs.canUseTrainer(opp, mkTrainer('supporter', '博士的研究')).ok, false, '支援者应被封锁');
+  assert.equal(gs.canUseTrainer(opp, mkTrainer('stadium', '某竞技场')).ok, false, '竞技场应被封锁');
+  gs.takePrize(opp);
+  assert.equal(opp.prizes.length, 3, '不应拿到奖赏卡');
+  opp.energyAttached = false;
+  assert.equal(gs.attachEnergy(opp, 0, { cardType:'specialEnergy', name:'特殊能量' }, 'active'), false, '特殊能量应被封锁');
+  opp.energyAttached = false;
+  opp.hand = ['E1'];
+  assert.equal(gs.attachEnergy(opp, 0, { cardType:'energy', name:'基本火能量' }, 'active'), true, '基本能量不受影响（只封锁特殊能量）');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

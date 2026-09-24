@@ -51,12 +51,6 @@ const BASELINE_UNCLASSIFIED_ROWS = 253;
 // 已确认「该生效却没接线」的缺口（按机制族分批修，修好的从这里删掉）
 const KNOWN_GAPS = new Set([
   'attack_from_bench_allowed',
-  'block_attach_energy_next',
-  'block_prizes_next',
-  'block_prizes_next2',
-  'block_special_attach_next',
-  'block_special_stadium_next',
-  'block_supporter_next',
   'bonus_damage_extra_energy',
   'coin_heads_draw_any',
   'draw_matching_opponent_field_count',

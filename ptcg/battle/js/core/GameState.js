@@ -155,6 +155,7 @@ export class GameState {
       // → 对手回合内一直有效 → 对手回合结束时被清掉。
       mon.coinFailAttackNext=0;
       mon.delayedKoAtOppTurnEnd=0;
+      mon.noHandEnergyNext=0;
       mon.costEliminated=false;mon.abilityUsed=false;
     }
     // 1.1 对手身上「活到对手回合结束」的防护：刚结束的这个回合就是它的生效窗口 → 到期清除
@@ -232,7 +233,7 @@ export class GameState {
     stage:cd?.stage||'基础',evolvesFrom:cd?.evolvesFrom||null,ruleText:cd?.ruleText||'',rule2Text:cd?.rule2Text||'',ruleBox:cd?.ruleBox||'',
     isEx:!!cd?.isEx,isRadiant:!!cd?.isRadiant,hasRuleBox:!!cd?.hasRuleBox,
     attacks:cd?.attacks||[{name:'撞击',damage:20,cost:[],effect:''}],energy:[],status:null,placedThisTurn:true,evolvedThisTurn:false,
-    tool:null,ability:cd?.ability||null,abilityUsed:false,abilityDisabled:false,abilityDisabledBy:null,damageMod:0,damageReceivedMod:0,preventDamage:false,preventEffect:false,cannotAttackNext:false,cannotRetreat:false,coinFailAttackNext:0,delayedKoAtOppTurnEnd:0,
+    tool:null,ability:cd?.ability||null,abilityUsed:false,abilityDisabled:false,abilityDisabledBy:null,damageMod:0,damageReceivedMod:0,preventDamage:false,preventEffect:false,cannotAttackNext:false,cannotRetreat:false,coinFailAttackNext:0,delayedKoAtOppTurnEnd:0,noHandEnergyNext:0,
     ignore:[],costEliminated:false,retreatCost:cd?.retreatCost??1};}
 
   placeActive(pl,idx,cd=null){
@@ -251,6 +252,10 @@ export class GameState {
     if(!cd||(cd.cardType!=='energy'&&cd.cardType!=='specialEnergy')){this.addLog('不是能量卡');return false;}
     const t=slot==='active'?pl.active:(slot?.startsWith('bench-')?pl.bench[parseInt(slot.replace('bench-',''))]:null);
     if(!t){this.addLog('目标不存在');return false;}
+    // ⑨「在下个对手的回合，无法从手牌将能量附于受到这个招式影响的宝可梦身上」→ 宝可梦级
+    if(t.noHandEnergyNext){this.addLog(`${t.name} 下回合无法从手牌被附着能量`);return false;}
+    // ⑨「对手无法从手牌使出并附着特殊能量」→ 玩家级（只拦特殊能量）
+    if(cd.cardType==='specialEnergy'&&pl.playRestrictions?.specialAttach){this.addLog('下回合无法从手牌附着特殊能量');return false;}
     if(cd.specialRules?.requiresDiscardOnAttach&&pl.hand.length<=1){this.addLog('需要先丢弃1张其他手牌');return false;}
     const attached=pl.hand.splice(idx,1)[0];
     if(cd.specialRules?.requiresDiscardOnAttach&&pl.hand.length>0)pl.discard.push(pl.hand.pop());
@@ -493,6 +498,10 @@ export class GameState {
     const hasFirstPlayerFirstTurnSupporterException=(cd.effects||[]).some(e=>e.action==='trainer_prerequisite'&&e.params?.kind==='first_player_first_turn_supporter_exception');
     if(tt==='supporter'&&pl===this.firstPlayer&&this.firstPlayerFirstTurnInProgress&&!hasFirstPlayerFirstTurnSupporterException)return {ok:false,reason:'first_player_first_turn_supporter',message:'先攻玩家最初回合不能使用支援者卡'};
     if(tt==='supporter'&&pl.supporterUsed)return {ok:false,reason:'supporter_used',message:'已用过支援者卡'};
+    // ⑨「在下个对手的回合，对手无法从手牌使出支援者」
+    if(tt==='supporter'&&pl.playRestrictions?.supporter)return {ok:false,reason:'play_restriction_supporter',message:'受到招式效果，下回合无法从手牌使出支援者卡'};
+    // ⑨「也无法放置竞技场」
+    if(tt==='stadium'&&pl.playRestrictions?.stadium)return {ok:false,reason:'play_restriction_stadium',message:'受到招式效果，下回合无法放置竞技场'};
 
     // 规则：每回合只能打出 1 张竞技场（原来没有限制，可以连放两张覆盖前一张）
 
@@ -1408,7 +1417,10 @@ export class GameState {
   _energyMatchesType(provides,type){return provides.some(p=>p.includes(type)||p.includes('any'));}
   _normalizeType(type){return TYPE_EN[type]||type||'colorless';}
 
-  takePrize(pl){if(pl.prizes.length>0){const prize=pl.prizes.pop();pl.hand.push(prize);this.addLog(`${pl.name} 获奖品卡 剩${pl.prizes.length}`);
+  takePrize(pl){
+    // ⑨「在下个对手的回合，对手也无法拿取奖赏卡」
+    if(pl.playRestrictions?.prizes){this.addLog(`${pl.name} 下回合无法拿取奖赏卡`);return;}
+    if(pl.prizes.length>0){const prize=pl.prizes.pop();pl.hand.push(prize);this.addLog(`${pl.name} 获奖品卡 剩${pl.prizes.length}`);
     if(pl.prizes.length===0){this.winner=pl;this.phase=PHASE.GAME_OVER;this.addLog(`${pl.name} 胜利！`);}}}
   prizesForKnockout(mon){return this.isExPokemon(mon)?2:1;}
   takePrizesForKnockout(pl,mon){const count=this.prizesForKnockout(mon);for(let i=0;i<count&&pl?.prizes?.length>0&&this.phase!==PHASE.GAME_OVER;i++)this.takePrize(pl);}

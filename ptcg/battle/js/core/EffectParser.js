@@ -1278,7 +1278,8 @@ const RULES = [
   // 升级：原为未建模标记 → 按「对手已获得的奖赏卡张数×N」放置伤害指示物
   { re: /将对手已经获得的奖赏卡张数[×x](\d+)个伤害指示物[，,]?放置于对手的战斗宝可梦身上/, act:'damage_place', p:m=>({ target:'opponent_active', countFrom:'opponent_prizes_taken', mult:+m[1] }) },
   { re: /在对手的1只宝可梦身上放置伤害指示物，直到其剩余HP变为["“”]?\d+["“”]?点为止/, act:'usage_condition', p:m=>trainerPrerequisite('counters_until_100hp', m[0]) },
-  { re: /在下个对手的回合，无法从手牌将能量附于受到这个招式影响的宝可梦身上/, act:'usage_condition', p:m=>trainerPrerequisite('block_attach_energy_next', m[0]) },
+  // 升级：原为未接线标记 → 真实动作（打在宝可梦身上的手牌附能封锁）
+  { re: /在(?:下一个|下个)对手的回合[，,]?无法从手牌将能量附(?:着)?于受到这个招式影响的宝可梦身上/, act:'block_hand_energy_next', p:()=>({}) },
   // k3 前半句升级：原为未建模标记，现在映射到真实动作（自己场上的宝可梦道具 → 弃牌区，伤害=张数×N）
   { re: /在造成伤害前，将任意数量的(?:放置|放)于自己场上宝可梦身上的["“”]宝可梦道具["“”]丢到弃牌区，追加造成其(?:张数|数量)[×x](\d+)伤害/, act:'discard_field_attachments', p:m=>({ target:'self', tools:true, maxCount:1, optional:true, damagePerCard:+m[1] }) },
   { re: /给这只宝可梦身上放置最多(\d+)个伤害指示物，造成放置的伤害指示物数量[×x](\d+)伤害/, act:'usage_condition', p:m=>trainerPrerequisite('self_counters_damage', m[0]) },
@@ -1380,7 +1381,8 @@ const RULES = [
   { re: /双方身上附着【(.+?)】或【(.+?)】能量的宝可梦，受到对手宝可梦的招式的伤害["“”]([+-]?\d+)["“”]/, act:'damage_received_mod', p:m=>({amount:+m[3],target:'own_field'}) },
   { re: /双方的【(.+?)】或【(.+?)】宝可梦使用的招式，给对手战斗宝可梦造成的伤害["“”]([+-]?\d+)["“”]/, act:'passive_damage_mod', p:m=>({target:'own_field',amount:+m[3]}) },
   // --- 特殊能量限制修正（音波龙：无引号版）---
-  { re: /在下个对手的回合，对手无法从手牌使出并附着特殊能量，也无法放置竞技场/, act:'usage_condition', p:m=>trainerPrerequisite('block_special_stadium_next', m[0]) },
+  // 升级：原为未接线标记 → 玩家级封锁（特殊能量 + 竞技场）
+  { re: /在(?:下一个|下个)对手的回合[，,]?对手无法从手牌使出并附着特殊能量/, act:'play_restriction', p:()=>({ target:'opponent', what:'specialAttach', duration:'next_opp_turn' }) },
   // --- 对手备战全体伤害（无“也”措辞）---
   { re: /给对手的所有备战宝可梦，各造成(\d+)伤害/, act:'damage_bench', p:m=>({target:'opponent_all',damage:+m[1]}) },
   // --- 备战区中超属性计数×N（含“中”）---
@@ -1467,7 +1469,10 @@ const RULES = [
   { re: /在不看对手手牌正面的前提下，将其中1张丢到弃牌区/, act:'discard_opponent_hand_random', p:()=>({count:1}) },
   { re: /若对手场上有["“”]([^"“”]+)["“”]，则这只宝可梦【撤退】所需能量，全部消除/, act:'retreat_cost_zero', p:()=>({target:'self'}) },
   { re: /这个招式，若双方的剩余奖赏卡张数共计(\d+)张，则仅需1个【(.+?)】能量便可使用/, act:'usage_condition', p:m=>trainerPrerequisite('cost_one_when_total_prizes', m[0]) },
-  { re: /在下个对手的回合，对手无法从手牌将特殊能量附于宝可梦身上/, act:'usage_condition', p:m=>trainerPrerequisite('block_special_attach_next', m[0]) },
+  // 升级：原为未接线标记 → 玩家级封锁（下回合不能从手牌附特殊能量）
+  { re: /在(?:下一个|下个)对手的回合[，,]?对手无法从手牌将特殊能量附(?:着)?于宝可梦身上/, act:'play_restriction', p:()=>({ target:'opponent', what:'specialAttach', duration:'next_opp_turn' }) },
+  // 「也无法放置竞技场」（与上一条同句出现，单独成条以便覆盖）
+  { re: /也无法放置竞技场/, act:'play_restriction', p:()=>({ target:'opponent', what:'stadium', duration:'next_opp_turn' }) },
   { re: /(\d+)张【(.+?)】能量，附于这只宝可梦身上/, act:'attach_energy_from_deck', p:m=>withCount({filter:`【${m[2]}】能量`,target:'self'},m[1],false) },
   { re: /自己的所有【基础】宝可梦的【撤退】所需能量，全部消除/, act:'retreat_cost_zero', p:()=>({target:'own_field'}) },
   { re: /将自己弃牌区中1张基本能量，附于备战宝可梦身上/, act:'attach_energy_from_discard', p:()=>withCount({filter:'基本能量',target:'bench'},1,false) },
@@ -1773,7 +1778,10 @@ const RULES = [
   // ===== P32（2026-09）：前缀簇第七波 =====
   { re: /从自己的牌库选择1张["“"]([^"“"]+)["“"]宝可梦，放置于备战区/, act:'search_deck_to_bench', p:m=>withCount({filter:m[1]},1,false) },
   { re: /将(?:自己的|自己)?牌库中最多(\d+)张【(.+?)】能量，附于自己的1只宝可梦身上/, act:'attach_energy_from_deck', p:m=>withCount({filter:`【${m[2]}】能量`,target:'any'},m[1],true) },
-  { re: /若为正面，则在下个对手的回合，对手无法从手牌使出支援者/, act:'usage_condition', p:m=>trainerPrerequisite('block_supporter_next', m[0]) },
+  // 升级：原为未接线标记 → 玩家级封锁（不能使出支援者）
+  // 整句优先：「…在下个对手的回合，对手无法从手牌使出支援者」（前置的「若为正面，则」交给掷硬币规则）
+  { re: /在(?:下一个|下个)对手的回合[\s\S]{0,6}?对手无法从手牌使出支援者/, act:'play_restriction', p:()=>({ target:'opponent', what:'supporter', duration:'next_opp_turn' }) },
+  { re: /对手无法从手牌使出支援者/, act:'play_restriction', p:()=>({ target:'opponent', what:'supporter', duration:'next_opp_turn' }) },
   { re: /身上附着这张卡的宝可梦，受到对手["“"]([^"“"]+)["“"]的招式的伤害["“"]([+-]?\d+)["“"]。这个效果，无论身上附着多少张["“"]([^"“"]+)["“"]，都不会叠加/, act:'damage_received_mod', p:m=>({amount:+m[2],target:'self'}) },
   { re: /在这个回合，自己可使用的支援者数量变为(\d+)张/, act:'usage_condition', p:m=>trainerPrerequisite('supporter_limit_set', m[0]) },
   // 升级：原为未接线标记 → 可选的真实动作（无 UI 时不主动回收自己）
@@ -1785,7 +1793,10 @@ const RULES = [
   // ===== P33（2026-09）：前缀簇第八波 =====
   { re: /从自己的牌库抽出与对手的手牌中训练家张数相同张数的卡牌/, act:'usage_condition', p:m=>trainerPrerequisite('draw_opp_trainer_count', m[0]) },
   { re: /将(?:自己的|自己)?牌库中任意卡牌最多(\d+)张，加入手牌/, act:'search_deck_to_hand', p:m=>withCount({filter:null},m[1],true) },
-  { re: /若为正面，则在下个对手的回合，即，对手也无法拿取奖赏卡/, act:'usage_condition', p:m=>trainerPrerequisite('block_prizes_next', m[0]) },
+  // 升级：原为未接线标记 → 玩家级封锁（不能拿取奖赏卡）
+  // 整句优先：把「在下个对手的回合，[即，]对手也无法拿取奖赏卡」一次吃完
+  { re: /在(?:下一个|下个)对手的回合[\s\S]{0,4}?对手也无法拿取奖赏卡/, act:'play_restriction', p:()=>({ target:'opponent', what:'prizes', duration:'next_opp_turn' }) },
+  { re: /对手也无法拿取奖赏卡/, act:'play_restriction', p:()=>({ target:'opponent', what:'prizes', duration:'next_opp_turn' }) },
   { re: /将(?:自己的|自己)?所有备战区中的【(.+?)】宝可梦的HP，各恢复["“"]?([+-]?\d+)["“"]?/, act:'heal_all', p:m=>({amount:+m[2]}) },
   { re: /选择自己的1张手牌，将剩余的手牌全部丢到弃牌区。然后，/, act:'usage_condition', p:m=>trainerPrerequisite('keep_one_discard_rest', m[0]) },
   { re: /查看自己的牌库上方1张卡，再放回原处。然后，从(\d+)个效果中选择1个效果使用/, act:'usage_condition', p:m=>trainerPrerequisite('look_top_pick_effect', m[0]) },
@@ -1862,7 +1873,8 @@ const RULES = [
   { re: /若为正面，则从【中毒】、【灼伤】、【睡眠】、【混乱】中选择1个，使对手的战斗宝可梦陷入被选择的特殊状态中/, act:'usage_condition', p:m=>trainerPrerequisite('choose_status_list', m[0]) },
   { re: /各附着1张自己的牌库中的["“"]([^"“"]+)["“"]。。附于战斗宝可梦身上的情况下，令那只宝可梦陷入【(.+?)】状态/, act:'usage_condition', p:m=>trainerPrerequisite('bench_energy_poison_dotdot', m[0]) },
   { re: /从自己的牌库选择最多(\d+)张能量，以任意方式附于自己的宝可梦身上/, act:'attach_energy_from_deck', p:m=>withCount({filter:'能量',target:'any'},m[1],true) },
-  { re: /在下个对手的回合，即，对手也无法拿取奖赏卡/, act:'usage_condition', p:m=>trainerPrerequisite('block_prizes_next2', m[0]) },
+  // 升级：同上（另一种措辞）
+  { re: /在(?:下一个|下个)对手的回合[，,]?即[，,]?对手也无法拿取奖赏卡/, act:'play_restriction', p:()=>({ target:'opponent', what:'prizes', duration:'next_opp_turn' }) },
   { re: /将(?:自己的|自己)?弃牌区中任意数量的【(.+?)】能量，附于这只宝可梦身上/, act:'attach_energy_from_discard', p:m=>({filter:`【${m[1]}】能量`,target:'self',count:'all'}) },
   { re: /选择其中1张训练家，放回对手的牌库下方/, act:'usage_condition', p:m=>trainerPrerequisite('return_opp_trainer_bottom', m[0]) },
   // ===== P41（2026-09）：前缀簇第十六波 =====
