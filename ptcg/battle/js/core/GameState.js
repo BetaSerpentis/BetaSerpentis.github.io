@@ -1182,6 +1182,10 @@ export class GameState {
       if(p.condition==='self_has_special_energy'){if(!(attacker?.energy||[]).some(e=>String(e).includes('特殊')))continue;total+=p.amount||0;continue;}
       if(p.condition==='own_bench_has_damage'){if(!(pl.bench||[]).some(m=>m&&m.maxHp&&m.hp<m.maxHp))continue;total+=p.amount||0;continue;}
       if(p.condition==='stadium_in_play'){if(!this.getActiveStadium())continue;total+=p.amount||0;continue;}
+      // 兜底：**没有条件**的 conditional_damage_mod 就是一笔固定加成（「在这种情况下，增加N伤害」）。
+      // ⚠️ 此前没有兜底 → 这类项恒加 0（与 __zero 同类的静默归零）。
+      //    注意只对「condition 缺失」兜底；写了但不认识的条件仍然按 0 处理（如实保留未建模语义）。
+      if(p.condition===undefined&&p.amount)total+=p.amount;
       // 未知条件：默认不加伤，避免误判（不再落入无条件加伤）
     }
     total+=this._applyTurnAttackModifiers(attacker,defender,move,pl);

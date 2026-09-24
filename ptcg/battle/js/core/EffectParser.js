@@ -614,8 +614,8 @@ const RULES = [
   // ===== P2 批 4 =====
   // D/D2「将剩余的卡牌丢到弃牌区 / 全部翻到反面重洗放回牌库下方」：
   // 指的是前一句「查看牌库上方 N 张，选其中 M 张加入手牌」剩下没拿的那些 → 并入 peek_and_keep
-  { re: /将剩余的卡牌全部翻到反面重洗[，,]?放回牌库下方/, act:'action_count_override', p:m=>({ targets:['peek_and_keep'], set:{ remainder:'deck_bottom' }, raw:m[0] }) },
-  { re: /将剩余的卡牌(?:丢到|放于)弃牌区/, act:'action_count_override', p:m=>({ targets:['peek_and_keep'], set:{ remainder:'discard' }, raw:m[0] }) },
+  { re: /将剩余的卡牌全部翻到反面重洗[，,]?放回牌库下方/, act:'action_count_override', p:m=>({ targets:['peek_and_keep','attach_energy_from_deck'], set:{ remainder:'deck_bottom' }, raw:m[0] }) },
+  { re: /将剩余的卡牌(?:丢到|放于)弃牌区/, act:'action_count_override', p:m=>({ targets:['peek_and_keep','reveal_deck_top'], set:{ remainder:'discard', elseTo:'discard' }, raw:m[0] }) },
   // E「然后，将这只宝可梦，以及放置于其身上的所有卡牌，丢到弃牌区」→ 自身弃场（**不是**昏厥，不拿奖赏卡）
   { re: /然后[，,]?将这只宝可梦[，,]?以及放(?:置)?于其身上的所有卡牌[，,]?(?:丢到|放于)弃牌区/, act:'discard_self_with_attachments', p:()=>({}) },
   // F 可选代价：「另外，当使用这张卡时，可将N张自己的手牌丢到弃牌区」→ 后续效果由解析末尾收进 then
@@ -1611,7 +1611,8 @@ const RULES = [
   { re: /选择自己手牌中的。然后，。/, act:'usage_condition', p:m=>trainerPrerequisite('wave_return_approx', m[0]) },
   { re: /身上放有这张卡的["“"]([^"“"]+)["“"]宝可梦，可使用这张卡上的招式/, act:'usage_condition', p:m=>trainerPrerequisite('tool_learn_move', m[0]) },
   { re: /这张卡，只有在后攻玩家的最初回合才可使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('first_turn', m[0]) },
-  { re: /若希望，可。在这种情况下，增加(\d+)伤害/, act:'usage_condition', p:m=>trainerPrerequisite('bonus_damage_optional', m[0]) },
+  // 升级：原为假标记（伤害从未加上）→ 真实固定加成
+  { re: /若希望，可。在这种情况下，增加(\d+)伤害/, act:'conditional_damage_mod', p:m=>({ amount:+m[1] }) },
   { re: /双方玩家，各将所有手牌放回牌库。然后，各。/ , act:'shuffle_hand_to_deck', p:()=>({who:'both'}) },
   // ===== P20（2026-09）：长尾补建 VIII =====
   { re: /从自己的牌库选择最多(\d+)张【基础】宝可梦的["“"]?([^"“"]+)["“"]?，放置于备战区/, act:'search_deck_to_bench', p:m=>withCount({filter:`【基础】宝可梦·${m[2]}`},m[1],true) },
@@ -2024,6 +2025,32 @@ const RULES = [
   // 方括号编者注：「［关于变更备战宝可梦的数量的效果，优先执行数量更少的效果。］」
   // 这是规则提醒而非效果本身（该规则已由 benchLimitOf 的「多个变更效果取最小」实现），记标记避免留残句。
   { re: /关于变更备战宝可梦的数量的效果[，,]?优先执行数量更少的效果/, act:'usage_condition', p:m=>({ kind:'bench_limit_priority_note', raw:m[0] }) },
+
+  // ===== 长尾批次 7：「翻到正面」簇 =====
+  // ①「将（自己/对手）牌库上方N张卡翻到正面」——后续分流由下面的改写句补
+  { re: /将(自己|对手)(?:的)?牌库上方(\d+)张卡(?:牌)?翻到正面/, act:'reveal_deck_top', p:m=>({ who:m[1]==='对手'?'opponent':'self', count:+m[2] }) },
+  // ②「将正面朝上的X放于弃牌区，剩余的卡牌放回牌库并重洗牌库」
+  { re: /将正面朝上的(.+?)[，,]?丢到弃牌区[，,]?剩余的卡牌放回牌库/, act:'action_count_override', p:m=>({ targets:['reveal_deck_top'], set:{ discard:m[1], elseTo:'deck' }, raw:m[0] }) },
+  // ③「将正面朝上的X放回牌库并重洗牌库」＋「将剩余的卡牌放于弃牌区」
+  //    ⚠️ 这两句在句号处被**切成两段**，所以必须拆成两条改写句（合成一条匹配不到）。
+  { re: /将正面朝上的(.+?)[，,]?放回牌库/, act:'action_count_override', p:m=>({ targets:['reveal_deck_top'], set:{ deckKeep:m[1] }, raw:m[0] }) },
+  // 「将翻到正面的X丢到弃牌区」也是同一种分流（CSV6C-028 的措辞）
+  { re: /将翻到正面的(.+?)[，,]?丢到弃牌区/, act:'action_count_override', p:m=>({ targets:['reveal_deck_top'], set:{ discard:m[1], elseTo:'deck' }, raw:m[0] }) },
+  { re: /剩余的卡牌放回牌库/, act:'action_count_override', p:m=>({ targets:['reveal_deck_top'], set:{ elseTo:'deck' }, raw:m[0] }) },
+  // ④「将翻到正面的卡牌放回牌库并重洗牌库」
+  { re: /将翻到正面的卡牌放回牌库/, act:'action_count_override', p:m=>({ targets:['reveal_deck_top'], set:{ elseTo:'deck' }, raw:m[0] }) },
+  // ⑤「选择其中任意数量的X，放置于（对手的）备战区。将剩余的卡牌放回牌库并重洗牌库」
+  { re: /选择其中任意数量的(.+?)[，,]?放置于(?:对手的)?备战区/, act:'action_count_override', p:m=>({ targets:['reveal_deck_top'], set:{ bench:m[1], elseTo:'deck' }, raw:m[0] }) },
+  // ⑥ 奖赏卡正面朝上
+  { re: /将(?:自己的|自己)?(?:所有的)?奖赏卡全部正面朝上/, act:'reveal_prizes', p:()=>({ count:'all' }) },
+  // ⑦「（在对战结束前，一直保持正面朝上状态。）」——状态说明，不是独立动作
+  { re: /在对战结束前[，,]?(?:那张)?一直保持正面朝上状态/, act:'usage_condition', p:m=>({ kind:'prize_face_up_persist', raw:m[0] }) },
+  // ⑧「若希望，可选择反面朝上的自己的1张奖赏卡，将其翻到正面。在这种情况下，追加造成N伤害」
+  { re: /可选择反面朝上的自己的(\d+)张奖赏卡[，,]?将其翻到正面/, act:'reveal_prizes', p:m=>({ count:+m[1], optional:true }) },
+  // 升级：原为假标记 bonus_damage_optional（只记名字、伤害从未加上）→ 真实固定加成
+  { re: /在这种情况下[，,]?增加(\d+)伤害/, act:'conditional_damage_mod', p:m=>({ amount:+m[1] }) },
+  // ⑨「或者，将那些卡牌全部翻到反面重洗，放回牌库下方」——与前面的「以任意顺序重新排列」二选一
+  { re: /或者[，,]?将那些卡牌全部翻到反面重洗[，,]?放回牌库下方/, act:'usage_condition', p:m=>({ kind:'peek_alternative_deck_bottom', raw:m[0] }) },
 
   // ===== 备战区属性规则 =====
   // 「能够放于自己备战区的【X】宝可梦的数量变为N只，且无法将其他属性的宝可梦放于自己场上」

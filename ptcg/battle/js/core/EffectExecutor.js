@@ -511,6 +511,10 @@ function _isBasicPokemonCard(gs, card) {
 function _makeBenchPokemonFromCard(gs, cid) {
   const meta = _resolveZoneCard(gs, cid);
   const cd = meta.full && meta.full.cardType === 'pokemon' ? meta.full : (cid?.cardType === 'pokemon' ? cid : null);
+  // ⚠️ 非宝可梦卡**必须返回 null**：此前会照样造出一只「宝可梦」，
+  //    实测「将对手牌库上方3张卡翻到正面，选择其中任意数量的【基础】宝可梦…」
+  //    把 1 张能量也放进了备战区（3 张全进）。调用方都要判空。
+  if (!cd) return null;
   const name = cd?.name || meta.info?.name || meta.label || '宝可梦';
   const hp = cd?.hp || 60;
   return {
@@ -964,6 +968,9 @@ const EXECUTORS = {
       requiredAction:eff?.action
     });
     if (!selected.length) { gs._shuffle(pl.deck); return; }
+    // remainder:'deck_bottom' —— 这类卡面写「将剩余的卡牌全部翻到反面重洗，放回牌库下方」，
+    // 引擎不能一律重洗（会改变牌库下方的顺序）。
+    const _bottomRemainder = p.remainder === 'deck_bottom';
     const selectedCards = selected.map(item => item.card);
     for (const card of selectedCards) { const idx = pl.deck.indexOf(card); if (idx >= 0) pl.deck.splice(idx, 1); }
     gs._shuffle(pl.deck);
@@ -1098,7 +1105,9 @@ const EXECUTORS = {
       const idx = pl.deck.indexOf(item.card);
       if (idx < 0) continue;
       const cid = pl.deck.splice(idx, 1)[0];
-      pl.bench.push(_makeBenchPokemonFromCard(gs, cid));
+      const _mon = _makeBenchPokemonFromCard(gs, cid);
+      if (!_mon) continue;
+      pl.bench.push(_mon);
       placed++;
     }
     gs._shuffle(pl.deck);
@@ -2669,6 +2678,82 @@ const EXECUTORS = {
   cannot_retreat(gs, pl, p) {
     const opp = _opponent(gs, pl);
     if (p.target === 'opponent' && opp.active) { opp.active.cannotRetreat = true; gs.addLog('对手无法撤退'); }
+  },
+
+  /**
+   * 「将（自己/对手）牌库上方N张卡翻到正面」+ 后续分流。
+   *
+   * 卡面里这类效果总是「翻 N 张」再加一句分流的改写句（本批 4 种形状）：
+   *   · 将正面朝上的 X 放于弃牌区，剩余的放回牌库并重洗      → {discard:'X', elseTo:'deck'}
+   *   · 将正面朝上的 X 放回牌库并重洗。将剩余的放于弃牌区    → {deckKeep:'X', elseTo:'discard'}
+   *   · 将翻到正面的卡牌放回牌库并重洗                      → {elseTo:'deck'}
+   *   · 选择其中任意数量的 X 放于（对手的）备战区，其余放回牌库 → {bench:'X', elseTo:'deck'}
+   *
+   * 同时把翻到的卡写进 `gs._lastProcessed` —— 「造成其中X张数×N伤害」的计数源（与 mill 同一机制）。
+   */
+  async reveal_deck_top(gs, pl, p) {
+    const owner = p.who === 'opponent' ? _opponent(gs, pl) : pl;
+    const n = Math.min(p.count || 1, owner.deck.length);
+    // 牌库顶 = 数组末尾（draw() 用 pop()）：这里取「从顶往下」的顺序
+    const top = [];
+    for (let i = 0; i < n; i++) top.push(owner.deck[owner.deck.length - 1 - i]);
+    gs._lastProcessed = [...top];
+    gs.addLog(`${owner === pl ? '自己' : '对手'}牌库上方 ${n} 张翻到正面`);
+    if (!top.length) return;
+    const match = (c, filter) => !!filter && filter !== 'rest' && _cardMatchesFilter(gs, c, { filter });
+    // 先从牌库取出
+    for (const c of top) { const idx = owner.deck.lastIndexOf(c); if (idx >= 0) owner.deck.splice(idx, 1); }
+    // 「选择其中任意数量的X，放于备战区」的候选**必须真的是宝可梦卡**：
+    //   ① 不能把能量/训练家混进选择列表（实测过滤文本宽松时会混进去）；
+    //   ② 造不出宝可梦卡时后面要能退回 rest，而不是凭空消失。
+    const isPokemonCard = (c) => {
+      const cd = _resolveZoneCard(gs, c)?.full || gs.cardResolver?.getCard?.(c) || null;
+      return !!cd && cd.cardType === 'pokemon';
+    };
+    const toBench = [], rest = [];
+    for (const c of top) { if (match(c, p.bench) && isPokemonCard(c)) toBench.push(c); else rest.push(c); }
+    // 「选择其中任意数量的 X，放置于（对手的）备战区」
+    let placed = 0;
+    if (toBench.length) {
+      const open = Math.max(0, gs.benchLimitOf(owner) - (owner.bench || []).length);
+      const picked = open > 0 ? await _pickCardsFromZone(gs, pl, owner, toBench, open, {
+        source:'reveal-to-bench', filter:p.bench,
+        prompt:'选择放置到备战区的宝可梦', allowFewer:true, minCount:0, allowEmpty:true, optional:true,
+      }) : [];
+      for (const item of picked) {
+        const idx = toBench.indexOf(item.card);
+        if (idx >= 0) toBench.splice(idx, 1);
+        const mon = _makeBenchPokemonFromCard(gs, item.card);
+        if (mon && (owner.bench || []).length < gs.benchLimitOf(owner)) { owner.bench.push(mon); placed++; }
+        else rest.push(item.card); // 放不下/不是宝可梦 → 按剩余卡处理，别丢
+      }
+      rest.push(...toBench); // 没被选中的按剩余处理
+    }
+    const toDiscard = [], toDeck = [];
+    for (const c of rest) {
+      if (match(c, p.discard)) toDiscard.push(c);
+      else if (match(c, p.deckKeep)) toDeck.push(c);
+      else if (p.elseTo === 'discard') toDiscard.push(c);
+      else toDeck.push(c);
+    }
+    if (toDiscard.length) owner.discard.push(...toDiscard);
+    if (toDeck.length) { owner.deck.push(...toDeck); gs._shuffle(owner.deck); }
+    gs.addLog(`翻到正面：${placed ? `放 ${placed} 只到备战区` : ''}${toDiscard.length ? ` 丢 ${toDiscard.length} 张到弃牌区` : ''}${toDeck.length ? ` ${toDeck.length} 张放回牌库` : ''}`.trim());
+  },
+  /** 「将自己的奖赏卡全部正面朝上」/「可选择反面朝上的自己的1张奖赏卡，将其翻到正面」 */
+  async reveal_prizes(gs, pl, p) {
+    const total = p.count === 'all' ? (pl.prizes || []).length : Math.min(p.count || 1, (pl.prizes || []).length);
+    if (!total) { gs.addLog('没有可翻到正面的奖赏卡'); return; }
+    if (p.optional && pl === gs.player1 && !gs.aiPickHandler && gs._onPendingPick) {
+      const picked = await gs.waitForPick(['翻到正面', '不翻'], 1, { source:'prize-face-up', prompt:'是否将反面朝上的奖赏卡翻到正面？', minCount:1, maxCount:1 });
+      if ((picked?.[0] ?? 1) !== 0) { gs.addLog('选择不翻奖赏卡'); return; }
+    }
+    pl.prizesFaceUp = true;
+    gs.addLog(`${pl.name} 的 ${total} 张奖赏卡翻到正面`);
+    if (p.thenDamage) {
+      gs._prizeFlipBonus = (gs._prizeFlipBonus || 0) + p.thenDamage;
+      gs.addLog(`追加造成 ${p.thenDamage} 伤害`);
+    }
   },
 
   // ===== 对手牌库丢弃 =====

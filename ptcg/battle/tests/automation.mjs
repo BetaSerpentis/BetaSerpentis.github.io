@@ -7004,10 +7004,21 @@ await test('P2-4 F 可选代价：自动决策（无 UI）不支付、不执行�
 });
 
 await test('P2-4 改写句找不到目标时转回未建模标记（不留在库里当空动作）', () => {
-  // 「将牌库上方N张翻到正面…将剩余的卡牌丢到弃牌区」这类前半句属别的机制，没有 peek_and_keep
-  const e = parseEffect('将自己的牌库上方6张卡牌翻到正面。造成其中【超】宝可梦数量×60点伤害。将正面朝上的【超】宝可梦放回牌库并重洗牌库。将剩余的卡牌放于弃牌区。').effects;
+  // 用一个确实没有目标动作的文本：这里的「将剩余的卡牌丢到弃牌区」既没有 peek_and_keep，
+  // 也没有 reveal_deck_top，改写句应该老老实实转回未建模标记。
+  const e = parseEffect('将剩余的卡牌放于弃牌区。').effects;
   assert.ok(!e.some(x => x.action === 'action_count_override'), '不应留下孤儿改写句');
   assert.ok(e.some(x => x.params?.kind === 'residual_sentence'), '应转成未建模标记，指标上仍算未完成');
+});
+
+await test('P2-4b 「翻到正面 + 分流」现在已建模（原文曾是上面那条测试的样例）', () => {
+  const e = parseEffect('将自己的牌库上方6张卡牌翻到正面。造成其中【超】宝可梦数量×60点伤害。将正面朝上的【超】宝可梦放回牌库并重洗牌库。将剩余的卡牌放于弃牌区。').effects;
+  const r = e.find(x => x.action === 'reveal_deck_top');
+  assert.ok(r, '应解析出 reveal_deck_top');
+  assert.equal(r.params.count, 6);
+  assert.equal(r.params.deckKeep, '【超】宝可梦');
+  assert.equal(r.params.elseTo, 'discard');
+  assert.ok(!e.some(x => x.action === 'action_count_override'), '不应留下孤儿改写句');
 });
 
 
@@ -9399,6 +9410,110 @@ await test('属性限制 对手特性上限同样遵守「单属性场」前提'
   assert.equal(gs.benchLimitOf(pl), 3, '对手全【恶】→限制生效');
   opp.bench = [_elemMon('火', 'o2', 'fire')];
   assert.equal(gs.benchLimitOf(pl), 5, '对手场上有非【恶】→该特性整体不生效');
+});
+
+
+// ============================================================
+//  长尾批次 7：「翻到正面」簇
+// ============================================================
+
+const _revealEntries = () => {
+  const o = {};
+  for (const id of ['E1', 'E2', 'E3']) o[id] = { card:{ cardType:'energy', name:'基本超能量', cardId:id }, info:{ name:'基本超能量' } };
+  for (const id of ['P1', 'P2', 'P3']) o[id] = { card:{ cardType:'pokemon', name:'超宝可梦'+id, hp:60, cardId:id, stage:'基础', element:'psychic', attacks:[], retreatCost:1 }, info:{ name:'超宝可梦'+id } };
+  for (const id of ['F1', 'F2']) o[id] = { card:{ cardType:'pokemon', name:'火宝可梦'+id, hp:60, cardId:id, stage:'基础', element:'fire', attacks:[], retreatCost:1 }, info:{ name:'火宝可梦'+id } };
+  return o;
+};
+
+await test('翻到正面 解析：自己/对手牌库上方 N 张 + 四种分流', () => {
+  const a = parseEffect('将自己牌库上方6张卡牌翻到正面。').effects;
+  assert.equal(a[0].action, 'reveal_deck_top');
+  assert.equal(a[0].params.who, 'self');
+  assert.equal(a[0].params.count, 6);
+  const b = parseEffect('将对手牌库上方5张卡牌翻到正面。').effects;
+  assert.equal(b[0].params.who, 'opponent');
+  // ① 正面朝上的X丢到弃牌区，其余放回牌库
+  const c = parseEffect('将自己牌库上方5张卡牌翻到正面。将正面朝上的能量丢到弃牌区，剩余的卡牌放回牌库。').effects;
+  assert.equal(c[0].params.discard, '能量');
+  assert.equal(c[0].params.elseTo, 'deck');
+  // ② 正面朝上的X放回牌库，其余丢到弃牌区
+  const d = parseEffect('将自己牌库上方6张卡牌翻到正面。将正面朝上的【超】宝可梦放回牌库。将剩余的卡牌丢到弃牌区。').effects;
+  assert.equal(d[0].params.deckKeep, '【超】宝可梦');
+  assert.equal(d[0].params.elseTo, 'discard');
+  // ③ 选择其中任意数量的X放到备战区
+  const e = parseEffect('将对手牌库上方5张卡牌翻到正面，选择其中任意数量的【基础】宝可梦，放于对手的备战区。将剩余的卡牌放回牌库。').effects;
+  assert.equal(e[0].params.bench, '【基础】宝可梦');
+  assert.equal(e[0].params.elseTo, 'deck');
+});
+
+await test('翻到正面 运行时：能量丢到弃牌区、【超】宝可梦留在牌库', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  pl.active = mon('我', 'a1'); pl.bench = []; pl.discard = [];
+  pl.deck = ['E1', 'P1', 'E2', 'P2', 'E3', 'P3']; // 牌库顶 = 数组末尾
+  gs.cardResolver = fakeResolver(_revealEntries());
+  await executeEffects(gs, pl, parseEffect('将自己牌库上方6张卡牌翻到正面。造成其中【超】宝可梦数量×60点伤害。将正面朝上的【超】宝可梦放回牌库并重洗牌库。将剩余的卡牌放于弃牌区。').effects);
+  assert.equal(pl.discard.length, 3, '3 张能量应进弃牌区');
+  assert.equal(pl.deck.length, 3, '3 张【超】宝可梦应留在牌库');
+  assert.ok(pl.deck.every(c => String(c).startsWith('P')), '牌库里应只剩宝可梦');
+  assert.ok(!gs.log.some(l => String(l).includes('效果失败')), '不应有静默失败');
+});
+
+await test('翻到正面 运行时：计数源交给「造成其中X张数×N伤害」', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  pl.active = mon('我', 'a1'); pl.bench = []; pl.deck = ['E1', 'P1', 'E2'];
+  gs.cardResolver = fakeResolver(_revealEntries());
+  const e = parseEffect('将自己牌库上方3张卡牌翻到正面。造成其中能量张数×80点伤害。将正面朝上的能量丢到弃牌区，剩余的卡牌放回牌库。').effects;
+  await executeEffects(gs, pl, e);
+  // 牌库 ['E1','P1','E2'] 的顶 = 数组末尾 → 从顶往下是 E2, P1, E1
+  assert.deepEqual(gs._lastProcessed, ['E2', 'P1', 'E1'], '翻到的卡要写进 _lastProcessed（从顶往下）');
+  assert.equal(gs._countLastProcessed('能量'), 2, '计数源应能数出 2 张能量');
+});
+
+await test('翻到正面 运行时：把对手牌库上方的基础宝可梦放到对手备战区', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  opp.active = mon('敌', 'o1'); opp.bench = []; opp.deck = ['F1', 'E1', 'F2'];
+  gs.cardResolver = fakeResolver(_revealEntries());
+  await executeEffects(gs, pl, parseEffect('将对手牌库上方3张卡牌翻到正面，选择其中任意数量的【基础】宝可梦，放于对手的备战区。将剩余的卡牌放回牌库并重洗牌库。').effects);
+  assert.equal(opp.bench.length, 2, '2 只基础宝可梦进对手备战区（能量不能被当成宝可梦塞进去）');
+  assert.ok(opp.deck.includes('E1'), '能量应放回对手牌库（实测曾被凭空丢掉）');
+  assert.equal(opp.bench.length + opp.deck.length, 3, '总数守恒：不能有卡消失');
+  assert.ok(!gs.log.some(l => String(l).includes('效果失败')), '不应有静默失败');
+});
+
+await test('奖赏卡正面朝上：全部翻开 / 可选翻 1 张', async () => {
+  const a = parseEffect('将自己的奖赏卡全部正面朝上。（在对战结束前，一直保持正面朝上状态。）').effects;
+  assert.equal(a[0].action, 'reveal_prizes');
+  assert.equal(a[0].params.count, 'all');
+  assert.ok(a.some(x => x.params?.kind === 'prize_face_up_persist'), '状态说明应为标记');
+  assert.ok(!a.some(x => x.params?.kind === 'residual_sentence'), '不应留残句');
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  pl.prizes = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6'];
+  await executeEffects(gs, pl, a);
+  assert.equal(pl.prizesFaceUp, true, '奖赏卡应标记为正面朝上');
+  // 可选翻 1 张 + 加伤
+  const b = parseEffect('若希望，可选择反面朝上的自己的1张奖赏卡，将其翻到正面。在这种情况下，追加造成80伤害。').effects;
+  const rp = b.find(x => x.action === 'reveal_prizes');
+  assert.equal(rp.params.optional, true);
+  const dmg = b.find(x => x.action === 'conditional_damage_mod');
+  assert.equal(dmg.params.amount, 80, '加伤应解析成真实加成（不是只记名字的假标记）');
+});
+
+await test('无条件的 conditional_damage_mod 作为固定加成生效（此前恒加 0）', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  const attacker = mon('攻', 'a1');
+  const move = { name: '测试招式', effects: parseEffect('在这种情况下，追加造成70伤害。').effects };
+  assert.equal(move.effects[0].action, 'conditional_damage_mod');
+  assert.equal(gs.getConditionalDamageModifier(attacker, null, move, pl), 70, '应加 70（此前兜底缺失 → 恒加 0）');
 });
 
 await test('全卡牌效果文本解析覆盖率报告', () => {
