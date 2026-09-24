@@ -344,7 +344,8 @@ export class GameState {
   _removeSpecialConditions(mon){if(!mon)return;mon.status=null;mon.poisonCounters=null;mon.coinFailAttackNext=0;mon.cannotAttackNext=false;mon.cannotRetreat=false;mon.preventDamage=false;mon.preventEffect=false;mon.attackShieldArmed=false;mon.damageMod=0;mon.damageReceivedMod=0;mon.ignore=[];mon.costEliminated=false;mon.retreatCostIncrease=0;mon.attackCostIncrease=0;}
 
   retreat(pl,benchIndex,selectedEnergyIndices=null){if(pl.retreatUsed){this.addLog('本回合已撤退过');return false;}if(!pl.active||!pl.bench[benchIndex]){this.addLog('撤退目标不存在');return false;}
-    const st=pl.active.status||'';if(st.includes('sleep')||st.includes('paralysis')||pl.active.cannotRetreat){this.addLog('无法撤退');return false;}
+    // dollNoRetreat 是**永久**被动（玩偶/化石「无法撤退」），不能依赖每回合被清理的 cannotRetreat
+    const st=pl.active.status||'';if(st.includes('sleep')||st.includes('paralysis')||pl.active.cannotRetreat||pl.active.dollNoRetreat){this.addLog('无法撤退');return false;}
     if(this._hasPassive(this.getOpponent(pl).active,'cannot_retreat_passive')){this.addLog('因对手特性无法撤退');return false;}
     const cost=this.effectiveRetreatCost(pl.active);if(!this._canPayRetreatCost(pl.active,cost)){this.addLog('撤退能量不足');return false;}
     if(!this._discardEnergyForRetreat(pl.active,cost,pl,selectedEnergyIndices))return false;const old=pl.active;pl.active=pl.bench.splice(benchIndex,1)[0];pl.bench.push(old);this._removeSpecialConditions(old);pl.retreatUsed=true;this.addLog(`${pl.name} 撤退，换上 ${pl.active.name}`);this.recomputePassives();return true;}

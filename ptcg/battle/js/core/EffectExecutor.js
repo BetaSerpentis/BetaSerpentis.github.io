@@ -591,6 +591,8 @@ function _makeBenchPokemonFromCard(gs, cid) {
 // === 辅助 ===
 function _opponent(gs, pl) { return pl === gs.player1 ? gs.player2 : gs.player1; }
 function _applyStatus(mon, statuses, extra = null) {
+  // 玩偶/化石：「这张卡牌，不会陷入特殊状态」
+  if (mon?.noSpecialConditions) return;
   if (!mon || !statuses || !statuses.length) return;
   const cur = mon.status ? mon.status.split(',') : [];
   for (const s of statuses) { if (!cur.includes(s)) cur.push(s); }
@@ -2864,6 +2866,60 @@ const EXECUTORS = {
   },
 
   /**
+   * 「这张卡牌，可以作为HP为N的【无】属性的【基础】宝可梦，放于场上」——**玩偶/化石**。
+   * 物品卡在 useTrainer 里已经进了弃牌区（效果是在那之后才执行的），所以这里把卡**从弃牌区**
+   * 移到备战区，转成一只宝可梦；被动（不会陷入特殊状态 / 无法撤退 / 可从场上主动弃掉）
+   * 从卡面自身的解析结果里读，避免把所有玩偶都当成同一种。
+   */
+  async play_as_pokemon(gs, pl, p, eff, options) {
+    const cardId = options?.trainerCard;
+    const cd = options?.trainerCardData || null;
+    if (!cardId) { gs.addLog('（找不到要上场的卡）'); return; }
+    const idx = (pl.discard || []).indexOf(cardId);
+    if (idx < 0) { gs.addLog('（这张卡不在弃牌区）'); return; }
+    if ((pl.bench || []).length >= gs.benchLimitOf(pl)) { gs.addLog('备战区已满，无法放置'); return; }
+    const hp = p.hp || cd?.hp || 60;
+    const effects = cd?.effects || [];
+    const hasNote = kind => effects.some(e => e.action === 'usage_condition' && e.params?.kind === kind);
+    const noStatus = hasNote('doll_passive');
+    const noRetreat = hasNote('doll_passive') || hasNote('doll_wide_first') || hasNote('doll_discard');
+    pl.discard.splice(idx, 1);
+    const mon = {
+      cardId, name: cd?.name || String(cardId),
+      hp, maxHp: hp,
+      element: p.element || 'colorless',
+      stage: '基础',
+      attacks: [], energy: [], tool: null, status: null,
+      placedThisTurn: true, evolvedThisTurn: false,
+      weakness: null, resistance: null, retreatCost: 0,
+      isDoll: true,
+      noSpecialConditions: noStatus,   // 「不会陷入特殊状态」
+      dollNoRetreat: noRetreat,        // 「无法撤退」（用独立字段，避免被每回合清理掉）
+      ignore: [], ability: null, abilityUsed: false, abilityDisabled: false,
+    };
+    // 「如果在自己的回合的话，则可将处于场上的这张卡牌放于弃牌区」→ 提供主动弃掉的能力
+    if (hasNote('doll_discard')) {
+      mon.ability = { name: '丢弃', zone: 'field', active: true, passive: false,
+        effects: [{ action: 'discard_doll_self', params: {} }] };
+    }
+    pl.bench.push(mon);
+    gs.addLog(`${pl.name} 将「${mon.name}」作为${hp}HP的【无】属性基础宝可梦放置于备战区`);
+    gs.recomputePassives?.();
+  },
+  /** 玩偶/化石的「可从场上主动弃掉」 */
+  discard_doll_self(gs, pl, p, eff) {
+    const mon = eff?.source || eff?.params?.triggerSource;
+    if (!mon) return;
+    const bi = (pl.bench || []).indexOf(mon);
+    if (bi >= 0) pl.bench.splice(bi, 1);
+    else if (pl.active === mon) pl.active = pl.bench.length ? pl.bench.shift() : null;
+    else return;
+    (pl.discard = pl.discard || []).push(mon.cardId);
+    gs.addLog(`${mon.name} 被放到弃牌区`);
+    gs.recomputePassives?.();
+  },
+
+  /**
    * 「将这张卡（牌）放置于备战区」——**卡牌自身**从手牌/弃牌区直接上备战区。
    * 典型：大针蜂（手牌仅此一张时）、帝王拿波/耿鬼/凤王V（在弃牌区时）。
    * 来源区域由引擎注入的 `eff.sourceZone`（'hand' / 'discard'，见 CardResolver._abilityZone）决定；
@@ -3154,7 +3210,7 @@ const EXECUTORS = {
   },
 
   // ===== 化石放置 =====
-  fossil_place(gs, pl, p) { gs.addLog('化石放置'); },
+  // fossil_place 旧占位（只打日志）已删除：由 play_as_pokemon 实现真实上场
   // ===== 被动光环（解析已支持；连续生效的执行需在 GameState 被动层接入）=====
   retreat_cost_zero(gs, pl, p) { /* 被动：由 GameState.effectiveRetreatCost 运行时查询 */ },
   cannot_retreat_passive(gs, pl, p) { /* 被动：由 GameState.retreat 运行时查询 */ },

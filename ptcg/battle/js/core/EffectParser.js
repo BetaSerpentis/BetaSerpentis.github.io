@@ -937,7 +937,9 @@ const RULES = [
   { re: /若自己放逐区有(\d+)张以上（包含\d+张）[，,]?则这只宝可梦使用招式所需能量[，,]?全部消除/, act:'cost_eliminated_if_lost_zone', p:m=>({ minLostZone:+m[1] }) },
 
   // ===== 化石放置 =====
-  { re: /作为HP(?:为)?(\d+)的/, act:'fossil_place', p:m=>({hp:+m[1]}) },
+  // 原 `fossil_place`（/作为HP(?:为)?(\d+)的/）是个只打日志的 catch-all 占位：
+  // 它会把「作为HP为70的」先吃掉，导致后面的玩偶规则拿不到 HP（实测解析成 hp:60）。已删除，
+  // 由下面的 `play_as_pokemon` 规则整体匹配。
   { re: /(?:被视作|被视为|视作)(\d+)个所有属性/, act:'energy_provides', p:m=>({types:['any'],count:+m[1]}) },
   { re: /(?:被视作|被视为|视作)(\d+)个【(.+?)】能量/, act:'energy_provides', p:m=>({types:[ELEM[m[2]]||m[2]],count:+m[1]}) },
 
@@ -1381,7 +1383,8 @@ const RULES = [
   // --- 翻牌库顶（镐）---
   { re: /将自己的牌库上方的1张卡翻到正面，若该卡牌是【(.+?)】能量，则附于自己的备战宝可梦身上。若不是【(.+?)】能量，则在给对手看过后，加入手牌/, act:'usage_condition', p:m=>trainerPrerequisite('pickaxe_top_draw', m[0]) },
   // --- 道具作宝可梦放置（皮皮玩偶）---
-  { re: /这张卡，可以作为HP为(\d+)属性为【(.+?)】的【基础】宝可梦，放置于场上/, act:'usage_condition', p:m=>trainerPrerequisite('doll_as_pokemon', m[0]) },
+  // 升级：原为未接线标记 → 真实动作（物品卡当作 HP-N 无色基础宝可梦上场）
+  { re: /可以作为HP为(\d+)[\s\S]{0,12}?基础】宝可梦[\s\S]{0,8}?于场上/, act:'play_as_pokemon', p:m=>({ hp:+m[1], element:'colorless' }) },
   // --- 全场效果免疫（大阳伞/道具妨碍器等）---
   { re: /只要身上放有这张卡的宝可梦在战斗场上，自己的所有宝可梦，不会受到对手宝可梦使用的招式的效果影响/, act:'prevent_effect', p:()=>({target:'own_field',source:'attack'}) },
   { re: /只要身上放有这张卡的宝可梦在战斗场上，放置于对手战斗宝可梦身上的["“”]宝可梦道具["“”]（除["“”]([^"“”]+)["“”]外）的效果，全部消除/, act:'usage_condition', p:m=>trainerPrerequisite('nullify_opp_tool_while_active', m[0]) },
@@ -1785,9 +1788,13 @@ const RULES = [
   { re: /若为正面，则选择1种特殊状态，使对手的战斗宝可梦陷入该特殊状态/, act:'usage_condition', p:m=>trainerPrerequisite('choose_any_status', m[0]) },
   { re: /在这个回合，从手牌使出了名字中带有["“"]([^"“"]+)["“"]的支援者的玩家，在自己的回合有1次机会，可以/, act:'usage_condition', p:m=>trainerPrerequisite('rocket_supporter_once', m[0]) },
   { re: /将(?:自己的|自己)?弃牌区中的1张【(.+?)】能量，附于自己的战斗宝可梦身上/, act:'attach_energy_from_discard', p:m=>withCount({filter:`【${m[1]}】能量`,target:'active'},1,false) },
-  { re: /这张卡，可以【(.+?)】属性的【基础】宝可梦，放置于场上/, act:'usage_condition', p:m=>trainerPrerequisite('doll_wide_first', m[0]) },
+  // 升级：同一种机制的另一种措辞（未写 HP 的写法）
+  { re: /可以[\s\S]{0,14}?基础】宝可梦[\s\S]{0,8}?于场上/, act:'play_as_pokemon', p:()=>({ hp:60, element:'colorless' }) },
+  // 「这张卡牌，无法撤退。」（有的玩偶只写这一句）→ 与 doll_passive 同等对待
   { re: /若在自己的回合，则可将处于场上的这张卡丢到弃牌区/, act:'usage_condition', p:m=>trainerPrerequisite('doll_discard', m[0]) },
   { re: /这张卡，不会陷入特殊状态，也无法撤退/, act:'usage_condition', p:m=>trainerPrerequisite('doll_passive', m[0]) },
+  // 兜底：「无法撤退」单独成句的写法（放在完整句规则之后，避免抢占）
+{ re: /无法撤退/, act:'usage_condition', p:m=>({ kind:'doll_passive', raw:m[0] }) },
   { re: /这张卡，只有在对手的战斗场上有【2阶进化】宝可梦时才可使用/, act:'trainer_prerequisite', p:m=>trainerPrerequisite('opp_active_stage2', m[0]) },
   // ===== P35（2026-09）：前缀簇第十波 =====
   { re: /从自己的牌库选择【(.+?)】宝可梦和物品各1张，在给对手看过后，加入手牌/, act:'search_deck_to_hand', p:m=>withCount({filter:`【${m[1]}】宝可梦+物品`},2,false) },

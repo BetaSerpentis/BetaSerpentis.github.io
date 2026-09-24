@@ -9925,6 +9925,79 @@ await test('自身上场 备战区已满时不放置（卡留在原区域）', a
   assert.ok(pl.hand.includes('大针蜂'), '卡应留在手牌');
 });
 
+
+// ============================================================
+//  缺口⑥-B 玩偶/化石：物品卡当作 HP-N 无色基础宝可梦上场
+// ============================================================
+
+const _DOLL_RARE = '这张卡牌，可以作为HP为70的【无】属性的【基础】宝可梦，放于场上。\n如果在自己的回合的话，则可将处于场上的这张卡牌放于弃牌区。\n\n这张卡牌，不会陷入特殊状态，也无法撤退。';
+const _DOLL_MYSTERY = '这张卡牌，可以作为HP为60属性为【无】的【基础】宝可梦，放置于场上。\n这张卡牌，无法撤退。';
+const _dollGs = async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  pl.active = Object.assign(mon('出战', 'ACT'), { hp:90, maxHp:90 });
+  pl.hand = []; pl.bench = []; pl.deck = [];
+  return gs;
+};
+const _playDoll = async (gs, text, id, name) => {
+  const parsed = parseEffect(text);
+  const cd = { cardType:'trainer', trainerType:'item', name, cardId:id, effects:parsed.effects };
+  // 模拟 useTrainer：卡先进入弃牌区，然后执行效果
+  gs.player1.discard = [id];
+  await executeEffects(gs, gs.player1, parsed.effects, { trainerCard:id, trainerCardData:cd });
+  return cd;
+};
+
+await test('玩偶 解析：上场 / 主动弃掉 / 被动都建模（含两种 HP 措辞）', () => {
+  for (const [text, hp] of [[_DOLL_RARE, 70], [_DOLL_MYSTERY, 60]]) {
+    const e = parseEffect(text).effects;
+    const play = e.find(x => x.action === 'play_as_pokemon');
+    assert.ok(play, `应解析出 play_as_pokemon（实际 ${JSON.stringify(e.map(x => x.action))}）`);
+    assert.equal(play.params.hp, hp, `HP 应为 ${hp}`);
+    assert.equal(play.params.element, 'colorless');
+    assert.ok(!e.some(x => x.params?.kind === 'residual_sentence'), '不应留残句');
+  }
+});
+
+await test('玩偶 运行时：物品卡从弃牌区转成备战区宝可梦（HP/属性正确）', async () => {
+  const gs = await _dollGs();
+  await _playDoll(gs, _DOLL_RARE, 'FOSSIL', '稀有化石');
+  const doll = gs.player1.bench[0];
+  assert.ok(doll, '应放到备战区');
+  assert.equal(doll.name, '稀有化石');
+  assert.equal(doll.hp, 70);
+  assert.equal(doll.element, 'colorless');
+  assert.equal(gs.player1.discard.length, 0, '卡应从弃牌区移出（不是打完就丢）');
+  assert.ok(!gs.log.some(l => String(l).includes('效果失败')), '不应有静默失败');
+});
+
+await test('玩偶 运行时：不会陷入特殊状态 + 无法撤退 + 可从场上主动弃掉', async () => {
+  const gs = await _dollGs();
+  await _playDoll(gs, _DOLL_RARE, 'FOSSIL', '稀有化石');
+  const pl = gs.player1;
+  const doll = pl.bench[0];
+  assert.equal(doll.noSpecialConditions, true, '应免疫特殊状态');
+  assert.equal(doll.dollNoRetreat, true, '应无法撤退（永久被动）');
+  assert.ok(doll.ability, '应提供「从场上弃掉」的能力');
+  // 特殊状态免疫
+  await executeEffects(gs, pl, [{ action:'inflict_status', params:{ statuses:['paralyzed'], target:'self' } }].map(e => ({ ...e, source: doll })));
+  assert.equal(doll.status, null, '不应陷入特殊状态');
+  // 主动弃掉
+  await executeEffects(gs, pl, doll.ability.effects.map(e => ({ ...e, source: doll })));
+  assert.equal(pl.bench.length, 0, '应从备战区移除');
+  assert.ok(pl.discard.includes('FOSSIL'), '卡应进弃牌区');
+});
+
+await test('玩偶 运行时：备战区已满时不放置（卡留在弃牌区）', async () => {
+  const gs = await _dollGs();
+  const pl = gs.player1;
+  pl.bench = [1, 2, 3, 4, 5].map(i => mon('b' + i, 'b' + i));
+  await _playDoll(gs, _DOLL_RARE, 'FOSSIL', '稀有化石');
+  assert.equal(pl.bench.length, 5, '不应超上限');
+  assert.ok(pl.discard.includes('FOSSIL'), '卡应留在弃牌区');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

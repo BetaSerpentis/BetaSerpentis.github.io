@@ -1,4 +1,4 @@
-#eff1 hash=5be3fd56410a4c44
+#eff1 hash=298e29267bd5a37c
 151C-001	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-002	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-003	ability		0	usage_condition	{"kind":"requires_active"}
@@ -1863,19 +1863,19 @@ CBB6C-0406	attack	1	0	ignore	{"what":"weakness_resistance_effects"}
 CBB6C-0407	ability		0	trigger	{"event":"evolved","effect":{"action":"switch_pokemon","params":{"who":"opponent"}},"effects":[{"action":"switch_pokemon","params":{"who":"opponent"}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"可使用1次。"}}],"optional":false}
 CBB6C-0407	attack	1	0	ignore	{"what":"weakness_resistance_effects"}
 CBB6C-0501	attack	1	0	heal	{"amount":60,"target":"self"}
-CBB6C-0501	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"在下个自己的回合，这只宝可梦无法撤退。"}
+CBB6C-0501	attack	1	1	usage_condition	{"kind":"doll_passive","raw":"无法撤退"}
 CBB6C-0502	attack	1	0	heal	{"amount":60,"target":"self"}
-CBB6C-0502	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"在下个自己的回合，这只宝可梦无法撤退。"}
+CBB6C-0502	attack	1	1	usage_condition	{"kind":"doll_passive","raw":"无法撤退"}
 CBB6C-0503	attack	1	0	heal	{"amount":60,"target":"self"}
-CBB6C-0503	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"在下个自己的回合，这只宝可梦无法撤退。"}
+CBB6C-0503	attack	1	1	usage_condition	{"kind":"doll_passive","raw":"无法撤退"}
 CBB6C-0504	attack	1	0	heal	{"amount":60,"target":"self"}
-CBB6C-0504	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"在下个自己的回合，这只宝可梦无法撤退。"}
+CBB6C-0504	attack	1	1	usage_condition	{"kind":"doll_passive","raw":"无法撤退"}
 CBB6C-0505	attack	1	0	heal	{"amount":60,"target":"self"}
-CBB6C-0505	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"在下个自己的回合，这只宝可梦无法撤退。"}
+CBB6C-0505	attack	1	1	usage_condition	{"kind":"doll_passive","raw":"无法撤退"}
 CBB6C-0506	attack	1	0	heal	{"amount":60,"target":"self"}
-CBB6C-0506	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"在下个自己的回合，这只宝可梦无法撤退。"}
+CBB6C-0506	attack	1	1	usage_condition	{"kind":"doll_passive","raw":"无法撤退"}
 CBB6C-0507	attack	1	0	heal	{"amount":60,"target":"self"}
-CBB6C-0507	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"在下个自己的回合，这只宝可梦无法撤退。"}
+CBB6C-0507	attack	1	1	usage_condition	{"kind":"doll_passive","raw":"无法撤退"}
 CBB6C-0601	attack	1	0	self_damage	{"amount":20}
 CBB6C-0602	attack	1	0	self_damage	{"amount":20}
 CBB6C-0603	attack	1	0	self_damage	{"amount":20}
@@ -2708,7 +2708,7 @@ CS1aC-101	attack	1	0	attach_energy_from_discard	{"filter":"【斗】能量","tar
 CS1aC-101	attack	2	0	discard_energy	{"target":"self","count":2}
 CS1aC-102	attack	1	0	coin_flip_status	{"count":1,"statuses":["paralysis"]}
 CS1aC-103	attack	1	0	attack_cost_increase	{"amount":2}
-CS1aC-103	attack	1	1	usage_condition	{"kind":"shell_fragment","raw":"且无法撤退。"}
+CS1aC-103	attack	1	1	usage_condition	{"kind":"doll_passive","raw":"无法撤退"}
 CS1aC-103	attack	1	2	usage_condition	{"kind":"residual_sentence","raw":"这个效果，一直持续到这只\\"八爪武师\\"离开战斗场，且无法叠加。"}
 CS1aC-103	attack	2	0	ignore	{"what":"resistance"}
 CS1aC-104	attack	1	0	cannot_attack_next	{"target":"opponent"}
@@ -2796,7 +2796,7 @@ CS1aC-170	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的
 CS1aC-170	ability		1	usage_condition	{"kind":"residual_sentence","raw":"从自己的弃牌区选择【火】能量和【斗】能量各最多1张，以任意方式附于自己宝可梦身上。"}
 CS1aC-171	attack	1	0	coin_flip_status	{"count":1,"statuses":["paralysis"]}
 CS1aC-172	attack	1	0	attack_cost_increase	{"amount":2}
-CS1aC-172	attack	1	1	usage_condition	{"kind":"shell_fragment","raw":"且无法撤退。"}
+CS1aC-172	attack	1	1	usage_condition	{"kind":"doll_passive","raw":"无法撤退"}
 CS1aC-172	attack	1	2	usage_condition	{"kind":"residual_sentence","raw":"这个效果，一直持续到这只\\"八爪武师\\"离开战斗场，且无法叠加。"}
 CS1aC-172	attack	2	0	ignore	{"what":"resistance"}
 CS1aC-173	attack	1	0	search_deck_to_bench	{"filter":"【基础】宝可梦","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
@@ -10786,7 +10786,8 @@ CSM2bC-016	attack	1	2	usage_condition	{"kind":"residual_sentence","raw":"将被�
 CSM2bC-016	attack	2	0	inflict_status	{"statuses":["confusion"]}
 CSM2bC-017	attack	1	0	inflict_status	{"statuses":["poison"]}
 CSM2bC-018	attack	1	0	inflict_status	{"statuses":["confusion"]}
-CSM2bC-019	ability		0	usage_condition	{"kind":"generic_effect","raw":"对手处于特殊状态的宝可梦，无法撤退。"}
+CSM2bC-019	ability		0	usage_condition	{"kind":"doll_passive","raw":"无法撤退"}
+CSM2bC-019	ability		1	usage_condition	{"kind":"residual_sentence","raw":"对手处于特殊状态的宝可梦，。"}
 CSM2bC-019	attack	1	0	inflict_status	{"statuses":["poison"]}
 CSM2bC-020	ability		0	damage_received_mod	{"amount":-10,"target":"self"}
 CSM2bC-020	attack	1	0	coin_flip	{"count":1,"fail_on_tails":true}
@@ -15305,7 +15306,7 @@ CSV9C-153	attack	1	0	self_damage	{"amount":10}
 CSV9C-154	attack	1	0	coin_flip_damage	{"count":3,"damage_per":10}
 CSV9C-155	ability		0	trigger	{"event":"evolved","effect":{"action":"usage_condition","params":{"kind":"once_per_turn","raw":"则可使用1次"}},"effects":[{"action":"usage_condition","params":{"kind":"once_per_turn","raw":"则可使用1次"}},{"action":"search_deck_to_hand","params":{"filter":"训练家","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}},{"action":"shuffle_deck","params":{}},{"action":"usage_condition","params":{"kind":"residual_sentence","raw":"若自己场上有\\"太晶\\"宝可梦，。"}}],"optional":false}
 CSV9C-156	attack	1	0	heal	{"amount":60,"target":"self"}
-CSV9C-156	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"在下个自己的回合，这只宝可梦无法撤退。"}
+CSV9C-156	attack	1	1	usage_condition	{"kind":"doll_passive","raw":"无法撤退"}
 CSV9C-158	ability		0	usage_condition	{"kind":"generic_effect","raw":"若对手场上没有\\"宝可梦【ex】・【V】\\"，则这只宝可梦无法使用招式。"}
 CSV9C-158	attack	1	0	discard_energy	{"target":"self","count":1}
 CSV9C-159	attack	1	0	coin_flip	{"count":3}
@@ -18258,10 +18259,9 @@ CS2aC-103	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"选择�
 CS2bC-103	trainer		0	usage_condition	{"kind":"generic_effect","raw":"将双方战斗宝可梦的HP，各恢复\\"50\\"点。"}
 CS2bC-104	trainer		0	look_at	{"target":"opponent_hand"}
 CS2bC-104	trainer		1	look_at	{"deckTop":1,"who":"opponent"}
-CS2bC-105	trainer		0	usage_condition	{"kind":"doll_wide_first","raw":"这张卡，可以【无】属性的【基础】宝可梦，放置于场上"}
-CS2bC-105	trainer		1	fossil_place	{"hp":70}
-CS2bC-105	trainer		2	usage_condition	{"kind":"doll_discard","raw":"若在自己的回合，则可将处于场上的这张卡丢到弃牌区"}
-CS2bC-105	trainer		3	usage_condition	{"kind":"doll_passive","raw":"这张卡，不会陷入特殊状态，也无法撤退"}
+CS2bC-105	trainer		0	play_as_pokemon	{"hp":70,"element":"colorless"}
+CS2bC-105	trainer		1	usage_condition	{"kind":"doll_discard","raw":"若在自己的回合，则可将处于场上的这张卡丢到弃牌区"}
+CS2bC-105	trainer		2	usage_condition	{"kind":"doll_passive","raw":"这张卡，不会陷入特殊状态，也无法撤退"}
 CS3.5C-055	trainer		0	recover_from_discard	{"count":1,"target":"hand"}
 CS3.5C-055	trainer		1	shuffle_deck	{}
 CS3.5C-056	trainer		0	peek_and_keep	{"peek":7,"filter":"宝可梦","keep":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
@@ -18443,10 +18443,9 @@ CS5bC-114	trainer		2	shuffle_deck	{}
 CS5bC-114	trainer		3	end_turn	{}
 CS5bC-115	trainer		0	usage_condition	{"kind":"generic_effect","raw":"选择自己的1只宝可梦。掷硬币直到出现反面，恢复该宝可梦正面次数×40HP。"}
 CS5bC-116	trainer		0	switch_active_basic_heal_bench	{"heal":30}
-CS5bC-117	trainer		0	usage_condition	{"kind":"doll_wide_first","raw":"这张卡，可以【无】属性的【基础】宝可梦，放置于场上"}
-CS5bC-117	trainer		1	fossil_place	{"hp":60}
-CS5bC-117	trainer		2	usage_condition	{"kind":"doll_discard","raw":"若在自己的回合，则可将处于场上的这张卡丢到弃牌区"}
-CS5bC-117	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"这张卡，无法撤退。"}
+CS5bC-117	trainer		0	play_as_pokemon	{"hp":60,"element":"colorless"}
+CS5bC-117	trainer		1	usage_condition	{"kind":"doll_discard","raw":"若在自己的回合，则可将处于场上的这张卡丢到弃牌区"}
+CS5bC-117	trainer		2	usage_condition	{"kind":"doll_passive","raw":"无法撤退"}
 CS5bC-118	trainer		0	trainer_prerequisite	{"kind":"discard_cost","raw":"这张卡，只有将自己的2张手牌丢到弃牌区才可使用","count":2,"zone":"hand"}
 CS5bC-118	trainer		1	search_deck_to_hand	{"filter":"宝可梦","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CS5bC-118	trainer		2	shuffle_deck	{}
@@ -18466,14 +18465,12 @@ CS6aC-121	trainer		0	heal	{"amount":10}
 CS6aC-121	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"\\"四尖石\\"可使用1张或是同时使用4张，根据使用的张数不同效果也不同。"}
 CS6aC-121	trainer		2	usage_condition	{"kind":"shell_fragment","raw":"◆若使用1张，则。"}
 CS6aC-121	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"◆若同时使用4张，则将自己所有宝可梦的HP，全部恢复。"}
-CS6aC-122	trainer		0	usage_condition	{"kind":"doll_wide_first","raw":"这张卡，可以【无】属性的【基础】宝可梦，放置于场上"}
-CS6aC-122	trainer		1	fossil_place	{"hp":60}
-CS6aC-122	trainer		2	usage_condition	{"kind":"doll_discard","raw":"若在自己的回合，则可将处于场上的这张卡丢到弃牌区"}
-CS6aC-122	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"这张卡，无法撤退。"}
-CS6bC-121	trainer		0	usage_condition	{"kind":"doll_wide_first","raw":"这张卡，可以【无】属性的【基础】宝可梦，放置于场上"}
-CS6bC-121	trainer		1	fossil_place	{"hp":60}
-CS6bC-121	trainer		2	usage_condition	{"kind":"doll_discard","raw":"若在自己的回合，则可将处于场上的这张卡丢到弃牌区"}
-CS6bC-121	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"这张卡，无法撤退。"}
+CS6aC-122	trainer		0	play_as_pokemon	{"hp":60,"element":"colorless"}
+CS6aC-122	trainer		1	usage_condition	{"kind":"doll_discard","raw":"若在自己的回合，则可将处于场上的这张卡丢到弃牌区"}
+CS6aC-122	trainer		2	usage_condition	{"kind":"doll_passive","raw":"无法撤退"}
+CS6bC-121	trainer		0	play_as_pokemon	{"hp":60,"element":"colorless"}
+CS6bC-121	trainer		1	usage_condition	{"kind":"doll_discard","raw":"若在自己的回合，则可将处于场上的这张卡丢到弃牌区"}
+CS6bC-121	trainer		2	usage_condition	{"kind":"doll_passive","raw":"无法撤退"}
 CS6bC-122	trainer		0	trainer_prerequisite	{"kind":"lost_zone_min","raw":"这张卡，只有在自己放逐区有7张以上（包含7张）卡牌时才可使用"}
 CS6bC-122	trainer		1	attach_energy_from_deck	{"filter":"基本能量","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CS6bC-122	trainer		2	shuffle_deck	{}
@@ -18706,9 +18703,11 @@ CSM1cC-122	trainer		0	trainer_prerequisite	{"kind":"own_prizes_more_than_opponen
 CSM1cC-122	trainer		1	switch_pokemon	{"who":"opponent"}
 CSM1cC-123	trainer		0	heal	{"amount":120}
 CSM1cC-124	trainer		0	peek_and_keep	{"peek":2,"keep":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false,"remainder":"discard","elseTo":"discard"}
-CSM1cC-125	trainer		0	usage_condition	{"kind":"doll_as_pokemon","raw":"这张卡，可以作为HP为60属性为【无】的【基础】宝可梦，放置于场上"}
-CSM1cC-125	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"若在自己的回合，可将处于场上的这张卡丢到弃牌区。"}
-CSM1cC-125	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"这张卡，无法撤退。"}
+CSM1cC-125	trainer		0	play_as_pokemon	{"hp":60,"element":"colorless"}
+CSM1cC-125	trainer		1	usage_condition	{"kind":"doll_passive","raw":"无法撤退"}
+CSM1cC-125	trainer		2	usage_condition	{"kind":"shell_fragment","raw":"这张卡，。"}
+CSM1cC-125	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"若在自己的回合，可将处于场上的这张卡丢到弃牌区。"}
+CSM1cC-125	trainer		4	usage_condition	{"kind":"shell_fragment","raw":"这张卡，。"}
 CSM1cC-126	trainer		0	trainer_prerequisite	{"kind":"discard_cost","raw":"这张卡，只有将自己的2张手牌丢到弃牌区才可使用","count":2,"zone":"hand"}
 CSM1cC-126	trainer		1	search_deck_to_hand	{"filter":"宝可梦","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSM1cC-126	trainer		2	shuffle_deck	{}
@@ -18851,11 +18850,13 @@ CSM2DC-268	trainer		0	coin_flip	{"count":2}
 CSM2DC-268	trainer		1	usage_condition	{"kind":"heal_by_heads_value","raw":"将正面次数×30伤害作为数值，恢复该宝可梦的HP"}
 CSM2DC-269	trainer		0	shuffle_deck	{}
 CSM2DC-269	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"若自己场上有可以进化为\\"梦妖魔\\"\\"乌鸦头头\\"\\"水晶灯火灵\\"\\"坚盾剑怪\\"（包含GX）的宝可梦，则从自己的牌库，选择1张其进化卡，放置于该宝可梦身上进行进化。"}
-CSM2DC-270	trainer		0	usage_condition	{"kind":"doll_as_pokemon","raw":"这张卡，可以作为HP为30属性为【无】的【基础】宝可梦，放置于场上"}
-CSM2DC-270	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"若在自己的回合，可将处于战斗场上的这张卡放回牌库下方。"}
-CSM2DC-270	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"（将放置于其身上的卡牌，全部丢到弃牌区。"}
-CSM2DC-270	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"这张卡，无法撤退。"}
-CSM2DC-270	trainer		4	usage_condition	{"kind":"residual_sentence","raw":"即使这张卡【昏厥】，对手也无法拿取奖赏卡。"}
+CSM2DC-270	trainer		0	play_as_pokemon	{"hp":30,"element":"colorless"}
+CSM2DC-270	trainer		1	usage_condition	{"kind":"doll_passive","raw":"无法撤退"}
+CSM2DC-270	trainer		2	usage_condition	{"kind":"shell_fragment","raw":"这张卡，。"}
+CSM2DC-270	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"若在自己的回合，可将处于战斗场上的这张卡放回牌库下方。"}
+CSM2DC-270	trainer		4	usage_condition	{"kind":"residual_sentence","raw":"（将放置于其身上的卡牌，全部丢到弃牌区。"}
+CSM2DC-270	trainer		5	usage_condition	{"kind":"shell_fragment","raw":"这张卡，。"}
+CSM2DC-270	trainer		6	usage_condition	{"kind":"residual_sentence","raw":"即使这张卡【昏厥】，对手也无法拿取奖赏卡。"}
 CSM2DC-271	trainer		0	shuffle_hand_to_deck	{"who":"opponent"}
 CSM2DC-271	trainer		1	shuffle_deck	{}
 CSM2DC-271	trainer		2	draw	{"who":"opponent","countFrom":"prizes"}
@@ -18888,9 +18889,11 @@ CSM2aC-190	trainer		1	shuffle_deck	{}
 CSM2bC-128	trainer		0	coin_flip	{"count":2}
 CSM2bC-128	trainer		1	usage_condition	{"kind":"search_by_coin_heads","raw":"将与出现正面的次数相同张数的竞技场，在给对手看过后，加入手牌"}
 CSM2bC-128	trainer		2	shuffle_deck	{}
-CSM2bC-129	trainer		0	usage_condition	{"kind":"doll_as_pokemon","raw":"这张卡，可以作为HP为60属性为【无】的【基础】宝可梦，放置于场上"}
-CSM2bC-129	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"若在自己的回合，可将处于场上的这张卡丢到弃牌区。"}
-CSM2bC-129	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"这张卡，无法撤退。"}
+CSM2bC-129	trainer		0	play_as_pokemon	{"hp":60,"element":"colorless"}
+CSM2bC-129	trainer		1	usage_condition	{"kind":"doll_passive","raw":"无法撤退"}
+CSM2bC-129	trainer		2	usage_condition	{"kind":"shell_fragment","raw":"这张卡，。"}
+CSM2bC-129	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"若在自己的回合，可将处于场上的这张卡丢到弃牌区。"}
+CSM2bC-129	trainer		4	usage_condition	{"kind":"shell_fragment","raw":"这张卡，。"}
 CSM2bC-130	trainer		0	usage_condition	{"kind":"generic_effect","raw":"将对手弃牌区中的任意1张卡，放回对手的手牌。"}
 CSM2bC-131	trainer		0	search_deck_to_hand	{"filter":"宝可梦GX","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSM2bC-131	trainer		1	shuffle_deck	{}
@@ -18906,11 +18909,13 @@ CSM2cC-129	trainer		0	search_deck_to_hand	{"filter":"TAG TEAM","count":2,"maxCou
 CSM2cC-129	trainer		1	shuffle_deck	{}
 CSM2cC-130	trainer		0	shuffle_deck	{}
 CSM2cC-130	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"若自己场上有可以进化为\\"梦妖魔\\"\\"乌鸦头头\\"\\"水晶灯火灵\\"\\"坚盾剑怪\\"（包含GX）的宝可梦，则从自己的牌库，选择1张其进化卡，放置于该宝可梦身上进行进化。"}
-CSM2cC-131	trainer		0	usage_condition	{"kind":"doll_as_pokemon","raw":"这张卡，可以作为HP为30属性为【无】的【基础】宝可梦，放置于场上"}
-CSM2cC-131	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"若在自己的回合，可将处于战斗场上的这张卡放回牌库下方。"}
-CSM2cC-131	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"（将放置于其身上的卡牌，全部丢到弃牌区。"}
-CSM2cC-131	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"这张卡，无法撤退。"}
-CSM2cC-131	trainer		4	usage_condition	{"kind":"residual_sentence","raw":"即使这张卡【昏厥】，对手也无法拿取奖赏卡。"}
+CSM2cC-131	trainer		0	play_as_pokemon	{"hp":30,"element":"colorless"}
+CSM2cC-131	trainer		1	usage_condition	{"kind":"doll_passive","raw":"无法撤退"}
+CSM2cC-131	trainer		2	usage_condition	{"kind":"shell_fragment","raw":"这张卡，。"}
+CSM2cC-131	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"若在自己的回合，可将处于战斗场上的这张卡放回牌库下方。"}
+CSM2cC-131	trainer		4	usage_condition	{"kind":"residual_sentence","raw":"（将放置于其身上的卡牌，全部丢到弃牌区。"}
+CSM2cC-131	trainer		5	usage_condition	{"kind":"shell_fragment","raw":"这张卡，。"}
+CSM2cC-131	trainer		6	usage_condition	{"kind":"residual_sentence","raw":"即使这张卡【昏厥】，对手也无法拿取奖赏卡。"}
 CSM2cC-132	trainer		0	shuffle_hand_to_deck	{"who":"opponent"}
 CSM2cC-132	trainer		1	shuffle_deck	{}
 CSM2cC-132	trainer		2	draw	{"who":"opponent","countFrom":"prizes"}
@@ -18918,11 +18923,13 @@ CSM2cC-186	trainer		0	recover_from_discard	{"filter":"宝可梦","target":"deck"
 CSM2cC-186	trainer		1	shuffle_deck	{}
 CSM2cC-187	trainer		0	search_deck_to_hand	{"filter":"TAG TEAM","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CSM2cC-187	trainer		1	shuffle_deck	{}
-CSM2cC-188	trainer		0	usage_condition	{"kind":"doll_as_pokemon","raw":"这张卡，可以作为HP为30属性为【无】的【基础】宝可梦，放置于场上"}
-CSM2cC-188	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"若在自己的回合，可将处于战斗场上的这张卡放回牌库下方。"}
-CSM2cC-188	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"（将放置于其身上的卡牌，全部丢到弃牌区。"}
-CSM2cC-188	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"这张卡，无法撤退。"}
-CSM2cC-188	trainer		4	usage_condition	{"kind":"residual_sentence","raw":"即使这张卡【昏厥】，对手也无法拿取奖赏卡。"}
+CSM2cC-188	trainer		0	play_as_pokemon	{"hp":30,"element":"colorless"}
+CSM2cC-188	trainer		1	usage_condition	{"kind":"doll_passive","raw":"无法撤退"}
+CSM2cC-188	trainer		2	usage_condition	{"kind":"shell_fragment","raw":"这张卡，。"}
+CSM2cC-188	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"若在自己的回合，可将处于战斗场上的这张卡放回牌库下方。"}
+CSM2cC-188	trainer		4	usage_condition	{"kind":"residual_sentence","raw":"（将放置于其身上的卡牌，全部丢到弃牌区。"}
+CSM2cC-188	trainer		5	usage_condition	{"kind":"shell_fragment","raw":"这张卡，。"}
+CSM2cC-188	trainer		6	usage_condition	{"kind":"residual_sentence","raw":"即使这张卡【昏厥】，对手也无法拿取奖赏卡。"}
 CSM2cC-189	trainer		0	shuffle_hand_to_deck	{"who":"opponent"}
 CSM2cC-189	trainer		1	shuffle_deck	{}
 CSM2cC-189	trainer		2	draw	{"who":"opponent","countFrom":"prizes"}
@@ -19324,18 +19331,18 @@ CSV9C-182	trainer		0	trainer_prerequisite	{"kind":"first_turn","raw":"这张卡�
 CSV9C-182	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"选择对手场上宝可梦身上附着的1个能量，放回对手的手牌。"}
 CSV9C-183	trainer		0	usage_condition	{"kind":"deck_discard_any","raw":"从自己的牌库选择任意卡牌最多5张，丢到弃牌区"}
 CSV9C-183	trainer		1	shuffle_deck	{}
-CSV9C-184	trainer		0	usage_condition	{"kind":"doll_wide_first","raw":"这张卡，可以【无】属性的【基础】宝可梦，放置于场上"}
-CSV9C-184	trainer		1	fossil_place	{"hp":60}
-CSV9C-184	trainer		2	usage_condition	{"kind":"doll_passive","raw":"这张卡，不会陷入特殊状态，也无法撤退"}
-CSV9C-184	trainer		3	usage_condition	{"kind":"doll_discard","raw":"若在自己的回合，则可将处于场上的这张卡丢到弃牌区"}
+CSV9C-184	trainer		0	play_as_pokemon	{"hp":60,"element":"colorless"}
+CSV9C-184	trainer		1	usage_condition	{"kind":"doll_passive","raw":"这张卡，不会陷入特殊状态，也无法撤退"}
+CSV9C-184	trainer		2	usage_condition	{"kind":"doll_discard","raw":"若在自己的回合，则可将处于场上的这张卡丢到弃牌区"}
+CSV9C-184	trainer		3	usage_condition	{"kind":"shell_fragment","raw":"这张卡，。"}
 CSV9C-184	trainer		4	usage_condition	{"kind":"residual_sentence","raw":"对手的【基础】宝可梦，使用招式所需能量，就会增加1个【无】能量。"}
 CSV9C-184	trainer		5	usage_condition	{"kind":"residual_sentence","raw":"[特性] 原始之根对手的【基础】宝可梦，使用招式所需能量，就会增加1个【无】能量。"}
-CSV9C-185	trainer		0	usage_condition	{"kind":"doll_wide_first","raw":"这张卡，可以【无】属性的【基础】宝可梦，放置于场上"}
-CSV9C-185	trainer		1	fossil_place	{"hp":60}
-CSV9C-185	trainer		2	usage_condition	{"kind":"doll_passive","raw":"这张卡，不会陷入特殊状态，也无法撤退"}
-CSV9C-185	trainer		3	usage_condition	{"kind":"doll_discard","raw":"若在自己的回合，则可将处于场上的这张卡丢到弃牌区"}
+CSV9C-185	trainer		0	play_as_pokemon	{"hp":60,"element":"colorless"}
+CSV9C-185	trainer		1	usage_condition	{"kind":"doll_passive","raw":"这张卡，不会陷入特殊状态，也无法撤退"}
+CSV9C-185	trainer		2	usage_condition	{"kind":"doll_discard","raw":"若在自己的回合，则可将处于场上的这张卡丢到弃牌区"}
+CSV9C-185	trainer		3	prevent_effect	{"source":"attack"}
 CSV9C-185	trainer		4	prevent_effect	{"source":"attack"}
-CSV9C-185	trainer		5	prevent_effect	{"source":"attack"}
+CSV9C-185	trainer		5	usage_condition	{"kind":"shell_fragment","raw":"这张卡，。"}
 CSV9C-185	trainer		6	usage_condition	{"kind":"residual_sentence","raw":"[特性] 背盖守护。"}
 CSV9C-186	trainer		0	search_deck_to_bench	{"filter":"【基础】宝可梦","count":5,"maxCount":5,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CSV9C-186	trainer		1	shuffle_deck	{}
@@ -19945,18 +19952,15 @@ SSP-NaN8	trainer		1	usage_condition	{"kind":"put_remaining_back","raw":"将剩�
 SSP-NaN8	trainer		2	shuffle_deck	{}
 SSP-NaN80	trainer		0	evolve_rare_candy	{"stage":"2阶","targetStage":"基础","bypassStage":"1阶","noPlacedThisTurn":true,"noFirstTurn":true}
 SSP-NaN9	trainer		0	recover_from_discard	{"filter":"基本能量","target":"hand","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
-SVP-013	trainer		0	usage_condition	{"kind":"doll_wide_first","raw":"这张卡，可以【无】属性的【基础】宝可梦，放置于场上"}
-SVP-013	trainer		1	fossil_place	{"hp":60}
-SVP-013	trainer		2	usage_condition	{"kind":"doll_passive","raw":"这张卡，不会陷入特殊状态，也无法撤退"}
-SVP-013	trainer		3	usage_condition	{"kind":"doll_discard","raw":"若在自己的回合，则可将处于场上的这张卡丢到弃牌区"}
-SVP-014	trainer		0	usage_condition	{"kind":"doll_wide_first","raw":"这张卡，可以【无】属性的【基础】宝可梦，放置于场上"}
-SVP-014	trainer		1	fossil_place	{"hp":60}
-SVP-014	trainer		2	usage_condition	{"kind":"doll_passive","raw":"这张卡，不会陷入特殊状态，也无法撤退"}
-SVP-014	trainer		3	usage_condition	{"kind":"doll_discard","raw":"若在自己的回合，则可将处于场上的这张卡丢到弃牌区"}
-SVP-015	trainer		0	usage_condition	{"kind":"doll_wide_first","raw":"这张卡，可以【无】属性的【基础】宝可梦，放置于场上"}
-SVP-015	trainer		1	fossil_place	{"hp":60}
-SVP-015	trainer		2	usage_condition	{"kind":"doll_passive","raw":"这张卡，不会陷入特殊状态，也无法撤退"}
-SVP-015	trainer		3	usage_condition	{"kind":"doll_discard","raw":"若在自己的回合，则可将处于场上的这张卡丢到弃牌区"}
+SVP-013	trainer		0	play_as_pokemon	{"hp":60,"element":"colorless"}
+SVP-013	trainer		1	usage_condition	{"kind":"doll_passive","raw":"这张卡，不会陷入特殊状态，也无法撤退"}
+SVP-013	trainer		2	usage_condition	{"kind":"doll_discard","raw":"若在自己的回合，则可将处于场上的这张卡丢到弃牌区"}
+SVP-014	trainer		0	play_as_pokemon	{"hp":60,"element":"colorless"}
+SVP-014	trainer		1	usage_condition	{"kind":"doll_passive","raw":"这张卡，不会陷入特殊状态，也无法撤退"}
+SVP-014	trainer		2	usage_condition	{"kind":"doll_discard","raw":"若在自己的回合，则可将处于场上的这张卡丢到弃牌区"}
+SVP-015	trainer		0	play_as_pokemon	{"hp":60,"element":"colorless"}
+SVP-015	trainer		1	usage_condition	{"kind":"doll_passive","raw":"这张卡，不会陷入特殊状态，也无法撤退"}
+SVP-015	trainer		2	usage_condition	{"kind":"doll_discard","raw":"若在自己的回合，则可将处于场上的这张卡丢到弃牌区"}
 SVP-151	trainer		0	recover_from_discard	{"count":1,"target":"hand"}
 SVP-151	trainer		1	shuffle_deck	{}
 SVP-152	trainer		0	trainer_prerequisite	{"kind":"discard_cost","raw":"这张卡，只有将自己的1张手牌丢到弃牌区才可使用","count":1,"zone":"hand"}
