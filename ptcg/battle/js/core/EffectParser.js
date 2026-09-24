@@ -1184,7 +1184,7 @@ const RULES = [
   // --- VSTAR 再回合 / GXEX 特性消除 / 特性限定场地（metadata）---
   { re: /当这个回合结束时，自己的回合会再开始1次/, act:'usage_condition', p:m=>trainerPrerequisite('extra_turn_vstar', m[0]) },
   { re: /就将对手场上、手牌中、弃牌区中的所有["“”]宝可梦GX・EX["“”]的特性（除["“”]([^"“”]+)["“”]外），全部消除/, act:'ability_nullify', p:m=>abilityNullifyParams(m[0],m.input) },
-  { re: /这个特性只有当自己场上所有的宝可梦都是【(.+?)】属性的场合才生效/, act:'usage_condition', p:m=>trainerPrerequisite('type_mono_ability', m[0]) },
+  { re: /这个特性只有当自己场上所有的宝可梦都是【(.+?)】属性的场合才生效/, act:'usage_condition', p:m=>({ kind:'type_mono_ability', type:m[1], raw:m[0] }) },
   { re: /这只宝可梦，在自己的回合，可以从手牌使出从["“”]伊布["“”]进化而来的卡牌/, act:'usage_condition', p:m=>trainerPrerequisite('eevee_evolve_anytime', m[0]) },
   { re: /这只宝可梦，当对手从手牌使出物品或者支援者时，不受其效果影响/, act:'prevent_effect', p:()=>({source:'trainer'}) },
 
@@ -2024,6 +2024,13 @@ const RULES = [
   // 方括号编者注：「［关于变更备战宝可梦的数量的效果，优先执行数量更少的效果。］」
   // 这是规则提醒而非效果本身（该规则已由 benchLimitOf 的「多个变更效果取最小」实现），记标记避免留残句。
   { re: /关于变更备战宝可梦的数量的效果[，,]?优先执行数量更少的效果/, act:'usage_condition', p:m=>({ kind:'bench_limit_priority_note', raw:m[0] }) },
+
+  // ===== 备战区属性规则 =====
+  // 「能够放于自己备战区的【X】宝可梦的数量变为N只，且无法将其他属性的宝可梦放于自己场上」
+  { re: /能够放置于自己备战区的【(.+?)】宝可梦的数量变为(\d+)只[，,]?且无法将其他属性的宝可梦放置于自己场上/, act:'usage_condition', p:m=>({ kind:'bench_type_limit', type:m[1], limit:+m[2], restrictOthers:true, raw:m[0] }) },
+  // 括号里的失效条款：「当这个特性失效时，将备战宝可梦放于弃牌区，直到备战宝可梦的数量变为5只为止」
+  //  —— 上限本身由 benchLimitOf/enforceBenchLimits 作为不变量保证，这里只记标记避免留残句。
+  { re: /当这个特性失效时[，,]?将备战宝可梦(?:丢到弃牌区|放置于弃牌区)[，,]?直到备战宝可梦的数量(?:变为|为)(\d+)只/, act:'usage_condition', p:m=>({ kind:'bench_limit_expiry_note', to:+m[1], raw:m[0] }) },
 
   // ===== 备战区上限：一次性收窄句 =====
   // 「对手将对手自己的备战宝可梦（以及放于宝可梦身上的所有卡牌）放于弃牌区，直到其数量变为N只为止」

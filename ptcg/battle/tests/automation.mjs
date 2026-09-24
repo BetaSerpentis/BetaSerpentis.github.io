@@ -9302,6 +9302,105 @@ await test('上限 解析：上限句与收窄句都建模（不留残句）', (
   assert.equal(s[0].params.to, 3);
 });
 
+
+// ============================================================
+//  备战区属性限制 + 特性「单属性场」前提
+// ============================================================
+
+const _MONO_ABILITY_TEXT = '这个特性只有当自己场上所有的宝可梦都是【恶】属性的场合才生效。能够放于自己备战区的【恶】宝可梦的数量变为8只，且无法将其他属性的宝可梦放于自己场上。（当这个特性失效时，将备战宝可梦放于弃牌区，直到备战宝可梦的数量变为5只为止。）';
+const _elemMon = (name, id, element) => Object.assign(mon(name, id), { element });
+const _elemEntries = (entries) => {
+  const o = {};
+  for (const [id, name, element] of entries) {
+    o[id] = { card:{ cardType:'pokemon', name, hp:60, cardId:id, stage:'基础', element, attacks:[], retreatCost:1 }, info:{ name } };
+  }
+  return o;
+};
+const _monoSetup = async (benchElements = []) => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  const owner = _elemMon('恶主', 'd0', 'dark');
+  owner.ability = { name:'恶之军势', zone:'field', effects: parseEffect(_MONO_ABILITY_TEXT).effects };
+  pl.active = owner;
+  pl.bench = benchElements.map((el, i) => _elemMon('b' + i, 'b' + i, el));
+  gs.cardResolver = fakeResolver(_elemEntries([['X', '恶X', 'dark'], ['Y', '火Y', 'fire']]));
+  return { gs, pl };
+};
+
+await test('属性限制 解析：单属性前提 / 上限+限制 / 失效条款都建模', () => {
+  const e = parseEffect(_MONO_ABILITY_TEXT).effects;
+  const kinds = e.map(x => x.params?.kind);
+  assert.ok(kinds.includes('type_mono_ability'), '应有单属性前提标记');
+  assert.equal(e.find(x => x.params?.kind === 'type_mono_ability').params.type, '恶', '前提应带属性');
+  const limit = e.find(x => x.params?.kind === 'bench_type_limit');
+  assert.ok(limit, '应有属性上限标记');
+  assert.equal(limit.params.type, '恶');
+  assert.equal(limit.params.limit, 8);
+  assert.equal(limit.params.restrictOthers, true);
+  assert.ok(kinds.includes('bench_limit_expiry_note'), '失效条款应记为标记');
+  assert.ok(!kinds.includes('residual_sentence'), '不应留残句');
+});
+
+await test('属性限制 全【恶】场：该属性上限 8 只，其他属性完全不可放', async () => {
+  const { gs, pl } = await _monoSetup([]); // 备战区为空 → 8 个空位
+  assert.equal(gs.benchSlotsFor(pl, 'X'), 8, '【恶】卡可用上限 8 只');
+  assert.equal(gs.benchSlotsFor(pl, 'Y'), 0, '其他属性禁止放于自己场上');
+  // 已有 2 只【恶】时剩 6 个位置（上限是按该属性的只数算的）
+  const { gs: gs2, pl: pl2 } = await _monoSetup(['dark', 'dark']);
+  assert.equal(gs2.benchSlotsFor(pl2, 'X'), 6, '已有 2 只 → 还能放 6 只');
+});
+
+await test('属性限制 场上有非【恶】→ 整个特性失效（上限与限制都回到基础）', async () => {
+  const { gs, pl } = await _monoSetup(['dark', 'fire']);
+  assert.equal(gs.benchSlotsFor(pl, 'X'), 3, '前提不满足→回到基础 5−2');
+  assert.equal(gs.benchSlotsFor(pl, 'Y'), 3, '前提不满足→火属性也能放');
+});
+
+await test('属性限制 已有 7 只【恶】时还能再放 1 只（旧硬上限 5 会让第 6/7 只放不下）', async () => {
+  const { gs, pl } = await _monoSetup(['dark', 'dark', 'dark', 'dark', 'dark', 'dark', 'dark']);
+  assert.equal(pl.bench.length, 7);
+  assert.equal(gs.benchSlotsFor(pl, 'X'), 1, '上限 8 → 还能放 1 只');
+});
+
+await test('属性限制 运行时：检索只会把【恶】放进备战区', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  const owner = _elemMon('恶主', 'd0', 'dark');
+  owner.ability = { name:'恶之军势', zone:'field', effects: parseEffect(_MONO_ABILITY_TEXT).effects };
+  pl.active = owner; pl.bench = [];
+  pl.deck = ['D1', 'F1', 'D2'];
+  gs.cardResolver = fakeResolver(_elemEntries([['D1', '恶D1', 'dark'], ['F1', '火F1', 'fire'], ['D2', '恶D2', 'dark']]));
+  await executeEffects(gs, pl, parseEffect('选择自己牌库中的3张宝可梦，放于备战区。并重洗牌库。').effects);
+  assert.deepEqual(pl.bench.map(m => m.element), ['dark', 'dark'], '只能放【恶】');
+  assert.ok(!pl.bench.some(m => m.element === 'fire'), '火属性不应进备战区');
+  assert.ok(!gs.log.some(l => String(l).includes('效果失败')), '不应有静默失败');
+});
+
+await test('属性限制 伤害加成也受单属性前提约束', async () => {
+  const { gs, pl } = await _monoSetup(['dark', 'dark']);
+  const full = gs._counterValue(pl, pl.active, null, 'own_field_pokemon_type', { type:'dark' });
+  assert.equal(full, 3, '全【恶】场：出战 1 + 备战 2 = 3');
+  const gs2 = (await _monoSetup(['dark', 'fire'])).gs;
+  const pl2 = gs2.player1;
+  assert.equal(gs2._counterValue(pl2, pl2.active, null, 'own_field_pokemon_type', { type:'dark' }), 0,
+    '前提不满足时该特性给的加成归零（此前照样 +30×N）');
+});
+
+await test('属性限制 对手特性上限同样遵守「单属性场」前提', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  const limiter = _elemMon('限制者', 'o1', 'dark');
+  limiter.ability = { name:'压', zone:'field',
+    effects: parseEffect('这个特性只有当自己场上所有的宝可梦都是【恶】属性的场合才生效。对手可放于备战区的宝可梦数量就会变为3只。').effects };
+  opp.active = limiter; opp.bench = [];
+  assert.equal(gs.benchLimitOf(pl), 3, '对手全【恶】→限制生效');
+  opp.bench = [_elemMon('火', 'o2', 'fire')];
+  assert.equal(gs.benchLimitOf(pl), 5, '对手场上有非【恶】→该特性整体不生效');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

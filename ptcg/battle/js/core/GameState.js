@@ -550,6 +550,8 @@ export class GameState {
         if (eff.action !== 'usage_condition') continue;
         const p = eff.params || {};
         if (p.kind !== 'opp_bench_limit' || !(p.limit > 0)) continue;
+        // 该特性若带「只有当自己场上所有的宝可梦都是【X】属性」的前提，前提不满足时不生效
+        if (!this.isAbilityConditionMet(src)) continue;
         // 「只要这只宝可梦在**战斗场上**」→ 不在出战位就不生效。
         // 注意：归一化会把「只要这只宝可梦在战斗场上，」整段删掉，所以**不能只靠正则捕获**，
         // 要用 CardResolver._abilityZone 在原始卡面文本上算出的 ability.zone（被动扫描也是这么判的）。
@@ -559,6 +561,93 @@ export class GameState {
     }
     return limits.length ? Math.max(1, Math.min(...limits)) : BENCH_MAX;
   }
+  /**
+   * 「这个特性只有当自己场上所有的宝可梦都是【X】属性的场合才生效」
+   * —— 该前提**不满足时这个特性的全部效果都不生效**（含它给的上限/限制/伤害加成）。
+   * 返回该特性要求的属性；没有该前提时返回 null。
+   */
+  abilityMonoTypeOf(src){
+    if (!src?.ability?.effects?.length) return null;
+    for (const eff of src.ability.effects) {
+      if (eff.action === 'usage_condition' && eff.params?.kind === 'type_mono_ability' && eff.params.type) return eff.params.type;
+    }
+    return null;
+  }
+  hasMonoTypeField(pl, type){
+    const mons = [pl?.active, ...(pl?.bench || [])].filter(Boolean);
+    if (!mons.length) return false;
+    const want = this._normalizeType(type);
+    return mons.every(m => this._normalizeType(m.element || m.type || '') === want);
+  }
+  /** 我方场上是否有带「只有当自己场上所有的宝可梦都是【X】属性」前提的特性；返回该属性 */
+  _monoTypeGateOf(pl){
+    for (const src of [pl?.active, ...(pl?.bench || [])].filter(Boolean)) {
+      const need = this.abilityMonoTypeOf(src);
+      if (need) return need;
+    }
+    return null;
+  }
+
+  /** 这只宝可梦的特性当前是否生效（含「单属性场」前提） */
+  isAbilityConditionMet(src){
+    const need = this.abilityMonoTypeOf(src);
+    if (!need) return true;
+    const owner = [this.player1, this.player2].find(pl => this.getPokemonInPlay(pl).includes(src));
+    return owner ? this.hasMonoTypeField(owner, need) : false;
+  }
+  _monMatchesType(mon, type){
+    const want = this._normalizeType(type);
+    if (this._normalizeType(mon?.element || mon?.type || '') === want) return true;
+    return String(mon?.name || '').includes(`【${type}】`);
+  }
+  _cardMatchesElement(card, type){
+    if (!card) return false;
+    // 兼容三种入参：卡牌 id / 卡牌对象 / {card, info} 包装（选择器里两种都会出现）
+    const raw = (typeof card === 'object' && card.card) ? card.card : card;
+    const cd = typeof raw === 'object' ? raw : (this.cardResolver?.getCard?.(raw) || null);
+    if (!cd) return false;
+    const want = this._normalizeType(type);
+    if (this._normalizeType(cd.element || cd.type || '') === want) return true;
+    if ((cd.types || []).some(t => this._normalizeType(t) === want)) return true;
+    return String(cd.name || '').includes(`【${type}】`);
+  }
+  /**
+   * 「能够放于自己备战区的【X】宝可梦的数量变为N只，且无法将其他属性的宝可梦放于自己场上」
+   * 返回生效的属性规则（多条时取更严格的上限）。
+   */
+  benchTypeRule(pl){
+    const rules = [];
+    for (const src of [pl?.active, ...(pl?.bench || [])].filter(Boolean)) {
+      if (!src?.ability?.effects?.length || src.abilityDisabled) continue;
+      if (!this.isAbilityConditionMet(src)) continue;
+      for (const eff of this._enabledAbilityEffects(src)) {
+        if (eff.action !== 'usage_condition') continue;
+        const p = eff.params || {};
+        if (p.kind === 'bench_type_limit' && p.limit > 0 && p.type) rules.push(p);
+      }
+    }
+    if (!rules.length) return null;
+    return rules.reduce((a, b) => (b.limit < a.limit ? b : a));
+  }
+  /**
+   * 这只卡还能往备战区放几只（0 表示不能放）。
+   * 普通情况 = 上限 − 现有只数；有属性规则时：
+   *   · 该属性 → 上限按规则里的 N 只算（按该属性的只数计）
+   *   · 其他属性 → 规则带「无法将其他属性的宝可梦放于自己场上」时直接不可放
+   */
+  benchSlotsFor(pl, card){
+    const rule = this.benchTypeRule(pl);
+    const total = Math.max(0, this.benchLimitOf(pl) - (pl?.bench || []).length);
+    if (!rule) return total;
+    const used = (pl.bench || []).filter(Boolean).filter(m => this._monMatchesType(m, rule.type)).length;
+    const typeSlots = Math.max(0, rule.limit - used);
+    // card == null：还不知道要放哪张（如「任意数量」先问上限）→ 取**任何卡可用的最大值**
+    if (card == null) return rule.restrictOthers ? typeSlots : Math.max(total, typeSlots);
+    if (!this._cardMatchesElement(card, rule.type)) return rule.restrictOthers ? 0 : total;
+    return typeSlots;
+  }
+  canPlaceOnBench(pl, card){ return this.benchSlotsFor(pl, card) > 0; }
+
   _benchLimitCondMet(pl, p){
     const want = String(p.requireName || '');
     if (!want) return true;
@@ -998,7 +1087,15 @@ export class GameState {
       case 'own_lost_zone_total': return (pl.lostZone || []).length;
       case 'opponent_field_ability_count': return [opp.active, ...(opp.bench || [])].filter(Boolean).filter(m => m.ability).length;
       case 'own_field_has_damage': return inPlay.filter(m => m && m.maxHp && m.hp < m.maxHp).length;
-      case 'own_field_pokemon_type': { const ty = this._normalizeType(extra.type || ''); return inPlay.filter(m => m && this._normalizeType(m.element) === ty).length; }
+      case 'own_field_pokemon_type': {
+        // 这条计数只服务于「只有当自己场上所有的宝可梦都是【X】属性的场合才生效」的特性
+        //（如 SSP-088「造成自己场上【恶】宝可梦数量×30伤害」）。前提不满足时该特性整体不生效，
+        // 加成必须归零——实测此前非全恶场也会照常 +30×N。
+        const gate = this._monoTypeGateOf(pl);
+        if (gate && !this.hasMonoTypeField(pl, gate)) return 0;
+        const ty = this._normalizeType(extra.type || '');
+        return inPlay.filter(m => m && this._normalizeType(m.element) === ty).length;
+      }
       case 'own_bench_pokemon_type': { const ty = this._normalizeType(extra.type || ''); return (pl.bench || []).filter(m => m && this._normalizeType(m.element) === ty).length; }
       case 'own_field_tool': return inPlay.filter(m => m && m.tool).length;
       case 'self_basic_type_count': { const ts = new Set(); for (const e of (attacker?.energy || [])) { const s = String(typeof e === 'object' ? (e.cardId || e.name || e) : e); const mm = s.match(/【(.+?)】/); if (mm && (s.includes('基本') || !String(e).includes('特殊'))) ts.add(mm[1]); } return ts.size; }

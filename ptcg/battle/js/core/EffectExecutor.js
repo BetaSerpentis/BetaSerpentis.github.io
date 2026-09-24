@@ -1068,7 +1068,7 @@ const EXECUTORS = {
       return;
     }
     if (pl.deck.length === 0) { gs.addLog('牌库为空，无法搜索宝可梦'); return; } // 检索类允许空发
-    const openSlots = Math.max(0, gs.benchLimitOf(pl) - pl.bench.length);
+    const openSlots = gs.benchSlotsFor(pl, null);
     if (openSlots <= 0) { gs.addLog('备战区已满，无法放置宝可梦'); gs._shuffle(pl.deck); return; } // 无位置可放也属空发
     // countFrom：张数由场上/硬币决定
     //（「最多与对手备战宝可梦数量相同数量」「最多与出现正面次数相同数量」）
@@ -1094,7 +1094,7 @@ const EXECUTORS = {
     if (!selected.length) { gs.addLog('牌库中没有可放置的基础宝可梦'); gs._shuffle(pl.deck); if (_effectIsRequired(eff, p, options) && hasCandidates) _requiredFailure(eff?.action, 'required_no_candidates'); return; }
     let placed = 0;
     for (const item of selected) {
-      if (pl.bench.length >= gs.benchLimitOf(pl)) break;
+      if (!gs.canPlaceOnBench(pl, item.card)) continue;
       const idx = pl.deck.indexOf(item.card);
       if (idx < 0) continue;
       const cid = pl.deck.splice(idx, 1)[0];
@@ -1145,7 +1145,7 @@ const EXECUTORS = {
       let placed = 0;
       const rejected = [];
       for (const card of selectedCards) {
-        if (pl.bench.length >= gs.benchLimitOf(pl)) { rejected.push(card); continue; }
+        if (!gs.canPlaceOnBench(pl, card)) { rejected.push(card); continue; }
         const mon = _makeBenchPokemonFromCard(gs, card);
         if (mon) { pl.bench.push(mon); placed++; } else rejected.push(card);
       }
@@ -1956,12 +1956,12 @@ const EXECUTORS = {
   // ===== 弃牌区放备战 =====
   async discard_to_bench(gs, pl, p) {
     // count:'all' / 99 → 「将任意数量的…放置于备战区」
-    const want = (p.count === 'all' || p.count === 99) ? Math.max(1, gs.benchLimitOf(pl) - pl.bench.length) : (p.count || 1);
+    const want = (p.count === 'all' || p.count === 99) ? Math.max(1, gs.benchSlotsFor(pl, null)) : (p.count || 1);
     const selected = await _pickCardsFromZone(gs, pl, pl, pl.discard, want, {
       source:'discard-to-bench', filter:_recoverableFilter(gs, p.filter || '宝可梦'), prompt:'选择放到备战区的宝可梦',
       allowFewer:!!p.allowFewer, allowEmpty:!!p.allowEmpty, maxCount:p.maxCount, minCount:p.minCount, optional:!!p.optional
     });
-    for (const item of selected) { const idx = pl.discard.indexOf(item.card); if (idx >= 0) pl.discard.splice(idx, 1); const mon = _makeBenchPokemonFromCard(gs, item.card); if (mon && pl.bench.length < gs.benchLimitOf(pl)) pl.bench.push(mon); }
+    for (const item of selected) { const idx = pl.discard.indexOf(item.card); if (idx >= 0) pl.discard.splice(idx, 1); const mon = _makeBenchPokemonFromCard(gs, item.card); if (mon && gs.canPlaceOnBench(pl, item.card)) pl.bench.push(mon); }
     gs.addLog(`从弃牌区放置 ${selected.length} 只宝可梦到备战区`);
   },
 

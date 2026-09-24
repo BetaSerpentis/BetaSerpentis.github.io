@@ -1,4 +1,4 @@
-#eff1 hash=f420448768ffe661
+#eff1 hash=e305ee0b1a6b4f28
 151C-001	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-002	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-003	ability		0	usage_condition	{"kind":"requires_active"}
@@ -3605,8 +3605,9 @@ CS2bC-091	attack	1	0	search_deck_to_hand	{"filter":null,"count":2,"maxCount":2,"
 CS2bC-091	attack	1	1	shuffle_deck	{}
 CS2bC-092	attack	1	0	attach_energy_from_hand	{"filter":"【恶】能量","target":"any","count":1,"maxCount":1,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CS2bC-092	attack	2	0	conditional_damage_mod	{"condition":"opponent_active_name","name":"宝可梦VMAX","amount":120,"mode":"fixed"}
-CS2bC-093	ability		0	usage_condition	{"kind":"type_mono_ability","raw":"这个特性只有当自己场上所有的宝可梦都是【恶】属性的场合才生效"}
-CS2bC-093	ability		1	usage_condition	{"kind":"residual_sentence","raw":"能够放置于自己备战区的【恶】宝可梦的数量变为8只，且无法将其他属性的宝可梦放置于自己场上。"}
+CS2bC-093	ability		0	usage_condition	{"kind":"type_mono_ability","type":"恶","raw":"这个特性只有当自己场上所有的宝可梦都是【恶】属性的场合才生效"}
+CS2bC-093	ability		1	usage_condition	{"kind":"bench_type_limit","type":"恶","limit":8,"restrictOthers":true,"raw":"能够放置于自己备战区的【恶】宝可梦的数量变为8只，且无法将其他属性的宝可梦放置于自己场上"}
+CS2bC-093	ability		2	usage_condition	{"kind":"bench_limit_expiry_note","to":5,"raw":"当这个特性失效时，将备战宝可梦丢到弃牌区，直到备战宝可梦的数量变为5只"}
 CS2bC-093	attack	1	0	conditional_damage_mod	{"amount":30,"condition":"counter","counter":"own_field_pokemon_type","type":"dark","mode":"per_unit"}
 CS2bC-094	attack	1	0	conditional_damage_mod	{"amount":90,"condition":"own_pokemon_knocked_out_last_opponent_turn"}
 CS2bC-095	ability		0	trigger	{"event":"knocked_out","effect":{"action":"mill","params":{"target":"opponent","count":2}},"effects":[{"action":"mill","params":{"target":"opponent","count":2}}],"optional":false}
@@ -3655,8 +3656,9 @@ CS2bC-136	attack	1	0	coin_flip_damage	{"count":1,"damage":80}
 CS2bC-137	attack	1	0	shuffle_deck	{}
 CS2bC-137	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"给自己的所有备战宝可梦，各附着1张牌库中的【超】能量。"}
 CS2bC-137	attack	2	0	discard_energy_for_damage	{"count":"any","amountPer":60,"source":"field"}
-CS2bC-138	ability		0	usage_condition	{"kind":"type_mono_ability","raw":"这个特性只有当自己场上所有的宝可梦都是【恶】属性的场合才生效"}
-CS2bC-138	ability		1	usage_condition	{"kind":"residual_sentence","raw":"能够放置于自己备战区的【恶】宝可梦的数量变为8只，且无法将其他属性的宝可梦放置于自己场上。"}
+CS2bC-138	ability		0	usage_condition	{"kind":"type_mono_ability","type":"恶","raw":"这个特性只有当自己场上所有的宝可梦都是【恶】属性的场合才生效"}
+CS2bC-138	ability		1	usage_condition	{"kind":"bench_type_limit","type":"恶","limit":8,"restrictOthers":true,"raw":"能够放置于自己备战区的【恶】宝可梦的数量变为8只，且无法将其他属性的宝可梦放置于自己场上"}
+CS2bC-138	ability		2	usage_condition	{"kind":"bench_limit_expiry_note","to":5,"raw":"当这个特性失效时，将备战宝可梦丢到弃牌区，直到备战宝可梦的数量变为5只"}
 CS2bC-138	attack	1	0	conditional_damage_mod	{"amount":30,"condition":"counter","counter":"own_field_pokemon_type","type":"dark","mode":"per_unit"}
 CS3.5C-002	attack	1	0	damage_received_mod	{"amount":-40,"target":"self","duration":"next_opp_turn"}
 CS3.5C-003	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"若对手的战斗宝可梦身上附着特殊能量，则使该宝可梦【昏厥】。"}
@@ -4524,8 +4526,9 @@ CS4.1C-019	attack	1	0	usage_condition	{"kind":"bonus_damage_optional","raw":"若
 CS4.1C-019	attack	1	1	discard_energy	{"target":"self","count":"all"}
 CS4.1C-020	attack	1	0	attach_energy_from_hand	{"filter":"【恶】能量","target":"any","count":1,"maxCount":1,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CS4.1C-020	attack	2	0	conditional_damage_mod	{"condition":"opponent_active_name","name":"宝可梦VMAX","amount":120,"mode":"fixed"}
-CS4.1C-021	ability		0	usage_condition	{"kind":"type_mono_ability","raw":"这个特性只有当自己场上所有的宝可梦都是【恶】属性的场合才生效"}
-CS4.1C-021	ability		1	usage_condition	{"kind":"residual_sentence","raw":"能够放置于自己备战区的【恶】宝可梦的数量变为8只，且无法将其他属性的宝可梦放置于自己场上。"}
+CS4.1C-021	ability		0	usage_condition	{"kind":"type_mono_ability","type":"恶","raw":"这个特性只有当自己场上所有的宝可梦都是【恶】属性的场合才生效"}
+CS4.1C-021	ability		1	usage_condition	{"kind":"bench_type_limit","type":"恶","limit":8,"restrictOthers":true,"raw":"能够放置于自己备战区的【恶】宝可梦的数量变为8只，且无法将其他属性的宝可梦放置于自己场上"}
+CS4.1C-021	ability		2	usage_condition	{"kind":"bench_limit_expiry_note","to":5,"raw":"当这个特性失效时，将备战宝可梦丢到弃牌区，直到备战宝可梦的数量变为5只"}
 CS4.1C-021	attack	1	0	conditional_damage_mod	{"amount":30,"condition":"counter","counter":"own_field_pokemon_type","type":"dark","mode":"per_unit"}
 CS4.1C-022	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CS4.1C-022	ability		1	usage_condition	{"kind":"attach_steel_then_hand","raw":"若使用了，则。其中任意数量的【钢】能量，附于这只宝可梦身上。将剩余的卡牌加入手牌"}
@@ -17573,13 +17576,15 @@ SSP-086	ability		0	prevent_damage	{"source":"attack"}
 SSP-086	attack	1	0	discard_energy	{"target":"opponent_active","count":1,"filter":"特殊能量"}
 SSP-087	attack	1	0	attach_energy_from_hand	{"filter":"【恶】能量","target":"any","count":1,"maxCount":1,"minCount":0,"allowFewer":true,"allowEmpty":true}
 SSP-087	attack	2	0	conditional_damage_mod	{"condition":"opponent_active_name","name":"宝可梦VMAX","amount":120,"mode":"fixed"}
-SSP-088	ability		0	usage_condition	{"kind":"type_mono_ability","raw":"这个特性只有当自己场上所有的宝可梦都是【恶】属性的场合才生效"}
-SSP-088	ability		1	usage_condition	{"kind":"residual_sentence","raw":"能够放置于自己备战区的【恶】宝可梦的数量变为8只，且无法将其他属性的宝可梦放置于自己场上。"}
+SSP-088	ability		0	usage_condition	{"kind":"type_mono_ability","type":"恶","raw":"这个特性只有当自己场上所有的宝可梦都是【恶】属性的场合才生效"}
+SSP-088	ability		1	usage_condition	{"kind":"bench_type_limit","type":"恶","limit":8,"restrictOthers":true,"raw":"能够放置于自己备战区的【恶】宝可梦的数量变为8只，且无法将其他属性的宝可梦放置于自己场上"}
+SSP-088	ability		2	usage_condition	{"kind":"bench_limit_expiry_note","to":5,"raw":"当这个特性失效时，将备战宝可梦丢到弃牌区，直到备战宝可梦的数量变为5只"}
 SSP-088	attack	1	0	conditional_damage_mod	{"amount":30,"condition":"counter","counter":"own_field_pokemon_type","type":"dark","mode":"per_unit"}
 SSP-089	attack	1	0	attach_energy_from_hand	{"filter":"【恶】能量","target":"any","count":1,"maxCount":1,"minCount":0,"allowFewer":true,"allowEmpty":true}
 SSP-089	attack	2	0	conditional_damage_mod	{"condition":"opponent_active_name","name":"宝可梦VMAX","amount":120,"mode":"fixed"}
-SSP-090	ability		0	usage_condition	{"kind":"type_mono_ability","raw":"这个特性只有当自己场上所有的宝可梦都是【恶】属性的场合才生效"}
-SSP-090	ability		1	usage_condition	{"kind":"residual_sentence","raw":"能够放置于自己备战区的【恶】宝可梦的数量变为8只，且无法将其他属性的宝可梦放置于自己场上。"}
+SSP-090	ability		0	usage_condition	{"kind":"type_mono_ability","type":"恶","raw":"这个特性只有当自己场上所有的宝可梦都是【恶】属性的场合才生效"}
+SSP-090	ability		1	usage_condition	{"kind":"bench_type_limit","type":"恶","limit":8,"restrictOthers":true,"raw":"能够放置于自己备战区的【恶】宝可梦的数量变为8只，且无法将其他属性的宝可梦放置于自己场上"}
+SSP-090	ability		2	usage_condition	{"kind":"bench_limit_expiry_note","to":5,"raw":"当这个特性失效时，将备战宝可梦丢到弃牌区，直到备战宝可梦的数量变为5只"}
 SSP-090	attack	1	0	conditional_damage_mod	{"amount":30,"condition":"counter","counter":"own_field_pokemon_type","type":"dark","mode":"per_unit"}
 SSP-091	attack	1	0	usage_condition	{"kind":"mirror_last_damage_taken","raw":"追加造成在上一个对手的回合，这只宝可梦所受到的招式的伤害相同数值的伤害"}
 SSP-092	ability		0	prevent_effect	{"source":"attack"}
