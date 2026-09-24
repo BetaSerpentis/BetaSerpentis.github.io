@@ -1068,7 +1068,7 @@ const EXECUTORS = {
       return;
     }
     if (pl.deck.length === 0) { gs.addLog('牌库为空，无法搜索宝可梦'); return; } // 检索类允许空发
-    const openSlots = Math.max(0, 5 - pl.bench.length);
+    const openSlots = Math.max(0, gs.benchLimitOf(pl) - pl.bench.length);
     if (openSlots <= 0) { gs.addLog('备战区已满，无法放置宝可梦'); gs._shuffle(pl.deck); return; } // 无位置可放也属空发
     // countFrom：张数由场上/硬币决定
     //（「最多与对手备战宝可梦数量相同数量」「最多与出现正面次数相同数量」）
@@ -1094,7 +1094,7 @@ const EXECUTORS = {
     if (!selected.length) { gs.addLog('牌库中没有可放置的基础宝可梦'); gs._shuffle(pl.deck); if (_effectIsRequired(eff, p, options) && hasCandidates) _requiredFailure(eff?.action, 'required_no_candidates'); return; }
     let placed = 0;
     for (const item of selected) {
-      if (pl.bench.length >= 5) break;
+      if (pl.bench.length >= gs.benchLimitOf(pl)) break;
       const idx = pl.deck.indexOf(item.card);
       if (idx < 0) continue;
       const cid = pl.deck.splice(idx, 1)[0];
@@ -1145,7 +1145,7 @@ const EXECUTORS = {
       let placed = 0;
       const rejected = [];
       for (const card of selectedCards) {
-        if (pl.bench.length >= 5) { rejected.push(card); continue; }
+        if (pl.bench.length >= gs.benchLimitOf(pl)) { rejected.push(card); continue; }
         const mon = _makeBenchPokemonFromCard(gs, card);
         if (mon) { pl.bench.push(mon); placed++; } else rejected.push(card);
       }
@@ -1482,6 +1482,32 @@ const EXECUTORS = {
   // 注意把 pl 作为**兜底归属方**传进去：正常情况竞技场自带 owner，
   // 但万一没有（旧数据/异常流程），以前会既不清场也不进弃牌区、卡直接消失。
   discard_stadium(gs, pl, p) { const old = gs.clearActiveStadium?.(pl); gs.addLog(old ? '丢弃竞技场' : '无竞技场'); },
+
+  /**
+   * 「（对手|自己）将备战宝可梦（以及放于宝可梦身上的所有卡牌）放于弃牌区／放回牌库并重洗牌库，
+   *   直到其数量变为N只为止」——一次性收窄（与「上限变更」不同，不改上限本身）。
+   * mode:'discard'（默认）| 'return_to_deck'
+   */
+  async shrink_bench(gs, pl, p) {
+    const who = p.who || 'opponent';
+    const targets = who === 'both' ? [gs.player1, gs.player2] : (who === 'self' ? [pl] : [_opponent(gs, pl)]);
+    const to = Math.max(0, p.to || 0);
+    const mode = p.mode === 'return_to_deck' ? 'return_to_deck' : 'discard';
+    for (const pp of targets) {
+      let moved = 0;
+      while ((pp.bench || []).length > to) {
+        const mon = pp.bench.pop();
+        if (!mon) break;
+        const dest = mode === 'return_to_deck' ? pp.deck : pp.discard;
+        dest.push(mon.cardId);
+        for (const e of (mon.energy || [])) dest.push(typeof e === 'string' ? e : (e?.cardId || e));
+        if (mon.tool) dest.push(mon.tool.cardId || mon.tool);
+        moved++;
+      }
+      if (mode === 'return_to_deck' && moved) gs._shuffle(pp.deck);
+      if (moved) gs.addLog(`${pp.name} 将 ${moved} 只备战宝可梦${mode === 'return_to_deck' ? '放回牌库并重洗' : '丢到弃牌区'}（收窄到 ${to} 只）`);
+    }
+  },
 
   // ===== 自身伤害 =====
   self_damage(gs, pl, p) {
@@ -1930,12 +1956,12 @@ const EXECUTORS = {
   // ===== 弃牌区放备战 =====
   async discard_to_bench(gs, pl, p) {
     // count:'all' / 99 → 「将任意数量的…放置于备战区」
-    const want = (p.count === 'all' || p.count === 99) ? Math.max(1, 5 - pl.bench.length) : (p.count || 1);
+    const want = (p.count === 'all' || p.count === 99) ? Math.max(1, gs.benchLimitOf(pl) - pl.bench.length) : (p.count || 1);
     const selected = await _pickCardsFromZone(gs, pl, pl, pl.discard, want, {
       source:'discard-to-bench', filter:_recoverableFilter(gs, p.filter || '宝可梦'), prompt:'选择放到备战区的宝可梦',
       allowFewer:!!p.allowFewer, allowEmpty:!!p.allowEmpty, maxCount:p.maxCount, minCount:p.minCount, optional:!!p.optional
     });
-    for (const item of selected) { const idx = pl.discard.indexOf(item.card); if (idx >= 0) pl.discard.splice(idx, 1); const mon = _makeBenchPokemonFromCard(gs, item.card); if (mon && pl.bench.length < 5) pl.bench.push(mon); }
+    for (const item of selected) { const idx = pl.discard.indexOf(item.card); if (idx >= 0) pl.discard.splice(idx, 1); const mon = _makeBenchPokemonFromCard(gs, item.card); if (mon && pl.bench.length < gs.benchLimitOf(pl)) pl.bench.push(mon); }
     gs.addLog(`从弃牌区放置 ${selected.length} 只宝可梦到备战区`);
   },
 

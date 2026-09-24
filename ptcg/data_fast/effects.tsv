@@ -1,4 +1,4 @@
-#eff1 hash=287b33c374b462d2
+#eff1 hash=f420448768ffe661
 151C-001	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-002	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-003	ability		0	usage_condition	{"kind":"requires_active"}
@@ -9228,7 +9228,11 @@ CSM1cC-036	attack	3	0	shuffle_deck	{}
 CSM1cC-036	attack	3	1	usage_condition	{"kind":"attack_requires","conditionText":"对手备战区没有宝可梦"}
 CSM1cC-036	attack	3	2	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM1cC-036	attack	3	3	usage_condition	{"kind":"residual_sentence","raw":"将对手的战斗宝可梦，以及放置于其身上的所有卡牌，放回对手的牌库。"}
-CSM1cC-037	ability		0	usage_condition	{"kind":"generic_effect","raw":"对手可放置于备战区的宝可梦，就会变为4只。当对手的备战区有5只以上宝可梦（包含5只）时，对手将备战宝可梦丢到弃牌区直到备战宝可梦变为4只。［关于变更备战宝可梦的数量的效果，优先执行数量更少的效果。］"}
+CSM1cC-037	ability		0	usage_condition	{"kind":"opp_bench_limit","limit":4,"requiresActive":false,"raw":"对手可放置于备战区的宝可梦，就会变为4只"}
+CSM1cC-037	ability		1	usage_condition	{"kind":"bench_limit_enforce","threshold":5,"raw":"当对手的备战区有5只以上宝可梦（包含5只）时"}
+CSM1cC-037	ability		2	shrink_bench	{"who":"opponent","to":4,"mode":"discard"}
+CSM1cC-037	ability		3	usage_condition	{"kind":"bench_limit_priority_note","raw":"关于变更备战宝可梦的数量的效果，优先执行数量更少的效果"}
+CSM1cC-037	ability		4	usage_condition	{"kind":"shell_fragment","raw":"［。］"}
 CSM1cC-038	attack	2	0	coin_flip	{"count":1}
 CSM1cC-038	attack	2	1	usage_condition	{"kind":"endure_10_next","raw":"若为正面，则在下个对手的回合，这只宝可梦受到招式的伤害而【昏厥】时，不会【昏厥】，而会以剩余\\"10\\"HP的状态留在场上"}
 CSM1cC-039	ability		0	usage_condition	{"kind":"generic_effect","raw":"在这只宝可梦的HP为全满状态下，当这只宝可梦受到招式伤害而【昏厥】时，这只宝可梦不会【昏厥】，而会以剩余\\"10\\"HP的状态留在场上。"}
@@ -9413,7 +9417,11 @@ CSM1cC-154	ability		1	move_energy	{"source":"bench","dest":"active","count":1,"f
 CSM1cC-154	attack	1	0	conditional_damage_mod	{"amount":20,"condition":"self_energy","mode":"per_unit"}
 CSM1cC-155	ability		0	retreat_cost_zero	{"target":"self"}
 CSM1cC-156	ability		0	trigger	{"event":"evolved","effect":{"action":"damage_place","params":{"target":"opponent_any","count":2}},"effects":[{"action":"damage_place","params":{"target":"opponent_any","count":2}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"可使用1次。"}}],"optional":false}
-CSM1cC-157	ability		0	usage_condition	{"kind":"generic_effect","raw":"对手可放置于备战区的宝可梦，就会变为4只。当对手的备战区有5只以上宝可梦（包含5只）时，对手将备战宝可梦丢到弃牌区直到备战宝可梦变为4只。［关于变更备战宝可梦的数量的效果，优先执行数量更少的效果。］"}
+CSM1cC-157	ability		0	usage_condition	{"kind":"opp_bench_limit","limit":4,"requiresActive":false,"raw":"对手可放置于备战区的宝可梦，就会变为4只"}
+CSM1cC-157	ability		1	usage_condition	{"kind":"bench_limit_enforce","threshold":5,"raw":"当对手的备战区有5只以上宝可梦（包含5只）时"}
+CSM1cC-157	ability		2	shrink_bench	{"who":"opponent","to":4,"mode":"discard"}
+CSM1cC-157	ability		3	usage_condition	{"kind":"bench_limit_priority_note","raw":"关于变更备战宝可梦的数量的效果，优先执行数量更少的效果"}
+CSM1cC-157	ability		4	usage_condition	{"kind":"shell_fragment","raw":"［。］"}
 CSM1cC-158	attack	1	0	coin_flip	{"count":1,"heads":[{"action":"prevent_damage","params":{"duration":"next_opp_turn"}},{"action":"prevent_effect","params":{"duration":"next_opp_turn"}}]}
 CSM1cC-159	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CSM1cC-159	ability		1	search_deck_to_hand	{"filter":null,"count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
@@ -13537,9 +13545,10 @@ CSV5C-070	attack	1	0	conditional_damage_mod	{"amount":20,"condition":"opponent_r
 CSV5C-071	attack	1	0	mill	{"target":"opponent","count":1}
 CSV5C-071	attack	2	0	usage_condition	{"kind":"generic_effect","raw":"选择自己场上宝可梦身上附着的3个【雷】能量，丢到弃牌区。"}
 CSV5C-072	attack	1	0	inflict_status	{"statuses":["poison"]}
-CSV5C-073	ability		0	usage_condition	{"kind":"opp_bench_limit","raw":"对手可放置于备战区的宝可梦数量就会变为3只"}
-CSV5C-073	ability		1	usage_condition	{"kind":"residual_sentence","raw":"若对手的备战区有4只及以上宝可梦，则对手将备战宝可梦丢到弃牌区直到备战宝可梦变为3只为止。"}
-CSV5C-073	ability		2	usage_condition	{"kind":"residual_sentence","raw":"［关于变更备战宝可梦的数量的效果，优先执行数量更少的效果。"}
+CSV5C-073	ability		0	usage_condition	{"kind":"opp_bench_limit","limit":3,"requiresActive":false,"raw":"对手可放置于备战区的宝可梦数量就会变为3只"}
+CSV5C-073	ability		1	shrink_bench	{"who":"opponent","to":3,"mode":"discard"}
+CSV5C-073	ability		2	usage_condition	{"kind":"bench_limit_priority_note","raw":"关于变更备战宝可梦的数量的效果，优先执行数量更少的效果"}
+CSV5C-073	ability		3	usage_condition	{"kind":"shell_fragment","raw":"若对手的备战区有4只及以上宝可梦，则。"}
 CSV5C-073	attack	1	0	inflict_status	{"statuses":["poison"]}
 CSV5C-074	attack	2	0	conditional_damage_mod	{"amount":20,"condition":"opponent_bench_count","mode":"per_unit"}
 CSV5C-075	ability		0	trigger	{"event":"evolved","effect":{"action":"attach_energy_from_deck","params":{"filter":"【火】能量","target":"any","count":3,"maxCount":3,"minCount":0,"allowFewer":true,"allowEmpty":true}},"effects":[{"action":"attach_energy_from_deck","params":{"filter":"【火】能量","target":"any","count":3,"maxCount":3,"minCount":0,"allowFewer":true,"allowEmpty":true}},{"action":"shuffle_deck","params":{}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"可使用1次。"}}],"optional":false}
@@ -13633,9 +13642,10 @@ CSV5C-142	attack	1	0	conditional_damage_mod	{"amount":50,"condition":"counter","
 CSV5C-142	attack	2	0	cannot_attack_next	{"move":"狂徒拳"}
 CSV5C-143	attack	1	0	mill	{"target":"opponent","count":1}
 CSV5C-143	attack	2	0	usage_condition	{"kind":"generic_effect","raw":"选择自己场上宝可梦身上附着的3个【雷】能量，丢到弃牌区。"}
-CSV5C-144	ability		0	usage_condition	{"kind":"opp_bench_limit","raw":"对手可放置于备战区的宝可梦数量就会变为3只"}
-CSV5C-144	ability		1	usage_condition	{"kind":"residual_sentence","raw":"若对手的备战区有4只及以上宝可梦，则对手将备战宝可梦丢到弃牌区直到备战宝可梦变为3只为止。"}
-CSV5C-144	ability		2	usage_condition	{"kind":"residual_sentence","raw":"［关于变更备战宝可梦的数量的效果，优先执行数量更少的效果。"}
+CSV5C-144	ability		0	usage_condition	{"kind":"opp_bench_limit","limit":3,"requiresActive":false,"raw":"对手可放置于备战区的宝可梦数量就会变为3只"}
+CSV5C-144	ability		1	shrink_bench	{"who":"opponent","to":3,"mode":"discard"}
+CSV5C-144	ability		2	usage_condition	{"kind":"bench_limit_priority_note","raw":"关于变更备战宝可梦的数量的效果，优先执行数量更少的效果"}
+CSV5C-144	ability		3	usage_condition	{"kind":"shell_fragment","raw":"若对手的备战区有4只及以上宝可梦，则。"}
 CSV5C-144	attack	1	0	inflict_status	{"statuses":["poison"]}
 CSV5C-145	ability		0	trigger	{"event":"evolved","effect":{"action":"attach_energy_from_deck","params":{"filter":"【火】能量","target":"any","count":3,"maxCount":3,"minCount":0,"allowFewer":true,"allowEmpty":true}},"effects":[{"action":"attach_energy_from_deck","params":{"filter":"【火】能量","target":"any","count":3,"maxCount":3,"minCount":0,"allowFewer":true,"allowEmpty":true}},{"action":"shuffle_deck","params":{}},{"action":"usage_condition","params":{"kind":"shell_fragment","raw":"可使用1次。"}}],"optional":false}
 CSV5C-145	attack	1	0	conditional_damage_mod	{"amount":30,"condition":"opponent_prizes_taken","mode":"per_unit"}
@@ -16807,9 +16817,10 @@ CSVL2C-040	ability		0	trigger	{"event":"checkup","effect":{"action":"usage_condi
 CSVL2C-040	attack	1	0	mill	{"target":"opponent","count":1}
 CSVL2C-041	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
 CSVL2C-041	attack	1	1	shuffle_deck	{}
-CSVL2C-042	ability		0	usage_condition	{"kind":"opp_bench_limit","raw":"对手可放置于备战区的宝可梦数量就会变为3只"}
-CSVL2C-042	ability		1	usage_condition	{"kind":"residual_sentence","raw":"若对手的备战区有4只及以上宝可梦，则对手将备战宝可梦丢到弃牌区直到备战宝可梦变为3只为止。"}
-CSVL2C-042	ability		2	usage_condition	{"kind":"residual_sentence","raw":"［关于变更备战宝可梦的数量的效果，优先执行数量更少的效果。"}
+CSVL2C-042	ability		0	usage_condition	{"kind":"opp_bench_limit","limit":3,"requiresActive":false,"raw":"对手可放置于备战区的宝可梦数量就会变为3只"}
+CSVL2C-042	ability		1	shrink_bench	{"who":"opponent","to":3,"mode":"discard"}
+CSVL2C-042	ability		2	usage_condition	{"kind":"bench_limit_priority_note","raw":"关于变更备战宝可梦的数量的效果，优先执行数量更少的效果"}
+CSVL2C-042	ability		3	usage_condition	{"kind":"shell_fragment","raw":"若对手的备战区有4只及以上宝可梦，则。"}
 CSVL2C-042	attack	1	0	inflict_status	{"statuses":["poison"]}
 CSVL2C-043	ability		0	trigger	{"event":"turn_end","forced":true,"condition":{"requiresActive":true},"effects":[{"action":"mill","params":{"target":"self","count":5}}]}
 CSVL2C-043	ability		1	usage_condition	{"kind":"requires_active"}
@@ -16938,9 +16949,10 @@ CSVL2C-118	ability		0	prevent_effect	{"target":"own_field","source":"attack"}
 CSVL2C-118	attack	1	0	conditional_damage_mod	{"amount":40,"condition":"counter","counter":"own_bench_energy_type_count","type":"草","mode":"per_unit"}
 CSVL2C-119	ability		0	attack_cost_increase	{"target":"opponent_active","amount":1}
 CSVL2C-119	attack	1	0	conditional_damage_mod	{"amount":30,"condition":"both_active_energy_count","mode":"per_unit"}
-CSVL2C-120	ability		0	usage_condition	{"kind":"opp_bench_limit","raw":"对手可放置于备战区的宝可梦数量就会变为3只"}
-CSVL2C-120	ability		1	usage_condition	{"kind":"residual_sentence","raw":"若对手的备战区有4只及以上宝可梦，则对手将备战宝可梦丢到弃牌区直到备战宝可梦变为3只为止。"}
-CSVL2C-120	ability		2	usage_condition	{"kind":"residual_sentence","raw":"［关于变更备战宝可梦的数量的效果，优先执行数量更少的效果。"}
+CSVL2C-120	ability		0	usage_condition	{"kind":"opp_bench_limit","limit":3,"requiresActive":false,"raw":"对手可放置于备战区的宝可梦数量就会变为3只"}
+CSVL2C-120	ability		1	shrink_bench	{"who":"opponent","to":3,"mode":"discard"}
+CSVL2C-120	ability		2	usage_condition	{"kind":"bench_limit_priority_note","raw":"关于变更备战宝可梦的数量的效果，优先执行数量更少的效果"}
+CSVL2C-120	ability		3	usage_condition	{"kind":"shell_fragment","raw":"若对手的备战区有4只及以上宝可梦，则。"}
 CSVL2C-120	attack	1	0	inflict_status	{"statuses":["poison"]}
 CSVL2C-121	ability		0	trigger	{"event":"turn_end","forced":true,"condition":{"requiresActive":true},"effects":[{"action":"mill","params":{"target":"self","count":5}}]}
 CSVL2C-121	ability		1	usage_condition	{"kind":"requires_active"}
@@ -17914,7 +17926,6 @@ SVP-121	attack	2	1	damage_received_mod	{"amount":-100,"target":"self","duration"
 SVP-122	ability		0	dual_type	{"types":["grass","fire"]}
 SVP-122	attack	1	0	ignore	{"what":"resistance"}
 SVP-123	attack	2	0	damage_bench	{"target":"opponent_1","damage":30}
-SVP-123	attack	2	1	usage_condition	{"kind":"residual_sentence","raw":"[备战宝可梦不计算弱点、抗性。"}
 SVP-124	attack	2	0	discard_energy	{"target":"self","count":3}
 SVP-126	attack	1	0	discard_energy	{"target":"self","count":"all"}
 SVP-126	attack	1	1	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】"}
@@ -20281,19 +20292,19 @@ CS2bC-140	trainer		2	shuffle_deck	{}
 CS2bC-141	trainer		0	recover_from_discard	{"count":1,"target":"hand"}
 CS3.5C-060	trainer		0	recover_from_discard	{"filter":"宝可梦，和最多基本能量","target":"hand","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CS3.5C-061	trainer		0	draw	{"count":3}
-CS3.5C-061	trainer		1	usage_condition	{"kind":"opp_bench_discard_to","raw":"然后，对手将对手自己的备战宝可梦丢到弃牌区，直到其数量变为3只为止"}
+CS3.5C-061	trainer		1	shrink_bench	{"who":"opponent","to":3,"mode":"discard"}
 CS3.5C-062	trainer		0	discard_all_hand	{}
 CS3.5C-062	trainer		1	search_deck_to_hand	{"filter":"训练家","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CS3.5C-062	trainer		2	shuffle_deck	{}
 CS3.5C-078	trainer		0	recover_from_discard	{"filter":"宝可梦，和最多基本能量","target":"hand","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CS3.5C-079	trainer		0	draw	{"count":3}
-CS3.5C-079	trainer		1	usage_condition	{"kind":"opp_bench_discard_to","raw":"然后，对手将对手自己的备战宝可梦丢到弃牌区，直到其数量变为3只为止"}
+CS3.5C-079	trainer		1	shrink_bench	{"who":"opponent","to":3,"mode":"discard"}
 CS3.5C-080	trainer		0	discard_all_hand	{}
 CS3.5C-080	trainer		1	search_deck_to_hand	{"filter":"训练家","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CS3.5C-080	trainer		2	shuffle_deck	{}
 CS3.5C-085	trainer		0	recover_from_discard	{"filter":"宝可梦，和最多基本能量","target":"hand","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CS3.5C-086	trainer		0	draw	{"count":3}
-CS3.5C-086	trainer		1	usage_condition	{"kind":"opp_bench_discard_to","raw":"然后，对手将对手自己的备战宝可梦丢到弃牌区，直到其数量变为3只为止"}
+CS3.5C-086	trainer		1	shrink_bench	{"who":"opponent","to":3,"mode":"discard"}
 CS3.5C-087	trainer		0	discard_all_hand	{}
 CS3.5C-087	trainer		1	search_deck_to_hand	{"filter":"训练家","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CS3.5C-087	trainer		2	shuffle_deck	{}
@@ -21142,9 +21153,9 @@ CSM1bC-180	trainer		1	shuffle_deck	{}
 CSM1bC-181	trainer		0	draw_until	{"target":6}
 CSM1bC-181	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"若是最初的自己的回合使用，则直到手牌数量变为8张。"}
 CSM1bC-182	trainer		0	recover_from_discard	{"filter":"支援者和竞技场","target":"hand","count":2,"maxCount":2,"minCount":2,"allowFewer":false,"allowEmpty":false}
-CSM1cC-136	trainer		0	shuffle_deck	{}
-CSM1cC-136	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"这张卡，只有在自己的战斗场上有【水】或【钢】宝可梦时才可使用。"}
-CSM1cC-136	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"对手将对手自己的备战宝可梦以及放置于宝可梦身上的所有卡牌，放回牌库，直到备战宝可梦数量为2只为止。"}
+CSM1cC-136	trainer		0	shrink_bench	{"who":"opponent","to":2,"mode":"return_to_deck"}
+CSM1cC-136	trainer		1	shuffle_deck	{}
+CSM1cC-136	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"这张卡，只有在自己的战斗场上有【水】或【钢】宝可梦时才可使用。"}
 CSM1cC-137	trainer		0	return_to_hand	{"target":"choose","with_attachments":true}
 CSM1cC-138	trainer		0	draw_until	{"target":5,"preDiscardAny":true}
 CSM1cC-139	trainer		0	draw	{"count":2}
@@ -22294,7 +22305,7 @@ CSVH1aC-019	trainer		0	heal	{"amount":70}
 CSVH1aC-020	trainer		0	return_energy_to_hand	{"count":1}
 CSVH1aC-020	trainer		1	attach_energy_from_hand	{"filter":"能量","target":"active"}
 CSVH1aC-021	trainer		0	draw	{"count":3}
-CSVH1aC-021	trainer		1	usage_condition	{"kind":"opp_bench_discard_to","raw":"然后，对手将对手自己的备战宝可梦丢到弃牌区，直到其数量变为3只为止"}
+CSVH1aC-021	trainer		1	shrink_bench	{"who":"opponent","to":3,"mode":"discard"}
 CSVH1aC-022	trainer		0	trainer_prerequisite	{"kind":"opponent_prizes_at_most","raw":"这张卡，只有在对手的剩余奖赏卡张数在3张以下（包含3张）时才可使用","count":3}
 CSVH1aC-022	trainer		1	shuffle_hand_to_deck	{"who":"both"}
 CSVH1aC-022	trainer		2	shuffle_deck	{}
@@ -22760,12 +22771,12 @@ CS6.1C-004	trainer		0	heal_all	{"amount":10}
 CS6.1C-004	trainer		1	end_turn	{}
 CS6.1C-004	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"双方玩家，在自己的回合有1次机会，可点。"}
 CS6.1C-004	trainer		3	usage_condition	{"kind":"shell_fragment","raw":"在这种情况下，。"}
-CS6.5C-071	trainer		0	usage_condition	{"kind":"bench_limit","raw":"双方玩家可以放置于备战区的宝可梦数量，变为4只"}
-CS6.5C-071	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"［关于变更备战宝可梦的数量的效果，优先执行数量更少的效果。"}
+CS6.5C-071	trainer		0	usage_condition	{"kind":"bench_limit","limit":4,"raw":"双方玩家可以放置于备战区的宝可梦数量，变为4只"}
+CS6.5C-071	trainer		1	usage_condition	{"kind":"bench_limit_priority_note","raw":"关于变更备战宝可梦的数量的效果，优先执行数量更少的效果"}
 CS6.5C-071	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"（当这张卡被放置于场上时，备战区有5只以上宝可梦（包含5只）的玩家，将宝可梦丢到弃牌区直到备战区宝可梦变为4只为止。"}
 CS6.5C-071	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"丢到弃牌区的动作由这张卡的持有者开始执行。"}
-CS6.5C-095	trainer		0	usage_condition	{"kind":"bench_limit","raw":"双方玩家可以放置于备战区的宝可梦数量，变为4只"}
-CS6.5C-095	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"［关于变更备战宝可梦的数量的效果，优先执行数量更少的效果。"}
+CS6.5C-095	trainer		0	usage_condition	{"kind":"bench_limit","limit":4,"raw":"双方玩家可以放置于备战区的宝可梦数量，变为4只"}
+CS6.5C-095	trainer		1	usage_condition	{"kind":"bench_limit_priority_note","raw":"关于变更备战宝可梦的数量的效果，优先执行数量更少的效果"}
 CS6.5C-095	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"（当这张卡被放置于场上时，备战区有5只以上宝可梦（包含5只）的玩家，将宝可梦丢到弃牌区直到备战区宝可梦变为4只为止。"}
 CS6.5C-095	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"丢到弃牌区的动作由这张卡的持有者开始执行。"}
 CS6aC-130	trainer		0	usage_condition	{"kind":"generic_effect","raw":"双方玩家，每次在自己的回合有1次机会，可查看自己的牌库上方的1张卡后放回原处。若希望，可将该卡牌丢到弃牌区。在自己的回合只可以将1张竞技场卡放置于战斗区旁。若有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区。"}
@@ -22914,7 +22925,7 @@ CSV8C-261	trainer		0	usage_condition	{"kind":"generic_effect","raw":"双方场�
 CSV8C-262	trainer		0	tool_effect_nullify	{"scope":"both_field"}
 CSV9.5C-201	trainer		0	heal_status	{"target":"self"}
 CSV9.5C-202	trainer		0	tool_effect_nullify	{"scope":"both_field"}
-CSV9.5C-203	trainer		0	usage_condition	{"kind":"bench_limit_cond","raw":"自己场上有\\"太晶\\"宝可梦的玩家，可以放置于备战区的宝可梦数量变为8只"}
+CSV9.5C-203	trainer		0	usage_condition	{"kind":"bench_limit_cond","limit":8,"requireName":"太晶","raw":"自己场上有\\"太晶\\"宝可梦的玩家，可以放置于备战区的宝可梦数量变为8只"}
 CSV9.5C-204	trainer		0	heal_all	{"amount":30}
 CSV9.5C-204	trainer		1	usage_condition	{"kind":"shell_fragment","raw":"双方玩家，每次在自己的回合有1次机会，若将自己手牌中的1张\\"基本【超】能量\\"丢到弃牌区，则可。"}
 CSV9.5C-205	trainer		0	prevent_damage	{"source":"attack"}
@@ -22924,8 +22935,8 @@ CSV9C-205	trainer		0	shuffle_deck	{}
 CSV9C-205	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"双方玩家，每次在自己的回合有1次机会，可从自己的牌库选择1张，从自己场上1只【基础】宝可梦进化而来的【1阶进化】宝可梦，放置于那只宝可梦身上进行进化。"}
 CSV9C-205	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"若进化了，则可以继续选择1张【2阶进化】宝可梦，使其进化。"}
 CSV9C-206	trainer		0	usage_condition	{"kind":"generic_effect","raw":"双方场上的所有【基础】宝可梦的最大HP，各\\"+30\\"。"}
-CSV9C-207	trainer		0	usage_condition	{"kind":"bench_limit_cond","raw":"自己场上有\\"太晶\\"宝可梦的玩家，可以放置于备战区的宝可梦数量变为8只"}
-CSV9C-266	trainer		0	usage_condition	{"kind":"bench_limit_cond","raw":"自己场上有\\"太晶\\"宝可梦的玩家，可以放置于备战区的宝可梦数量变为8只"}
+CSV9C-207	trainer		0	usage_condition	{"kind":"bench_limit_cond","limit":8,"requireName":"太晶","raw":"自己场上有\\"太晶\\"宝可梦的玩家，可以放置于备战区的宝可梦数量变为8只"}
+CSV9C-266	trainer		0	usage_condition	{"kind":"bench_limit_cond","limit":8,"requireName":"太晶","raw":"自己场上有\\"太晶\\"宝可梦的玩家，可以放置于备战区的宝可梦数量变为8只"}
 CSVE1C-165	trainer		0	usage_condition	{"kind":"single_strike_cost_cond","raw":"双方玩家，每次在自己的回合有1次机会，若将自己手牌中的1张\\"一击\\"卡丢到弃牌区，则可"}
 CSVE1C-165	trainer		1	draw	{"count":2}
 CSVE1C-165	trainer		2	usage_condition	{"kind":"stadium_one_rule","raw":"在自己的回合，只可以将1张竞技场卡放置于战斗区旁。若有别的名称的竞技场卡被放入场上，则将此卡放入弃牌区"}
@@ -22950,8 +22961,8 @@ CSVE2C-200	trainer		0	search_deck_to_bench	{"filter":"【基础】宝可梦","co
 CSVE2C-200	trainer		1	shuffle_deck	{}
 CSVE2C-200	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"（除\\"拥有规则的宝可梦\\"外），放置于备战区。"}
 CSVE2C-201	trainer		0	attach_energy_from_discard	{"count":1,"filter":"【火】能量","target":"bench","targetType":"fire","damageCountersOnAttachedTarget":2}
-CSVM1aC-030	trainer		0	usage_condition	{"kind":"bench_limit","raw":"双方玩家可以放置于备战区的宝可梦数量，变为4只"}
-CSVM1aC-030	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"［关于变更备战宝可梦的数量的效果，优先执行数量更少的效果。"}
+CSVM1aC-030	trainer		0	usage_condition	{"kind":"bench_limit","limit":4,"raw":"双方玩家可以放置于备战区的宝可梦数量，变为4只"}
+CSVM1aC-030	trainer		1	usage_condition	{"kind":"bench_limit_priority_note","raw":"关于变更备战宝可梦的数量的效果，优先执行数量更少的效果"}
 CSVM1aC-030	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"（当这张卡被放置于场上时，备战区有5只以上宝可梦（包含5只）的玩家，将宝可梦丢到弃牌区直到备战区宝可梦变为4只为止。"}
 CSVM1aC-030	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"丢到弃牌区的动作由这张卡的持有者开始执行。"}
 CSVM1aC-031	trainer		0	search_deck_to_hand	{"filter":"宝可梦道具","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
@@ -22959,8 +22970,8 @@ CSVM1aC-031	trainer		1	shuffle_deck	{}
 CSVM1aC-032	trainer		0	search_deck_to_bench	{"filter":"【基础】宝可梦","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSVM1aC-032	trainer		1	shuffle_deck	{}
 CSVM1aC-032	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"（除\\"拥有规则的宝可梦\\"外），放置于备战区。"}
-CSVM1bC-031	trainer		0	usage_condition	{"kind":"bench_limit","raw":"双方玩家可以放置于备战区的宝可梦数量，变为4只"}
-CSVM1bC-031	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"［关于变更备战宝可梦的数量的效果，优先执行数量更少的效果。"}
+CSVM1bC-031	trainer		0	usage_condition	{"kind":"bench_limit","limit":4,"raw":"双方玩家可以放置于备战区的宝可梦数量，变为4只"}
+CSVM1bC-031	trainer		1	usage_condition	{"kind":"bench_limit_priority_note","raw":"关于变更备战宝可梦的数量的效果，优先执行数量更少的效果"}
 CSVM1bC-031	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"（当这张卡被放置于场上时，备战区有5只以上宝可梦（包含5只）的玩家，将宝可梦丢到弃牌区直到备战区宝可梦变为4只为止。"}
 CSVM1bC-031	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"丢到弃牌区的动作由这张卡的持有者开始执行。"}
 CSVM1bC-032	trainer		0	heal_all	{"amount":30}
@@ -22971,7 +22982,7 @@ CSVM1bC-033	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"（除
 CSVM1cC-027	trainer		0	search_deck_to_hand	{"filter":"宝可梦道具","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSVM1cC-027	trainer		1	shuffle_deck	{}
 CSVM2aC-030	trainer		0	tool_effect_nullify	{"scope":"both_field"}
-CSVM2aC-031	trainer		0	usage_condition	{"kind":"bench_limit_cond","raw":"自己场上有\\"太晶\\"宝可梦的玩家，可以放置于备战区的宝可梦数量变为8只"}
+CSVM2aC-031	trainer		0	usage_condition	{"kind":"bench_limit_cond","limit":8,"requireName":"太晶","raw":"自己场上有\\"太晶\\"宝可梦的玩家，可以放置于备战区的宝可梦数量变为8只"}
 CSVM2bC-031	trainer		0	search_deck_to_bench	{"filter":"【基础】宝可梦","count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CSVM2bC-031	trainer		1	shuffle_deck	{}
 CSVM2bC-031	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"（除\\"拥有规则的宝可梦\\"外），放置于备战区。"}

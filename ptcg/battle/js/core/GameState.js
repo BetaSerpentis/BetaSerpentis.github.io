@@ -382,7 +382,8 @@ export class GameState {
    * （例如既有检索又有其他收益的卡，规则上仍可打出）。
    */
   _benchSlotBlocked(pl, effects){
-    if((pl?.bench||[]).length < BENCH_MAX) return false;
+    // 上限可能被竞技场/特性改写（不再是固定 5 只）
+    if((pl?.bench||[]).length < this.benchLimitOf(pl)) return false;
     // 排除元数据与附带动作后再判断：剩下的“实质效果”如果全是“放到备战区”，
     // 备战区已满时这张卡/这个竞技场就用不了（不能空发）。
     const relevant=(effects||[]).filter(e=>e.action!=='usage_condition'
@@ -518,6 +519,72 @@ export class GameState {
   }
 
   getActiveStadium(){return this.stadium||this.player1.stadium||this.player2.stadium||null;}
+
+  /**
+   * 备战区上限。基础 5 只，可被两类持续效果改写：
+   *   ① 竞技场：「双方玩家可以放于备战区的宝可梦数量，变为N只」
+   *              「自己场上有「X」宝可梦的玩家，可以放于备战区的宝可梦数量变为N只」
+   *   ② 场上特性：「对手可放于备战区的宝可梦数量就会变为N只」（`只要这只宝可梦在场上/战斗场上`）
+   *
+   * 多条同时生效时按官方规则取**数量更少**的那条（「优先执行数量更少的效果」），
+   * 所以这里是 Math.min 而不是 max。
+   */
+  benchLimitOf(pl){
+    // 只收集**真正生效的「数量变更」效果**，再取其中最小的一条。
+    // ⚠️ 不能拿它们和基础值 5 取 min：「能够放于自己备战区的宝可梦数量变为8只」这类
+    //    **放宽**效果在没有其它效果竞争时就是 8 只（官方「优先执行数量更少的效果」说的是
+    //    多个变更效果之间比，不是与基础值比）。实测踩过：min(5,8)=5 导致 8 只失效。
+    const limits = [];
+    const st = this.getActiveStadium();
+    for (const eff of (st?.effects || [])) {
+      if (eff.action !== 'usage_condition') continue;
+      const p = eff.params || {};
+      if (p.kind === 'bench_limit' && p.limit > 0) limits.push(p.limit);
+      else if (p.kind === 'bench_limit_cond' && p.limit > 0 && this._benchLimitCondMet(pl, p)) limits.push(p.limit);
+    }
+    const opp = this.getOpponent(pl);
+    const oppMons = [opp?.active, ...(opp?.bench || [])].filter(Boolean);
+    for (const src of oppMons) {
+      if (!src?.ability?.effects?.length || src.abilityDisabled) continue;
+      for (const eff of this._enabledAbilityEffects(src)) {
+        if (eff.action !== 'usage_condition') continue;
+        const p = eff.params || {};
+        if (p.kind !== 'opp_bench_limit' || !(p.limit > 0)) continue;
+        // 「只要这只宝可梦在**战斗场上**」→ 不在出战位就不生效。
+        // 注意：归一化会把「只要这只宝可梦在战斗场上，」整段删掉，所以**不能只靠正则捕获**，
+        // 要用 CardResolver._abilityZone 在原始卡面文本上算出的 ability.zone（被动扫描也是这么判的）。
+        if ((p.requiresActive || src.ability?.zone === 'active') && src !== opp.active) continue;
+        limits.push(p.limit);
+      }
+    }
+    return limits.length ? Math.max(1, Math.min(...limits)) : BENCH_MAX;
+  }
+  _benchLimitCondMet(pl, p){
+    const want = String(p.requireName || '');
+    if (!want) return true;
+    return [pl?.active, ...(pl?.bench || [])].filter(Boolean).some(m => String(m.name || '').includes(want));
+  }
+  /**
+   * 把超出上限的备战宝可梦丢到弃牌区（含身上附着的能量与道具）。
+   * 这是**不变量**：上限被竞技场/特性改写后，任何时刻都应在下一检查点收敛到新上限。
+   * 无 UI 自动从末尾开始丢（不会阻塞回合流转）。
+   */
+  enforceBenchLimits(opts = {}){
+    const out = [];
+    for (const pl of [this.player1, this.player2]) {
+      const limit = this.benchLimitOf(pl);
+      while ((pl.bench || []).length > limit) {
+        const mon = pl.bench.pop();
+        if (!mon) break;
+        pl.discard.push(mon.cardId);
+        for (const e of (mon.energy || [])) pl.discard.push(typeof e === 'string' ? e : (e?.cardId || e));
+        if (mon.tool) pl.discard.push(mon.tool.cardId || mon.tool);
+        out.push({ player: pl.name, name: mon.name || mon.cardId, limit });
+      }
+    }
+    if (out.length) this.addLog(`备战区上限收窄：${out.map(o => `${o.player} 的 ${o.name}`).join('、')} 丢到弃牌区`);
+    return out;
+  }
   _stadiumDiscardCard(stadium){return stadium?.cardId||stadium?.name||stadium;}
   _makeStadiumState(owner,cardId,cd){return {cardId,name:cd?.name||String(cardId),card:cd,effects:cd?.effects||[],effectText:cd?.effectText||'',owner};}
   setActiveStadium(pl,hi,cd){

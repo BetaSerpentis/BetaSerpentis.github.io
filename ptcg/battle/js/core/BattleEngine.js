@@ -359,6 +359,8 @@ export class BattleEngine {
     }
     const usedCard = pl.hand[paidHandIndex];
     const ok = gs.useTrainer(pl, paidHandIndex, cardData, targetSlot, usedCard);
+    // 竞技场刚上场可能把上限改小（「双方玩家…变为4只」）→ 立刻收敛
+    if (ok) gs.enforceBenchLimits?.();
     const shouldExecuteEffects = ok && effects.length && cardData.trainerType !== 'stadium';
     // Stadium activation effects (for cards like 城镇百货公司) are future work:
     // playing a Stadium only places/replaces it and must not fire its ordinary parsed effects.
@@ -617,6 +619,9 @@ export class BattleEngine {
   finishTurn() {
     const gs = this.gs;
     gs._koContext = null; // 招式窗口结束：昏厥→放逐区 的招式型标记不再生效
+    // 备战区上限可能因特性/竞技场失效而收窄（「当这个特性失效时…直到变为5只为止」），
+    // 在切回合前收敛一次，保证任何时刻都不超过当前上限。
+    gs.enforceBenchLimits?.();
     gs.endTurn();
     if (gs.phase === PHASE.DRAW) gs.nextPhase();
     this.cb.onPhaseChange?.(gs.phase);

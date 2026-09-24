@@ -58,6 +58,13 @@ function normalizeCn(text) {
     .replace(/丢到弃牌区后才可使用/g, '丢到弃牌区才可使用')
     .replace(/从(?:自己的|自己)牌库中/g, '从自己的牌库')
     // 被动光环前缀：只要这只宝可梦在…上，/ 只要这张竞技场在场上，/ 只要身上放有这张卡牌的宝可梦在战斗场上，
+    // 编辑器注被句子切分截断时会只剩左括号（没有收尾］），这类**行尾未闭合**的注去掉。
+    // ⚠️ 不要顺手删「方括号里的整句注」：实测那样会连带删掉规则真正依赖的正文
+    //   （610 张卡受影响、TM 招式索引直接少掉一批，测试立刻报错）。
+    //   闭合的方括号注交给 RULES 里的 marker 规则处理。
+    // ⚠️ 含数字的方括号是**数值**（如被句子切分后的「伤害［-30」），绝不能删——
+    //   实测误删导致 5 张卡（CBB1C-100X）的 damage_received_mod 直接丢失。
+    .replace(/[\[［][^\[\]］]*$/, m => /\d/.test(m) ? m : '')
     .replace(/只要这只宝可梦在(?:战斗场上|场上|备战区)[，,]?/g, '')
     .replace(/只要这张竞技场在场上[，,]?/g, '')
     .replace(/只要身上放有这张卡牌的宝可梦在战斗场上[，,]?/g, '')
@@ -1197,8 +1204,8 @@ const RULES = [
   { re: /自己的["“”]([^"“”]+)["“”]宝可梦（除["“”]([^"“”]+)["“”]外）所使用的招式，给对手战斗宝可梦造成的伤害["“”]([+-]?\d+)["“”]/, act:'passive_damage_mod', p:m=>({target:'own_field',amount:+m[3]}) },
   { re: /自己【(.+?)】属性的【基础】宝可梦（除["“”]([^"“”]+)["“”]外）使用的招式，给对手战斗宝可梦造成的伤害["“”]([+-]?\d+)["“”]/, act:'passive_damage_mod', p:m=>({target:'own_field',amount:+m[3]}) },
   // --- 场地卡效果（数量上限/伤害修正 metadata 或近似）---
-  { re: /双方玩家可以放置于备战区的宝可梦数量，变为(\d+)只/, act:'usage_condition', p:m=>trainerPrerequisite('bench_limit', m[0]) },
-  { re: /自己场上有["“”]([^"“”]+)["“”]宝可梦的玩家，可以放置于备战区的宝可梦数量变为(\d+)只/, act:'usage_condition', p:m=>trainerPrerequisite('bench_limit_cond', m[0]) },
+  { re: /双方玩家可以放置于备战区的宝可梦数量，变为(\d+)只/, act:'usage_condition', p:m=>({ kind:'bench_limit', limit:+m[1], raw:m[0] }) },
+  { re: /自己场上有["“”]([^"“”]+)["“”]宝可梦的玩家，可以放置于备战区的宝可梦数量变为(\d+)只/, act:'usage_condition', p:m=>({ kind:'bench_limit_cond', limit:+m[2], requireName:m[1], raw:m[0] }) },
   // --- 各类 HP 恢复（进化/属性/剩余HP/全体/双方）---
   { re: /将自己所有进化宝可梦的HP，全部恢复/, act:'heal_all', p:()=>({amount:'full'}) },
   { re: /恢复自己1只身上附着【(.+?)】能量的宝可梦["“”]([+-]?\d+)["“”]HP/, act:'heal', p:m=>({amount:+m[2]}) },
@@ -1318,7 +1325,7 @@ const RULES = [
   { re: /选择自己备战区中的["“”]([^"“”]+)["“”]所拥有的1个招式，作为这个招式使用/, act:'usage_condition', p:m=>trainerPrerequisite('copy_move_from_bench', m[0]) },
   { re: /(?:造成|追加造成)自己弃牌区中的["“”]([^"“”]+)["“”](?:张数|数量)[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[2],condition:'counter',counter:'discard_name',name:m[1],mode:'per_unit'}) },
   { re: /若因为这个招式的伤害，对手的【基础】宝可梦【昏厥】，则多拿取(\d+)张奖赏卡/, act:'extra_prize', p:m=>({count:+m[1]}) },
-  { re: /对手可放置于备战区的宝可梦数量就会变为(\d+)只/, act:'usage_condition', p:m=>trainerPrerequisite('opp_bench_limit', m[0]) },
+  { re: /(?:只要这只宝可梦在(战斗场上|场上)[，,]?)?对手可放置于备战区的宝可梦(?:数量)?[，,]?就会变为(\d+)只/, act:'usage_condition', p:m=>({ kind:'opp_bench_limit', limit:+m[2], requiresActive:m[1]==='战斗场上', raw:m[0] }) },
   { re: /选择对手弃牌区中的1张【基础】宝可梦，放置于对手的备战区/, act:'discard_to_bench', p:()=>({count:1,filter:'宝可梦',side:'opponent'}) },
   // 升级：原为未建模标记 → 手牌与牌库顶互换
   { re: /选择自己的1张手牌，将其与牌库上方的卡牌互换/, act:'hand_deck_top_swap', p:()=>({ count:1 }) },
@@ -1815,7 +1822,7 @@ const RULES = [
   { re: /在这个回合，若从自己的手牌使出了["“"]([^"“"]+)["“"]，放置的伤害指示物数量变为(\d+)个/, act:'usage_condition', p:m=>trainerPrerequisite('counters_boost_cond', m[0]) },
   { re: /从自己的牌库选择【(.+?)】宝可梦和【(.+?)】能量合计最多(\d+)张，在给对手看过后，加入手牌/, act:'search_deck_to_hand', p:m=>withCount({filter:`【${m[1]}】宝可梦+【${m[2]}】能量`},m[3],true) },
   { re: /将(?:自己的|自己)?弃牌区中的任意(\d+)张卡，在给对手看过后，放回牌库/, act:'recover_from_discard', p:m=>withCount({filter:null,target:'deck'},m[1],false) },
-  { re: /然后，对手将对手自己的备战宝可梦丢到弃牌区，直到其数量变为(\d+)只为止/, act:'usage_condition', p:m=>trainerPrerequisite('opp_bench_discard_to', m[0]) },
+  { re: /(?:然后[，,]?)?(对手|自己|双方玩家)[，,]?(?:各)?将(?:对手自己的|自己的)?备战宝可梦(?:以及放置于宝可梦身上的所有卡牌)?[，,]?丢到弃牌区[，,]?直到(?:其)?(?:数量|备战宝可梦|备战宝可梦数量)(?:变为|为)?(\d+)只(?:为止)?/, act:'shrink_bench', p:m=>({ who:m[1]==='对手'?'opponent':(m[1]==='自己'?'self':'both'), to:+m[2], mode:'discard' }) },
   { re: /查看自己的牌库上方(\d+)张卡，将其中(\d+)张卡，加入手牌/, act:'peek_and_keep', p:m=>({peek:+m[1],keep:+m[2]}) },
   { re: /选择自己最多(\d+)只【(.+?)】宝可梦，各附着1张自己的牌库中的["“"]([^"“"]+)["“"]。附于战斗宝可梦身上的情况下，令那只宝可梦陷入【(.+?)】状态/, act:'usage_condition', p:m=>trainerPrerequisite('bench_n_energy_poison', m[0]) },
   { re: /身上放有这张卡的["“"]([^"“"]+)["“"]，最大HP会提高["“"]?\+?([+-]?\d+)["“"]?点，并且只要处于备战区，就/, act:'usage_condition', p:m=>trainerPrerequisite('tool_hp_bench_cond', m[0]) },
@@ -2014,6 +2021,19 @@ const RULES = [
   // 「查看自己的牌库上方N张卡。选择其中任意数量的X，在给对手看过后，加入手牌」→ 并入查看动作（带 filter）
   { re: /查看(?:自己的|自己)?牌库上方(\d+)张卡[。.]?选择其中任意数量的(.+?)[，,]?在给对手看过后[，,]?加入手牌/, act:'peek_and_keep', p:m=>({ peek:+m[1], keep:99, maxCount:99, minCount:0, allowFewer:true, allowEmpty:true, filter:m[2].replace(/["“”「」]/g,'').trim() }) },
 
+  // 方括号编者注：「［关于变更备战宝可梦的数量的效果，优先执行数量更少的效果。］」
+  // 这是规则提醒而非效果本身（该规则已由 benchLimitOf 的「多个变更效果取最小」实现），记标记避免留残句。
+  { re: /关于变更备战宝可梦的数量的效果[，,]?优先执行数量更少的效果/, act:'usage_condition', p:m=>({ kind:'bench_limit_priority_note', raw:m[0] }) },
+
+  // ===== 备战区上限：一次性收窄句 =====
+  // 「对手将对手自己的备战宝可梦（以及放于宝可梦身上的所有卡牌）放于弃牌区，直到其数量变为N只为止」
+
+  // 同上但「放回牌库并重洗牌库」
+  { re: /(对手|自己|双方玩家)[，,]?(?:各)?将(?:对手自己的|自己的)?备战宝可梦(?:以及放置于宝可梦身上的所有卡牌)?[，,]?放回牌库(?:并且重洗牌库)?[，,]?直到(?:其)?(?:数量|备战宝可梦|备战宝可梦数量)(?:变为|为)?(\d+)只(?:为止)?/, act:'shrink_bench', p:m=>({ who:m[1]==='对手'?'opponent':(m[1]==='自己'?'self':'both'), to:+m[2], mode:'return_to_deck' }) },
+  // 「当对手的备战区有N只以上宝可梦（包含N只）时，对手将备战宝可梦放于弃牌区直到备战宝可梦变为M只」
+  //  —— 上限变更本身已由 benchLimitOf + enforceBenchLimits 作为不变量保证，这里只记标记，避免留残句。
+  { re: /当对手的备战区有(\d+)只以上宝可梦[（(]包含\1只[）)]时/, act:'usage_condition', p:m=>({ kind:'bench_limit_enforce', threshold:+m[1], raw:m[0] }) },
+
   // ===== 长尾批次 6：「放置于备战区」簇 =====
   // ①「查看…选择其中任意数量的X，放置于备战区」——**并入前面的查看动作**（写成改写句）
   //    例：CBB6C-1301「查看自己牌库上方8张卡，选择其中任意数量的宝可梦，放置于备战区。」
@@ -2067,6 +2087,9 @@ function stripNotes(text) {
   let s = String(text || '');
   // 方括号注释（可能跨多段）
   s = s.replace(/[\[［][^\]］]*?[\]］]/g, '');
+  // 编辑器注被句子切分截断时会只剩左括号（如「［关于变更备战宝可梦的数量的效果…。」没有收尾］），
+  // 这类**行尾未闭合**的注一并去掉，否则会以残句形式进入未建模统计。
+  s = s.replace(/[\[［][^\[］]*$/, '');
   // 圆括号说明：从最内层剥起直至无可剥
   let prev = '';
   while (prev !== s) {

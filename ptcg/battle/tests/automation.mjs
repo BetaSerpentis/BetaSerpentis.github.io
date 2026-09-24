@@ -9186,6 +9186,122 @@ await test('长尾6 「选择自己牌库中的N张宝可梦」（未写【基�
   assert.equal(s.params.filter, '宝可梦');
 });
 
+
+// ============================================================
+//  备战区上限：真正强制执行
+// ============================================================
+
+const _benchStadium = (gs, pl, text) => ({
+  cardId: 'S-TEST', name: '测试竞技场', owner: pl,
+  effects: parseEffect(text).effects,
+});
+
+await test('上限 竞技场「双方变为4只」/ 条件「有「太晶」宝可梦的玩家变为8只」', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  assert.equal(gs.benchLimitOf(pl), 5, '基础是 5 只');
+  gs.stadium = _benchStadium(gs, pl, '双方玩家可以放于备战区的宝可梦数量，变为4只。');
+  assert.equal(gs.benchLimitOf(pl), 4, '竞技场→4 只');
+  gs.stadium = _benchStadium(gs, pl, '自己场上有「太晶」宝可梦的玩家，可以放于备战区的宝可梦数量变为8只。');
+  assert.equal(gs.benchLimitOf(pl), 5, '没有「太晶」宝可梦时条件不满足→仍是 5 只');
+  pl.active = mon('太晶ex', 'a1');
+  assert.equal(gs.benchLimitOf(pl), 8, '场上有「太晶」宝可梦→8 只（放宽）');
+  // ⚠️ 关键：多个变更效果之间取更严格的那条，而不是与基础值 5 比较
+  gs.stadium.effects = [
+    ...parseEffect('双方玩家可以放于备战区的宝可梦数量，变为4只。').effects,
+    ...parseEffect('自己场上有「太晶」宝可梦的玩家，可以放于备战区的宝可梦数量变为8只。').effects,
+  ];
+  assert.equal(gs.benchLimitOf(pl), 4, '同时有 4 与 8 → 取更严格的 4');
+});
+
+await test('上限 对手特性只在出战位生效（用 ability.zone 判位置）', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  const effects = parseEffect('只要这只宝可梦在战斗场上，对手可放于备战区的宝可梦数量就会变为3只。').effects;
+  const limiter = mon('限制者', 'o1');
+  limiter.ability = { name: '压制', zone: 'active', effects };
+  opp.active = mon('别的', 'o2');
+  opp.bench = [limiter];
+  assert.equal(gs.benchLimitOf(pl), 5, '限制者在备战区时不生效');
+  opp.active = limiter; opp.bench = [];
+  assert.equal(gs.benchLimitOf(pl), 3, '限制者在出战位时生效');
+});
+
+await test('上限 超出上限时把备战宝可梦（含附着卡）丢到弃牌区', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  pl.bench = [mon('a', 'b1'), mon('b', 'b2'), mon('c', 'b3'), mon('d', 'b4'), mon('e', 'b5')];
+  pl.bench[4].energy = ['E1'];
+  pl.bench[4].tool = { cardId: 'T1', name: '道具' };
+  pl.discard = [];
+  gs.stadium = _benchStadium(gs, pl, '双方玩家可以放于备战区的宝可梦数量，变为4只。');
+  const out = gs.enforceBenchLimits();
+  assert.equal(pl.bench.length, 4, '应收窄到 4 只');
+  assert.equal(out.length, 1, '应记录 1 只被收窄');
+  assert.ok(pl.discard.includes('b5'), '被收窄的宝可梦进弃牌区');
+  assert.ok(pl.discard.includes('E1') && pl.discard.includes('T1'), '身上附着的能量与道具一并进弃牌区');
+});
+
+await test('上限 上限已满时检索类效果不空发（备战区不超上限）', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  const limiter = mon('限制者', 'o1');
+  limiter.ability = { name: '压制', zone: 'active',
+    effects: parseEffect('只要这只宝可梦在战斗场上，对手可放于备战区的宝可梦数量就会变为3只。').effects };
+  opp.active = limiter;
+  pl.active = mon('我', 'a1');
+  pl.bench = [mon('x', 'b1'), mon('y', 'b2'), mon('z', 'b3')];
+  pl.deck = ['N1', 'N2'];
+  gs.cardResolver = fakeResolver({
+    'N1': { card:{ cardType:'pokemon', name:'新1', hp:60, cardId:'N1', stage:'基础', element:'colorless', attacks:[], retreatCost:1 }, info:{ name:'新1' } },
+    'N2': { card:{ cardType:'pokemon', name:'新2', hp:60, cardId:'N2', stage:'基础', element:'colorless', attacks:[], retreatCost:1 }, info:{ name:'新2' } },
+  });
+  await executeEffects(gs, pl, parseEffect('选择自己牌库中的1张宝可梦，放于备战区。并重洗牌库。').effects);
+  assert.equal(pl.bench.length, 3, '上限 3 已满 → 不能再放（实测曾按硬编码 5 只放进去）');
+});
+
+await test('shrink_bench 运行时：对手收窄到 2 只（丢弃牌区）', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  opp.bench = [mon('a', 'o1'), mon('b', 'o2'), mon('c', 'o3')];
+  opp.discard = [];
+  await executeEffects(gs, pl, parseEffect('对手将对手自己的备战宝可梦放于弃牌区，直到其数量变为2只为止。').effects);
+  assert.equal(opp.bench.length, 2, '应收窄到 2 只');
+  assert.equal(opp.discard.length, 1, '被收窄的 1 只进弃牌区');
+});
+
+await test('shrink_bench 运行时：收窄并「放回牌库并重洗牌库」', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  opp.bench = [mon('a', 'o1'), mon('b', 'o2'), mon('c', 'o3')];
+  opp.deck = []; opp.discard = [];
+  await executeEffects(gs, pl, parseEffect('对手将对手自己的备战宝可梦以及放于宝可梦身上的所有卡牌，放回牌库并重洗牌库，直到备战宝可梦数量为2只为止。').effects);
+  assert.equal(opp.bench.length, 2, '应收窄到 2 只');
+  assert.equal(opp.deck.length, 1, '被收窄的卡应回牌库');
+  assert.equal(opp.discard.length, 0, '不应进弃牌区');
+});
+
+await test('上限 解析：上限句与收窄句都建模（不留残句）', () => {
+  const checks = [
+    ['双方玩家可以放于备战区的宝可梦数量，变为4只。', 'bench_limit'],
+    ['只要这只宝可梦在战斗场上，对手可放于备战区的宝可梦数量就会变为3只。', 'opp_bench_limit'],
+  ];
+  for (const [text, kind] of checks) {
+    const e = parseEffect(text).effects;
+    assert.equal(e[0].params?.kind, kind, `${text} → ${kind}`);
+  }
+  const s = parseEffect('对手将对手自己的备战宝可梦放于弃牌区，直到其数量变为3只为止。').effects;
+  assert.equal(s[0].action, 'shrink_bench');
+  assert.equal(s[0].params.who, 'opponent');
+  assert.equal(s[0].params.to, 3);
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',
