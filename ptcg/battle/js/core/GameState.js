@@ -956,6 +956,27 @@ export class GameState {
     return (mon.ability?.effects||[]).some(e=>e.action==='usage_condition'&&e.params?.kind==='evolve_on_first_turn_going_second');
   }
 
+  /**
+   * 「[对战中，己方的GX招式只能使用1次。]」/「[对战中，己方的VSTAR力量只能使用1次。]」
+   *
+   * 卡面把这条写在方括号里，解析端记成了 `gx_once_per_game` / `vstar_power_once` 标记，
+   * 但**引擎此前根本不读它** → 同一局能用出 2 个以上 GX/VSTAR 招式 ✗。
+   * 这里按招式名的后缀识别（简中卡面就是「日神爆诞GX」「…VSTAR」这种写法）。
+   */
+  _isGxAttack(attack){return /GX\s*$/i.test(String(attack?.name||''));}
+  _isVstarAttack(attack){return /VSTAR\s*$/i.test(String(attack?.name||''));}
+  _oncePerGameAttackFailure(pl,attack){
+    if(!pl||!attack)return null;
+    if(this._isGxAttack(attack)&&pl.gxUsed)return {reason:'gx_used',message:'这一局已经使用过GX招式'};
+    if(this._isVstarAttack(attack)&&pl.vstarUsed)return {reason:'vstar_used',message:'这一局已经使用过VSTAR力量'};
+    return null;
+  }
+  markOncePerGameAttackUsed(pl,attack){
+    if(!pl||!attack)return;
+    if(this._isGxAttack(attack))pl.gxUsed=true;
+    if(this._isVstarAttack(attack))pl.vstarUsed=true;
+  }
+
   canUseAttack(pl,mon,attackIndex=0){
     if(!pl||!mon)return {ok:false,reason:'no_pokemon',message:'没有宝可梦'};
     if(this.phase===PHASE.GAME_OVER||this.phase===PHASE.SETUP)return {ok:false,reason:'wrong_phase',message:'当前阶段不能使用招式'};
@@ -970,6 +991,8 @@ export class GameState {
     if(this._attackRequiresStadium(mon,attackIndex)&&!this.getActiveStadium())return {ok:false,reason:'requires_stadium',message:'场上没有竞技场，这个招式会失败'};
     // 通用招式前提（「若…则这个招式失败」）：不满足时同样置灰并说明原因
     { const pre=this._attackPreconditionFailure(pl,mon,attackIndex); if(pre)return {ok:false,reason:'attack_precondition',message:pre}; }
+    // GX/VSTAR 每局一次
+    { const once=this._oncePerGameAttackFailure(pl,this.getAttacks(mon)?.[attackIndex]); if(once)return {ok:false,reason:once.reason,message:once.message}; }
     return {ok:true};
   }
 

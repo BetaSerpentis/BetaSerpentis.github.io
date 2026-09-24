@@ -429,6 +429,12 @@ export class BattleEngine {
     const def = (atk === gs.player1) ? gs.player2 : gs.player1;
 
     if (gs.phase !== PHASE.BATTLE) { this.cb.onLog?.('非战斗阶段'); return false; }
+    // GX / VSTAR 每局一次（卡面方括号条款；此前引擎从不限制）
+    {
+      const idx = Number.isInteger(attackIndex) ? attackIndex : 0;
+      const once = gs._oncePerGameAttackFailure?.(atk, gs.getAttacks?.(atk.active)?.[idx]);
+      if (once) { gs.addLog?.(once.message); this.cb.onLog?.(once.message); this.cb.onFieldUpdate?.(); return false; }
+    }
     if (gs.firstPlayerFirstTurnInProgress && atk === gs.firstPlayer) {
       // 例外：卡面写着「这个招式，即使是先攻玩家的最初回合也可使用」的招式要放行
       const idx = Number.isInteger(attackIndex) ? attackIndex : 0;
@@ -612,6 +618,7 @@ export class BattleEngine {
     }
 
     // A successful attack ends the player's turn immediately.
+    gs.markOncePerGameAttackUsed?.(atk, gs.getAttacks?.(atk.active)?.[Number.isInteger(attackIndex) ? attackIndex : 0]);
     this.finishTurn();
     return true;
   }

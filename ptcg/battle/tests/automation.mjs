@@ -9516,6 +9516,66 @@ await test('无条件的 conditional_damage_mod 作为固定加成生效（此�
   assert.equal(gs.getConditionalDamageModifier(attacker, null, move, pl), 70, '应加 70（此前兜底缺失 → 恒加 0）');
 });
 
+
+// ============================================================
+//  GX / VSTAR 每局一次（卡面方括号条款此前从未被引擎读取）
+// ============================================================
+
+const _gxMon = (name, attacks) => Object.assign(mon(name, 'gx-test'), {
+  attacks, energy: ['a', 'b', 'c'],
+});
+
+await test('GX 每局一次：用过之后不能再使用（普通招式不受影响）', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  const m = _gxMon('测试', [
+    { name: '普通招式', cost: [], damage: 10, effects: [] },
+    { name: '日神爆诞GX', cost: [], damage: 200, effects: [] },
+  ]);
+  pl.active = m;
+  gs.phase = 'battle';
+  gs.currentPlayer = pl;
+  assert.equal(gs.canUseAttack(pl, m, 1).ok, true, '首次可用');
+  gs.markOncePerGameAttackUsed(pl, gs.getAttacks(m)[1]);
+  const blocked = gs.canUseAttack(pl, m, 1);
+  assert.equal(blocked.ok, false, '用过之后应置灰');
+  assert.equal(blocked.reason, 'gx_used');
+  assert.equal(gs.canUseAttack(pl, m, 0).ok, true, '普通招式不受影响');
+});
+
+await test('VSTAR 每局一次：用过之后不能再使用', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  const m = _gxMon('测试', [{ name: '星星祈愿VSTAR', cost: [], damage: 0, effects: [] }]);
+  pl.active = m;
+  gs.phase = 'battle';
+  gs.currentPlayer = pl;
+  assert.equal(gs.canUseAttack(pl, m, 0).ok, true, '首次可用');
+  gs.markOncePerGameAttackUsed(pl, gs.getAttacks(m)[0]);
+  const blocked = gs.canUseAttack(pl, m, 0);
+  assert.equal(blocked.ok, false);
+  assert.equal(blocked.reason, 'vstar_used');
+});
+
+await test('GX/VSTAR 识别只看招式名后缀（普通招式名里出现 GX 字样不算）', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  assert.equal(gs._isGxAttack({ name: '日神爆诞GX' }), true);
+  assert.equal(gs._isGxAttack({ name: 'GX 冲击' }), false, '不以 GX 结尾的不算');
+  assert.equal(gs._isGxAttack({ name: '普通招式' }), false);
+  assert.equal(gs._isVstarAttack({ name: '星星祈愿VSTAR' }), true);
+  assert.equal(gs._isVstarAttack({ name: '普通招式' }), false);
+});
+
+await test('审计脚本：没有新增「无人读取」的 usage_condition 标记', async () => {
+  // 门禁：待判定行数不允许超过基线（见 ptcg/tools/audit-inert-markers.mjs）
+  const { execFileSync } = await import('node:child_process');
+  const out = execFileSync(process.execPath, ['ptcg/tools/audit-inert-markers.mjs', '--check'], { cwd: process.cwd(), encoding: 'utf8' });
+  assert.ok(out.includes('未超基线'), `审计脚本应通过（实际输出：${out.split('\n').slice(-3).join(' | ')}）`);
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',
