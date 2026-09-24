@@ -126,6 +126,11 @@ export class GameState {
       if(!mon.attackShieldArmed){mon.preventDamage=false;mon.preventEffect=false;mon.damageFlipShieldArmed=false;}
       mon.damageMod=0;mon.damageReceivedMod=0;
       mon.cannotAttackNext=false;mon.cannotRetreat=false;mon.ignore=[];
+      // 「在下个对手的回合，受到这个招式影响的宝可梦在使用招式时…出现反面则那个招式失败」
+      // 标记打在**受影响方**身上；放在这个循环里（结束回合方的宝可梦）清理，
+      // 时序正好：我在自己回合标记对手的宝可梦 → 我回合结束时不会清（它不是 currentPlayer 的）
+      // → 对手回合内一直有效 → 对手回合结束时被清掉。
+      mon.coinFailAttackNext=0;
       mon.costEliminated=false;mon.abilityUsed=false;
     }
     // 1.1 对手身上「活到对手回合结束」的防护：刚结束的这个回合就是它的生效窗口 → 到期清除
@@ -203,7 +208,7 @@ export class GameState {
     stage:cd?.stage||'基础',evolvesFrom:cd?.evolvesFrom||null,ruleText:cd?.ruleText||'',rule2Text:cd?.rule2Text||'',ruleBox:cd?.ruleBox||'',
     isEx:!!cd?.isEx,isRadiant:!!cd?.isRadiant,hasRuleBox:!!cd?.hasRuleBox,
     attacks:cd?.attacks||[{name:'撞击',damage:20,cost:[],effect:''}],energy:[],status:null,placedThisTurn:true,evolvedThisTurn:false,
-    tool:null,ability:cd?.ability||null,abilityUsed:false,abilityDisabled:false,abilityDisabledBy:null,damageMod:0,damageReceivedMod:0,preventDamage:false,preventEffect:false,cannotAttackNext:false,cannotRetreat:false,
+    tool:null,ability:cd?.ability||null,abilityUsed:false,abilityDisabled:false,abilityDisabledBy:null,damageMod:0,damageReceivedMod:0,preventDamage:false,preventEffect:false,cannotAttackNext:false,cannotRetreat:false,coinFailAttackNext:0,
     ignore:[],costEliminated:false,retreatCost:cd?.retreatCost??1};}
 
   placeActive(pl,idx,cd=null){
@@ -336,7 +341,7 @@ export class GameState {
     }
     return true;
   }
-  _removeSpecialConditions(mon){if(!mon)return;mon.status=null;mon.poisonCounters=null;mon.cannotAttackNext=false;mon.cannotRetreat=false;mon.preventDamage=false;mon.preventEffect=false;mon.attackShieldArmed=false;mon.damageMod=0;mon.damageReceivedMod=0;mon.ignore=[];mon.costEliminated=false;mon.retreatCostIncrease=0;mon.attackCostIncrease=0;}
+  _removeSpecialConditions(mon){if(!mon)return;mon.status=null;mon.poisonCounters=null;mon.coinFailAttackNext=0;mon.cannotAttackNext=false;mon.cannotRetreat=false;mon.preventDamage=false;mon.preventEffect=false;mon.attackShieldArmed=false;mon.damageMod=0;mon.damageReceivedMod=0;mon.ignore=[];mon.costEliminated=false;mon.retreatCostIncrease=0;mon.attackCostIncrease=0;}
 
   retreat(pl,benchIndex,selectedEnergyIndices=null){if(pl.retreatUsed){this.addLog('本回合已撤退过');return false;}if(!pl.active||!pl.bench[benchIndex]){this.addLog('撤退目标不存在');return false;}
     const st=pl.active.status||'';if(st.includes('sleep')||st.includes('paralysis')||pl.active.cannotRetreat){this.addLog('无法撤退');return false;}

@@ -351,6 +351,15 @@ const RULES = [
   { re: /将自己(?:的)?牌库上方(\d+)张卡(?:牌)?(?:丢到弃牌区|放于弃牌区)[，,]?将其中所有的【(.+?)】能量(?:附着于|附于)这只宝可梦身上/, act:'attach_energy_from_discard', p:m=>withCount({filter:`【${m[2]}】能量`,target:'active'},99,true) },
   { re: /将自己(?:的)?牌库上方的1张卡(?:牌)?(?:丢到弃牌区|放于弃牌区)[，,]?(?:如果|若)该卡(?:牌)?是基本能量(?:的话)?[，,]?则(?:附着于|附于)自己的宝可梦身上/, act:'attach_energy_from_discard', p:()=>withCount({filter:'基本能量',target:'any'},1,true) },
   // 硬币正面后附着（露力丽）
+  // ===== 「下个对手回合，它用招式时掷硬币、出现反面则失败」 =====
+  // ⚠️ 必须排在通用 coin_flip 规则**之前**：否则「对手将抛掷N次硬币」会被先吃成 coin_flip，
+  //    这里就拿不到次数了（实测正是这样变成残句的）。
+  { re: /在(?:下一个|下个)对手的回合[，,]?受到这个招式影响的宝可梦在使用招式时[，,]?(?:对手|自己)(?:将)?(?:抛|投)?掷(\d+)次硬币/, act:'coin_fail_attack_next', p:m=>({ count:+m[1] }) },
+  // 第二段（被句号切开）：「只要出现1次反面，那么那个招式失败」/「若为反面则那个招式失败」
+  // 用改写句并入上面的动作，避免残留未建模标记。
+  { re: /只要出现1次反面[，,]?那么那个招式失败/, act:'action_count_override', p:m=>({ targets:['coin_fail_attack_next'], set:{ failOnTails:true }, raw:m[0] }) },
+  { re: /若为反面则那个招式失败/, act:'action_count_override', p:m=>({ targets:['coin_fail_attack_next'], set:{ failOnTails:true }, raw:m[0] }) },
+
   { re: /掷1次硬币(?:如果|若)为正面[，,]?则将自己弃牌区中的(\d+)张基本能量[，,]?(?:附着于|附于)战斗宝可梦身上/, act:'coin_flip', p:m=>({count:1,heads:[{action:'attach_energy_from_discard',params:{filter:'基本能量',target:'active',count:+m[1]}}]}) },
 
   // 转附补充变体（【昏厥】了的宝可梦 / 备战→战斗 / 自方任意→其他）
@@ -1571,7 +1580,6 @@ const RULES = [
   // --- 查看后剩余卡放回牌库（超级球/米立龙尾等）---
   { re: /将剩余的卡牌放回牌库/, act:'usage_condition', p:m=>trainerPrerequisite('put_remaining_back', m[0]) },
   // --- 海刺龙：下回合硬币失败则招式失败 ---
-  { re: /在下个对手的回合，受到这个招式影响的宝可梦在使用招式时，对手将(?:掷|抛掷)[^。]*只要出现1次反面，那么那个招式失败/, act:'usage_condition', p:m=>trainerPrerequisite('coin_fail_attack_next', m[0]) },
   // --- 弃牌区宝可梦+道具各 1 张回牌库（水莲的钓竿）---
   { re: /将(?:自己的|自己)?弃牌区中的(.+?)和["“”]([^"“”]+)["“"]各1张，在给对手看过后，放回牌库/, act:'recover_from_discard', p:m=>withCount({filter:m[1],target:'deck'},2,false) },
   // --- 不公印章残余兜底（双方手牌回牌库）---
@@ -1582,7 +1590,6 @@ const RULES = [
   // --- 牌库属性能量检索（打火石类）---
   { re: /将(?:自己的|自己)?牌库中最多(\d+)张【(.+?)】能量，在给对手看过后，加入手牌/, act:'search_deck_to_hand', p:m=>withCount({filter:`【${m[2]}】能量`},m[1],true) },
   // --- 海刺龙：下回合对手掷硬币失败则招式失败（残余形态）---
-  { re: /在下个对手的回合，受到这个招式影响的宝可梦在使用招式时，对手将。只要出现1次反面，那么那个招式失败/, act:'usage_condition', p:m=>trainerPrerequisite('coin_fail_attack_next', m[0]) },
   // --- 特性自昏 + 附能（顽皮雷弹类片段）---
   { re: /(?:令|使)这只宝可梦【昏厥】/, act:'knockout', p:()=>({target:'self'}) },
   { re: /从自己的牌库选择最多(\d+)张【(.+?)】能量，以任意方式附于自己的【(.+?)】宝可梦身上/, act:'attach_energy_from_deck', p:m=>withCount({filter:`【${m[2]}】能量`,target:'any',targetType:ELEM[m[3]]||m[3]},m[1],true) },
@@ -1604,7 +1611,6 @@ const RULES = [
   { re: /将与出现正面的次数相同张数的(.+?)，在给对手看过后，加入手牌/, act:'usage_condition', p:m=>trainerPrerequisite('search_by_coin_heads', m[0]) },
   { re: /将与出现正面次数相同数量的(.+?)，在给对手看过后，加入手牌/, act:'usage_condition', p:m=>trainerPrerequisite('search_by_coin_heads', m[0]) },
   { re: /将(?:自己的|自己)?牌库中，与对手场上宝可梦相同属性的1张宝可梦，在给对手看过后，加入手牌/, act:'search_deck_to_hand', p:m=>withCount({filter:'与对手场上宝可梦相同属性的宝可梦'},1,false) },
-  { re: /在下个对手的回合，受到这个招式影响的宝可梦在使用招式时，对手将。若为反面则那个招式失败/, act:'usage_condition', p:m=>trainerPrerequisite('coin_fail_attack_next', m[0]) },
   { re: /若这只宝可梦身上放有["“"]咒术之铲["“"]，则额外将(\d+)张卡丢到弃牌区/, act:'usage_condition', p:m=>trainerPrerequisite('shovel_extra_discard', m[0]) },
   // 升级：原为未建模标记 → 真实动作（弃牌区任意种类的卡给对手查看 → 张数×N 伤害 → 放回牌库）
   { re: /将自己弃牌区中的所有["“"]([^"“"]+)["“"]给对手查看，造成其(?:张数|数量)[×x](\d+)伤害。然后，将给对手查看过的["“"]([^"“"]+)["“"]放回牌库/, act:'discard_energy_peek_damage', p:m=>({ per:+m[2], filter:m[1], returnToDeck:true }) },

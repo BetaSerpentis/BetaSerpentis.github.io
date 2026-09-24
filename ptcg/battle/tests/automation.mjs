@@ -9666,6 +9666,67 @@ await test('进化族 继承进化前招式（有特性时生效、无特性时�
   assert.deepEqual(gs.getAttacks(src).map(a => a.name), ['撞击'], '基础宝可梦不受影响');
 });
 
+
+// ============================================================
+//  缺口③「下个对手回合，它用招式时掷硬币、出现反面则失败」
+// ============================================================
+
+const _CF_TEXT1 = '在下一个对手的回合，受到这个招式影响的宝可梦在使用招式时，对手将抛掷2次硬币。只要出现1次反面，那么那个招式失败。';
+const _CF_TEXT2 = '在下一个对手的回合，受到这个招式影响的宝可梦在使用招式时，对手将抛掷1次硬币。如果为反面则那个招式失败。';
+const _cfMon = (name, id) => Object.assign(mon(name, id), {
+  attacks: [{ name:'撞击', damage:20, cost:[], effects:[] }], energy:['a', 'b', 'c', 'd'],
+});
+const _cfGs = async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  gs.player1.active = _cfMon('我', 'a1');
+  gs.player2.active = _cfMon('敌', 'o1');
+  return gs;
+};
+
+await test('硬币失败 解析：两段合成一个动作（不留残句、也不再误生成 coin_flip）', () => {
+  for (const text of [_CF_TEXT1, _CF_TEXT2]) {
+    const e = parseEffect(text).effects;
+    const act = e.find(x => x.action === 'coin_fail_attack_next');
+    assert.ok(act, `应解析出 coin_fail_attack_next（实际 ${JSON.stringify(e.map(x => x.action))}）`);
+    assert.equal(act.params.failOnTails, true, '第二段应并入同一动作');
+    assert.ok(!e.some(x => x.params?.kind === 'residual_sentence'), '不应留残句');
+    assert.ok(!e.some(x => x.action === 'coin_flip'), '不应再被通用掷硬币规则误吃掉');
+  }
+  assert.equal(parseEffect(_CF_TEXT1).effects[0].params.count, 2);
+  assert.equal(parseEffect(_CF_TEXT2).effects[0].params.count, 1);
+});
+
+await test('硬币失败 运行时：标记打在受影响方身上，且活到下个对手回合结束', async () => {
+  const gs = await _cfGs();
+  const pl = gs.player1, opp = gs.player2;
+  await executeEffects(gs, pl, parseEffect(_CF_TEXT1).effects);
+  assert.equal(opp.active.coinFailAttackNext, 2, '应标记对手的出战宝可梦');
+  gs.currentPlayer = pl; gs.endTurn();
+  assert.equal(opp.active.coinFailAttackNext, 2, '自己回合结束时不应清除（生效窗口是对手回合）');
+  gs.currentPlayer = opp; gs.endTurn();
+  assert.equal(opp.active.coinFailAttackNext, 0, '对手回合结束时应清除');
+});
+
+await test('硬币失败 运行时：出现反面则招式失败（零伤害、回合照常结束）', async () => {
+  const { BattleEngine } = await import('../js/core/BattleEngine.js');
+  for (const [label, rand, expectOk] of [['全正面', 0.9, true], ['出现反面', 0.1, false]]) {
+    const gs = await _cfGs();
+    const pl = gs.player1, opp = gs.player2;
+    await executeEffects(gs, pl, parseEffect(_CF_TEXT1).effects);
+    gs.currentPlayer = opp; gs.phase = 'battle';
+    const orig = Math.random;
+    Math.random = () => rand;
+    let ok;
+    try { ok = await new BattleEngine(gs, {}).attack(0); }
+    finally { Math.random = orig; }
+    assert.equal(ok, expectOk, `${label}: attack() 应为 ${expectOk}`);
+    // 注意：测试助手的 mon() 默认 hp=60，所以按 maxHp 推算，别写死数字
+    const maxHp = pl.active.maxHp;
+    assert.equal(pl.active.hp, expectOk ? maxHp - 20 : maxHp, `${label}: 伤害应${expectOk ? '生效' : '为 0'}`);
+  }
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

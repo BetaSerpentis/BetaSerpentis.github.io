@@ -2798,6 +2798,19 @@ const EXECUTORS = {
     }
   },
 
+  /**
+   * 「在下一个对手的回合，受到这个招式影响的宝可梦在使用招式时，对手掷N次硬币。
+   *   只要出现1次反面，那么那个招式失败」
+   * —— 在**受影响的宝可梦**身上打延迟标记，由 BattleEngine.attack 在它发动招式时判定。
+   */
+  coin_fail_attack_next(gs, pl, p) {
+    const opp = _opponent(gs, pl);
+    const mon = opp?.active;
+    if (!mon) { gs.addLog('没有可标记的宝可梦'); return; }
+    mon.coinFailAttackNext = Math.max(1, p.count || 1);
+    gs.addLog(`${mon.name} 在下一个对手的回合使用招式时，出现反面则招式失败（掷${mon.coinFailAttackNext}次）`);
+  },
+
   // ===== 对手牌库丢弃 =====
   mill(gs, pl, p) {
     const owner = (p.target === 'self') ? pl : _opponent(gs, pl);

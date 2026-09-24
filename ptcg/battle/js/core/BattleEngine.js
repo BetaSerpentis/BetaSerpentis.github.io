@@ -452,6 +452,20 @@ export class BattleEngine {
     if (status.includes('sleep') || status.includes('paralysis')) { this.cb.onLog?.('睡眠/麻痹中无法攻击'); return false; }
     if (status.includes('confusion') && Math.random() >= 0.5) { atk.active.hp = Math.max(0, atk.active.hp - 30); this.cb.onLog?.('混乱判定失败，自己受到30伤害'); if (atk.active.hp <= 0) gs.knockout(atk); return false; }
     if (atk.active.cannotAttackNext) { this.cb.onLog?.('无法攻击'); return false; }
+    // 「在下个对手的回合…使用招式时掷N次硬币，出现反面则那个招式失败」——随机判定，所以不置灰
+    if (atk.active.coinFailAttackNext > 0) {
+      const n = atk.active.coinFailAttackNext;
+      let tails = 0;
+      for (let i = 0; i < n; i++) if (Math.random() < 0.5) tails++;
+      gs.addLog?.(`掷${n}次硬币：${n - tails}正${tails}反`);
+      if (tails > 0) {
+        const msg = `硬币出现反面，「${gs.getAttacks?.(atk.active)?.[Number.isInteger(attackIndex) ? attackIndex : 0]?.name || '这个招式'}」失败`;
+        gs.addLog?.(msg); this.cb.onLog?.(msg);
+        // 招式已宣告：与「世界终焉」等失败情形一致——照常结束回合
+        this.finishTurn();
+        return false;
+      }
+    }
     if (!def.active) { this.cb.onLog?.('对手无宝可梦'); return false; }
 
     // 攻击期间记录「谁在攻击」，供 _knockoutDestination 判定
