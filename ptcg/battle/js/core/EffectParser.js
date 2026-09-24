@@ -997,7 +997,9 @@ const RULES = [
   { re: /在下个对手的回合[，,]?受到这个招式影响的宝可梦所使用的?招式(?:的)?伤害["“”]?([+-]?\d+)["“”]?/, act:'damage_reduction_next', p:m=>({amount:Math.abs(+m[1]),duration:'next_opp_turn'}) },
   // --- 招式继承/模仿（特性或招式；执行近似）---
   { re: /自己所有已经进化的宝可梦，可使用其所有进化前拥有的招式/, act:'usage_condition', p:()=>({kind:'evolve_move_inherit',raw:'自己所有已经进化的宝可梦，可使用其所有进化前拥有的招式'}) },
-  { re: /选择对手战斗宝可梦所拥有的1个招式，作为这个招式使用/, act:'usage_condition', p:()=>({kind:'move_copy',raw:'选择对手战斗宝可梦所拥有的1个招式，作为这个招式使用'}) },
+  // 升级：原为未接线标记 → 真实动作（复制对手出战宝可梦的招式当成本招式使用）
+  // 升级：原为未接线标记 → 真实动作。**只匹配完整句子**（后面的分句都不要吞，避免误伤其它解析）。
+  { re: /选择对手战斗宝可梦所拥有的(\d+)个招式[\s\S]{0,2}?作为这个招式使用/, act:'copy_opponent_attack', p:()=>({ from:'opponent_active', chooser:'self' }) },
   // --- GX/VSTAR 使用限制说明 ---
   { re: /\[对战中，己方的GX招式只能使用1次。\]/, act:'usage_condition', p:()=>({kind:'gx_once_per_game',raw:'[对战中，己方的GX招式只能使用1次。]'}) },
   { re: /\[对战中，己方的VSTAR招式只能使用1次。\]/, act:'usage_condition', p:()=>({kind:'vstar_once_per_game',raw:'[对战中，己方的VSTAR招式只能使用1次。]'}) },
@@ -1025,7 +1027,8 @@ const RULES = [
   // --- 自伤量回血（卡比兽V吞下：恢复 = 造成的伤害）---
   { re: /恢复这只宝可梦与给对手战斗宝可梦造成的伤害相同数值的HP/, act:'heal', p:()=>({amount:'as_attack_damage'}) },
   // --- 招式名封锁（莫鲁贝可：前半选择+后半无法使用）---
-  { re: /选择1个对手战斗宝可梦所拥有的招式/, act:'usage_condition', p:()=>({kind:'select_opponent_move',raw:'选择1个对手战斗宝可梦所拥有的招式'}) },
+  // 升级：同上（「作为这个招式使用」另起半句的写法）
+  { re: /选择(\d+)个对手战斗宝可梦所拥有的招式/, act:'usage_condition', p:()=>({ kind:'select_opponent_move', raw:'选择一个对手战斗宝可梦所拥有的招式' }) },
   // --- 本回合招式伤害提升（回合内特定条件 +120 等无前缀追加形式）---
   { re: /造成这只宝可梦身上放置的伤害指示物数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'self_damage_counters',mode:'per_unit'}) },
   // --- 招式费用随对手奖赏减少（月月熊ex 血月）---
@@ -1368,7 +1371,10 @@ const RULES = [
   { re: /可将自己所有的【(.+?)】宝可梦和【(.+?)】宝可梦的HP，各恢复["“”]?([+-]?\d+)["“”]?/, act:'heal_all', p:m=>({amount:+m[3]}) },
   // --- 对战区中选招式（汇流/魔尼尼）---
   { re: /选择自己备战区的["“”]([^"“”]+)["“”]宝可梦所拥有的1个招式，作为这个招式使用/, act:'usage_condition', p:m=>trainerPrerequisite('copy_move_from_bench2', m[0]) },
-  { re: /对手选择对手自己场上的宝可梦所拥有的1个招式。将被选择的招式作为这个招式使用/, act:'usage_condition', p:m=>trainerPrerequisite('opp_choose_move_copy', m[0]) },
+  // 升级：由**对手**从他自己的场上选
+  { re: /对手选择对手自己场上的宝可梦所拥有的(\d+)个招式[\s\S]{0,24}/, act:'usage_condition', p:()=>({ kind:'opp_choose_move_copy', raw:'对手选择对手自己场上的宝可梦所拥有的一个招式' }) },
+  // 「作为这个招式使用」（另起半句）→ 并入复制动作
+  // 后半句「将被选择的招式作为这个招式使用」→ 并入复制动作
   // --- 场属性被动伤害 ---
   { re: /双方身上附着【(.+?)】或【(.+?)】能量的宝可梦，受到对手宝可梦的招式的伤害["“”]([+-]?\d+)["“”]/, act:'damage_received_mod', p:m=>({amount:+m[3],target:'own_field'}) },
   { re: /双方的【(.+?)】或【(.+?)】宝可梦使用的招式，给对手战斗宝可梦造成的伤害["“”]([+-]?\d+)["“”]/, act:'passive_damage_mod', p:m=>({target:'own_field',amount:+m[3]}) },

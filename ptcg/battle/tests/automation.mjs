@@ -9998,6 +9998,56 @@ await test('玩偶 运行时：备战区已满时不放置（卡留在弃牌区�
   assert.ok(pl.discard.includes('FOSSIL'), '卡应留在弃牌区');
 });
 
+
+// ============================================================
+//  缺口⑦-部分「复制对手战斗宝可梦的招式，作为这个招式使用」
+// ============================================================
+
+await test('复制招式 解析：整句合成一个动作（不留残句）', () => {
+  const e = parseEffect('选择对手战斗宝可梦所拥有的1个招式，作为这个招式使用。').effects;
+  assert.equal(e[0].action, 'copy_opponent_attack');
+  assert.equal(e[0].params.from, 'opponent_active');
+  assert.equal(e[0].params.chooser, 'self');
+  assert.ok(!e.some(x => x.params?.kind === 'residual_sentence'), '不应留残句');
+});
+
+await test('复制招式 运行时：用对手招式的伤害与效果结算（复用伤害计算）', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  const mk = (name, id, attacks) => Object.assign(mon(name, id), {
+    hp:120, maxHp:120, attacks, energy:['a', 'b', 'c', 'd', 'e'],
+  });
+  const copyAtk = { name:'基因侵入', damage:0, cost:[], effects: parseEffect('选择对手战斗宝可梦所拥有的1个招式，作为这个招式使用。').effects };
+  pl.active = mk('复制者', 'a1', [copyAtk]);
+  opp.active = mk('敌', 'o1', [{ name:'强力一击', damage:90, cost:[], effects:[] }, { name:'弱击', damage:10, cost:[], effects:[] }]);
+  gs.currentPlayer = pl; gs.phase = 'battle';
+  const before = opp.active.hp;
+  const { BattleEngine } = await import('../js/core/BattleEngine.js');
+  const ok = await new BattleEngine(gs, {}).attack(0);
+  assert.equal(ok, true, '招式应成功');
+  assert.equal(before - opp.active.hp, 90, '应造成被复制招式的 90 点伤害（不是本招式的 0 点）');
+  assert.ok(gs.log.some(l => String(l).includes('作为这个招式使用')), '应有复制日志');
+  assert.ok(!gs.log.some(l => String(l).includes('效果失败')), '不应有静默失败');
+});
+
+await test('复制招式 运行时：招式效果一并复制（被复制招式带效果时也会执行）', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1, opp = gs.player2;
+  const mk = (name, id, attacks) => Object.assign(mon(name, id), { hp:120, maxHp:120, attacks, energy:['a', 'b', 'c', 'd', 'e'] });
+  const copyAtk = { name:'基因侵入', damage:0, cost:[], effects: parseEffect('选择对手战斗宝可梦所拥有的1个招式，作为这个招式使用。').effects };
+  pl.active = mk('复制者', 'a1', [copyAtk]);
+  const eff = parseEffect('将对手的战斗宝可梦【中毒】。').effects;
+  opp.active = mk('敌', 'o1', [{ name:'毒击', damage:20, cost:[], effects:eff }]);
+  gs.currentPlayer = pl; gs.phase = 'battle';
+  const hpBefore = opp.active.hp;
+  await new BattleEngine(gs, {}).attack(0);
+  // 注意：造成 20 伤害后招式已结束、轮到对手，中毒会在其回合开始结算再 −10 → 这里只断言「至少 20」
+  assert.ok(hpBefore - opp.active.hp >= 20, `应造成至少 20 点伤害（实际 ${hpBefore - opp.active.hp}）`);
+  assert.ok(String(opp.active.status || '').includes('poison'), '被复制招式的效果也应执行');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

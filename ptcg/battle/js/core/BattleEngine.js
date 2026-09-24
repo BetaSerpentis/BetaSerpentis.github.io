@@ -474,8 +474,24 @@ export class BattleEngine {
 
     const attacks = gs.getAttacks ? gs.getAttacks(atk.active) : (atk.active.attacks || []);
     const ai = Number.isInteger(attackIndex) ? attackIndex : 0;
-    const move = attacks[ai];
+    let move = attacks[ai];
     if (!move) { this.cb.onLog?.('招式不存在'); return false; }
+
+    // 「选择对手战斗宝可梦所拥有的1个招式，作为这个招式使用」（基因侵入等）
+    // 把 move 换成被复制的招式 → 后面的伤害计算（弱点/抗性/加成）与效果执行**全部复用**，
+    // 不必在执行器里重写一遍结算。能量照旧按**本招式**的消耗检查（在下面），符合卡面「作为这个招式使用」。
+    {
+      const copyEff = (move.effects || []).find(e => e.action === 'copy_opponent_attack');
+      if (copyEff) {
+        const copied = await this._resolveCopiedAttack(atk, def, copyEff);
+        if (copied) {
+          move = copied;
+          gs.addLog?.(`${atk.active.name} 将「${copied.name}」作为这个招式使用`);
+        } else {
+          gs.addLog?.('没有可复制的招式');
+        }
+      }
+    }
 
     // Check energy (with costEliminated override)
     if (!atk.active.costEliminated && !gs.checkEnergy(atk.active, ai)) {
@@ -651,6 +667,31 @@ export class BattleEngine {
       // aiAutoplayDelayMs < 0 时禁用自动触发（批量测试/外部手动驱动场景）
       if (this.aiAutoplayDelayMs >= 0) setTimeout(async () => { await this._aiTurn(); }, this.aiAutoplayDelayMs);
     }
+  }
+
+  /**
+   * 「选择（对手战斗宝可梦 / 对手自己场上的宝可梦）所拥有的1个招式，作为这个招式使用」
+   * 返回被选中的招式对象（含 damage 与 effects，交给调用方当成本招式结算）。
+   */
+  async _resolveCopiedAttack(atk, def, eff) {
+    const gs = this.gs;
+    const p = eff?.params || {};
+    // chooser:'opponent' → 由对手选（卡面写「对手选择…」）；被复制的一方始终是「对方」
+    const chooser = p.chooser === 'opponent' ? def : atk;
+    const sourceSide = chooser === atk ? def : atk;
+    const pool = p.from === 'opponent_field'
+      ? [sourceSide.active, ...(sourceSide.bench || [])].filter(Boolean)
+      : [sourceSide.active].filter(Boolean);
+    const options = [];
+    for (const mon of pool) for (const a of (gs.getAttacks?.(mon) || [])) options.push({ mon, attack:a });
+    if (!options.length) return null;
+    // 自动决策（AI / 无 UI）：取第一个；有 UI 时让玩家选
+    if (!(chooser === gs.player1 && !gs.aiPickHandler && gs._onPendingPick)) return options[0].attack;
+    const labels = options.map(o => `${o.mon.name}：${o.attack.name}`);
+    const picked = await gs.waitForPick(labels, 1, {
+      source:'copy-attack', prompt:'选择要复制的招式', minCount:1, maxCount:1,
+    });
+    return options[picked?.[0] ?? 0]?.attack || options[0].attack;
   }
 
   _firstLegalAttackIndex(player) {
