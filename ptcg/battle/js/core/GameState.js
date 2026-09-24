@@ -156,6 +156,7 @@ export class GameState {
       mon.coinFailAttackNext=0;
       mon.delayedKoAtOppTurnEnd=0;
       mon.noHandEnergyNext=0;
+      mon.bannedAttackName=null;
       mon.costEliminated=false;mon.abilityUsed=false;
     }
     // 1.1 对手身上「活到对手回合结束」的防护：刚结束的这个回合就是它的生效窗口 → 到期清除
@@ -240,7 +241,7 @@ export class GameState {
     stage:cd?.stage||'基础',evolvesFrom:cd?.evolvesFrom||null,ruleText:cd?.ruleText||'',rule2Text:cd?.rule2Text||'',ruleBox:cd?.ruleBox||'',
     isEx:!!cd?.isEx,isRadiant:!!cd?.isRadiant,hasRuleBox:!!cd?.hasRuleBox,
     attacks:cd?.attacks||[{name:'撞击',damage:20,cost:[],effect:''}],energy:[],status:null,placedThisTurn:true,evolvedThisTurn:false,
-    tool:null,ability:cd?.ability||null,abilityUsed:false,abilityDisabled:false,abilityDisabledBy:null,damageMod:0,damageReceivedMod:0,preventDamage:false,preventEffect:false,cannotAttackNext:false,cannotRetreat:false,coinFailAttackNext:0,delayedKoAtOppTurnEnd:0,noHandEnergyNext:0,
+    tool:null,ability:cd?.ability||null,abilityUsed:false,abilityDisabled:false,abilityDisabledBy:null,damageMod:0,damageReceivedMod:0,preventDamage:false,preventEffect:false,cannotAttackNext:false,cannotRetreat:false,coinFailAttackNext:0,delayedKoAtOppTurnEnd:0,noHandEnergyNext:0,bannedAttackName:null,
     ignore:[],costEliminated:false,retreatCost:cd?.retreatCost??1};}
 
   placeActive(pl,idx,cd=null){
@@ -1093,6 +1094,9 @@ export class GameState {
     if(st.includes('sleep'))return {ok:false,reason:'asleep',message:'睡眠中无法使用招式'};
     if(st.includes('paralysis'))return {ok:false,reason:'paralyzed',message:'麻痹中无法使用招式'};
     if(mon.cannotAttackNext)return {ok:false,reason:'cannot_attack_next',message:'这个回合无法使用招式'};
+    // ⑨-同类：「在下一个对手的回合，受到这个招式影响的宝可梦，将无法使用被选择的招式」
+    { const banned=mon.bannedAttackName; const atk=this.getAttacks(mon)?.[attackIndex];
+      if(banned&&atk&&atk.name===banned)return {ok:false,reason:'attack_banned',message:`「${banned}」在下一个对手的回合无法使用`}; }
     if(!mon.costEliminated&&!this._passiveCostEliminatedByLostZone(mon)&&!this.checkEnergy(mon,attackIndex))return {ok:false,reason:'energy',message:'能量不足'};
     // 场上没有竞技场时「世界终焉」必定失败 → 直接置灰，别让玩家白费一个回合
     if(this._attackRequiresStadium(mon,attackIndex)&&!this.getActiveStadium())return {ok:false,reason:'requires_stadium',message:'场上没有竞技场，这个招式会失败'};

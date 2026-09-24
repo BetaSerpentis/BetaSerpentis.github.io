@@ -1028,7 +1028,10 @@ const RULES = [
   { re: /恢复这只宝可梦与给对手战斗宝可梦造成的伤害相同数值的HP/, act:'heal', p:()=>({amount:'as_attack_damage'}) },
   // --- 招式名封锁（莫鲁贝可：前半选择+后半无法使用）---
   // 升级：同上（「作为这个招式使用」另起半句的写法）
-  { re: /选择(\d+)个对手战斗宝可梦所拥有的招式/, act:'usage_condition', p:()=>({ kind:'select_opponent_move', raw:'选择一个对手战斗宝可梦所拥有的招式' }) },
+  // 升级：原为未接线标记。A 族的**实质效果**写在第二句（禁用被选择的招式），
+  // 第一句「选择1个对手战斗宝可梦所拥有的招式」只是引出选择 → 记为引导语（避免残句）。
+  { re: /选择(?:1个对手战斗宝可梦所拥有的招式|对手战斗宝可梦所拥有的1个招式)/, act:'usage_condition', p:m=>({ kind:'shell_fragment', raw:m[0] }) },
+  { re: /在(?:下一个|下个)对手的回合[\s\S]{0,30}?将无法使用被选择的招式/, act:'ban_opponent_attack_next', p:()=>({}) },
   // --- 本回合招式伤害提升（回合内特定条件 +120 等无前缀追加形式）---
   { re: /造成这只宝可梦身上放置的伤害指示物数量[×x](\d+)伤害/, act:'conditional_damage_mod', p:m=>({amount:+m[1],condition:'self_damage_counters',mode:'per_unit'}) },
   // --- 招式费用随对手奖赏减少（月月熊ex 血月）---
@@ -1376,7 +1379,10 @@ const RULES = [
   // --- 对战区中选招式（汇流/魔尼尼）---
   { re: /选择自己备战区的["“”]([^"“”]+)["“”]宝可梦所拥有的1个招式，作为这个招式使用/, act:'usage_condition', p:m=>trainerPrerequisite('copy_move_from_bench2', m[0]) },
   // 升级：由**对手**从他自己的场上选
-  { re: /对手选择对手自己场上的宝可梦所拥有的(\d+)个招式[\s\S]{0,24}/, act:'usage_condition', p:()=>({ kind:'opp_choose_move_copy', raw:'对手选择对手自己场上的宝可梦所拥有的一个招式' }) },
+  // 升级：原为未接线标记。B 族＝**复制**（对手从他自己的场上选），引擎侧已就绪；
+  // 第二句「将被选择的招式作为这个招式使用」是说明 → 记为引导语。
+  { re: /对手选择对手自己场上的宝可梦所拥有的(\d+)个招式/, act:'copy_opponent_attack', p:()=>({ from:'opponent_field', chooser:'opponent' }) },
+  { re: /将被选择的招式作为这个招式使用/, act:'usage_condition', p:m=>({ kind:'shell_fragment', raw:m[0] }) },
   // 「作为这个招式使用」（另起半句）→ 并入复制动作
   // 后半句「将被选择的招式作为这个招式使用」→ 并入复制动作
   // --- 场属性被动伤害 ---

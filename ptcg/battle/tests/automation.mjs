@@ -10222,6 +10222,75 @@ await test('额外回合 对双方对称（对手也能拿到自己的额外回�
   assert.equal(gs.currentPlayer, gs.player2, '玩家2 应获得额外回合');
 });
 
+
+// ============================================================
+//  缺口⑦ 剩余 20 行：A 族「禁用被选择的招式」+ B 族「对手选、复制其招式」
+// ============================================================
+
+const _BAN_A1 = '选择1个对手战斗宝可梦所拥有的招式。在下一个对手的回合，受到这个招式影响的宝可梦，将无法使用被选择的招式。';
+const _BAN_A2 = '选择对手战斗宝可梦所拥有的1个招式。在下一个对手的回合，受到这个招式影响的宝可梦将无法使用被选择的招式。';
+const _CP_B = '对手选择对手自己场上的宝可梦所拥有的1个招式。将被选择的招式作为这个招式使用。';
+const _banAtks = () => [{ name:'强力一击', damage:30, cost:[], effects:[] }, { name:'弱击', damage:10, cost:[], effects:[] }];
+const _banMon = (name, id, attacks) => Object.assign(mon(name, id), { hp:120, maxHp:120, attacks, energy:['a', 'b', 'c', 'd', 'e'] });
+const _banGs = async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  gs.player1.active = _banMon('我', 'a1', []);
+  gs.player2.active = _banMon('敌', 'o1', _banAtks());
+  return gs;
+};
+
+await test('禁用招式 解析：两种语序都建模（引导语 + 禁用动作）', () => {
+  for (const text of [_BAN_A1, _BAN_A2]) {
+    const e = parseEffect(text).effects;
+    assert.ok(e.some(x => x.action === 'ban_opponent_attack_next'), `应含禁用动作（实际 ${JSON.stringify(e.map(x => x.action))}）`);
+    assert.ok(!e.some(x => x.params?.kind === 'residual_sentence'), '不应留残句');
+  }
+  const b = parseEffect(_CP_B).effects;
+  assert.ok(b.some(x => x.action === 'copy_opponent_attack'), 'B 族应是复制动作');
+  assert.equal(b.find(x => x.action === 'copy_opponent_attack').params.chooser, 'opponent');
+  assert.ok(!b.some(x => x.params?.kind === 'residual_sentence'), '不应留残句');
+});
+
+await test('禁用招式 运行时：被选中的招式下回合不可用，另一招不受影响', async () => {
+  const gs = await _banGs();
+  await executeEffects(gs, gs.player1, parseEffect(_BAN_A1).effects);
+  const opp = gs.player2;
+  assert.equal(opp.active.bannedAttackName, '强力一击', '无 UI 时取第一个招式');
+  gs.currentPlayer = opp; gs.phase = 'battle';
+  const b0 = gs.canUseAttack(opp, opp.active, 0);
+  assert.equal(b0.ok, false, '被禁招式应置灰');
+  assert.equal(b0.reason, 'attack_banned');
+  assert.equal(gs.canUseAttack(opp, opp.active, 1).ok, true, '另一招仍可用');
+  const hpBefore = gs.player1.active.hp;
+  const { BattleEngine } = await import('../js/core/BattleEngine.js');
+  assert.equal(await new BattleEngine(gs, {}).attack(0), false, '强行发动应被拒');
+  assert.equal(gs.player1.active.hp, hpBefore, '不应造成伤害');
+});
+
+await test('禁用招式 时序：标记在我方回合结束后仍有效、对手回合结束后清除', async () => {
+  const gs = await _banGs();
+  await executeEffects(gs, gs.player1, parseEffect(_BAN_A1).effects);
+  const opp = gs.player2;
+  gs.currentPlayer = gs.player1; gs.endTurn();
+  assert.equal(opp.active.bannedAttackName, '强力一击', '我方回合结束后仍有效');
+  gs.currentPlayer = opp; gs.endTurn();
+  assert.equal(opp.active.bannedAttackName, null, '对手回合结束后清除');
+});
+
+await test('B 族运行时：对手选招式后，复制的是**对手**的招式（伤害与效果一并生效）', async () => {
+  const gs = await _banGs();
+  const pl = gs.player1;
+  const copyAtk = { name:'模仿', damage:0, cost:[], effects: parseEffect(_CP_B).effects };
+  pl.active = _banMon('模仿者', 'a1', [copyAtk]);
+  gs.currentPlayer = pl; gs.phase = 'battle';
+  const hpBefore = gs.player2.active.hp;
+  const { BattleEngine } = await import('../js/core/BattleEngine.js');
+  assert.equal(await new BattleEngine(gs, {}).attack(0), true, '招式应成功');
+  assert.equal(hpBefore - gs.player2.active.hp, 30, '应造成被复制招式的 30 点伤害');
+  assert.ok(gs.log.some(l => String(l).includes('作为这个招式使用')), '应有复制日志');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

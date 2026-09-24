@@ -58,10 +58,8 @@ const KNOWN_GAPS = new Set([
   'hand_to_deck_like_opp',
   'mirror_last_damage_taken',
   'only_single_hand_card',
-  'opp_choose_move_copy',
   'peek_opp_top_back',
   'search_by_coin_heads',
-  'select_opponent_move',
   'self_counters_damage',
 ]);
 

@@ -2945,6 +2945,28 @@ const EXECUTORS = {
     gs.addLog(`${pl.name} 在本回合结束后将再次开始自己的回合`);
   },
 
+  /**
+   * A 族（16 张）：选择对手战斗宝可梦所拥有的 1 个招式，
+   * 让它在**下一个对手的回合**无法使用该招式。
+   * 与 `copy_opponent_attack` 不同——这是**禁用**，不是复制。
+   */
+  async ban_opponent_attack_next(gs, pl, p) {
+    const opp = _opponent(gs, pl);
+    const mon = opp?.active;
+    if (!mon) { gs.addLog('没有可指定的宝可梦'); return; }
+    const options = (gs.getAttacks?.(mon) || []);
+    if (!options.length) { gs.addLog('对手的战斗宝可梦没有招式'); return; }
+    let pick = options[0];
+    if (pl === gs.player1 && !gs.aiPickHandler && gs._onPendingPick) {
+      const picked = await gs.waitForPick(options.map(a => a.name), 1, {
+        source:'ban-attack', prompt:'选择要在下个对手回合禁止使用的招式', minCount:1, maxCount:1,
+      });
+      pick = options[picked?.[0] ?? 0] || options[0];
+    }
+    mon.bannedAttackName = pick.name;
+    gs.addLog(`${mon.name} 的「${pick.name}」在下一个对手的回合无法使用`);
+  },
+
   /** 玩偶/化石的「可从场上主动弃掉」 */
   discard_doll_self(gs, pl, p, eff) {
     const mon = eff?.source || eff?.params?.triggerSource;

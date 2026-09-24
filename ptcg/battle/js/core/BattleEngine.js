@@ -452,6 +452,13 @@ export class BattleEngine {
     if (status.includes('sleep') || status.includes('paralysis')) { this.cb.onLog?.('睡眠/麻痹中无法攻击'); return false; }
     if (status.includes('confusion') && Math.random() >= 0.5) { atk.active.hp = Math.max(0, atk.active.hp - 30); this.cb.onLog?.('混乱判定失败，自己受到30伤害'); if (atk.active.hp <= 0) gs.knockout(atk); return false; }
     if (atk.active.cannotAttackNext) { this.cb.onLog?.('无法攻击'); return false; }
+    if (atk.active.bannedAttackName) {
+      const cur = gs.getAttacks?.(atk.active)?.[Number.isInteger(attackIndex) ? attackIndex : 0];
+      if (cur && cur.name === atk.active.bannedAttackName) {
+        const msg = `「${cur.name}」在下一个对手的回合无法使用`;
+        gs.addLog?.(msg); this.cb.onLog?.(msg); return false;
+      }
+    }
     // 「在下个对手的回合…使用招式时掷N次硬币，出现反面则那个招式失败」——随机判定，所以不置灰
     if (atk.active.coinFailAttackNext > 0) {
       const n = atk.active.coinFailAttackNext;
@@ -678,7 +685,8 @@ export class BattleEngine {
     const p = eff?.params || {};
     // chooser:'opponent' → 由对手选（卡面写「对手选择…」）；被复制的一方始终是「对方」
     const chooser = p.chooser === 'opponent' ? def : atk;
-    const sourceSide = chooser === atk ? def : atk;
+    // 被复制的招式**始终来自防守方**（两种写法都是：进攻方选对手的招式 / 对手从他自己的场上选）
+    const sourceSide = def;
     const pool = p.from === 'opponent_field'
       ? [sourceSide.active, ...(sourceSide.bench || [])].filter(Boolean)
       : [sourceSide.active].filter(Boolean);
