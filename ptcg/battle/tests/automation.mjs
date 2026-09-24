@@ -9788,6 +9788,67 @@ await test('放逐区附着卡 运行时：玩偶类（改放逐区 + 括号说�
   assert.equal(pl.discard.length, 3, '附着卡进弃牌区');
 });
 
+
+// ============================================================
+//  缺口⑤「将这只宝可梦与身上所有卡牌放回牌库」
+// ============================================================
+
+const _RS_BASE = '将这只宝可梦，以及放置于其身上的所有卡牌，放回自己的牌库并重洗牌库。';
+const _rsMon = (name, id) => Object.assign(mon(name, id), { energy:['E1'], tool:{ cardId:'T1', name:'道具' } });
+
+await test('自身回牌库 解析：三种变体都变成真实动作', () => {
+  const a = parseEffect(_RS_BASE).effects;
+  assert.equal(a[0].action, 'return_self_to_deck');
+  assert.equal(a[0].params.optional, undefined);
+  const b = parseEffect('若希望，可' + _RS_BASE).effects;
+  assert.equal(b[0].action, 'return_self_to_deck');
+  assert.equal(b[0].params.optional, true, '「若希望」应记为可选');
+  const c = parseEffect('若这只宝可梦在备战区，则。' + _RS_BASE).effects;
+  assert.equal(c[0].action, 'return_self_to_deck');
+  assert.equal(c[0].params.requiresBench, true, '应限定在备战区');
+  for (const e of [a, b, c]) assert.ok(!e.some(x => x.params?.kind === 'residual_sentence'), '不应留残句');
+});
+
+await test('自身回牌库 运行时：宝可梦与身上的能量/道具一起回牌库，出战位由备战区递补', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  const m = _rsMon('我', 'a1');
+  pl.active = m; pl.bench = [mon('替补', 'b1')]; pl.deck = [];
+  const eff = parseEffect(_RS_BASE).effects.map(e => ({ ...e, source: m }));
+  await executeEffects(gs, pl, eff);
+  assert.equal(pl.deck.length, 3, '宝可梦 + 能量 + 道具应一起回牌库');
+  assert.equal(pl.active.name, '替补', '出战位应由备战区递补');
+  assert.equal(pl.bench.length, 0);
+  assert.ok(!gs.log.some(l => String(l).includes('效果失败')), '不应有静默失败');
+});
+
+await test('自身回牌库 「若在备战区」限定：在出战位时不生效', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  const a = _rsMon('出战位', 'a1'), b = _rsMon('备战位', 'b1');
+  pl.active = a; pl.bench = [b]; pl.deck = [];
+  const eff = parseEffect('若这只宝可梦在备战区，则。' + _RS_BASE).effects;
+  await executeEffects(gs, pl, eff.map(e => ({ ...e, source: a })));
+  assert.equal(pl.deck.length, 0, '出战位时不应生效');
+  assert.equal(pl.bench.length, 1);
+  await executeEffects(gs, pl, eff.map(e => ({ ...e, source: b })));
+  assert.equal(pl.deck.length, 3, '备战位时应生效');
+  assert.equal(pl.bench.length, 0);
+});
+
+await test('自身回牌库 「若希望」可选：无 UI 时不主动回收自己', async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const pl = gs.player1;
+  const m = _rsMon('我', 'a1');
+  pl.active = m; pl.bench = []; pl.deck = [];
+  await executeEffects(gs, pl, parseEffect('若希望，可' + _RS_BASE).effects.map(e => ({ ...e, source: m })));
+  assert.equal(pl.deck.length, 0, '无 UI 时不应发动');
+  assert.equal(pl.active.name, '我', '宝可梦应留在场上');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

@@ -2686,9 +2686,24 @@ const EXECUTORS = {
   },
 
   /** 弱丁鱼：「将这只宝可梦，以及放置于其身上的所有卡牌，放回自己的牌库并重洗牌库」 */
-  return_self_to_deck(gs, pl, p, eff) {
+  async return_self_to_deck(gs, pl, p, eff) {
+    // p.triggerSource 用于触发式特性（弱丁鱼）；p.source 由执行层注入（招式/特性来源）
     const mon = p?.triggerSource || eff?.source || pl.active;
     if (!mon) return;
+    // 「若这只宝可梦在备战区，则…」——不在备战区时什么都不做
+    if (p.requiresBench && pl.active === mon) { gs.addLog(`${mon.name} 不在备战区，效果不生效`); return; }
+    // 「若希望，可将…」——可选。有 UI 时问玩家；无 UI（AI）时不主动回收自己
+    if (p.optional) {
+      if (pl === gs.player1 && !gs.aiPickHandler && gs._onPendingPick) {
+        const picked = await gs.waitForPick(['放回牌库', '不发动'], 1, {
+          source:'self-to-deck', prompt:`是否将「${mon.name}」与身上的卡牌放回牌库？`, minCount:1, maxCount:1,
+        });
+        if ((picked?.[0] ?? 1) !== 0) { gs.addLog(`选择不发动（${mon.name} 留在场上）`); return; }
+      } else {
+        gs.addLog(`${mon.name} 的可选回收未发动`);
+        return;
+      }
+    }
     const bi = (pl.bench || []).indexOf(mon);
     const wasActive = pl.active === mon;
     const cards = [_toolCardValue(mon), ...((mon.energy || []).map(_toolCardValue))];

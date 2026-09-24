@@ -1671,7 +1671,8 @@ const RULES = [
   // ===== P26（2026-09）：前缀聚类批量 =====
   { re: /从自己的牌库选择任意数量的【基础】宝可梦，放置于备战区/, act:'search_deck_to_bench', p:()=>withCount({filter:'【基础】宝可梦'},5,true) },
   { re: /将(?:自己的|自己)?牌库中，最多(\d+)张HP在["“"]([+-]?\d+)["“"]以下（包含[^）]*）的(.+?)，在给对手看过后，加入手牌/, act:'search_deck_to_hand', p:m=>withCount({filter:'宝可梦',maxHp:+m[2]},m[1],true) },
-  { re: /若这只宝可梦在备战区，则。将这只宝可梦，以及(?:放置|放)于其身上的所有卡牌，放回自己的牌库/, act:'usage_condition', p:m=>trainerPrerequisite('return_self_deck_with_cards', m[0]) },
+  // 升级：原为未接线标记 → 真实动作（只在备战区时生效）
+  { re: /若这只宝可梦在备战区，则。将这只宝可梦，以及(?:放置|放)于其身上的所有卡牌，放回自己的牌库/, act:'return_self_to_deck', p:()=>({ requiresBench:true }) },
   { re: /将(?:自己的|自己)?1张手牌丢到弃牌区。然后，。若被丢到弃牌区的卡牌是能量，则再抽出(\d+)张卡/, act:'usage_condition', p:m=>trainerPrerequisite('discard_one_draw_cond', m[0]) },
   { re: /若为正面，则选择对手备战区的1只【基础】宝可梦，将其与战斗宝可梦互换/, act:'switch_pokemon', p:()=>({who:'opponent'}) },
   { re: /查看自己的牌库上方(\d+)张卡。可将其中1张宝可梦，在给对手看过后，加入手牌/, act:'peek_and_keep', p:m=>({peek:+m[1],keep:1,filter:'宝可梦'}) },
@@ -1764,8 +1765,10 @@ const RULES = [
   { re: /若为正面，则在下个对手的回合，对手无法从手牌使出支援者/, act:'usage_condition', p:m=>trainerPrerequisite('block_supporter_next', m[0]) },
   { re: /身上附着这张卡的宝可梦，受到对手["“"]([^"“"]+)["“"]的招式的伤害["“"]([+-]?\d+)["“"]。这个效果，无论身上附着多少张["“"]([^"“"]+)["“"]，都不会叠加/, act:'damage_received_mod', p:m=>({amount:+m[2],target:'self'}) },
   { re: /在这个回合，自己可使用的支援者数量变为(\d+)张/, act:'usage_condition', p:m=>trainerPrerequisite('supporter_limit_set', m[0]) },
-  { re: /若希望，可将这只宝可梦，以及(?:放置|放)于其身上的所有卡牌，放回自己的牌库/, act:'usage_condition', p:m=>trainerPrerequisite('return_self_deck_opt', m[0]) },
-  { re: /将这只宝可梦，以及(?:放置|放)于其身上的所有卡牌，放回自己的牌库。然后，/, act:'usage_condition', p:m=>trainerPrerequisite('return_self_deck_then', m[0]) },
+  // 升级：原为未接线标记 → 可选的真实动作（无 UI 时不主动回收自己）
+  { re: /若希望，可将这只宝可梦，以及(?:放置|放)于其身上的所有卡牌，放回自己的牌库/, act:'return_self_to_deck', p:()=>({ optional:true }) },
+  // 升级：原为未接线标记 → 真实动作
+  { re: /将这只宝可梦，以及(?:放置|放)于其身上的所有卡牌，放回自己的牌库。然后，/, act:'return_self_to_deck', p:()=>({}) },
   { re: /其中任意数量的【(.+?)】能量，以任意方式附于自己的宝可梦身上/, act:'attach_energy_from_hand', p:m=>({filter:`【${m[1]}】能量`,target:'any',allowFewer:true,allowEmpty:true,maxCount:99}) },
   { re: /将(?:自己的|自己)?弃牌区中的(\d+)张【(.+?)】宝可梦，放置于备战区/, act:'discard_to_bench', p:m=>withCount({filter:'宝可梦'},m[1],false) },
   // ===== P33（2026-09）：前缀簇第八波 =====
@@ -1793,7 +1796,8 @@ const RULES = [
   { re: /双方玩家从手牌使出物品或支援者时，不受其效果影/, act:'usage_condition', p:m=>trainerPrerequisite('both_immune_trainer', m[0]) },
   { re: /身上放有这张卡的，拥有招式["“"]([^"“"]+)["“"]的宝可梦，可使用这张卡上的GX招式/, act:'usage_condition', p:m=>trainerPrerequisite('tool_gx_move', m[0]) },
   { re: /将附于这只宝可梦身上的基本能量，全部丢到弃牌/, act:'discard_energy', p:()=>({target:'self',count:'all',filter:'基本能量'}) },
-  { re: /将这只宝可梦，以及(?:放置|放)于其身上的所有卡牌，放回自己的牌库/, act:'usage_condition', p:m=>trainerPrerequisite('return_self_deck_all', m[0]) },
+  // 升级：原为未接线标记 → 真实动作
+  { re: /将这只宝可梦，以及(?:放置|放)于其身上的所有卡牌，放回自己的牌库/, act:'return_self_to_deck', p:()=>({}) },
   { re: /若已经从手牌使出了["“"]([^"“"]+)["“"]支援者，则/, act:'usage_condition', p:m=>trainerPrerequisite('supporter_already_used_cond', m[0]) },
   // ===== P36（2026-09）：前缀簇第十一波 =====
   { re: /从自己的牌库抽出与双方备战宝可梦合计数量相同数量的卡牌/, act:'usage_condition', p:m=>trainerPrerequisite('draw_total_bench', m[0]) },

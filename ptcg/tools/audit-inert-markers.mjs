@@ -50,7 +50,6 @@ const BASELINE_UNCLASSIFIED_ROWS = 253;
 
 // 已确认「该生效却没接线」的缺口（按机制族分批修，修好的从这里删掉）
 const KNOWN_GAPS = new Set([
-  'return_self_deck_all', 'return_self_deck_opt', 'return_self_deck_with_cards', 'return_self_deck_then',
   'ko_next_opp_end', 'place_self_to_bench',
   'draw_matching_opponent_field_count',
   'move_copy', 'select_opponent_move', 'opp_choose_move_copy',
