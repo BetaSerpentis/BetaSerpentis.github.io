@@ -1,4 +1,4 @@
-#eff1 hash=6626147976000f8b
+#eff1 hash=8204c8ce7f721df1
 151C-001	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-002	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-003	ability		0	usage_condition	{"kind":"requires_active"}
@@ -774,39 +774,39 @@ CBB1C-1605	attack	1	0	draw	{"count":1}
 CBB2C-0101	attack	1	0	search_deck_to_hand	{"filter":"宝可梦【V】","count":3,"maxCount":3,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CBB2C-0101	attack	1	1	shuffle_deck	{}
 CBB2C-0102	ability		0	usage_condition	{"kind":"once_per_turn","raw":"则可使用1次"}
-CBB2C-0102	ability		1	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CBB2C-0102	ability		1	evolve_from_deck	{"target":"self"}
 CBB2C-0102	ability		2	shuffle_deck	{}
 CBB2C-0103	attack	1	0	search_deck_to_hand	{"filter":"宝可梦【V】","count":3,"maxCount":3,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CBB2C-0103	attack	1	1	shuffle_deck	{}
 CBB2C-0104	ability		0	usage_condition	{"kind":"once_per_turn","raw":"则可使用1次"}
-CBB2C-0104	ability		1	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CBB2C-0104	ability		1	evolve_from_deck	{"target":"self"}
 CBB2C-0104	ability		2	shuffle_deck	{}
 CBB2C-0105	attack	1	0	search_deck_to_hand	{"filter":"宝可梦【V】","count":3,"maxCount":3,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CBB2C-0105	attack	1	1	shuffle_deck	{}
 CBB2C-0106	ability		0	usage_condition	{"kind":"once_per_turn","raw":"则可使用1次"}
-CBB2C-0106	ability		1	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CBB2C-0106	ability		1	evolve_from_deck	{"target":"self"}
 CBB2C-0106	ability		2	shuffle_deck	{}
 CBB2C-0107	attack	1	0	search_deck_to_hand	{"filter":"宝可梦【V】","count":3,"maxCount":3,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CBB2C-0107	attack	1	1	shuffle_deck	{}
 CBB2C-0108	ability		0	usage_condition	{"kind":"once_per_turn","raw":"则可使用1次"}
-CBB2C-0108	ability		1	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CBB2C-0108	ability		1	evolve_from_deck	{"target":"self"}
 CBB2C-0108	ability		2	shuffle_deck	{}
 CBB2C-0109	attack	1	0	search_deck_to_hand	{"filter":"宝可梦【V】","count":3,"maxCount":3,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CBB2C-0109	attack	1	1	shuffle_deck	{}
 CBB2C-0110	ability		0	usage_condition	{"kind":"once_per_turn","raw":"则可使用1次"}
-CBB2C-0110	ability		1	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CBB2C-0110	ability		1	evolve_from_deck	{"target":"self"}
 CBB2C-0110	ability		2	shuffle_deck	{}
 CBB2C-0111	attack	1	0	search_deck_to_hand	{"filter":"宝可梦【V】","count":3,"maxCount":3,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CBB2C-0111	attack	1	1	shuffle_deck	{}
 CBB2C-0112	ability		0	usage_condition	{"kind":"once_per_turn","raw":"则可使用1次"}
-CBB2C-0112	ability		1	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CBB2C-0112	ability		1	evolve_from_deck	{"target":"self"}
 CBB2C-0112	ability		2	shuffle_deck	{}
 CBB2C-0113	attack	1	0	draw	{"count":3}
 CBB2C-0113	attack	2	0	conditional_damage_mod	{"condition":"custom","conditionText":"从手牌使出了支援者","amount":80,"mode":"fixed"}
 CBB2C-0114	attack	1	0	usage_condition	{"kind":"coin_fail_attack_next","raw":"在下个对手的回合，受到这个招式影响的宝可梦在使用招式时，对手将。若为反面则那个招式失败"}
 CBB2C-0114	attack	1	1	coin_flip	{"count":1}
 CBB2C-0115	ability		0	usage_condition	{"kind":"once_per_turn","raw":"则可使用1次"}
-CBB2C-0115	ability		1	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CBB2C-0115	ability		1	evolve_from_deck	{"target":"self"}
 CBB2C-0115	ability		2	shuffle_deck	{}
 CBB2C-0201	ability		0	prevent_damage	{"source":"attack"}
 CBB2C-0201	attack	1	0	conditional_damage_mod	{"amount":20,"condition":"self_energy","mode":"per_unit"}
@@ -1284,25 +1284,25 @@ CBB4C-0306	attack	1	0	discard_energy	{"target":"self","count":"all"}
 CBB4C-0306	attack	1	1	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】"}
 CBB4C-0307	attack	1	0	discard_energy	{"target":"self","count":"all"}
 CBB4C-0307	attack	1	1	usage_condition	{"kind":"ko_next_opp_end","raw":"在下个对手的回合结束时，受到这个招式影响的宝可梦会【昏厥】"}
-CBB4C-0401	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CBB4C-0401	attack	1	0	evolve_from_deck	{"target":"self"}
 CBB4C-0401	attack	1	1	shuffle_deck	{}
 CBB4C-0401	attack	2	0	coin_flip_damage	{"count":1,"damage":20}
-CBB4C-0402	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CBB4C-0402	attack	1	0	evolve_from_deck	{"target":"self"}
 CBB4C-0402	attack	1	1	shuffle_deck	{}
 CBB4C-0402	attack	2	0	coin_flip_damage	{"count":1,"damage":20}
-CBB4C-0403	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CBB4C-0403	attack	1	0	evolve_from_deck	{"target":"self"}
 CBB4C-0403	attack	1	1	shuffle_deck	{}
 CBB4C-0403	attack	2	0	coin_flip_damage	{"count":1,"damage":20}
-CBB4C-0404	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CBB4C-0404	attack	1	0	evolve_from_deck	{"target":"self"}
 CBB4C-0404	attack	1	1	shuffle_deck	{}
 CBB4C-0404	attack	2	0	coin_flip_damage	{"count":1,"damage":20}
-CBB4C-0405	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CBB4C-0405	attack	1	0	evolve_from_deck	{"target":"self"}
 CBB4C-0405	attack	1	1	shuffle_deck	{}
 CBB4C-0405	attack	2	0	coin_flip_damage	{"count":1,"damage":20}
-CBB4C-0406	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CBB4C-0406	attack	1	0	evolve_from_deck	{"target":"self"}
 CBB4C-0406	attack	1	1	shuffle_deck	{}
 CBB4C-0406	attack	2	0	coin_flip_damage	{"count":1,"damage":20}
-CBB4C-0407	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CBB4C-0407	attack	1	0	evolve_from_deck	{"target":"self"}
 CBB4C-0407	attack	1	1	shuffle_deck	{}
 CBB4C-0407	attack	2	0	coin_flip_damage	{"count":1,"damage":20}
 CBB4C-0501	attack	1	0	coin_flip_damage	{"count":1,"damage":20}
@@ -2247,7 +2247,7 @@ CS1.5C-024	attack	1	0	conditional_damage_mod	{"amount":20,"condition":"own_disca
 CS1.5C-025	attack	2	0	conditional_damage_mod	{"condition":"custom","conditionText":"这只宝可梦从备战区被放置于战斗场上","amount":80,"mode":"fixed"}
 CS1.5C-026	attack	1	0	ignore	{"what":"opponent_effects"}
 CS1.5C-026	attack	2	0	damage_place	{"target":"opponent_bench","count":5}
-CS1.5C-027	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CS1.5C-027	attack	1	0	evolve_from_deck	{"target":"self"}
 CS1.5C-027	attack	1	1	shuffle_deck	{}
 CS1.5C-028	ability		0	ability_nullify	{"scope":"opponent_field","duration":"while_active","exceptAbilityNames":["化学变化气体"],"sourceZone":"field"}
 CS1.5C-028	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":4}
@@ -2296,7 +2296,7 @@ CS1.5C-065	attack	1	0	damage_place	{"target":"opponent_active","count":2}
 CS1.5C-066	ability		0	usage_condition	{"kind":"once_per_turn","raw":"则可使用1次"}
 CS1.5C-066	ability		1	draw	{"count":2}
 CS1.5C-066	attack	1	0	conditional_damage_mod	{"amount":20,"condition":"own_discard_move_count","moveName":"疯狂派对","mode":"per_unit"}
-CS1.5C-067	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CS1.5C-067	attack	1	0	evolve_from_deck	{"target":"self"}
 CS1.5C-067	attack	1	1	shuffle_deck	{}
 CS1.5C-068	ability		0	ability_nullify	{"scope":"opponent_field","duration":"while_active","exceptAbilityNames":["化学变化气体"],"sourceZone":"field"}
 CS1.5C-068	attack	1	0	inflict_status	{"statuses":["poison"],"poisonCounters":4}
@@ -2701,7 +2701,7 @@ CS1aC-081	attack	1	0	coin_flip_damage	{"count":1,"damage":30}
 CS1aC-082	attack	2	0	usage_condition	{"kind":"move_lock_after_use","raw":"若使用了这个招式，则这只宝可梦，在离开战斗场之前无法使用\\"流星突击\\""}
 CS1aC-083	attack	2	0	conditional_damage_mod	{"condition":"custom","conditionText":"自己的备战区有\\"快拳郎\\"","amount":80,"mode":"fixed"}
 CS1aC-084	attack	1	0	conditional_damage_mod	{"condition":"custom","conditionText":"自己的备战区有\\"飞腿郎\\"","amount":20,"mode":"fixed"}
-CS1aC-086	attack	2	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CS1aC-086	attack	2	0	evolve_from_deck	{"target":"self"}
 CS1aC-086	attack	2	1	shuffle_deck	{}
 CS1aC-087	attack	1	0	discard_stadium	{}
 CS1aC-087	attack	2	0	mill	{"target":"self","count":5}
@@ -4805,7 +4805,7 @@ CS4DaC-099	ability		0	trigger	{"event":"evolved","effect":{"action":"attach_ener
 CS4DaC-099	attack	1	0	cannot_attack_next	{"duration":"next_self_turn"}
 CS4DaC-100	ability		0	ability_nullify	{"scope":"opponent_field","duration":"while_active","exceptAbilityNames":["拥有规则的宝可梦"],"sourceZone":"field"}
 CS4DaC-100	attack	1	0	move_energy	{"source":"self","dest":"bench","count":1}
-CS4DaC-103	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CS4DaC-103	attack	1	0	evolve_from_deck	{"target":"self"}
 CS4DaC-103	attack	1	1	shuffle_deck	{}
 CS4DaC-103	attack	2	0	discard_stadium	{}
 CS4DaC-104	ability		0	prevent_damage	{"source":"attack"}
@@ -5274,7 +5274,7 @@ CS4aC-031	attack	1	0	damage_bench	{"target":"self_all","damage":20}
 CS4aC-032	attack	1	0	coin_flip_damage	{"count":3,"damage_per":10}
 CS4aC-033	ability		0	usage_condition	{"kind":"generic_effect","raw":"这张卡的持有者和他的手牌，当对手从手牌使出支援者时，不受其效果影响。"}
 CS4aC-033	attack	1	0	coin_flip_damage	{"count":2,"damage_per":70}
-CS4aC-034	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CS4aC-034	attack	1	0	evolve_from_deck	{"target":"self"}
 CS4aC-034	attack	1	1	shuffle_deck	{}
 CS4aC-034	attack	2	0	discard_stadium	{}
 CS4aC-035	ability		0	prevent_damage	{"source":"attack"}
@@ -5423,10 +5423,10 @@ CS4aC-138	attack	1	0	draw	{"count":3}
 CS4aC-138	attack	2	0	switch_pokemon	{"who":"self"}
 CS4aC-139	attack	1	0	draw	{"count":3}
 CS4aC-139	attack	2	0	switch_pokemon	{"who":"self"}
-CS4aC-140	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CS4aC-140	attack	1	0	evolve_from_deck	{"target":"self"}
 CS4aC-140	attack	1	1	shuffle_deck	{}
 CS4aC-140	attack	2	0	discard_stadium	{}
-CS4aC-141	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CS4aC-141	attack	1	0	evolve_from_deck	{"target":"self"}
 CS4aC-141	attack	1	1	shuffle_deck	{}
 CS4aC-141	attack	2	0	discard_stadium	{}
 CS4aC-142	attack	1	0	mill	{"target":"opponent","count":2}
@@ -5496,7 +5496,7 @@ CS4aC-174	attack	1	0	ignore	{"what":"opponent_effects"}
 CS4aC-175	ability		0	prevent_damage	{"source":"attack"}
 CS4aC-175	attack	1	0	ignore	{"what":"opponent_effects"}
 CS4bC-001	attack	1	0	coin_flip_until_tails	{"damage_per":20}
-CS4bC-002	ability		0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CS4bC-002	ability		0	evolve_from_deck	{"target":"self"}
 CS4bC-002	ability		1	shuffle_deck	{}
 CS4bC-002	ability		2	usage_condition	{"kind":"residual_sentence","raw":"当从自己的手牌将能量附于这只宝可梦身上时，可使用1次。"}
 CS4bC-003	ability		0	usage_condition	{"kind":"generic_effect","raw":"这只宝可梦，可以连续使用2次招式。"}
@@ -6701,7 +6701,7 @@ CS6.5C-014	attack	2	0	conditional_damage_mod	{"amount":70,"mode":"per_unit","con
 CS6.5C-014	attack	2	1	ignore	{"what":"weakness_resistance"}
 CS6.5C-014	attack	2	2	usage_condition	{"kind":"vstar_power_once","raw":"[对战中，己方的VSTAR力量只能使用1次。]"}
 CS6.5C-015	ability		0	passive_damage_mod	{"target":"own_field","amount":10}
-CS6.5C-016	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CS6.5C-016	attack	1	0	evolve_from_deck	{"target":"self"}
 CS6.5C-016	attack	1	1	shuffle_deck	{}
 CS6.5C-017	attack	1	0	damage_bench	{"target":"opponent_any","damage":50}
 CS6.5C-017	attack	2	0	inflict_status	{"statuses":["sleep"]}
@@ -6782,7 +6782,7 @@ CS6.5C-055	ability		0	mill	{"target":"self","count":7}
 CS6.5C-055	ability		1	recover_from_discard	{"count":1,"target":"hand"}
 CS6.5C-055	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"从自己的弃牌区选择【龙】宝可梦所拥有的1个招式，作为这个招式使用。"}
 CS6.5C-056	ability		0	usage_condition	{"kind":"once_per_turn","raw":"则可使用1次"}
-CS6.5C-056	ability		1	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CS6.5C-056	ability		1	evolve_from_deck	{"target":"self"}
 CS6.5C-056	ability		2	shuffle_deck	{}
 CS6.5C-057	attack	1	0	peek_and_keep	{"peek":4,"keep":0,"maxCount":0,"minCount":0,"allowEmpty":true,"remainder":"reorder_top"}
 CS6.5C-058	attack	1	0	usage_condition	{"kind":"generic_effect","raw":"造成双方放逐区中的\\"宝可梦道具\\"张数×20伤害。"}
@@ -9162,7 +9162,7 @@ CSM1cC-011	attack	1	0	look_at	{"target":"opponent_hand"}
 CSM1cC-011	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"将其中1张卡，放置于放逐区。"}
 CSM1cC-011	attack	2	0	conditional_damage_mod	{"amount":20,"condition":"opponent_active_energy_count","mode":"per_unit"}
 CSM1cC-012	ability		0	prevent_damage	{"source":"attack"}
-CSM1cC-012	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CSM1cC-012	attack	1	0	evolve_from_deck	{"target":"self"}
 CSM1cC-012	attack	1	1	shuffle_deck	{}
 CSM1cC-013	attack	1	0	conditional_damage_mod	{"amount":50,"condition":"counter","counter":"discard_name","name":"鲤鱼王","mode":"per_unit"}
 CSM1cC-013	attack	2	0	damage_bench	{"target":"self_all","damage":30}
@@ -9248,9 +9248,9 @@ CSM1cC-043	attack	1	0	conditional_damage_mod	{"condition":"opponent_active_is_ev
 CSM1cC-043	attack	2	0	usage_condition	{"kind":"generic_effect","raw":"若对手的战斗宝可梦为【基础】宝可梦，使其【昏厥】。"}
 CSM1cC-044	attack	1	0	inflict_status	{"statuses":["confusion"]}
 CSM1cC-044	attack	2	0	damage_bench	{"target":"self_all","damage":10}
-CSM1cC-045	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CSM1cC-045	attack	1	0	evolve_from_deck	{"target":"self"}
 CSM1cC-045	attack	1	1	shuffle_deck	{}
-CSM1cC-046	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CSM1cC-046	attack	1	0	evolve_from_deck	{"target":"self"}
 CSM1cC-046	attack	1	1	shuffle_deck	{}
 CSM1cC-047	attack	1	0	damage_bench	{"target":"opponent_any","damage":50}
 CSM1cC-047	attack	2	0	conditional_damage_mod	{"condition":"custom","conditionText":"从手牌使出了\\"竹兰\\"","amount":100,"mode":"fixed"}
@@ -9340,7 +9340,7 @@ CSM1cC-084	attack	3	0	move_damage_counters	{"from":"self_field","to":"opponent_a
 CSM1cC-084	attack	3	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSM1cC-085	ability		0	trigger	{"event":"entered_active","effect":{"action":"usage_condition","params":{"kind":"generic_effect","raw":"可使用1次。将附于自己场上宝可梦身上的任意数量的能量，转附于这只宝可梦身上。"}},"effects":[{"action":"usage_condition","params":{"kind":"generic_effect","raw":"可使用1次。将附于自己场上宝可梦身上的任意数量的能量，转附于这只宝可梦身上。"}}],"optional":false}
 CSM1cC-085	attack	1	0	cannot_attack_next	{"move":"光明角击"}
-CSM1cC-086	attack	1	0	usage_condition	{"kind":"evolve_from_any_field_pokemon","raw":"从自己的牌库选择1张从自己场上的1只宝可梦进化而来的卡牌，放置于该宝可梦身上进行进化"}
+CSM1cC-086	attack	1	0	evolve_from_deck	{"target":"choose"}
 CSM1cC-086	attack	1	1	shuffle_deck	{}
 CSM1cC-086	attack	2	0	usage_condition	{"kind":"generic_effect","raw":"将自己所有的【妖】宝可梦的HP，各恢复\\"30\\"点。"}
 CSM1cC-087	attack	1	0	heal	{"amount":30}
@@ -9435,7 +9435,7 @@ CSM1cC-160	attack	1	0	coin_flip	{"count":1,"fail_on_tails":true}
 CSM1cC-161	attack	1	0	conditional_damage_mod	{"condition":"opponent_prizes","count":4,"amount":90,"mode":"fixed"}
 CSM1cC-161	attack	2	0	coin_flip	{"count":2}
 CSM1cC-162	attack	1	0	heal	{"amount":10,"target":"self"}
-CSM1cC-164	attack	1	0	usage_condition	{"kind":"evolve_from_any_field_pokemon","raw":"从自己的牌库选择1张从自己场上的1只宝可梦进化而来的卡牌，放置于该宝可梦身上进行进化"}
+CSM1cC-164	attack	1	0	evolve_from_deck	{"target":"choose"}
 CSM1cC-164	attack	1	1	shuffle_deck	{}
 CSM1cC-164	attack	2	0	usage_condition	{"kind":"generic_effect","raw":"将自己所有的【妖】宝可梦的HP，各恢复\\"30\\"点。"}
 CSM1cC-165	ability		0	passive_damage_mod	{"target":"own_field","amount":20,"attackerType":"dragon"}
@@ -10776,11 +10776,11 @@ CSM2bC-003	attack	3	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战�
 CSM2bC-003	attack	3	2	usage_condition	{"kind":"residual_sentence","raw":"若追加附着7个能量，则多拿取的奖赏卡变为3张。"}
 CSM2bC-004	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CSM2bC-004	ability		1	coin_flip	{"count":1}
-CSM2bC-004	ability		2	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CSM2bC-004	ability		2	evolve_from_deck	{"target":"self"}
 CSM2bC-004	ability		3	shuffle_deck	{}
 CSM2bC-005	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
 CSM2bC-005	ability		1	coin_flip	{"count":1}
-CSM2bC-005	ability		2	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CSM2bC-005	ability		2	evolve_from_deck	{"target":"self"}
 CSM2bC-005	ability		3	shuffle_deck	{}
 CSM2bC-006	attack	1	0	shuffle_deck	{}
 CSM2bC-006	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"将自己的牌库中最多3张基本能量，以任意方式附于自己的宝可梦身上。"}
@@ -10892,7 +10892,7 @@ CSM2bC-058	attack	1	0	inflict_status	{"statuses":["confusion"]}
 CSM2bC-058	attack	2	0	coin_flip	{"count":1}
 CSM2bC-058	attack	2	1	usage_condition	{"kind":"counters_to_hp_act","raw":"若为正面，则在对手战斗宝可梦身上放置伤害指示物，直到其剩余HP变为\\"10\\"点"}
 CSM2bC-059	ability		0	usage_condition	{"kind":"once_per_turn","raw":"在自己的回合时可使用1次"}
-CSM2bC-059	ability		1	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CSM2bC-059	ability		1	evolve_from_deck	{"target":"self"}
 CSM2bC-059	ability		2	shuffle_deck	{}
 CSM2bC-059	ability		3	usage_condition	{"kind":"residual_sentence","raw":"将自己的3张手牌丢到弃牌区。"}
 CSM2bC-059	ability		4	usage_condition	{"kind":"shell_fragment","raw":"然后，。"}
@@ -11751,9 +11751,9 @@ CSMPfC-003	attack	1	0	ignore	{"what":"resistance"}
 CSMPfC-004	attack	1	0	conditional_damage_mod	{"condition":"custom","conditionText":"这只宝可梦从\\"利欧路\\"进化而来","amount":90,"mode":"fixed"}
 CSMPfC-004	attack	3	0	conditional_damage_mod	{"amount":30,"condition":"self_damage_counters","mode":"per_unit"}
 CSMPfC-004	attack	3	1	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
-CSMPfC-005	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CSMPfC-005	attack	1	0	evolve_from_deck	{"target":"self"}
 CSMPfC-005	attack	1	1	shuffle_deck	{}
-CSMPfC-006	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CSMPfC-006	attack	1	0	evolve_from_deck	{"target":"self"}
 CSMPfC-006	attack	1	1	shuffle_deck	{}
 CSMPfC-007	attack	1	0	damage_bench	{"target":"opponent_any","damage":50}
 CSMPfC-007	attack	2	0	conditional_damage_mod	{"condition":"custom","conditionText":"从手牌使出了\\"竹兰\\"","amount":100,"mode":"fixed"}
@@ -11835,9 +11835,9 @@ CSMPiC-011	attack	3	2	usage_condition	{"kind":"gx_once_per_game","raw":"[对战�
 CSMPiC-012	attack	2	0	coin_flip_until_tails	{"damage_per":30}
 CSMPiC-012	attack	3	0	usage_condition	{"kind":"gx_once_per_game","raw":"[对战中，己方的GX招式只能使用1次。]"}
 CSMPiC-012	attack	3	1	usage_condition	{"kind":"residual_sentence","raw":"将附于对手战斗宝可梦身上的能量，全部丢到弃牌区。"}
-CSMPiC-013	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CSMPiC-013	attack	1	0	evolve_from_deck	{"target":"self"}
 CSMPiC-013	attack	1	1	shuffle_deck	{}
-CSMPiC-014	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CSMPiC-014	attack	1	0	evolve_from_deck	{"target":"self"}
 CSMPiC-014	attack	1	1	shuffle_deck	{}
 CSMPiC-015	attack	1	0	damage_bench	{"target":"opponent_any","damage":50}
 CSMPiC-015	attack	2	0	conditional_damage_mod	{"condition":"custom","conditionText":"从手牌使出了\\"竹兰\\"","amount":100,"mode":"fixed"}
@@ -12125,7 +12125,7 @@ CSV10C-007	ability		0	prevent_damage	{"source":"attack"}
 CSV10C-007	ability		1	usage_condition	{"kind":"residual_sentence","raw":"自己所有备战宝可梦（除\\"拥有规则的宝可梦\\"外）。"}
 CSV10C-008	ability		0	trigger	{"event":"knocked_out","effect":{"action":"damage_place","params":{"target":"attacker","count":6}},"effects":[{"action":"damage_place","params":{"target":"attacker","count":6}}],"optional":false}
 CSV10C-008	attack	1	0	cannot_retreat	{"target":"opponent","duration":"next_opp_turn"}
-CSV10C-009	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CSV10C-009	attack	1	0	evolve_from_deck	{"target":"self"}
 CSV10C-009	attack	1	1	shuffle_deck	{}
 CSV10C-010	ability		0	prevent_damage	{"source":"attack"}
 CSV10C-010	attack	1	0	ignore	{"what":"opponent_effects"}
@@ -12301,7 +12301,7 @@ CSV10C-105	attack	1	0	coin_flip	{"count":1}
 CSV10C-105	attack	1	1	discard_energy	{"target":"opponent","count":1}
 CSV10C-106	attack	1	0	self_damage	{"amount":20}
 CSV10C-107	attack	1	0	mill	{"target":"opponent","count":1}
-CSV10C-108	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CSV10C-108	attack	1	0	evolve_from_deck	{"target":"self"}
 CSV10C-108	attack	1	1	shuffle_deck	{}
 CSV10C-109	ability		0	trigger	{"event":"checkup","effect":{"action":"usage_condition","params":{"kind":"generic_effect","raw":"就给对手所有【基础】宝可梦身上各放置2个伤害指示物。"}},"effects":[{"action":"usage_condition","params":{"kind":"generic_effect","raw":"就给对手所有【基础】宝可梦身上各放置2个伤害指示物。"}}],"optional":false}
 CSV10C-109	attack	1	0	discard_energy	{"target":"opponent","count":1}
@@ -13261,7 +13261,7 @@ CSV4C-026	attack	2	0	discard_energy	{"target":"self","count":1}
 CSV4C-026	attack	2	1	switch_pokemon	{"who":"self"}
 CSV4C-028	attack	1	0	cannot_retreat	{"target":"opponent","duration":"next_opp_turn"}
 CSV4C-029	attack	1	0	switch_pokemon	{"who":"self"}
-CSV4C-029	attack	1	1	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CSV4C-029	attack	1	1	evolve_from_deck	{"target":"self"}
 CSV4C-029	attack	1	2	shuffle_deck	{}
 CSV4C-030	attack	1	0	damage_bench	{"target":"opponent_1","damage":30}
 CSV4C-030	attack	2	0	usage_condition	{"kind":"fail_unless_from_bench","raw":"在这个回合，若这只宝可梦没有从备战区被放置于战斗场上，则这个招式失败"}
@@ -14165,7 +14165,7 @@ CSV7C-155	attack	1	0	look_at	{"target":"opponent_hand"}
 CSV7C-155	attack	1	1	usage_condition	{"kind":"residual_sentence","raw":"选择其中最多2张【基础】宝可梦，放置于对手的备战区。"}
 CSV7C-156	attack	1	0	coin_flip_status	{"count":1,"statuses":["paralysis"]}
 CSV7C-156	attack	2	0	coin_flip_damage	{"count":4,"damage_per":70}
-CSV7C-157	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CSV7C-157	attack	1	0	evolve_from_deck	{"target":"self"}
 CSV7C-157	attack	1	1	shuffle_deck	{}
 CSV7C-157	attack	2	0	coin_flip_damage	{"count":1,"damage":20}
 CSV7C-158	attack	1	0	heal	{"amount":60,"target":"self"}
@@ -16782,7 +16782,7 @@ CSVL2C-018	attack	2	1	usage_condition	{"kind":"residual_sentence","raw":"选择�
 CSVL2C-019	attack	1	0	damage_bench	{"target":"opponent_any","damage":40}
 CSVL2C-019	attack	2	0	conditional_damage_mod	{"amount":120,"condition":"opponent_active_has_damage"}
 CSVL2C-020	attack	1	0	switch_pokemon	{"who":"self"}
-CSVL2C-020	attack	1	1	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CSVL2C-020	attack	1	1	evolve_from_deck	{"target":"self"}
 CSVL2C-020	attack	1	2	shuffle_deck	{}
 CSVL2C-021	attack	1	0	damage_bench	{"target":"opponent_1","damage":30}
 CSVL2C-021	attack	2	0	usage_condition	{"kind":"fail_unless_from_bench","raw":"在这个回合，若这只宝可梦没有从备战区被放置于战斗场上，则这个招式失败"}
@@ -16817,7 +16817,7 @@ CSVL2C-038	attack	1	0	heal	{"amount":20}
 CSVL2C-039	attack	1	0	coin_flip_damage	{"count":3,"damage_per":60}
 CSVL2C-040	ability		0	trigger	{"event":"checkup","effect":{"action":"usage_condition","params":{"kind":"generic_effect","raw":"自己所有宝可梦的HP，各恢复\\"20\\"。"}},"effects":[{"action":"usage_condition","params":{"kind":"generic_effect","raw":"自己所有宝可梦的HP，各恢复\\"20\\"。"}}],"optional":false}
 CSVL2C-040	attack	1	0	mill	{"target":"opponent","count":1}
-CSVL2C-041	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CSVL2C-041	attack	1	0	evolve_from_deck	{"target":"self"}
 CSVL2C-041	attack	1	1	shuffle_deck	{}
 CSVL2C-042	ability		0	usage_condition	{"kind":"opp_bench_limit","limit":3,"requiresActive":false,"raw":"对手可放置于备战区的宝可梦数量就会变为3只"}
 CSVL2C-042	ability		1	shrink_bench	{"who":"opponent","to":3,"mode":"discard"}
@@ -16863,7 +16863,7 @@ CSVL2C-065	ability		0	usage_condition	{"kind":"any_times_own_turn","raw":"在自
 CSVL2C-065	ability		1	move_energy	{"source":"bench","dest":"active","count":1,"filter":"【火】能量"}
 CSVL2C-065	attack	1	0	inflict_status	{"statuses":["burn"]}
 CSVL2C-066	attack	1	0	switch_pokemon	{"who":"self"}
-CSVL2C-066	attack	1	1	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CSVL2C-066	attack	1	1	evolve_from_deck	{"target":"self"}
 CSVL2C-066	attack	1	2	shuffle_deck	{}
 CSVL2C-067	attack	1	0	damage_bench	{"target":"opponent_1","damage":30}
 CSVL2C-067	attack	2	0	usage_condition	{"kind":"fail_unless_from_bench","raw":"在这个回合，若这只宝可梦没有从备战区被放置于战斗场上，则这个招式失败"}
@@ -16890,7 +16890,7 @@ CSVL2C-081	attack	1	0	heal	{"amount":20}
 CSVL2C-082	attack	1	0	coin_flip_damage	{"count":3,"damage_per":60}
 CSVL2C-083	ability		0	trigger	{"event":"checkup","effect":{"action":"usage_condition","params":{"kind":"generic_effect","raw":"自己所有宝可梦的HP，各恢复\\"20\\"。"}},"effects":[{"action":"usage_condition","params":{"kind":"generic_effect","raw":"自己所有宝可梦的HP，各恢复\\"20\\"。"}}],"optional":false}
 CSVL2C-083	attack	1	0	mill	{"target":"opponent","count":1}
-CSVL2C-084	attack	1	0	usage_condition	{"kind":"evolve_from_this_from_deck","raw":"从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化"}
+CSVL2C-084	attack	1	0	evolve_from_deck	{"target":"self"}
 CSVL2C-084	attack	1	1	shuffle_deck	{}
 CSVL2C-085	attack	1	0	conditional_damage_mod	{"amount":50,"condition":"counter","counter":"opponent_field_ability_count","mode":"per_unit"}
 CSVL2C-086	attack	1	0	coin_flip	{"count":1,"heads":[{"action":"prevent_damage","params":{"duration":"next_opp_turn"}},{"action":"prevent_effect","params":{"duration":"next_opp_turn"}}]}
@@ -18367,14 +18367,14 @@ CS4.5C-049	trainer		1	switch_pokemon	{"who":"self"}
 CS4.5C-049	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"\\"交错切换机\\"必须同时使用2张。"}
 CS4.5C-049	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"（这个效果，2张卡只发动1次。"}
 CS4.5C-049	trainer		4	usage_condition	{"kind":"shell_fragment","raw":"然后，。"}
-CS4.5C-050	trainer		0	usage_condition	{"kind":"evolve_from_any_field_pokemon","raw":"从自己的牌库选择1张从自己场上的1只宝可梦进化而来的卡牌，放置于该宝可梦身上进行进化"}
+CS4.5C-050	trainer		0	evolve_from_deck	{"target":"choose"}
 CS4.5C-050	trainer		1	shuffle_deck	{}
 CS4.5C-050	trainer		2	end_turn	{}
 CS4.5C-051	trainer		0	switch_pokemon	{"who":"opponent"}
 CS4.5C-052	trainer		0	search_deck_to_bench	{"filter":"【基础】宝可梦","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
 CS4.5C-052	trainer		1	shuffle_deck	{}
 CS4.5C-052	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"这张卡，只能在自己最初的回合使用。"}
-CS4.5C-082	trainer		0	usage_condition	{"kind":"evolve_from_any_field_pokemon","raw":"从自己的牌库选择1张从自己场上的1只宝可梦进化而来的卡牌，放置于该宝可梦身上进行进化"}
+CS4.5C-082	trainer		0	evolve_from_deck	{"target":"choose"}
 CS4.5C-082	trainer		1	shuffle_deck	{}
 CS4.5C-082	trainer		2	end_turn	{}
 CS4.5C-083	trainer		0	switch_pokemon	{"who":"opponent"}
@@ -18447,7 +18447,7 @@ CS5DC-122	trainer		0	heal	{"amount":30}
 CS5DC-123	trainer		0	search_deck_to_hand	{"filter":null,"count":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
 CS5DC-123	trainer		1	shuffle_deck	{}
 CS5DC-123	trainer		2	end_turn	{}
-CS5DC-124	trainer		0	usage_condition	{"kind":"evolve_from_any_field_pokemon","raw":"从自己的牌库选择1张从自己场上的1只宝可梦进化而来的卡牌，放置于该宝可梦身上进行进化"}
+CS5DC-124	trainer		0	evolve_from_deck	{"target":"choose"}
 CS5DC-124	trainer		1	shuffle_deck	{}
 CS5DC-124	trainer		2	end_turn	{}
 CS5DC-125	trainer		0	peek_and_keep	{"peek":7,"filter":"宝可梦","keep":1,"maxCount":1,"minCount":1,"allowFewer":false,"allowEmpty":false}
@@ -19538,7 +19538,7 @@ CSVH1aC-010	trainer		1	shuffle_deck	{}
 CSVH1aC-010	trainer		2	end_turn	{}
 CSVH1aC-011	trainer		0	coin_flip	{"count":1}
 CSVH1aC-011	trainer		1	discard_energy	{"target":"opponent_field","count":1}
-CSVH1aC-012	trainer		0	usage_condition	{"kind":"evolve_from_any_field_pokemon","raw":"从自己的牌库选择1张从自己场上的1只宝可梦进化而来的卡牌，放置于该宝可梦身上进行进化"}
+CSVH1aC-012	trainer		0	evolve_from_deck	{"target":"choose"}
 CSVH1aC-012	trainer		1	shuffle_deck	{}
 CSVH1aC-012	trainer		2	end_turn	{}
 CSVH2C-038	trainer		0	move_energy	{"source":"self","dest":"bench","count":1,"filter":"基本能量"}

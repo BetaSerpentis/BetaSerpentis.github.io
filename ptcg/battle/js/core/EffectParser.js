@@ -1515,7 +1515,8 @@ const RULES = [
   { re: /将(?:自己的)?手牌全部放回牌库并且重洗牌库。然后，从牌库(?:上方)?抽取(\d+)张卡牌/, act:'shuffle_hand_to_deck', p:m=>({who:'self',draw_count:+m[1]}) },
   { re: /若自己场上的宝可梦仅有战斗宝可梦，则抽出的卡牌张数变为(\d+)张/, act:'usage_condition', p:m=>trainerPrerequisite('draw_more_if_only_active', m[0]) },
   // --- 伊布族进化检索 ---
-  { re: /从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化/, act:'usage_condition', p:m=>trainerPrerequisite('evolve_from_this_from_deck', m[0]) },
+  // 升级：原为未接线标记 → 真实「从牌库进化」（共鸣进化等）
+  { re: /从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化/, act:'evolve_from_deck', p:()=>({ target:'self' }) },
   // ===== P14（2026-09）：unparsed 真实效果段补建 II =====
   // --- 相仿铃铛：检索与弃牌区同名的宝可梦 ---
   { re: /从自己的牌库选择，与自己弃牌区中的宝可梦名字相同的1张宝可梦，在给对手看过后，加入手牌/, act:'search_deck_to_hand', p:()=>withCount({filter:'与自己弃牌区中宝可梦名字相同的宝可梦'},1,false) },
@@ -1551,7 +1552,8 @@ const RULES = [
   // --- 高级球/尼多后特性：牌库 1 张宝可梦加手（允许（X除外）括注）---
   { re: /将(?:自己的|自己)?牌库中的1张宝可梦(?:（[^）]*）)?，在给对手看过后，加入手牌/, act:'search_deck_to_hand', p:m=>withCount({filter:'宝可梦'},1,false) },
   // --- 摇摇奶昔：从场上宝可梦进化链检索并放置 ---
-  { re: /从自己的牌库选择1张从自己场上的1只宝可梦进化而来的卡牌，放置于该宝可梦身上进行进化/, act:'usage_condition', p:m=>trainerPrerequisite('evolve_from_any_field_pokemon', m[0]) },
+  // 升级：原为未接线标记 → 真实「从牌库进化」（自己场上任选 1 只）
+  { re: /从自己的牌库选择1张从自己场上的1只宝可梦进化而来的卡牌，放置于该宝可梦身上进行进化/, act:'evolve_from_deck', p:()=>({ target:'choose' }) },
   // --- 机器鹕：掷硬币正面任意卡加手（含重洗尾巴）---
   // --- 订购平板：掷硬币正面物品加手 ---
   // --- 训练家/道具前言：丢弃手牌中的 N 张特定卡才可使用 ---

@@ -1974,6 +1974,48 @@ const EXECUTORS = {
     gs.addLog(`从弃牌区放置 ${selected.length} 只宝可梦到备战区`);
   },
 
+  /**
+   * 「从自己的牌库选择1张从（这只宝可梦／自己场上的1只宝可梦）进化而来的卡牌，
+   *   放置于（这只宝可梦／该宝可梦）身上进行进化」——从牌库进化（共鸣进化等）。
+   *   p.target: 'self'（默认，来源宝可梦）| 'choose'（自己场上选 1 只）
+   */
+  async evolve_from_deck(gs, pl, p, eff) {
+    const all = [pl.active, ...(pl.bench || [])].filter(Boolean);
+    let targets = [];
+    if (p.target === 'choose') {
+      const pickable = all.filter(m => gs.evolveCandidatesFromDeck(pl, m).length && !m.evolvedThisTurn && !m.placedThisTurn);
+      if (!pickable.length) { gs.addLog('没有可从牌库进化的宝可梦'); return; }
+      // ⚠️ 只让「牌库里确实有进化卡、且本回合允许进化」的目标可选：
+      //    这里必须用 slotFilter（_pickPokemonTarget 没有 candidates 这个选项）。
+      const monOfSlot = (slot) => slot === 'active' ? pl.active : pl.bench?.[parseInt(String(slot).replace('bench-', ''))];
+      const slot = await _pickPokemonTarget(gs, pl, pl, {
+        mode:'choose', side:'self', allowActive:true, allowBench:true,
+        prompt:'选择要进化的宝可梦',
+        slotFilter: (s) => pickable.includes(monOfSlot(s)),
+      });
+      const mon = slot === 'active' ? pl.active : pl.bench?.[parseInt(String(slot).replace('bench-', ''))];
+      if (mon) targets = [mon];
+    } else {
+      const src = eff?.source || (p.source === 'self' ? pl.active : null) || pl.active;
+      if (src) targets = [src];
+    }
+    if (!targets.length) { gs.addLog('没有可进化的目标'); return; }
+    let evolved = 0;
+    for (const mon of targets) {
+      const cands = gs.evolveCandidatesFromDeck(pl, mon);
+      if (!cands.length) { gs.addLog(`${mon.name} 的进化卡不在牌库中`); continue; }
+      const picked = await _pickCardsFromZone(gs, pl, pl, cands, 1, {
+        source:'evolve-from-deck', prompt:`选择「${mon.name}」的进化卡`,
+        allowFewer:true, allowEmpty:true, optional:true,
+      });
+      const cardId = picked[0]?.card ?? cands[0];
+      if (!cardId) continue;
+      if (gs.evolveFromDeck(pl, mon, cardId)) evolved++;
+    }
+    gs._shuffle(pl.deck);
+    if (!evolved) gs.addLog('从牌库进化未发生');
+  },
+
   // ===== 弃牌区附能 =====
   async attach_energy_from_discard(gs, pl, p) {
     const allowActive = p.target !== 'bench';

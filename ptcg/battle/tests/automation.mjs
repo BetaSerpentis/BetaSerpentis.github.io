@@ -9576,6 +9576,96 @@ await test('审计脚本：没有新增「无人读取」的 usage_condition 标
   assert.ok(out.includes('未超基线'), `审计脚本应通过（实际输出：${out.split('\n').slice(-3).join(' | ')}）`);
 });
 
+
+// ============================================================
+//  缺口② 进化族：从牌库进化 + 继承进化前招式
+// ============================================================
+
+const _EVO = {
+  'EEVEE': { card:{ cardType:'pokemon', name:'伊布', hp:70, cardId:'EEVEE', stage:'基础', element:'colorless', attacks:[{ name:'撞击', damage:20, cost:[], effects:[] }], retreatCost:1 }, info:{ name:'伊布' } },
+  'VAPOR': { card:{ cardType:'pokemon', name:'水伊布', hp:120, cardId:'VAPOR', stage:'1阶', evolvesFrom:'伊布', element:'water', attacks:[{ name:'水炮', damage:60, cost:[], effects:[] }], retreatCost:2 }, info:{ name:'水伊布' } },
+  'OTHER': { card:{ cardType:'pokemon', name:'别的', hp:60, cardId:'OTHER', stage:'基础', element:'fire', attacks:[], retreatCost:1 }, info:{ name:'别的' } },
+};
+function evoResolver() {
+  return {
+    getInfo: id => _EVO[id]?.info || { name:'#'+id, number:null, type:'unknown' },
+    getCard: id => _EVO[id]?.card || null,
+    findPokemonIdsByName: name => Object.entries(_EVO).filter(([, v]) => v.card.cardType === 'pokemon' && v.card.name === name).map(([id]) => id),
+  };
+}
+const _evoMon = (name, id) => Object.assign(mon(name, id), {
+  attacks: [{ name:'撞击', damage:20, cost:[], effects:[] }], energy:['a', 'b', 'c'], evolvedThisTurn:false,
+});
+const _evoGs = async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  gs.cardResolver = evoResolver();
+  return gs;
+};
+
+await test('进化族 解析：两条「从牌库进化」都变成真实动作（不再是空标记）', () => {
+  const a = parseEffect('从自己的牌库中选择1张从这只宝可梦进化而来的卡牌，放于这只宝可梦身上进行进化。并重洗牌库。').effects;
+  assert.equal(a[0].action, 'evolve_from_deck');
+  assert.equal(a[0].params.target, 'self');
+  const b = parseEffect('从自己的牌库选择1张从自己场上的1只宝可梦进化而来的卡牌，放置于该宝可梦身上进行进化。').effects;
+  assert.equal(b[0].action, 'evolve_from_deck');
+  assert.equal(b[0].params.target, 'choose');
+});
+
+await test('进化族 运行时：从牌库把「伊布」进化成「水伊布」', async () => {
+  const gs = await _evoGs();
+  const pl = gs.player1;
+  pl.active = _evoMon('伊布', 'EEVEE');
+  pl.active.placedThisTurn = false;
+  pl.bench = [];
+  pl.deck = ['VAPOR', 'X1'];
+  const eff = parseEffect('从自己的牌库中选择1张从这只宝可梦进化而来的卡牌，放于这只宝可梦身上进行进化。并重洗牌库。').effects;
+  await executeEffects(gs, pl, eff, { source: pl.active });
+  assert.equal(pl.active.name, '水伊布', '应从牌库进化成水伊布');
+  assert.equal(pl.active.maxHp, 120, 'HP 应换成进化后的');
+  assert.deepEqual(pl.active.attacks.map(a => a.name), ['水炮'], '招式应换成进化后的');
+  assert.ok(!pl.deck.includes('VAPOR'), '进化卡应从牌库移除');
+  assert.ok(!gs.log.some(l => String(l).includes('效果失败')), '不应有静默失败');
+});
+
+await test('进化族 从牌库进化同样遵守「本回合刚出场不能进化」', async () => {
+  const gs = await _evoGs();
+  const pl = gs.player1;
+  pl.active = _evoMon('伊布', 'EEVEE');
+  pl.active.placedThisTurn = true;
+  pl.deck = ['VAPOR'];
+  await executeEffects(gs, pl, parseEffect('从自己的牌库中选择1张从这只宝可梦进化而来的卡牌，放于这只宝可梦身上进行进化。并重洗牌库。').effects, { source: pl.active });
+  assert.equal(pl.active.name, '伊布', '本回合刚出场时不应进化');
+  assert.ok(pl.deck.includes('VAPOR'), '进化卡应留在牌库');
+});
+
+await test('进化族 choose 路径：只让「牌库里有进化卡」的目标可选', async () => {
+  const gs = await _evoGs();
+  const pl = gs.player1;
+  pl.active = _evoMon('伊布', 'EEVEE');
+  pl.active.placedThisTurn = false;
+  pl.bench = [_evoMon('别的', 'OTHER')];
+  pl.deck = ['VAPOR'];
+  await executeEffects(gs, pl, parseEffect('从自己的牌库选择1张从自己场上的1只宝可梦进化而来的卡牌，放置于该宝可梦身上进行进化。').effects, { source: pl.active });
+  assert.equal(pl.active.name, '水伊布', '出战位的伊布应进化');
+  assert.equal(pl.bench[0].name, '别的', '另一只不应受影响');
+});
+
+await test('进化族 继承进化前招式（有特性时生效、无特性时不生效）', async () => {
+  const text = '自己所有已经进化的宝可梦，可使用其所有进化前拥有的招式。';
+  const gs = await _evoGs();
+  const pl = gs.player1;
+  const src = _evoMon('共鸣体', 'SRC');
+  const vap = Object.assign(_evoMon('水伊布', 'VAPOR'), {
+    evolvesFrom:'伊布', attacks:[{ name:'水炮', damage:60, cost:[], effects:[] }],
+  });
+  pl.active = src; pl.bench = [vap];
+  assert.deepEqual(gs.getAttacks(vap).map(a => a.name), ['水炮'], '没有该特性时只有自身招式');
+  src.ability = { name:'共鸣', zone:'field', effects: parseEffect(text).effects };
+  assert.deepEqual(gs.getAttacks(vap).map(a => a.name), ['水炮', '撞击'], '有特性时应能使用进化前的「撞击」');
+  assert.deepEqual(gs.getAttacks(src).map(a => a.name), ['撞击'], '基础宝可梦不受影响');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

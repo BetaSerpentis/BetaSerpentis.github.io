@@ -344,16 +344,19 @@ export class GameState {
     const cost=this.effectiveRetreatCost(pl.active);if(!this._canPayRetreatCost(pl.active,cost)){this.addLog('撤退能量不足');return false;}
     if(!this._discardEnergyForRetreat(pl.active,cost,pl,selectedEnergyIndices))return false;const old=pl.active;pl.active=pl.bench.splice(benchIndex,1)[0];pl.bench.push(old);this._removeSpecialConditions(old);pl.retreatUsed=true;this.addLog(`${pl.name} 撤退，换上 ${pl.active.name}`);this.recomputePassives();return true;}
 
-  evolve(pl,hi,cd,slot){const t=slot==='active'?pl.active:pl.bench[parseInt(slot.replace('bench-',''))];
+  /** 进化前提校验（从手牌进化与「从牌库进化」共用，保证两条路径规则一致） */
+  _canEvolveInto(pl,t,cd){
     if(!t){this.addLog('目标不存在');return false;}
     if(!cd?.evolvesFrom||t.name!==cd.evolvesFrom){this.addLog(`${t.name} 不能进化为 ${cd?.name||'?'}`);return false;}
     // 例外：「抢先进化」类特性（如烈雀 151C-021）允许后攻玩家在最初回合进化刚出场的宝可梦；
     // 但「本回合已进化过」仍然不允许再进化一次。
     const firstTurnEvo=t.placedThisTurn&&this._canEvolveOnFirstTurn(pl,t);
     if((t.placedThisTurn&&!firstTurnEvo)||t.evolvedThisTurn){this.addLog(`${t.name} 本回合刚出场或已进化，下回合才能进化`);return false;}
+    return true;
+  }
+  /** 进化的状态变更（卡牌已从来源区域取出，newCardId 为进化后的卡） */
+  _applyEvolutionInto(pl,t,cd,newCardId){
     const dmg=t.maxHp-t.hp;
-    const newCardId=pl.hand[hi];   // 需求：进化后更新 cardId，立绘才会换成进化后的形象
-    pl.hand.splice(hi,1);
     if(newCardId)t.cardId=newCardId;
     t.name=cd.name;t.maxHp=cd.hp;t.hp=Math.max(cd.hp-dmg,10);
     t.stage=cd.stage||t.stage;t.evolvesFrom=cd.evolvesFrom||null;t.ruleText=cd.ruleText||'';t.rule2Text=cd.rule2Text||'';t.ruleBox=cd.ruleBox||'';t.isEx=!!cd.isEx;t.isRadiant=!!cd.isRadiant;t.hasRuleBox=!!cd.hasRuleBox;
@@ -361,7 +364,62 @@ export class GameState {
     this._lastEvolved={player:pl,mon:t};
     t.attacks=cd.attacks;t.element=cd.element;t.weakness=cd.weakness||null;t.resistance=cd.resistance||null;t.weaknessMultiplier=cd.weaknessMultiplier||2;t.resistanceValue=cd.resistanceValue??-30;t.retreatCost=cd.retreatCost??1;t.ability=cd.ability||null;t.abilityUsed=false;t.abilityDisabled=false;t.abilityDisabledBy=null;t.placedThisTurn=false;t.evolvedThisTurn=true;
     this._removeSpecialConditions(t);
-    this.addLog(`${pl.name} 的宝可梦进化成了 ${cd.name}！`);this.recomputePassives();this.emitTriggerEvent('evolved',{target:t,owner:pl});return true;}
+    this.addLog(`${pl.name} 的宝可梦进化成了 ${cd.name}！`);this.recomputePassives();this.emitTriggerEvent('evolved',{target:t,owner:pl});return true;
+  }
+  evolve(pl,hi,cd,slot){const t=slot==='active'?pl.active:pl.bench[parseInt(slot.replace('bench-',''))];
+    if(!this._canEvolveInto(pl,t,cd))return false;
+    const newCardId=pl.hand[hi];   // 需求：进化后更新 cardId，立绘才会换成进化后的形象
+    pl.hand.splice(hi,1);
+    return this._applyEvolutionInto(pl,t,cd,newCardId);}
+
+  /**
+   * 「从自己的牌库选择1张从这只宝可梦进化而来的卡牌，放置于这只宝可梦身上进行进化」
+   * （共鸣进化等）。牌库里所有 `evolvesFrom === mon.name` 的宝可梦卡都是候选；
+   * **当前是否允许进化**（本回合刚出场/本回合已进化、「抢先进化」例外）与从手牌进化同一套判定。
+   */
+  evolveCandidatesFromDeck(pl,mon){
+    if(!mon||!pl)return [];
+    return (pl.deck||[]).filter(cid=>{
+      const cd=this.cardResolver?.getCard?.(cid);
+      return cd&&cd.cardType==='pokemon'&&cd.evolvesFrom===mon.name;
+    });
+  }
+  evolveFromDeck(pl,mon,cardId){
+    const cd=this.cardResolver?.getCard?.(cardId);
+    if(!this._canEvolveInto(pl,mon,cd))return false;
+    const idx=(pl.deck||[]).indexOf(cardId);
+    if(idx<0)return false;
+    pl.deck.splice(idx,1);
+    return this._applyEvolutionInto(pl,mon,cd,cardId);
+  }
+
+  /**
+   * 「自己所有已经进化的宝可梦，可使用其所有进化前拥有的招式」
+   * —— 沿 evolvesFrom 一路往上（2阶→1阶→基础）把进化前招式的定义收集起来。
+   * 由 getAttacks 追加在自身招式之后（能量需求照旧由正常招式流程判定）。
+   */
+  _inheritedAttacksFor(mon){
+    if(!mon?.evolvesFrom)return [];
+    const owner=[this.player1,this.player2].find(p=>this.getPokemonInPlay(p).includes(mon));
+    if(!owner)return [];
+    const hasInherit=[owner.active,...(owner.bench||[])].filter(Boolean).some(src=>{
+      if(this.isAbilityDisabled?.(src))return false;
+      if(!this.isAbilityConditionMet(src))return false;
+      return (this._enabledAbilityEffects(src)||[]).some(e=>e.action==='usage_condition'&&e.params?.kind==='evolve_move_inherit');
+    });
+    if(!hasInherit)return [];
+    const out=[];const seen=new Set();let name=mon.evolvesFrom;
+    while(name&&!seen.has(name)){
+      seen.add(name);
+      const ids=this.cardResolver?.findPokemonIdsByName?.(name)||[];
+      if(!ids.length)break;
+      const cd=this.cardResolver?.getCard?.(ids[0]);
+      if(!cd)break;
+      for(const a of (cd.attacks||[]))out.push(a);
+      name=cd.evolvesFrom||null;
+    }
+    return out;
+  }
 
   _toolLabel(tool){return (tool&&typeof tool==='object')?(tool.name||tool.cardId||'宝可梦道具'):tool;}
   _toolCardValue(tool){return (tool&&typeof tool==='object')?(tool.cardId||tool.name||tool):tool;}
@@ -374,7 +432,7 @@ export class GameState {
    * 该宝可梦当前可用招式 = 自身招式 + 身上「招式学习器」类道具提供的招式。
    * 独立成一处取用点，避免在「附上/离场」时增删 mon.attacks 带来的清理遗漏。
    */
-  getAttacks(mon){return [...((mon&&mon.attacks)||[]),...((mon&&mon.tool&&mon.tool.toolAttacks)||[])];}
+  getAttacks(mon){return [...((mon&&mon.attacks)||[]),...this._inheritedAttacksFor(mon),...((mon&&mon.tool&&mon.tool.toolAttacks)||[])];}
 
   /**
    * 备战区已满、且该效果**全部**可执行动作都需要空备战位 → 视为不可用。

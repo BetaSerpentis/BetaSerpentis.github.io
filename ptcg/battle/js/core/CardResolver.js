@@ -24,6 +24,7 @@ const CACHE_KEY = 'ptcg_names_v3';
 export class CardResolver {
   constructor() {
     this.map = null; this.raw = {}; this.compiled = {};
+    this._nameIndex = null; // 名字 → [id]（懒构建，供「进化前招式继承」等按名字回查卡面）
     this.loaded = false; this.loading = null;
   }
 
@@ -62,6 +63,21 @@ export class CardResolver {
   getName(id){ const i=this.map?.get(String(id)); return i?i.name:'#'+id; }
   getNumber(id){ return this.map?.get(String(id))?.number??null; }
   getType(id){ return this.map?.get(String(id))?.type??'unknown'; }
+  /** 全部宝可梦卡里名字等于 name 的卡牌 id（懒构建索引；供「继承进化前招式」等按名字回查卡面） */
+  findPokemonIdsByName(name) {
+    const want = String(name || '').trim();
+    if (!want || !this.map) return [];
+    if (!this._nameIndex) {
+      this._nameIndex = new Map();
+      for (const [id, cd] of this.map) {
+        if (!cd || cd.cardType !== 'pokemon' || !cd.name) continue;
+        if (!this._nameIndex.has(cd.name)) this._nameIndex.set(cd.name, []);
+        this._nameIndex.get(cd.name).push(id);
+      }
+    }
+    return this._nameIndex.get(want) || [];
+  }
+
   getInfo(id){ return this.map?.get(String(id))||{name:'#'+id,number:null,type:'unknown'}; }
 
   getCard(id){
