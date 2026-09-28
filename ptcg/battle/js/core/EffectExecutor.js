@@ -705,6 +705,7 @@ function _basicCanRareCandyTo(gs, mon, stage2) {
 function _applyEvolutionToMon(gs, mon, cd, evolvedThisTurn = true) {
   const dmg = mon.maxHp - mon.hp;
   mon.name = cd.name; mon.maxHp = cd.hp; mon.hp = Math.max(cd.hp - dmg, 10);
+  mon._baseMaxHp = cd.hp;   // 进化后基础最大HP换成新卡（伤害指示物不变）
   mon.stage = cd.stage || mon.stage; mon.evolvesFrom = cd.evolvesFrom || null;
   mon.ruleText = cd.ruleText || ''; mon.rule2Text = cd.rule2Text || ''; mon.ruleBox = cd.ruleBox || '';
   mon.isEx = !!cd.isEx; mon.isRadiant = !!cd.isRadiant; mon.hasRuleBox = !!cd.hasRuleBox;

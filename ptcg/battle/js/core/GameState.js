@@ -402,6 +402,9 @@ export class GameState {
     const dmg=t.maxHp-t.hp;
     if(newCardId)t.cardId=newCardId;
     t.name=cd.name;t.maxHp=cd.hp;t.hp=Math.max(cd.hp-dmg,10);
+    // 进化后基础最大HP换成新卡的值；否则 _applyMaxHpModifiers 会拿旧卡的基础值重算 ✗
+    // （伤害指示物在进化时不变 → 上面这行本来就是守恒伤害的写法）
+    t._baseMaxHp=cd.hp;
     t.stage=cd.stage||t.stage;t.evolvesFrom=cd.evolvesFrom||null;t.ruleText=cd.ruleText||'';t.rule2Text=cd.rule2Text||'';t.ruleBox=cd.ruleBox||'';t.isEx=!!cd.isEx;t.isRadiant=!!cd.isRadiant;t.hasRuleBox=!!cd.hasRuleBox;
     // 记录最近一次进化（供「附着于进化后的宝可梦身上」这类后续效果定位目标）
     this._lastEvolved={player:pl,mon:t};
@@ -1426,9 +1429,12 @@ export class GameState {
       const bonus=(mon.tool?.maxHpBonus||0)+this.getPassiveMaxHpModifier(mon);
       const want=mon._baseMaxHp+bonus;
       if(mon.maxHp!==want){
-        const grew=want>(mon.maxHp||0);
+        // ⚠️ PTCG 的血量本质是「当前HP = 最大HP − 伤害指示物×10」：
+        //    上限变化时**伤害指示物不变**，所以要守恒 damage（= maxHp − hp），
+        //    不能只改 maxHp（那等于凭空多出伤害指示物 ✗）。满血的宝可梦涨上限后仍是满血。
+        const dmg=Math.max(0,(mon.maxHp||0)-(mon.hp??0));
         mon.maxHp=want;
-        if(!grew&&mon.hp>want)mon.hp=want;
+        mon.hp=Math.max(0,want-dmg);
       }
     }
   }

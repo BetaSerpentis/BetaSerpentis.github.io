@@ -10331,16 +10331,52 @@ await test('斗篷 解析：三张同类斗篷都产出 max_hp_mod（豪华斗�
   assert.equal(c[0].params.amount, 50);
 });
 
-await test('斗篷 运行时：装备后最大HP+100、当前HP不变；卸下后还原', async () => {
+await test('斗篷 运行时：满血宝可梦涨上限后**仍是满血**（伤害指示物守恒）', async () => {
   const gs = await _capeSetup();
   const mon = gs.player1.active;
-  const hpBefore = mon.hp, maxBefore = mon.maxHp;
+  const maxBefore = mon.maxHp;
+  assert.equal(mon.hp, maxBefore, '前置：满血');
   _equip(gs, mon, _CAPE_TEXT, '豪华斗篷');
   assert.equal(mon.maxHp, maxBefore + 100, '最大HP应 +100');
-  assert.equal(mon.hp, hpBefore, '当前HP不应被治疗');
+  // PTCG：当前HP = 最大HP − 伤害指示物×10。满血时伤害为 0 → 涨上限后仍满血。
+  assert.equal(mon.hp, maxBefore + 100, '满血涨上限后应仍是满血（此前只改 maxHp 等于凭空多出伤害指示物 ✗）');
   mon.tool = null;
   gs._applyMaxHpModifiers();
-  assert.equal(mon.maxHp, maxBefore, '卸下后应还原');
+  assert.equal(mon.maxHp, maxBefore, '卸下后最大HP应还原');
+  assert.equal(mon.hp, maxBefore, '卸下后仍是满血');
+});
+
+await test('斗篷 运行时：已受伤宝可梦涨上限时**伤害指示物不变**；卸下后还原', async () => {
+  const gs = await _capeSetup();
+  const mon = gs.player1.active;
+  mon.hp = 70; // 120 上限、70 当前 → 伤害 50（5 个指示物）
+  const dmgBefore = mon.maxHp - mon.hp;
+  _equip(gs, mon, _CAPE_TEXT, '豪华斗篷');
+  assert.equal(mon.maxHp, 220, '最大HP 120+100');
+  assert.equal(mon.maxHp - mon.hp, dmgBefore, '伤害指示物应守恒（50）');
+  assert.equal(mon.hp, 170, '当前HP 应为 220−50');
+  mon.tool = null;
+  gs._applyMaxHpModifiers();
+  assert.equal(mon.hp, 70, '卸下后回到 70');
+  assert.equal(mon.maxHp - mon.hp, dmgBefore, '卸下后伤害仍守恒');
+});
+
+await test('进化 运行时：伤害指示物不变，且上限仍吃到道具加成', async () => {
+  const gs = await _capeSetup();
+  const pl = gs.player1;
+  const mon = pl.active;
+  mon.name = '伊布'; mon.cardId = 'EEVEE'; mon.maxHp = 70; mon.hp = 40; // 伤害 30
+  mon.evolvedThisTurn = false; mon.placedThisTurn = false;
+  gs.cardResolver = fakeResolver({
+    'VAPOR': { card:{ cardType:'pokemon', name:'水伊布', hp:120, cardId:'VAPOR', stage:'1阶', evolvesFrom:'伊布', element:'water', attacks:[], retreatCost:2 }, info:{ name:'水伊布' } },
+  });
+  _equip(gs, mon, _CAPE_TEXT, '豪华斗篷'); // 70+100=170，伤害 30 → 140
+  assert.equal(mon.hp, 140, '装备后 170−30');
+  pl.hand.push('VAPOR');
+  gs.evolve(pl, pl.hand.length - 1, gs.cardResolver.getCard('VAPOR'), 'active');
+  assert.equal(mon.maxHp, 220, '新卡基础 120 + 道具 100');
+  assert.equal(mon.maxHp - mon.hp, 30, '进化时伤害指示物不变');
+  assert.equal(mon.hp, 190, '当前HP 应为 220−30');
 });
 
 await test('斗篷 运行时：被招式伤害昏厥时，对手多拿 1 张奖赏卡', async () => {
