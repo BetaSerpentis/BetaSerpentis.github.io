@@ -64,7 +64,7 @@ export class GameState {
   constructor(){this.player1=new PlayerState('玩家');this.player2=new PlayerState('对手');
     this.currentPlayer=this.player1;this.phase=PHASE.SETUP;this.turn=0;this.log=[];this.winner=null;this.temporaryAbilityLocks=[];
     this.firstPlayer=null;this.firstPlayerFirstTurnInProgress=false;
-    this.stadium=null;this.pendingPick=null;this.pendingPokemonPick=null;this.knockoutHistory=[];}
+    this.stadium=null;this.pendingPick=null;this.pendingPokemonPick=null;this.pendingBenchPromotion=null;this.knockoutHistory=[];}
 
   _applyTurnAttackModifiers(attacker,defender,move,pl){let total=0;
     for(const mod of pl?.turnAttackModifiers||[]){
@@ -1538,8 +1538,28 @@ export class GameState {
     this._recordKnockout(pl);
     this.addLog(`${pl.name} 的 ${knockedOut.name} 被击倒！${dest.toLostZone?'（放于放逐区）':''}`);
     const opp=this.getOpponent(pl);this.takePrizesForKnockout(opp,knockedOut);
-    if(pl.bench.length>0){pl.active=pl.bench.shift();this.addLog(`${pl.name} 换上 ${pl.active.name}`);this.recomputePassives();}
+    if(pl.bench.length>0){
+      pl.active=pl.bench.shift();this.addLog(`${pl.name} 换上 ${pl.active.name}`);this.recomputePassives();
+      // 需求：己方战斗宝可梦昏厥后应**由玩家自己选择**谁上场（此前是直接让下一只上场）。
+      // 这里仍先按旧行为自动递补一只（保证 active 永不为空、引擎各处状态一致），
+      // 再挂一个待选标记；UI 会立刻弹出「选择上场的宝可梦」，选中后与当前出战位**交换**
+      // （不是撤退，不消耗撤退次数）。AI 侧由 UI 层忽略该标记。
+      if(pl===this.player1&&pl.bench.length>0)this.pendingBenchPromotion=pl;
+    }
     else{this.winner=opp;this.phase=PHASE.GAME_OVER;this.addLog(`${opp.name} 胜利！`);}}
+
+  /** 玩家手动指定上场宝可梦：与自动递补上来的那一只**交换**（不消耗撤退次数） */
+  promoteBenchToActive(pl, benchIdx){
+    const i=Number(benchIdx);
+    if(!pl||!Number.isInteger(i)||i<0||i>=(pl.bench||[]).length){this.pendingBenchPromotion=null;return false;}
+    const cur=pl.active;
+    pl.active=pl.bench[i];
+    pl.bench[i]=cur;
+    this.pendingBenchPromotion=null;
+    this.addLog(`${pl.name} 选择 ${pl.active.name} 上场`);
+    this.recomputePassives?.();
+    return true;
+  }
 
   // 起手是否有基础宝可梦（用于开局重新抽牌判定）
   hasBasicInHand(pl){

@@ -406,6 +406,9 @@ export class PTCGBattleApp {
   _refresh() {
     this._renderScene();
     this._updateMainMenu();
+    // 需求：己方宝可梦被击倒（发生在对手回合）→ 优先弹出「选择上场的宝可梦」，
+    // 不能被常规主菜单面板顶掉。
+    if (this._maybeShowBenchPromotion()) return;
     this._syncPlayerMainPanel();
   }
 
@@ -484,8 +487,12 @@ export class PTCGBattleApp {
     // 附着能量 + 宝可梦道具
     if (energyEl) {
       const icons = (mon.energy || []).map(e => `<span class="energy ${this._eleClass(e)}" title="${energyLabel(e)}"></span>`).join('');
-      const tool = mon.tool ? `<span class="energy" style="background:#ffd964" title="${(mon.tool && (mon.tool.name || mon.tool.cardId)) || '宝可梦道具'}"></span>` : '';
-      energyEl.innerHTML = icons + tool;
+      // 需求：道具改成**方形图标**、不要跟圆形能量混在一起、统一放在能量**前面**
+      const toolShort = this._toolShort(mon);
+      const tool = toolShort
+        ? `<span class="tool-chip" title="${(mon.tool && (mon.tool.name || mon.tool.cardId)) || '宝可梦道具'}">${toolShort}</span>`
+        : '';
+      energyEl.innerHTML = tool + icons;
     }
 
     // 立绘（在线优先 + 本地/正面回退；我方用背面形象）
@@ -510,6 +517,8 @@ export class PTCGBattleApp {
   _showListView(items, { onBack = null } = {}) {
     const menu = $('#list-menu');
     if (!menu) return;
+    const listText = $('#list-text');
+    if (listText) { listText.hidden = true; listText.textContent = ''; }
     menu.innerHTML = '';
     for (const it of items) {
       const el = document.createElement('div');
@@ -559,6 +568,19 @@ export class PTCGBattleApp {
 
   _energyShortText(mon) {
     return (mon?.energy || []).map(e => this._energyShort(e)).filter(Boolean).join('');
+  }
+
+  // 宝可梦道具的首字（「场地」列表右侧标记用；需求：放在能量前面，未装备不显示）
+  _toolShort(mon) {
+    const t = mon?.tool;
+    if (!t) return '';
+    let name = t.name || '';
+    if (!name || name === String(t.cardId)) {
+      const cd = this.resolver?.getCard?.(t.cardId);
+      if (cd?.name) name = cd.name;
+    }
+    const chars = [...String(name).trim()];
+    return chars.length ? chars[0] : '';
   }
 
   // 手牌列表（滚动）：点击进入卡牌动作子菜单
@@ -816,11 +838,12 @@ export class PTCGBattleApp {
     // 需求：只留名字 + 「当前hp/总hp·能量」，去掉（出战）/（备战N）等占位提示
     const push = (slot, mon, tag) => {
       if (!mon) return;
-      const enText = this._energyShortText(mon);
+      // 需求：装备了道具就在右侧标记里写上道具首字，且放在能量**前面**；未装备不显示
+      const mark = this._toolShort(mon) + this._energyShortText(mon);
       const usable = this._pokeHasActions(slot, mon);
       items.push({
         label: mon.name,
-        meta: enText ? `${mon.hp}/${mon.maxHp}·${enText}` : `${mon.hp}/${mon.maxHp}`,
+        meta: mark ? `${mon.hp}/${mon.maxHp}·${mark}` : `${mon.hp}/${mon.maxHp}`,
         disabled: !usable,
         onSelect: () => this._showPokeActions(slot),
       });
@@ -881,10 +904,10 @@ export class PTCGBattleApp {
     // 需求：对方场地同样只留名字 + 当前hp/总hp·能量
     const push = (mon, tag) => {
       if (!mon) return;
-      const enText = this._energyShortText(mon);
+      const mark = this._toolShort(mon) + this._energyShortText(mon);
       items.push({
         label: mon.name,
-        meta: enText ? `${mon.hp}/${mon.maxHp}·${enText}` : `${mon.hp}/${mon.maxHp}`,
+        meta: mark ? `${mon.hp}/${mon.maxHp}·${mark}` : `${mon.hp}/${mon.maxHp}`,
         disabled: true,
       });
     };
@@ -1123,8 +1146,46 @@ export class PTCGBattleApp {
 
   _afterAction() {
     if (this.gs.pendingPick || this.gs.pendingPokemonPick) return; // 等待玩家继续选择
+    if (this._maybeShowBenchPromotion()) return;
     this._refresh();
     this._goBackToList();
+  }
+
+  /**
+   * 需求：己方战斗宝可梦被击倒昏厥后，由**玩家自己选择**哪只备战宝可梦上场
+   * （此前是自动让下一只上场）。GameState.knockout 会先把第一只备战递补上出战位
+   * 以保证引擎状态一致，这里再让玩家把想要的备战宝可梦与它**交换**。
+   * 强制选择：列表不提供「返回」。
+   */
+  _maybeShowBenchPromotion() {
+    const pl = this.gs.pendingBenchPromotion;
+    if (!pl) return false;
+    // AI 接管（对手回合自动应答 / 自动对战）时不询问，沿用自动递补的结果
+    if (this.gs.aiPickHandler || this.gs.aiPokemonPickHandler) { this.gs.pendingBenchPromotion = null; return false; }
+    if (!(pl.bench || []).length) { this.gs.pendingBenchPromotion = null; return false; }
+    const items = [{
+      label: `保持 ${pl.active?.name || '当前出战宝可梦'}`,
+      meta: '不交换',
+      onSelect: () => { this.gs.pendingBenchPromotion = null; this._renderScene(); this._afterAction(); },
+    }];
+    pl.bench.forEach((mon, i) => {
+      if (!mon) return;
+      const mark = this._toolShort(mon) + this._energyShortText(mon);
+      items.push({
+        label: `换 ${mon.name} 上场`,
+        meta: mark ? `${mon.hp}/${mon.maxHp}·${mark}` : `${mon.hp}/${mon.maxHp}`,
+        onSelect: () => {
+          this.gs.promoteBenchToActive(pl, i);
+          this._renderScene();
+          this._afterAction();
+        },
+      });
+    });
+    this._showListView(items);           // 不传 onBack → 强制选择
+    const listText = $('#list-text');
+    if (listText) { listText.hidden = false; listText.textContent = '战斗宝可梦被击倒！请选择上场的宝可梦'; }
+    this._appendBattleLog('请选择上场的宝可梦');
+    return true;
   }
 
   _updateMainMenu() {
@@ -1149,8 +1210,10 @@ export class PTCGBattleApp {
 
     items[0].classList.toggle('disabled', over || !isP || (phase !== PHASE.BATTLE && phase !== PHASE.MAIN && phase !== PHASE.SETUP));
     items[0].textContent = phase === PHASE.SETUP ? '确认布置' : '战 斗';
-    items[1].classList.toggle('disabled', false);
-    items[2].classList.toggle('disabled', false);
+    // 需求：对方回合时，己方操作区的所有选项都应置灰不可点
+    // （此前「卡牌」「场地」始终可点，点进去什么也做不了）
+    items[1].classList.toggle('disabled', over || !isP);
+    items[2].classList.toggle('disabled', over || !isP);
     // 起手无基础宝可梦：提供“重新抽牌”（每重抽一次对手额外抽 1 张）
     const mulliganItem = [...items].find(item => item.dataset.action === 'mulligan');
     if (mulliganItem) {

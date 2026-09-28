@@ -10422,6 +10422,84 @@ await test('最大HP 被动特性加成：此前是死代码，现已接线', as
   assert.equal(src.maxHp, 130, '应吃到 +30（此前 getPassiveMaxHpModifier 无人调用）');
 });
 
+
+// ============================================================
+//  昏厥后由玩家自己选择上场宝可梦（此前是自动让下一只上场）
+// ============================================================
+
+const _promoSetup = async (benchCount = 3) => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  gs.player1.active = _capMon('出战', 'A0');
+  gs.player1.bench = [];
+  for (let i = 0; i < benchCount; i++) gs.player1.bench.push(_capMon('备战' + (i + 1), 'B' + (i + 1)));
+  gs.player2.active = _capMon('敌', 'O0');
+  gs.player1.prizes = ['a1', 'a2', 'a3', 'a4', 'a5', 'a6'];
+  gs.player2.prizes = ['b1', 'b2', 'b3', 'b4', 'b5', 'b6'];
+  return gs;
+};
+
+await test('昏厥①：己方出战宝可梦昏厥后，挂上「待玩家选择上场」标记（仍先自动递补保证状态一致）', async () => {
+  const gs = await _promoSetup(3);
+  gs._koContext = { attacker: gs.player2.active };
+  gs.knockout(gs.player1);
+  assert.equal(gs.pendingBenchPromotion, gs.player1, '应挂上待选标记');
+  assert.equal(gs.player1.active.name, '备战1', '先自动递补第一只');
+  assert.equal(gs.player1.bench.length, 2, '备战区少一只');
+});
+
+await test('昏厥②：玩家改选后与自动递补的那只**交换**（不消耗撤退次数）', async () => {
+  const gs = await _promoSetup(3);
+  gs._koContext = { attacker: gs.player2.active };
+  gs.knockout(gs.player1);
+  const retreatUsedBefore = gs.player1.retreatUsed;
+  // 递补后 bench = [备战2, 备战3]（备战1 已上出战位）
+  const ok = gs.promoteBenchToActive(gs.player1, 1); // 选 index 1 = 备战3
+  assert.equal(ok, true);
+  assert.equal(gs.player1.active.name, '备战3', '选中的上场');
+  assert.equal(gs.player1.bench[0].name, '备战2', '未选中的保持原位');
+  assert.equal(gs.player1.bench[1].name, '备战1', '原自动递补的回到被选中的那个备战位');
+  assert.equal(gs.player1.bench.length, 2, '数量不变');
+  assert.equal(gs.pendingBenchPromotion, null, '标记应清除');
+  assert.equal(gs.player1.retreatUsed, retreatUsedBefore, '不是撤退，不消耗撤退次数');
+});
+
+await test('昏厥③：只有 1 只备战时无需询问（递补后已无备选）', async () => {
+  const gs = await _promoSetup(1);
+  gs._koContext = { attacker: gs.player2.active };
+  gs.knockout(gs.player1);
+  assert.equal(gs.player1.active.name, '备战1');
+  assert.equal(gs.pendingBenchPromotion, null, '没有可选对象，不询问');
+});
+
+await test('昏厥④：无备战 → 直接判负（不挂标记）', async () => {
+  const gs = await _promoSetup(0);
+  gs._koContext = { attacker: gs.player2.active };
+  gs.knockout(gs.player1);
+  assert.equal(gs.phase, PHASE.GAME_OVER);
+  assert.equal(gs.winner, gs.player2);
+  assert.equal(gs.pendingBenchPromotion, null);
+});
+
+await test('昏厥⑤：对手（player2）昏厥不挂玩家待选标记', async () => {
+  const gs = await _promoSetup(3);
+  gs.player2.bench = [_capMon('敌备战1', 'OB1'), _capMon('敌备战2', 'OB2')];
+  gs._koContext = { attacker: gs.player1.active };
+  gs.knockout(gs.player2);
+  assert.equal(gs.pendingBenchPromotion, null, '只对己方询问');
+  assert.equal(gs.player2.active.name, '敌备战1');
+});
+
+await test('昏厥⑥：非法索引安全落空（标记清除、状态不变）', async () => {
+  const gs = await _promoSetup(3);
+  gs._koContext = { attacker: gs.player2.active };
+  gs.knockout(gs.player1);
+  const before = gs.player1.active.name;
+  assert.equal(gs.promoteBenchToActive(gs.player1, 99), false);
+  assert.equal(gs.player1.active.name, before, '状态不变');
+  assert.equal(gs.pendingBenchPromotion, null, '标记清除');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',
