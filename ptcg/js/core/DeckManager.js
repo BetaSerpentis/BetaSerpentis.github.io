@@ -2,6 +2,9 @@
 import { debugLog } from '../utils/constants.js';
 
 export class DeckManager {
+    /** 卡组「用法」说明的最大长度（存储侧） */
+    static NOTE_MAX_LEN = 2000;
+
     constructor(storageService, cardManager) {
         this.storageService = storageService;
         this.cardManager = cardManager;
@@ -386,6 +389,19 @@ export class DeckManager {
     }
 
     // 更新卡组名称
+    // 卡组「用法」说明：玩家自述的玩法（供对战 AI 参考），平时不显示
+    updateDeckNote(note) {
+        const deck = this.getCurrentDeck();
+        if (deck) {
+            // 限长：说明会被拼进 AI 提示词，过长会挤占上下文
+            const text = String(note ?? '').slice(0, DeckManager.NOTE_MAX_LEN).trim();
+            deck.note = text;
+            this.saveDecks();
+            return true;
+        }
+        return false;
+    }
+
     updateDeckName(name) {
         const deck = this.getCurrentDeck();
         if (deck) {

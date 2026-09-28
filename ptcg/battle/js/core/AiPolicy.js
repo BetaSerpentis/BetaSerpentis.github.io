@@ -42,6 +42,14 @@ export class HeuristicPolicy {
     this.player = player || engine.gs.player2;
     // L2：计划权重。默认中性（全 0）→ 行为与改造前一致，便于回归对比。
     this.plan = options.plan || NEUTRAL_PLAN;
+    // L1.5：卡组「用法」说明（玩家自述）。默认空串 → 行为与改造前一致。
+    this.deckNote = '';
+  }
+
+  /** 注入卡组「用法」说明（来自卡组编辑界面，需求⑦） */
+  setDeckNote(note) {
+    this.deckNote = typeof note === 'string' ? note : '';
+    return this.deckNote;
   }
 
   /** 注入卡组画像（由 BattleEngine.startGame 依对手卡组构建） */
@@ -291,7 +299,7 @@ export class LlmPolicy extends HeuristicPolicy {
   async _askLlm(actions) {
     const stateText = serializeBattleState(this.gs, this.player, { recentLogs: 4 });
     const actionText = formatActionList(actions);
-    const messages = buildLlmMessages(stateText, actionText);
+    const messages = buildLlmMessages(stateText, actionText, this.deckNote);
     const settings = getAiSettings({});
     const model = normalizeAiModelName(settings.model) || AI_DEFAULT_MODEL;
     const body = {

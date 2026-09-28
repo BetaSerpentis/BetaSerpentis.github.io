@@ -150,6 +150,99 @@ export class DeckEditor {
         container.insertBefore(this.deckTabsContainer, container.firstChild);
         
         this.renderDeckTabs();
+        this.createDeckNotePanel();
+    }
+
+    /**
+     * 卡组「用法」说明面板（需求⑦）：
+     *   · 平时**不显示**；点卡组页签上的【用法】按钮才展开一个文本框
+     *   · 内容存到 deck.note，随卡组一起持久化，并供对战侧 AI 读取
+     */
+    createDeckNotePanel() {
+        if (this.deckNotePanel) return this.deckNotePanel;
+        const panel = document.createElement('div');
+        panel.className = 'deck-note-panel';
+        panel.hidden = true;
+
+        const head = document.createElement('div');
+        head.className = 'deck-note-head';
+        const title = document.createElement('span');
+        title.className = 'deck-note-title';
+        title.textContent = '卡组用法（写给 AI 看的玩法说明）';
+        const tip = document.createElement('span');
+        tip.className = 'deck-note-tip';
+        tip.textContent = '例：主力是XX，先铺场再进化；优先给XX附能；不要过早用掉XX';
+        const close = document.createElement('span');
+        close.className = 'deck-note-close';
+        close.textContent = '收起';
+        head.appendChild(title);
+        head.appendChild(tip);
+        head.appendChild(close);
+
+        const area = document.createElement('textarea');
+        area.className = 'deck-note-input';
+        area.placeholder = '例如：这套牌靠「XX」铺场、「YY」收尾；能量优先给主力；前两回合不要攻击…';
+        area.rows = 4;
+        area.maxLength = 2000;
+
+        const foot = document.createElement('div');
+        foot.className = 'deck-note-foot';
+        const saved = document.createElement('span');
+        saved.className = 'deck-note-saved';
+        foot.appendChild(saved);
+
+        panel.appendChild(head);
+        panel.appendChild(area);
+        panel.appendChild(foot);
+
+        // 输入即保存（防抖 400ms），避免玩家忘了保存
+        let timer = null;
+        area.addEventListener('input', () => {
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(() => {
+                this.deckManager.updateDeckNote(area.value);
+                saved.textContent = `已保存（${area.value.trim().length} 字）`;
+                this._markDeckNoteButton(!!area.value.trim());
+            }, 400);
+        });
+        area.addEventListener('blur', () => {
+            this.deckManager.updateDeckNote(area.value);
+            saved.textContent = `已保存（${area.value.trim().length} 字）`;
+            this._markDeckNoteButton(!!area.value.trim());
+        });
+        close.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.deckManager.updateDeckNote(area.value);
+            panel.hidden = true;
+        });
+
+        this.deckTabsContainer.parentNode.insertBefore(panel, this.deckTabsContainer.nextSibling);
+        this.deckNotePanel = panel;
+        this.deckNoteInput = area;
+        return panel;
+    }
+
+    /** 展开/收起「用法」面板（并载入当前卡组的说明） */
+    toggleDeckNotePanel() {
+        const panel = this.createDeckNotePanel();
+        if (!panel.hidden) { panel.hidden = true; return false; }
+        const deck = this.deckManager.getCurrentDeck();
+        if (this.deckNoteInput) this.deckNoteInput.value = deck?.note || '';
+        const saved = panel.querySelector('.deck-note-saved');
+        if (saved) saved.textContent = deck?.note ? `已保存（${String(deck.note).trim().length} 字）` : '';
+        panel.hidden = false;
+        if (this.deckNoteInput) this.deckNoteInput.focus();
+        return true;
+    }
+
+    /** 有说明时在按钮上加个标记，便于一眼看出「这套牌写过用法」 */
+    _markDeckNoteButton(hasNote) {
+        const btn = this.deckTabsContainer?.querySelector('.deck-tab.active .deck-note-button');
+        if (btn) {
+            btn.classList.toggle('has-note', !!hasNote);
+            btn.textContent = hasNote ? '用法•' : '用法';
+            btn.title = hasNote ? '已填写用法说明（点击展开）' : '点击填写这套牌的用法说明';
+        }
     }
 
     // 在 renderDeckTabs 方法中确保编辑模式下有删除按钮
@@ -251,6 +344,18 @@ export class DeckEditor {
         
         info.appendChild(name);
         info.appendChild(count);
+        // 需求⑦：【用法】按钮 —— 平时面板不显示，点它才展开文本框
+        const noteBtn = document.createElement('div');
+        noteBtn.className = 'deck-note-button' + (deck && deck.note ? ' has-note' : '');
+        noteBtn.textContent = deck && deck.note ? '用法•' : '用法';
+        noteBtn.title = deck && deck.note ? '已填写用法说明（点击展开）' : '点击填写这套牌的用法说明';
+        noteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            if (!(this.deckManager.isEditing || index === this.deckManager.currentDeckIndex)) return;
+            this.toggleDeckNotePanel();
+        });
+        info.appendChild(noteBtn);
         
         tab.appendChild(cover);
         tab.appendChild(info);

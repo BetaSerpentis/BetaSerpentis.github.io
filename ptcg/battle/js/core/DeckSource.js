@@ -139,6 +139,8 @@ export class DeckSource {
       coverCardId: deck && deck.coverCardId !== undefined && deck.coverCardId !== null
         ? String(deck.coverCardId)
         : null,
+      // 需求⑦：玩家在卡组编辑界面写的「用法」说明（供 AI 参考的战术意图）
+      note: deck && typeof deck.note === 'string' ? deck.note.slice(0, 2000) : '',
       cards,
       totalCount: cards.reduce((sum, card) => sum + card.quantity, 0),
     };

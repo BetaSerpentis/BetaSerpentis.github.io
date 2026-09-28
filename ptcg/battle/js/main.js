@@ -220,7 +220,9 @@ export class PTCGBattleApp {
   }
 
   _startGame(pDeck, oDeck) {
-    this.engine.startGame(expandDeck(pDeck), expandDeck(oDeck));
+    // 需求⑦：把对手卡组在编辑界面写的「用法」说明传给 AI
+    // （startGame 收的是展开后的 id 数组，卡组对象上的 note 需要显式传）
+    this.engine.startGame(expandDeck(pDeck), expandDeck(oDeck), { aiDeckNote: oDeck?.note || '' });
     this._refresh();
     // 初始布置：直接在操作区显示手牌列表（点卡→放置战斗区/备战区），列表底部提供“确认布置”
     this._returnView = 'hand';

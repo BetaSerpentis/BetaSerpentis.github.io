@@ -927,6 +927,58 @@
 }
 
 /* 卡组封面样式 */
+.deck-note-button {
+  margin-top: 4px;
+  font-size: 0.68rem;
+  line-height: 1.5;
+  padding: 0 6px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 152, 0, .8);
+  color: #FF9800;
+  background: rgba(255, 152, 0, .08);
+  cursor: pointer;
+  text-align: center;
+  user-select: none;
+}
+.deck-note-button:hover { background: rgba(255, 152, 0, .2); }
+/* 已填写用法说明时给个标记，便于一眼看出这套牌写过用法 */
+.deck-note-button.has-note {
+  color: #1b1b1b;
+  background: #FF9800;
+  border-color: #FF9800;
+  font-weight: 600;
+}
+/* 需求⑦：平时不显示；点【用法】才展开 */
+.deck-note-panel {
+  margin: 8px 0 4px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 152, 0, .55);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, .35);
+  text-align: left;
+}
+.deck-note-head {
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+.deck-note-title { font-size: 0.82rem; color: #FF9800; font-weight: 600; }
+.deck-note-tip { font-size: 0.68rem; color: rgba(255,255,255,.55); flex: 1; }
+.deck-note-close {
+  font-size: 0.7rem; color: #FF9800; cursor: pointer;
+  border: 1px solid rgba(255,152,0,.6); border-radius: 6px; padding: 1px 8px;
+}
+.deck-note-close:hover { background: rgba(255,152,0,.2); }
+.deck-note-input {
+  width: 100%; box-sizing: border-box;
+  font-size: 0.78rem; line-height: 1.5;
+  color: #eee; background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.18); border-radius: 6px;
+  padding: 6px 8px; resize: vertical;
+}
+.deck-note-input:focus { outline: none; border-color: #FF9800; }
+.deck-note-foot { margin-top: 4px; min-height: 1em; }
+.deck-note-saved { font-size: 0.68rem; color: rgba(255,255,255,.5); }
+
 .deck-cover {
     width: 80px;
     height: 112px;

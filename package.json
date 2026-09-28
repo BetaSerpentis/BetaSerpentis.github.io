@@ -11,6 +11,7 @@
     "test:ptcg-query": "node ptcg/tests/query-engine.test.mjs",
     "test:ptcg-battle": "node ptcg/battle/tests/automation.mjs",
     "test:ptcg-ui": "node ptcg/battle/tests/ui-dom.mjs",
+    "test:ptcg-deck-note": "node ptcg/tests/deck-note.test.mjs",
     "ptcg:audit-markers": "node ptcg/tools/audit-inert-markers.mjs"
   },
   "dependencies": {

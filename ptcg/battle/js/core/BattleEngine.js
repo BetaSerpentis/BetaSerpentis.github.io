@@ -150,7 +150,14 @@ export class BattleEngine {
     this.aiAutoplayDelayMs = Number.isFinite(callbacks.aiAutoplayDelayMs) ? callbacks.aiAutoplayDelayMs : 800;
   }
 
-  startGame(p1Deck, p2Deck) {
+  /**
+   * @param {string[]} p1Deck 玩家卡组（展开后的卡牌 id 数组）
+   * @param {string[]} p2Deck 对手卡组（同上）
+   * @param {{aiDeckNote?: string}} [options] 需求⑦：对手卡组的「用法」说明。
+   *   ⚠️ 注意 startGame 收到的是**展开后的 id 数组**，卡组对象上的 note 不会自己带进来，
+   *      必须由调用方（main.js）显式传，否则会出现「UI 存了、AI 读不到」的静默失效。
+   */
+  startGame(p1Deck, p2Deck, options = {}) {
     this.gs.init(p1Deck, p2Deck);
     // L1：从对手（AI）自己的卡组推断玩法画像，让 AI 按「这套牌想怎么打」取舍。
     // 只看自己的卡组，不存在作弊问题。
@@ -158,6 +165,12 @@ export class BattleEngine {
       this._aiPlan = buildDeckPlan(p2Deck, this.resolver);
       this._aiPolicy?.setPlan?.(this._aiPlan);
       this.cb.onLog?.(`对手的卡组风格：${this._aiPlan.label}（${this._aiPlan.evidence.join('、') || '无特征'}）`);
+      // 需求⑦：卡组编辑界面里填的「用法」说明 → 交给 AI 作为战术意图参考
+      const note = typeof options?.aiDeckNote === 'string' ? options.aiDeckNote.trim() : '';
+      if (note) {
+        this._aiPolicy?.setDeckNote?.(note);
+        this.cb.onLog?.(`对手卡组用法说明：${note.length > 40 ? note.slice(0, 40) + '…' : note}`);
+      }
     } catch (e) {
       this._aiPlan = null;   // 推断失败 → 策略保持中性，不影响对局
     }
