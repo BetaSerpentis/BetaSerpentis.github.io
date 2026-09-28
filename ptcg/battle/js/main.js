@@ -368,10 +368,9 @@ export class PTCGBattleApp {
         this._animateHit('opp');
         await this._sleep(560);
       }
-      // 换人/击倒补位：登场缩放动画（先起始态再换图，避免旧图闪现）
+      // 换人/击倒补位：离场动画在这里负责；新上场的宝可梦由 _renderScene 统一播召唤动画
       if (afterOppId !== beforeOppId) {
-        if (!afterOpp) this._animateExit('opp');
-        else this._animateEnter('opp', () => this._renderMon(afterOpp, 'opp'));
+        if (!afterOpp) { this._animateExit('opp'); this._markActiveAnimated('opp', null); }
         await this._sleep(650);
       }
       this._renderScene();
@@ -421,6 +420,10 @@ export class PTCGBattleApp {
   }
 
   _renderScene() {
+    // 需求②：登场/换人由这里统一检测（此前只有对手换人那一处播入场动画，
+    // 布置、昏厥递补、撤退都不播），检测后交给 _animateSummon 走完整召唤流程
+    this._maybeAnimateActiveChange('pl', this.gs.player1.active);
+    this._maybeAnimateActiveChange('opp', this.gs.player2.active);
     this._renderMon(this.gs.player1.active, 'pl');
     this._renderMon(this.gs.player2.active, 'opp');
     this._renderStats();
@@ -441,6 +444,7 @@ export class PTCGBattleApp {
     const hpText = $(`#${prefix}-hp-text`);
     const energyEl = $(`#${prefix}-energy`);
     const spriteEl = $(`#${prefix === 'pl' ? 'player' : 'opp'}-sprite`);
+    this._syncBreathVars(spriteEl, mon);
     const statusEl = $(`#${prefix}-status`);
     const tagsEl = $(`#${prefix}-tags`);
 
@@ -1073,6 +1077,7 @@ export class PTCGBattleApp {
       const ok = this.gs.retreat(pl, benchIndex);
       if (!ok) { this._appendBattleLog(this.gs.log[this.gs.log.length - 1] || '无法撤退'); this._showPokeActions('active'); return; }
     }
+    await this._animateRecall('pl');   // 需求③：收回动画（此时 DOM 里还是旧的那只）
     this._renderScene();
     this._afterAction();
   }
@@ -1349,6 +1354,117 @@ export class PTCGBattleApp {
 
   _spriteEl(prefix) { return $(`#${prefix === 'pl' ? 'player' : 'opp'}-sprite`); }
 
+  /**
+   * 需求①：让呼吸动画「程序化变化」——按宝可梦取一个稳定的相位/时长，
+   * 使双方不会同步呼吸（同一只宝可梦每次渲染保持一致，不会抖动）。
+   * 用 cardId 做哈希：稳定、无需存储。
+   */
+  _syncBreathVars(el, mon) {
+    if (!el || !el.style) return;
+    const key = String(mon?.cardId ?? mon?.name ?? '');
+    let h = 0;
+    for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
+    const dur = 3.8 + (h % 9) * 0.12;            // 3.80s ~ 4.76s：缓慢呼吸
+    const delay = -((h >> 4) % 40) * 0.1;        // -0s ~ -3.9s：负延迟=从周期中途开始，错开相位
+    el.style.setProperty('--breath-dur', dur.toFixed(2) + 's');
+    el.style.setProperty('--breath-delay', delay.toFixed(2) + 's');
+  }
+
+  /** 记录/对比「出战位当前是谁」，用于自动播放召唤动画 */
+  _maybeAnimateActiveChange(prefix, mon) {
+    if (!this._activeAnimId) this._activeAnimId = {};
+    const id = mon ? (mon.cardId ?? mon.name ?? null) : null;
+    const prev = this._activeAnimId[prefix];
+    this._activeAnimId[prefix] = id;
+    if (!id || id === prev) return false;   // 首次出现/换人 → 播召唤；同一个人不重复播
+    this._animateSummon(prefix);
+    return true;
+  }
+
+  /** 主动标记「这一侧已经处理过动画」，避免 _renderScene 重复播放 */
+  _markActiveAnimated(prefix, mon) {
+    if (!this._activeAnimId) this._activeAnimId = {};
+    this._activeAnimId[prefix] = mon ? (mon.cardId ?? mon.name ?? null) : null;
+  }
+
+  _spriteSlotEl(prefix) {
+    const el = this._spriteEl(prefix);
+    return el && typeof el.closest === 'function' ? el.closest('.sprite-slot') : null;
+  }
+
+  /** 取/建特效节点（精灵球、白光爆点） */
+  _fxNode(slot, cls) {
+    if (!slot) return null;
+    let el = typeof slot.querySelector === 'function' ? slot.querySelector('.' + cls) : null;
+    if (!el) {
+      el = document.createElement(cls === 'summon-ball' ? 'img' : 'div');
+      el.className = cls;
+      if (cls === 'summon-ball') el.src = '/ptcg/battle/assets/ball.png';
+      slot.appendChild(el);
+    }
+    return el;
+  }
+
+  /** 清掉立绘上所有会互相抢 animation 的动画类 */
+  _clearSpriteAnims(el) {
+    if (!el || !el.classList) return;
+    el.classList.remove('anim-attack', 'anim-hit', 'anim-enter', 'anim-exit', 'anim-recall',
+      'anim-summon-appear', 'anim-summon-grow', 'anim-summon-fall', 'anim-summon-land');
+  }
+
+  /**
+   * 需求②：完整召唤动画。时序：
+   *   0.00s 精灵球从屏幕外旋转入场（.55s）
+   *   0.55s 爆白光（.32s），宝可梦同时以「缩小白化」状态出现在球的位置
+   *   0.67s 放大到正常体型并恢复原色（.36s）
+   *   1.03s 自由落体到脚踏台上（.26s）
+   *   1.29s 落地震一下（.34s）
+   * 说明：各阶段用「累加类名」而不是互相替换 —— 同名属性靠 CSS 源码顺序接管，
+   *      这样阶段之间起点/终点完全对齐，不会出现跳帧。
+   */
+  async _animateSummon(prefix) {
+    const slot = this._spriteSlotEl(prefix);
+    const sprite = this._spriteEl(prefix);
+    if (!slot || !sprite || !this._animEnabled()) return;
+    const ball = this._fxNode(slot, 'summon-ball');
+    const burst = this._fxNode(slot, 'fx-burst');
+
+    this._clearSpriteAnims(sprite);
+    sprite.style.opacity = '0';                 // 球还没爆开之前，宝可梦不可见
+    void sprite.offsetWidth;
+    ball?.classList.remove('show');
+    burst?.classList.remove('show');
+    if (ball) void ball.offsetWidth;
+
+    ball?.classList.add('show');                // ① 精灵球旋转入场
+    await this._sleep(550);
+    burst?.classList.add('show');               // ② 爆一下白光
+    // 球在白爆的同时隐去（否则会一直挂在宝可梦头上）
+    if (ball) { ball.classList.remove('show'); ball.style.animation = 'ballFadeOut .16s ease-out forwards'; }
+    sprite.classList.add('anim-summon-appear'); // ③ 缩小白化出现 + 放大回色
+    sprite.style.opacity = '';
+    await this._sleep(360);
+    sprite.classList.add('anim-summon-fall');   // ④ 自由落体
+    await this._sleep(260);
+    sprite.classList.add('anim-summon-land');   // ⑤ 落地震一下
+    await this._sleep(340);
+    this._clearSpriteAnims(sprite);
+    ball?.classList.remove('show');
+    if (ball) ball.style.animation = '';
+    burst?.classList.remove('show');
+  }
+
+  /** 需求③：收回——快速逐渐变白，全白后迅速缩小到几乎看不见 */
+  async _animateRecall(prefix) {
+    const sprite = this._spriteEl(prefix);
+    if (!sprite || !this._animEnabled()) return;
+    this._clearSpriteAnims(sprite);
+    void sprite.offsetWidth;
+    sprite.classList.add('anim-recall');
+    await this._sleep(430);
+    sprite.classList.remove('anim-recall');
+  }
+
   _pulseClass(el, cls, ms, keep = false) {
     if (!el || !el.classList) return;
     el.classList.remove('anim-attack', 'anim-hit', 'anim-enter', 'anim-exit');
@@ -1378,15 +1494,16 @@ export class PTCGBattleApp {
 
   _animateHit(prefix) { this._pulseClass(this._spriteEl(prefix), 'anim-hit', 600); }
 
-  // 登场：先把立绘缩到 0（隐藏旧图）→ 回调内换图 → 恢复
+  // 登场：保留旧签名 —— 现在统一走完整召唤动画（需求②）
   _animateEnter(prefix, onSwap) {
-    const el = this._spriteEl(prefix);
-    if (!el) { if (onSwap) onSwap(); return; }
-    el.classList.remove('anim-attack', 'anim-hit', 'anim-enter', 'anim-exit');
-    el.classList.add('anim-enter');
-    void el.offsetWidth;
     if (onSwap) onSwap();
-    setTimeout(() => el.classList.remove('anim-enter'), 520);
+    this._animateSummon(prefix);
+    this._markActiveAnimated(prefix, this._spriteMonRef(prefix));
+  }
+
+  /** 取某一侧当前出战宝可梦（用于标记动画状态） */
+  _spriteMonRef(prefix) {
+    return prefix === 'pl' ? (this.gs?.player1?.active || null) : (this.gs?.player2?.active || null);
   }
 
   // 退场：缩到 0 并保持终态（由下次 enter/渲染清除）
@@ -1413,6 +1530,8 @@ export class PTCGBattleApp {
     const screen = $('#screen');
     if (!screen) return;
     screen.style.transform = '';
+    // 需求：CSS 侧动画（呼吸等）也要受「关闭动画」开关控制
+    try { document.body.classList.toggle('no-anim', !this._animEnabled()); } catch (e) { /* ignore */ }
   }
 }
 

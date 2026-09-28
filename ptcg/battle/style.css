@@ -332,6 +332,28 @@ body.ptcg-battle-active {
 .sprite-shadow { display: none; }
 
 /* ================= 立绘动画（pmBattle keyframes） ================= */
+
+/* 需求①：休息（呼吸）动画 —— 在战斗场闲置时缓慢起伏。
+   程序化（transform + 时长/相位由 JS 按宝可梦随机，见 _syncBreathVars），不使用逐帧图片。
+   放在「立绘容器」这一层，与下方的 anim-* 同层：
+   .sprite-img.anim-xxx 的选择器权重更高，会自然接管 animation，动画类移除后自动恢复呼吸。 */
+@keyframes idleBreath {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-3px) scale(1.022); }
+}
+.sprite-img {
+  animation: idleBreath var(--breath-dur, 4.2s) ease-in-out infinite;
+  animation-delay: var(--breath-delay, 0s);
+  will-change: transform;
+}
+/* 需求：全局关闭动画（PTCG_ANIM='off'）时，CSS 侧的呼吸也要停掉
+   —— 原来 _animEnabled() 只拦住了 JS 加的 anim-* 类，CSS 基础动画不受控。 */
+body.no-anim .sprite-img,
+body.no-anim .sprite-img.anim-attack,
+body.no-anim .sprite-img.anim-hit,
+body.no-anim .sprite-img.anim-enter,
+body.no-anim .sprite-img.anim-exit { animation: none !important; }
+
 .sprite-img.anim-attack { animation: lunge-pl .45s ease-out; }
 .sprite-slot.opponent-sprite .sprite-img.anim-attack { animation: lunge-opp .45s ease-out; }
 @keyframes lunge-pl {
@@ -397,6 +419,104 @@ body.ptcg-battle-active {
   word-break: break-word;
 }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; } }
+
+/* ================= 召唤 / 收回（需求②③） =================
+   ② 召唤：精灵球从屏幕外旋转入场 → 到脚踏台上方 → 爆一下白光 →
+           宝可梦以「缩小白化」状态从爆炸位置出现 → 放大到正常体型并恢复原色 →
+           自由落体到脚踏台上 → 落地震一下
+   ③ 收回：快速逐渐变白 → 全白后迅速缩小到几乎看不见
+   说明：精灵球素材来自 ddp 项目（ddp/images/ball.png），已抠掉不透明绿底并 8 倍最近邻放大，
+        落到 ptcg/battle/assets/ball.png（96×96 / 449B）。
+   说明：所有动画都做在「立绘容器 .sprite-img」这一层，与既有 anim-* 同层，
+        靠选择器权重/源码顺序自然接管，动画类移除后自动恢复呼吸动画。 */
+
+/* 精灵球：从屏幕外旋转飞到脚踏台上方。
+   --summon-rise 同时决定「球停在哪里」和「宝可梦从哪里出现/下落多少」，
+   两处必须用同一个值，否则会出现「球在头顶、宝可梦从别处掉下来」的错位。 */
+.sprite-slot { --summon-rise: 44px; }
+.summon-ball {
+  position: absolute;
+  left: 50%; bottom: var(--summon-rise, 44px);
+  width: 96px; height: 96px;
+  margin-left: -48px;
+  z-index: 3;
+  image-rendering: pixelated;
+  pointer-events: none;
+  opacity: 0;
+}
+.summon-ball.show { animation: ballEnter .55s cubic-bezier(.22,.75,.3,1) forwards; }
+@keyframes ballEnter {
+  0%   { transform: translate(-190px, -64px) rotate(-540deg) scale(.34); opacity: 0; }
+  20%  { opacity: 1; }
+  100% { transform: translate(0, 0) rotate(0deg) scale(.34); opacity: 1; }
+}
+/* 白爆时球立刻隐去（否则会一直挂在宝可梦头上） */
+@keyframes ballFadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* 爆白光 */
+.fx-burst {
+  position: absolute;
+  left: 50%; bottom: 44%;
+  width: 140px; height: 140px;
+  margin: 0 0 -70px -70px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, rgba(255,255,255,.9) 30%, rgba(255,255,255,0) 68%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+.fx-burst.show { animation: burstFlash .32s ease-out forwards; }
+@keyframes burstFlash {
+  0%   { transform: scale(.15); opacity: 0; }
+  30%  { transform: scale(.85); opacity: 1; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* 宝可梦出现：缩小白化 → 放大回色（起始位置＝精灵球处 = 脚踏台上方 --summon-rise） */
+.sprite-img.anim-summon-appear {
+  transform-origin: 50% 100%;
+  animation: summonAppearGrow .36s ease-out forwards;
+}
+@keyframes summonAppearGrow {
+  0%   { opacity: 0; transform: translateY(calc(-1 * var(--summon-rise, 44px))) scale(.12); filter: brightness(0) invert(1); }
+  15%  { opacity: 1; }
+  55%  { filter: brightness(0) invert(1); }
+  100% { opacity: 1; transform: translateY(calc(-1 * var(--summon-rise, 44px))) scale(1); filter: none; }
+}
+/* 自由落体（源码顺序必须在 appear 之后：同时存在时由后者接管 animation） */
+.sprite-img.anim-summon-fall {
+  transform-origin: 50% 100%;
+  animation: summonFall .26s cubic-bezier(.45,.02,.9,.6) forwards;
+}
+@keyframes summonFall {
+  0%   { transform: translateY(calc(-1 * var(--summon-rise, 44px))) scale(1); }
+  100% { transform: translateY(0) scale(1); }
+}
+/* 落地震一下（轻微压扁回弹） */
+.sprite-img.anim-summon-land {
+  transform-origin: 50% 100%;
+  animation: summonLand .34s ease-out forwards;
+}
+@keyframes summonLand {
+  0%   { transform: translateY(0) scale(1, 1); }
+  20%  { transform: translateY(2px) scale(1.06, .93); }
+  55%  { transform: translateY(0) scale(.98, 1.02); }
+  100% { transform: translateY(0) scale(1, 1); }
+}
+
+/* ③ 收回：快速逐渐变白 → 全白后迅速缩小到几乎看不见 */
+.sprite-img.anim-recall {
+  transform-origin: 50% 100%;
+  animation: recallOut .42s ease-in forwards;
+}
+@keyframes recallOut {
+  0%   { filter: none; transform: scale(1); opacity: 1; }
+  55%  { filter: brightness(0) invert(1); transform: scale(1); opacity: 1; }
+  100% { filter: brightness(0) invert(1); transform: scale(.03); opacity: 0; }
+}
 
 /* ================= 操作区（右下浮动，无底板；只显示按钮） ================= */
 /* 提示/状态文本统一走左上信息栏，操作区仅保留按钮 */

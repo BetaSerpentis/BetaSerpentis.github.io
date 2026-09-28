@@ -162,6 +162,116 @@ const out = await page.evaluate(async () => {
     ok('_toolShort：取首字', app._toolShort(mon({ tool })) === '豪');
     ok('_toolShort：name 缺失时回退到 resolver', app._toolShort(mon({ tool: { cardId: 'T1' } })) === '豪');
   }
+
+  // ---------- ② 召唤动画 / ③ 收回动画 ----------
+  {
+    const app = build(mon({ cardId: 'P1' }), mon({ cardId: 'O1' }));
+    app._renderMon(app.gs.player1.active, 'pl');
+    app._renderMon(app.gs.player2.active, 'opp');
+    app._activeAnimId = { pl: 'P1', opp: 'O1' };
+    const waitFor = async (fn, ms = 2500) => {
+      const t0 = Date.now();
+      while (Date.now() - t0 < ms) { if (fn()) return true; await new Promise(r => setTimeout(r, 30)); }
+      return false;
+    };
+    const sprite = document.getElementById('player-sprite');
+
+    // 换人 → 触发召唤；同一人重复渲染不触发
+    ok('② 出战位换人触发召唤动画', app._maybeAnimateActiveChange('pl', mon({ cardId: 'P2' })) === true);
+    ok('② 同一只宝可梦重复渲染不再触发', app._maybeAnimateActiveChange('pl', mon({ cardId: 'P2' })) === false);
+
+    ok('② 精灵球节点已生成', await waitFor(() => !!document.querySelector('.sprite-slot.player-sprite .summon-ball'), 600));
+    const ball = document.querySelector('.sprite-slot.player-sprite .summon-ball');
+    ok('② 精灵球素材路径正确且能加载（96×96，来自 ddp）',
+      await waitFor(() => ball && ball.complete && ball.naturalWidth === 96, 1500), ball ? (ball.naturalWidth + 'x' + ball.naturalHeight) : 'n/a');
+    ok('② 精灵球正在旋转入场（.show）', !!ball && ball.classList.contains('show'));
+    ok('② 精灵球带旋转关键帧 ballEnter', getComputedStyle(ball).animationName === 'ballEnter', getComputedStyle(ball).animationName);
+
+    // 白光爆点
+    const burst = document.querySelector('.sprite-slot.player-sprite .fx-burst');
+    ok('② 白光爆点节点已生成', !!burst);
+    ok('② 白光爆点触发（.show / burstFlash）',
+      await waitFor(() => burst && (burst.classList.contains('show') || getComputedStyle(burst).animationName === 'burstFlash'), 1200));
+
+    // 缩小白化出现 → 放大回色
+    ok('② 宝可梦以缩小白化状态出现（anim-summon-appear）',
+      await waitFor(() => sprite.classList.contains('anim-summon-appear'), 900));
+    const csAppear = getComputedStyle(sprite);
+    ok('② 出现阶段由 summonAppearGrow 驱动', csAppear.animationName === 'summonAppearGrow', csAppear.animationName);
+
+    // 自由落体
+    ok('② 随后进入自由落体（anim-summon-fall）',
+      await waitFor(() => sprite.classList.contains('anim-summon-fall'), 900));
+    ok('② 落体阶段由 summonFall 驱动', getComputedStyle(sprite).animationName === 'summonFall', getComputedStyle(sprite).animationName);
+
+    // 落地震一下
+    ok('② 落地震一下（anim-summon-land）',
+      await waitFor(() => sprite.classList.contains('anim-summon-land'), 900));
+    ok('② 落地阶段由 summonLand 驱动', getComputedStyle(sprite).animationName === 'summonLand', getComputedStyle(sprite).animationName);
+
+    // 结束后清干净并恢复呼吸
+    ok('② 动画结束后类名清理干净',
+      await waitFor(() => !/anim-summon|anim-recall/.test(sprite.className), 1500), sprite.className);
+    ok('② 结束后恢复呼吸动画', getComputedStyle(sprite).animationName === 'idleBreath', getComputedStyle(sprite).animationName);
+
+    // ③ 收回：变白 → 缩小
+    const recallP = app._animateRecall('pl');
+    await new Promise(r => setTimeout(r, 80));
+    ok('③ 收回动画已应用（anim-recall）', sprite.classList.contains('anim-recall'), sprite.className);
+    ok('③ 收回由 recallOut 驱动', getComputedStyle(sprite).animationName === 'recallOut', getComputedStyle(sprite).animationName);
+    const kf = [...document.styleSheets].flatMap(sh => { try { return [...sh.cssRules]; } catch { return []; } })
+      .filter(r => r.type === CSSRule.KEYFRAMES_RULE && r.name === 'recallOut')[0];
+    const kfText = kf ? [...kf.cssRules].map(r => r.keyText + ':' + r.style.cssText).join(' | ') : '';
+    ok('③ 先变白（brightness(0) invert(1)）再缩小（scale 很小）',
+      /brightness\(0\) invert\(1\)/.test(kfText) && /scale\(0\.0[0-9]/.test(kfText), kfText.slice(0, 160));
+    await recallP;
+    ok('③ 收回结束后类名清理', !sprite.classList.contains('anim-recall'));
+  }
+
+  // ---------- ① 休息（呼吸）动画 ----------
+  {
+    const app = build(mon({ cardId: 'PID-A' }), mon({ cardId: 'PID-B' }));
+    app._renderMon(app.gs.player1.active, 'pl');
+    app._renderMon(app.gs.player2.active, 'opp');
+    const el = document.getElementById('player-sprite');
+    const cs = getComputedStyle(el);
+    ok('① 立绘容器默认播放 idleBreath', cs.animationName === 'idleBreath', cs.animationName);
+    ok('① 呼吸时长在 3.8~4.8s（缓慢）', parseFloat(cs.animationDuration) >= 3.8 && parseFloat(cs.animationDuration) <= 4.8, cs.animationDuration);
+    ok('① 用负延迟错开相位（双方不同步）', parseFloat(cs.animationDelay) <= 0, cs.animationDelay);
+    const durA = el.style.getPropertyValue('--breath-dur');
+    const durB = document.getElementById('opp-sprite').style.getPropertyValue('--breath-dur');
+    ok('① 不同宝可梦呼吸参数不同（程序化变化）', durA && durB && durA !== durB, durA + ' vs ' + durB);
+    // 同一只宝可梦重复渲染 → 参数稳定（不抖动）
+    app._renderMon(app.gs.player1.active, 'pl');
+    ok('① 同一宝可梦重复渲染参数稳定', el.style.getPropertyValue('--breath-dur') === durA);
+
+    // 攻击动画类应接管 animation，移除后恢复呼吸
+    el.classList.add('anim-attack');
+    const csAtk = getComputedStyle(el);
+    ok('① anim-attack 时由 lunge 接管（呼吸让位）', csAtk.animationName === 'lunge-pl', csAtk.animationName);
+    el.classList.remove('anim-attack');
+    ok('① 动画类移除后恢复呼吸', getComputedStyle(el).animationName === 'idleBreath');
+
+    // 全局关闭动画
+    document.body.classList.add('no-anim');
+    ok('① body.no-anim 时呼吸停止', getComputedStyle(el).animationName === 'none', getComputedStyle(el).animationName);
+    document.body.classList.remove('no-anim');
+
+    // 客观证据：间隔取两帧，像素必须变化（动画确实在跑）
+    const frame = () => {
+      const r = el.getBoundingClientRect();
+      return new Promise(res => requestAnimationFrame(() => requestAnimationFrame(() => res({
+        t: performance.now(),
+        m: getComputedStyle(el).transform,
+        x: Math.round(r.width * 100), y: Math.round(r.height * 100),
+      }))));
+    };
+    const f1 = await frame();
+    await new Promise(r => setTimeout(r, 1100));
+    const f2 = await frame();
+    ok('① 1.1s 后 transform 发生变化（动画在运行）', f1.m !== f2.m, f1.m + ' -> ' + f2.m);
+  }
+
   return results;
 });
 
