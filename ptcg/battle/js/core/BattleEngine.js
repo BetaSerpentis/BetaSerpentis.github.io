@@ -529,6 +529,17 @@ export class BattleEngine {
     { const pre = gs._attackPreconditionFailure?.(atk, atk.active, ai);
       if (pre) { this.cb.onLog?.(`${pre}（「${move?.name || '这个招式'}」失败）`); this.finishTurn(); return false; } }
 
+    // ── 战斗表现事件①（可 await）：招式已确定生效，UI 在此播前摇
+    //    （近战：颤抖+后移蓄力再前冲；远程：颤抖+微前移再发光束；辅助：发光）。
+    //    引擎会等这个 Promise 结束才开始结算伤害，这样「冲到极限」/「光束射出」
+    //    才能和命中同一时刻发生。表现层抛错不影响对局。
+    try {
+      await this.cb.onAttackStart?.({
+        attacker: atk.active, defender: def.active, move, moveName,
+        side: atk === gs.player1 ? 'pl' : 'opp',
+      });
+    } catch (e) { /* 表现层异常不影响对局 */ }
+
     let damage = move ? (parseInt(String(move.damage).match(/\d+/)?.[0]) || 0) : 20;
     damage += (atk.active.nextOwnTurnDamageBoost || 0);
     atk.active.nextOwnTurnDamageBoost = 0;
@@ -600,6 +611,13 @@ export class BattleEngine {
         gs.addLog(`${def.active.name} 因「幸存锻炼器」以剩余HP 10 留在场上`);
       }
       this.cb.onLog?.(`${moveName} → ${damage}伤害`);
+      // ── 战斗表现事件②：伤害落点 → UI 在目标位置播「属性爆点」+ 受击闪烁
+      try {
+        this.cb.onAttackHit?.({
+          attacker: atk.active, defender: def.active, damage, move, moveName,
+          side: atk === gs.player1 ? 'pl' : 'opp',
+        });
+      } catch (e) { /* 表现层异常不影响对局 */ }
       // 受击事件：供道具/特性（如幸运头盔：受击时抽卡）触发
       if (def.active.hp > 0) gs.emitTriggerEvent?.('attacked_damage', { target: def.active, source: atk.active, damage });
     }

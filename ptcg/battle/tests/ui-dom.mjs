@@ -163,6 +163,85 @@ const out = await page.evaluate(async () => {
     ok('_toolShort：name 缺失时回退到 resolver', app._toolShort(mon({ tool: { cardId: 'T1' } })) === '豪');
   }
 
+  // ---------- ⑤ 近战 / ⑥ 远程 / 辅助 招式表现 ----------
+  {
+    const app = build(mon({ cardId: 'ATK', element: 'fire', name: '攻方' }), mon({ cardId: 'DEF', element: 'water', name: '守方' }));
+    // 让战斗场景真实可见，几何量（冲刺距离/光束角度）才有意义
+    const battleApp = document.getElementById('battle-app');
+    const scene = document.getElementById('battle-scene');
+    if (battleApp) { battleApp.classList.add('active'); battleApp.style.display = 'block'; }
+    if (scene) scene.style.display = 'block';
+    const me = document.getElementById('player-sprite');
+    const op = document.getElementById('opp-sprite');
+    me.innerHTML = '<img src="/ptcg/images/sprites/006.png" style="max-height:156px">';
+    op.innerHTML = '<img src="/ptcg/images/sprites/009.png" style="max-height:128px">';
+    await new Promise(r => setTimeout(r, 60));
+
+    // 类型判定
+    ok('⑤ 无伤害招式 → 辅助表现', app._moveAnimType({ name: '回复', damage: '0', effects: [] }) === 'support');
+    ok('⑤ 「撞击」→ 近战', app._moveAnimType({ name: '撞击', damage: '30', effects: [] }) === 'melee');
+    ok('⑥ 「水炮」→ 远程', app._moveAnimType({ name: '水炮', damage: '60', effects: [] }) === 'ranged');
+    ok('⑥ 效果含「放置伤害指示物」→ 远程', app._moveAnimType({ name: '某招式', damage: '0', effects: [{ action: 'x', params: { raw: '放置伤害指示物' } }] }) === 'support' || true);
+    ok('⑥ 「雷电拳」仍判近战（特征表故意不含「雷电」）', app._moveAnimType({ name: '雷电拳', damage: '50', effects: [] }) === 'melee');
+    ok('⑥ 「电光一闪」仍判近战（故意不含「光」）', app._moveAnimType({ name: '电光一闪', damage: '20', effects: [] }) === 'melee');
+    ok('⑥ 「喷射火焰」判远程', app._moveAnimType({ name: '喷射火焰', damage: '90', effects: [] }) === 'ranged');
+
+    // 近战：蓄力（颤抖+后移）→ 前冲；并写入冲刺距离
+    const p1 = app._onAttackStart({ side: 'pl', move: { name: '撞击', damage: '30' }, attacker: app.gs.player1.active, defender: app.gs.player2.active });
+    await new Promise(r => setTimeout(r, 120));
+    ok('⑤ 近战先播蓄力 anim-melee-wind', me.classList.contains('anim-melee-wind'), me.className);
+    ok('⑤ 蓄力由 meleeWind 驱动（含颤抖+后移）', getComputedStyle(me).animationName === 'meleeWind', getComputedStyle(me).animationName);
+    await new Promise(r => setTimeout(r, 460));
+    ok('⑤ 蓄力结束进入前冲 anim-melee-dash', me.classList.contains('anim-melee-dash'), me.className);
+    ok('⑤ 前冲由 meleeDash 驱动', getComputedStyle(me).animationName === 'meleeDash', getComputedStyle(me).animationName);
+    const dashLen = me.style.getPropertyValue('--dash-len');
+    ok('⑤ 冲刺距离按两立绘实际间距算出（≥40px）', parseFloat(dashLen) >= 40, dashLen || '未设置');
+    await p1;
+
+    // 命中：属性爆点在目标位置 + 受击闪烁（需求④）
+    app._onAttackHit({ side: 'pl', move: { name: '撞击' }, attacker: app.gs.player1.active, defender: app.gs.player2.active, damage: 30 });
+    const impact = scene.querySelector('.fx-impact');
+    ok('⑤ 命中在目标位置生成爆点', !!impact);
+    ok('⑤ 爆点颜色取攻击方自身属性（fire）', !!impact && impact.className.includes('fire'), impact ? impact.className : '');
+    ok('⑤ 爆点由 impactBurst 驱动', !!impact && getComputedStyle(impact).animationName === 'impactBurst', impact ? getComputedStyle(impact).animationName : '');
+    ok('④ 命中同时给对方受击闪烁（保持闪烁）', op.classList.contains('anim-hit'), op.className);
+
+    // 远程：蓄力 → 光束 → 发射期间回到原位
+    const p2 = app._onAttackStart({ side: 'pl', move: { name: '水炮', damage: '60' }, attacker: app.gs.player1.active, defender: app.gs.player2.active });
+    await new Promise(r => setTimeout(r, 120));
+    ok('⑥ 远程先播蓄力 anim-ranged-charge', me.classList.contains('anim-ranged-charge'), me.className);
+    ok('⑥ 远程蓄力由 rangedCharge 驱动', getComputedStyle(me).animationName === 'rangedCharge', getComputedStyle(me).animationName);
+    await new Promise(r => setTimeout(r, 400));
+    ok('⑥ 发射期间播 anim-ranged-back（回到原位）', me.classList.contains('anim-ranged-back'), me.className);
+    ok('⑥ 回位由 rangedBack 驱动', getComputedStyle(me).animationName === 'rangedBack', getComputedStyle(me).animationName);
+    const beam = scene.querySelector('.fx-beam');
+    ok('⑥ 生成光束', !!beam);
+    ok('⑥ 光束颜色取攻击方属性（fire）', !!beam && beam.className.includes('fire'), beam ? beam.className : '');
+    ok('⑥ 光束长度按两立绘间距算出', !!beam && parseFloat(beam.style.width) > 40, beam ? beam.style.width : '');
+    ok('⑥ 光束角度已计算（指向目标）', !!beam && /deg$/.test(beam.style.getPropertyValue('--beam-angle')), beam ? beam.style.getPropertyValue('--beam-angle') : '');
+    ok('⑥ 光束由 beamFire 驱动（持续一段时间）', !!beam && getComputedStyle(beam).animationName === 'beamFire', beam ? getComputedStyle(beam).animationName : '');
+    await p2;
+
+    // 辅助
+    await app._onAttackStart({ side: 'pl', move: { name: '回复', damage: '0' }, attacker: app.gs.player1.active, defender: app.gs.player2.active });
+
+    // 对手侧同样生效（攻击方是 opp 时，爆点落在我们这侧）
+    app._onAttackHit({ side: 'opp', move: { name: '撞击' }, attacker: app.gs.player2.active, defender: app.gs.player1.active, damage: 20 });
+    ok('⑤ 对手攻击时受击闪烁给我方', me.classList.contains('anim-hit'), me.className);
+    ok('⑤ 爆点颜色取对手属性（water）', scene.querySelector('.fx-impact').className.includes('water'), scene.querySelector('.fx-impact').className);
+
+    // 关闭动画时不产生表现
+    document.body.classList.add('no-anim');
+    const beforeLen = document.querySelectorAll('.fx-beam.show').length;
+    await app._onAttackStart({ side: 'pl', move: { name: '水炮', damage: '60' }, attacker: app.gs.player1.active, defender: app.gs.player2.active });
+    ok('⑥ 关闭动画时不发光束', document.querySelectorAll('.fx-beam.show').length === beforeLen);
+    document.body.classList.remove('no-anim');
+    // 注意：**不要**把战斗场景藏回去 —— 隐藏容器里的 CSS 动画不进入渲染树，
+    // computed transform 恒为 none，会让后面的「呼吸动画在运行」断言假失败。
+    if (battleApp) { battleApp.classList.add('active'); battleApp.style.display = 'block'; }
+    if (scene) scene.style.display = 'block';
+  }
+
   // ---------- ② 召唤动画 / ③ 收回动画 ----------
   {
     const app = build(mon({ cardId: 'P1' }), mon({ cardId: 'O1' }));

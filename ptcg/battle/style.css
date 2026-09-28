@@ -507,6 +507,129 @@ body.no-anim .sprite-img.anim-exit { animation: none !important; }
   100% { transform: translateY(0) scale(1, 1); }
 }
 
+/* ================= 招式表现：近战 / 远程 / 辅助（需求⑤⑥） =================
+   方向变量：我方在左下、对方在右上，所以「前」= 我方(+x,-y) / 对方(-x,+y)。
+   前进方向由 --fwd-x / --fwd-y 决定，攻击距离由 JS 按两个立绘的实际位置算成
+   --dash-len / --beam-len / --beam-angle，避免写死像素在不同机型和横竖屏下错位。 */
+.sprite-slot.player-sprite { --fwd-x: 1; --fwd-y: -0.62; }
+.sprite-slot.opponent-sprite { --fwd-x: -1; --fwd-y: 0.62; }
+
+/* ⑤ 近战·蓄力：颤抖 + 缓慢向后移动（像拉弹弓） */
+.sprite-img.anim-melee-wind {
+  transform-origin: 50% 100%;
+  animation: meleeWind .5s ease-in-out forwards;
+}
+@keyframes meleeWind {
+  0%   { transform: translate(0, 0); }
+  12%  { transform: translate(calc(var(--fwd-x) * -2px), calc(var(--fwd-y) * -2px)); }
+  24%  { transform: translate(calc(var(--fwd-x) * -5px), calc(var(--fwd-y) * -5px)); }
+  36%  { transform: translate(calc(var(--fwd-x) * -3px), calc(var(--fwd-y) * -3px)); }
+  48%  { transform: translate(calc(var(--fwd-x) * -8px), calc(var(--fwd-y) * -8px)); }
+  60%  { transform: translate(calc(var(--fwd-x) * -5px), calc(var(--fwd-y) * -5px)); }
+  72%  { transform: translate(calc(var(--fwd-x) * -11px), calc(var(--fwd-y) * -11px)); }
+  86%  { transform: translate(calc(var(--fwd-x) * -8px), calc(var(--fwd-y) * -8px)); }
+  100% { transform: translate(calc(var(--fwd-x) * -14px), calc(var(--fwd-y) * -14px)); }
+}
+
+/* ⑤ 近战·前冲：嗖一下冲到极限距离（约 62% 处到达极限＝命中时刻），再退回原位 */
+.sprite-img.anim-melee-dash {
+  transform-origin: 50% 100%;
+  animation: meleeDash .38s cubic-bezier(.2,.85,.3,1) forwards;
+}
+@keyframes meleeDash {
+  0%   { transform: translate(calc(var(--fwd-x) * -14px), calc(var(--fwd-y) * -14px)); }
+  62%  { transform: translate(calc(var(--fwd-x) * var(--dash-len, 120px)), calc(var(--fwd-y) * var(--dash-len, 120px))); }
+  78%  { transform: translate(calc(var(--fwd-x) * var(--dash-len, 120px) * .94), calc(var(--fwd-y) * var(--dash-len, 120px) * .94)); }
+  100% { transform: translate(0, 0); }
+}
+
+/* ⑥ 远程·蓄力：边颤抖边微微向前移动 */
+.sprite-img.anim-ranged-charge {
+  transform-origin: 50% 100%;
+  animation: rangedCharge .42s ease-out forwards;
+}
+@keyframes rangedCharge {
+  0%   { transform: translate(0, 0); }
+  18%  { transform: translate(calc(var(--fwd-x) * 3px), calc(var(--fwd-y) * 3px)); }
+  34%  { transform: translate(calc(var(--fwd-x) * -2px), calc(var(--fwd-y) * -2px)); }
+  52%  { transform: translate(calc(var(--fwd-x) * 4px), calc(var(--fwd-y) * 4px)); }
+  70%  { transform: translate(calc(var(--fwd-x) * 1px), calc(var(--fwd-y) * 1px)); }
+  100% { transform: translate(calc(var(--fwd-x) * 6px), calc(var(--fwd-y) * 6px)); }
+}
+/* ⑥ 远程·发射期间回到原位（光束在飞的同时往回站定） */
+.sprite-img.anim-ranged-back {
+  transform-origin: 50% 100%;
+  animation: rangedBack .5s ease-out forwards;
+}
+@keyframes rangedBack {
+  0%   { transform: translate(calc(var(--fwd-x) * 6px), calc(var(--fwd-y) * 6px)); }
+  100% { transform: translate(0, 0); }
+}
+
+/* 辅助招式：自身发光（无伤害招式） */
+.sprite-img.anim-support-glow { animation: supportGlow .6s ease-out; }
+@keyframes supportGlow {
+  0%, 100% { filter: none; }
+  45%      { filter: brightness(1.45) drop-shadow(0 0 16px rgba(190,235,255,.95)); }
+}
+
+/* 光束 / 命中爆点：颜色取自「攻击方自身属性」，用 CSS 变量给色 */
+.fx-beam {
+  position: absolute;
+  transform-origin: 0 50%;
+  height: 14px;
+  border-radius: 7px;
+  background: linear-gradient(90deg, var(--fx-c1), var(--fx-c2));
+  box-shadow: 0 0 14px var(--fx-c2), 0 0 4px #fff inset;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+.fx-beam.show { animation: beamFire .55s ease-out forwards; }
+@keyframes beamFire {
+  0%   { opacity: 0; transform: rotate(var(--beam-angle, 0deg)) scaleX(.05); }
+  18%  { opacity: 1; transform: rotate(var(--beam-angle, 0deg)) scaleX(1); }
+  72%  { opacity: 1; transform: rotate(var(--beam-angle, 0deg)) scaleX(1); }
+  100% { opacity: 0; transform: rotate(var(--beam-angle, 0deg)) scaleX(1); }
+}
+.fx-impact {
+  position: absolute;
+  width: 150px; height: 150px;
+  margin: -75px 0 0 -75px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, var(--fx-c1) 34%, rgba(255,255,255,0) 70%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 6;
+}
+.fx-impact.show { animation: impactBurst .5s ease-out forwards; }
+@keyframes impactBurst {
+  0%   { transform: scale(.18); opacity: 0; }
+  22%  { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.55); opacity: 0; }
+}
+
+/* 属性配色（与能量圆点同色系） */
+.fx-beam.grass, .fx-impact.grass       { --fx-c1: #9fe07a; --fx-c2: #45a049; }
+.fx-beam.fire, .fx-impact.fire         { --fx-c1: #ffb347; --fx-c2: #f85030; }
+.fx-beam.water, .fx-impact.water       { --fx-c1: #8fd0ff; --fx-c2: #2f7fe0; }
+.fx-beam.electric, .fx-impact.electric,
+.fx-beam.lightning, .fx-impact.lightning { --fx-c1: #fff08a; --fx-c2: #f3c410; }
+.fx-beam.psychic, .fx-impact.psychic   { --fx-c1: #f0a6f0; --fx-c2: #b13fd0; }
+.fx-beam.fighting, .fx-impact.fighting { --fx-c1: #f0b070; --fx-c2: #c05a20; }
+.fx-beam.dark, .fx-impact.dark         { --fx-c1: #9a86b0; --fx-c2: #3a2f4a; }
+.fx-beam.metal, .fx-impact.metal       { --fx-c1: #dfe3ef; --fx-c2: #8d93a6; }
+.fx-beam.dragon, .fx-impact.dragon     { --fx-c1: #b08cff; --fx-c2: #6a2fe0; }
+.fx-beam.fairy, .fx-impact.fairy       { --fx-c1: #ffb6d9; --fx-c2: #e8559b; }
+.fx-beam.colorless, .fx-impact.colorless { --fx-c1: #f2f2f2; --fx-c2: #b9b9b9; }
+
+body.no-anim .fx-beam.show, body.no-anim .fx-impact.show { animation: none !important; opacity: 0 !important; }
+body.no-anim .sprite-img.anim-melee-wind,
+body.no-anim .sprite-img.anim-melee-dash,
+body.no-anim .sprite-img.anim-ranged-charge,
+body.no-anim .sprite-img.anim-ranged-back,
+body.no-anim .sprite-img.anim-support-glow { animation: none !important; }
+
 /* ③ 收回：快速逐渐变白 → 全白后迅速缩小到几乎看不见 */
 .sprite-img.anim-recall {
   transform-origin: 50% 100%;

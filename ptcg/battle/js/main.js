@@ -72,6 +72,22 @@ export function pokemonPickerTitleFor(isMySide, options = {}, isEffectPick = fal
   return `${isMySide ? '我方' : '对方'}宝可梦`;
 }
 
+/** 远程招式的名称/文本特征（用于把招式分成 近战 / 远程 / 辅助 三套表现） */
+const RANGED_MOVE_HINTS = [
+  '光束', '光線', '光线', '射线', '射線', '喷射', '噴射', '喷发', '噴發',
+  '波', '弹', '彈', '炮', '砲', '箭', '旋风', '旋風', '暴风', '暴風',
+  '落雷', '电击', '電擊', '音波', '念力', '精神', '飞叶', '飛葉',
+  '毒液', '污泥', '冰冻', '冰凍', '热风', '熱風', '龙息', '龍息',
+  '水炮', '水流', '气泡', '氣泡',
+  // 以下按全量招式名实测补充（2026-09 审计：近战 10918 / 远程 1451 / 辅助 2948）。
+  // 刻意**不加**会误伤近战的词：「雷电拳」「电光一闪」「音速拳」都是近战，
+  // 所以只收「雷电球」「打雷」「细雪」这类明确的远程措辞。
+  '射击', '之风', '疾风', '打雷', '雷电球', '细雪', '雪花', '暴雪', '叶', '葉', '镭射', '激光',
+  // 已知误差（实测，仅影响观感不影响对局）：极光增辉、突袭镭射之外还有
+  // 「月光爆破」「黑色目光」「日光反射」等被归为近战；「电光一闪」虽是近战但名字带「光」，
+  // 所以没有把「光」收进特征表。要做到逐招准确需要人工标注表，暂不引入。
+];
+
 export class PTCGBattleApp {
   constructor() {
     this.gs = new GameState();
@@ -118,7 +134,10 @@ export class PTCGBattleApp {
       onAiThinking: thinking => {
         this._aiThinking = !!thinking;
         this._updateMainMenu();
-      }
+      },
+      // 战斗表现：招式宣告（可 await 的前摇）与命中落点（爆点 + 受击闪烁）
+      onAttackStart: info => this._onAttackStart(info),
+      onAttackHit: info => this._onAttackHit(info)
     });
     this.gs.onLog = m => this._appendBattleLog(m);
     this.gs._onPendingPick = pick => this._handlePick(pick);
@@ -357,17 +376,13 @@ export class PTCGBattleApp {
     const anim = this._animEnabled();
     const beforeOppId = this.gs.player2.active?.cardId ?? null;
     const beforeOppHp = this.gs.player2.active?.hp ?? null;
-    if (anim) await this._playAttackAnimAsync('pl');
-    else this._playAttackAnim('pl');
+    // 招式前摇/冲刺/光束 + 受击闪烁都改由引擎事件驱动
+    // （onAttackStart / onAttackHit）—— 这样双方攻击都有表现，且「冲刺到极限」与
+    // 「命中爆点」是同一时刻；原来这里播的 lunge 会和新动画抢 animation。
     const ok = await this.engine.attack(atkIdx);
     if (anim) {
       const afterOpp = this.gs.player2.active;
       const afterOppId = afterOpp?.cardId ?? null;
-      // 受击：HP 下降且未换人 → 闪烁 + 血条过渡（transition 由 CSS 处理）
-      if (afterOpp && beforeOppHp != null && afterOpp.hp < beforeOppHp && afterOppId === beforeOppId) {
-        this._animateHit('opp');
-        await this._sleep(560);
-      }
       // 换人/击倒补位：离场动画在这里负责；新上场的宝可梦由 _renderScene 统一播召唤动画
       if (afterOppId !== beforeOppId) {
         if (!afterOpp) { this._animateExit('opp'); this._markActiveAnimated('opp', null); }
@@ -1465,7 +1480,135 @@ export class PTCGBattleApp {
     sprite.classList.remove('anim-recall');
   }
 
+// ============================================================
+  //  招式表现：近战 / 远程 / 辅助（需求⑤⑥）
+  // ============================================================
+
+  /** 招式表现类型：无伤害 → 辅助；含远程特征/放伤害指示物 → 远程；其余 → 近战 */
+  _moveAnimType(move) {
+    const dmg = parseInt(String(move?.damage ?? '').match(/\d+/)?.[0] || '0', 10);
+    if (!dmg) return 'support';
+    // ⚠️ 只在**招式名**里找远程特征：效果 JSON 里常出现「附着能量」「反射」等词，
+    //    把 effects 拼进来会把大量近战招式误判成远程（实测过）。
+    const name = String(move?.name || '');
+    // 隔空在对方身上放伤害指示物 → 远程
+    if (JSON.stringify(move?.effects || []).includes('伤害指示物')) return 'ranged';
+    return RANGED_MOVE_HINTS.some(k => name.includes(k)) ? 'ranged' : 'melee';
+  }
+
+  /** 立绘中心点（战斗场景坐标系），用于算冲刺距离与光束角度 */
+  _fxPoint(prefix) {
+    const el = this._spriteEl(prefix);
+    const scene = document.getElementById('battle-scene');
+    if (!el || !scene) return null;
+    const a = el.getBoundingClientRect();
+    const s = scene.getBoundingClientRect();
+    if (!a.width || !a.height) return null;
+    return { x: a.left - s.left + a.width / 2, y: a.top - s.top + a.height * 0.55 };
+  }
+
+  /** 按攻击方与目标的实际位置，把冲刺距离写进立绘容器 */
+  _setDashLen(prefix) {
+    const sprite = this._spriteEl(prefix);
+    const a = this._fxPoint(prefix);
+    const b = this._fxPoint(prefix === 'pl' ? 'opp' : 'pl');
+    if (!sprite || !a || !b) return;
+    const dist = Math.hypot(b.x - a.x, b.y - a.y);
+    // 走到「贴近目标」而不是穿过去：留出立绘宽度的一半左右
+    const len = Math.max(40, Math.min(190, Math.round(dist * 0.62)));
+    sprite.style.setProperty('--dash-len', len + 'px');
+  }
+
+  /** 光束：从攻击方指向目标，颜色取攻击方自身属性 */
+  _showBeam(prefix, element) {
+    const scene = document.getElementById('battle-scene');
+    const a = this._fxPoint(prefix);
+    const b = this._fxPoint(prefix === 'pl' ? 'opp' : 'pl');
+    if (!scene || !a || !b) return;
+    const len = Math.hypot(b.x - a.x, b.y - a.y);
+    const deg = Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI;
+    let beam = scene.querySelector('.fx-beam');
+    if (!beam) { beam = document.createElement('div'); scene.appendChild(beam); }
+    // _eleClass/energyElementClass 只认中文属性标签（'火'/'水'…），
+    // 传英文 'fire' 会得到 colorless → 先过 _elementLabel 归一
+    beam.className = 'fx-beam ' + this._eleClass(this._elementLabel(element));
+    beam.style.left = a.x + 'px';
+    beam.style.top = (a.y - 7) + 'px';
+    beam.style.width = len + 'px';
+    beam.style.setProperty('--beam-angle', deg.toFixed(1) + 'deg');
+    void beam.offsetWidth;
+    beam.classList.add('show');
+    clearTimeout(this._beamTimer);
+    this._beamTimer = setTimeout(() => { beam.className = 'fx-beam'; }, 620);
+  }
+
+  /** 命中爆点：在目标位置播「攻击方属性」的爆点 */
+  _showImpact(prefix, element) {
+    const scene = document.getElementById('battle-scene');
+    const p = this._fxPoint(prefix === 'pl' ? 'opp' : 'pl');
+    if (!scene || !p) return;
+    let fx = scene.querySelector('.fx-impact');
+    if (!fx) { fx = document.createElement('div'); scene.appendChild(fx); }
+    fx.className = 'fx-impact ' + this._eleClass(this._elementLabel(element));
+    fx.style.left = p.x + 'px';
+    fx.style.top = p.y + 'px';
+    void fx.offsetWidth;
+    fx.classList.add('show');
+    clearTimeout(this._impactTimer);
+    this._impactTimer = setTimeout(() => { fx.className = 'fx-impact'; }, 560);
+  }
+
+  /**
+   * 引擎事件①：招式宣告 → 前摇。**引擎会 await 这个方法**，所以：
+   *  · 近战：颤抖+后移蓄力(0.5s) → 前冲，等冲刺「到达极限距离」后才返回
+   *          → 引擎接着结算伤害 → onAttackHit 的爆点正好落在冲到极限的那一刻
+   *  · 远程：颤抖+微前移(0.42s) → 发光束 → 稍等后返回（光束持续期间结算伤害）
+   *  · 辅助：自身发光
+   */
+  async _onAttackStart(info) {
+    if (!this._animEnabled() || !info) return;
+    const prefix = info.side === 'pl' ? 'pl' : 'opp';
+    const sprite = this._spriteEl(prefix);
+    if (!sprite) return;
+    const type = this._moveAnimType(info.move);
+    this._lastMoveType = type;
+    this._clearSpriteAnims(sprite);
+    void sprite.offsetWidth;
+
+    if (type === 'melee') {
+      sprite.classList.add('anim-melee-wind');
+      await this._sleep(500);
+      this._setDashLen(prefix);
+      sprite.classList.remove('anim-melee-wind');
+      sprite.classList.add('anim-melee-dash');
+      await this._sleep(232);                       // 冲刺到极限距离（≈62%）
+      setTimeout(() => sprite.classList.remove('anim-melee-dash'), 260);  // 之后自行退回
+    } else if (type === 'ranged') {
+      sprite.classList.add('anim-ranged-charge');
+      await this._sleep(420);
+      sprite.classList.remove('anim-ranged-charge');
+      sprite.classList.add('anim-ranged-back');
+      this._showBeam(prefix, info.attacker?.element);
+      await this._sleep(120);                       // 光束已射出 → 允许引擎结算
+      setTimeout(() => sprite.classList.remove('anim-ranged-back'), 520);
+    } else {
+      sprite.classList.add('anim-support-glow');
+      await this._sleep(460);
+      sprite.classList.remove('anim-support-glow');
+    }
+  }
+
+  /** 引擎事件②：伤害落点 → 属性爆点 + 受击闪烁（需求④：受击保持闪烁） */
+  _onAttackHit(info) {
+    if (!this._animEnabled() || !info) return;
+    const prefix = info.side === 'pl' ? 'pl' : 'opp';
+    const element = info.attacker?.element;
+    this._showImpact(prefix, element);
+    this._animateHit(prefix === 'pl' ? 'opp' : 'pl');
+  }
+
   _pulseClass(el, cls, ms, keep = false) {
+
     if (!el || !el.classList) return;
     el.classList.remove('anim-attack', 'anim-hit', 'anim-enter', 'anim-exit');
     void el.offsetWidth;
