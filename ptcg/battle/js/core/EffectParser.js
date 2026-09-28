@@ -718,6 +718,12 @@ const RULES = [
   { re: /自己所有的宝可梦[，,]?受到对手宝可梦的招式的伤害["“”「」]?([+-]?\d+)["“”「」]?/, act:'damage_received_mod', p:m=>({amount:+m[1],target:'own_field'}) },
   { re: /自己(?:所有|的)?宝可梦的【撤退】所需能量[，,]?全部消除/, act:'retreat_cost_zero', p:()=>({target:'own_field'}) },
   { re: /身上放有这张卡的宝可梦[，,]?【撤退】所需能量减少(\d+)个/, act:'retreat_cost_reduce', p:m=>({amount:+m[1],target:'self'}) },
+  // 「（身体）最大HP +N 的道具/能量」后续可能跟「昏厥时对手多拿1张奖赏卡」——
+  // 两条锚定规则（放在通用 trigger 规则之前，避免被拆成 trigger 包裹的未建模效果）。
+  // 「身上放有这张卡牌的宝可梦…受到招式的伤害而【昏厥】时，对手拿取的奖赏卡将增加N张」
+  // （道具版措辞；与招式版统一成同一个 extra_prize 动作）
+  { re: /当该宝可梦[\s\S]{0,40}?受到对手宝可梦的招式的伤害而【昏厥】时[\s\S]{0,4}?对手拿取的奖赏卡将增加(\d+)张/, act:'extra_prize', p:m=>({ count:+m[1], fromTool:true }) },
+
   { re: /身上放有这张卡的(?:【.+?】)?宝可梦(?:（[^）]*）)?(?:的)?最大HP(?:增加)?["“”]?\+?(\d+)["“”]?/, act:'max_hp_mod', p:m=>({amount:+m[1],target:'self'}) },
   { re: /若这只宝可梦身上附着了特殊能量(?:的话)?[，,]?则这只宝可梦(?:的)?最大HP(?:增加)?["“”]?\+?(\d+)["“”]?/, act:'max_hp_mod', p:m=>({condition:'self_has_special_energy',amount:+m[1]}) },
   { re: /受到这个招式影响的宝可梦[，,]?【撤退】所需能量增加(\d+)个/, act:'retreat_cost_increase', p:m=>({amount:+m[1]}) },

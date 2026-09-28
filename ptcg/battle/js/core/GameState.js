@@ -469,7 +469,14 @@ export class GameState {
   // 保留道具的 effects —— effectiveRetreatCost 等需要按「道具效果」通用判定
   // （原实现只存 cardId/name，导致紧急滑板「撤退费-1」这类效果无法生效，
   //   只能靠硬编码卡名，覆盖不了新卡）
-  _makeToolState(cardId,cd){return {cardId,name:cd?.name||String(cardId),effects:cd?.effects||null,specialRules:cd?.specialRules||null,toolAttacks:cd?.toolAttacks||null};}
+  _makeToolState(cardId,cd){
+    // 道具给的最大HP加成（「身上放有这张卡牌的宝可梦的最大HP「+100」」）
+    const maxHpBonus=(cd?.effects||[]).filter(e=>e.action==='max_hp_mod').reduce((s,e)=>s+(e.params?.amount||0),0);
+    // 「当该宝可梦…受到招式的伤害而【昏厥】时，对手拿取的奖赏卡将增加1张」
+    const hasExtraPrize=(effs)=>effs.some(e=>e.action==='extra_prize'
+      || (e.action==='trigger'&&(e.params?.effects||[]).some(x=>x.action==='extra_prize')));
+    const extraPrizeOnKo=hasExtraPrize(cd?.effects||[]);
+    return {cardId,name:cd?.name||String(cardId),effects:cd?.effects||null,specialRules:cd?.specialRules||null,toolAttacks:cd?.toolAttacks||null,maxHpBonus,extraPrizeOnKo};}
 
   /**
    * 该宝可梦当前可用招式 = 自身招式 + 身上「招式学习器」类道具提供的招式。
@@ -613,6 +620,7 @@ export class GameState {
       const attached=cardId??pl.hand[hi];
       pl.hand.splice(hi,1);
       t.tool=this._makeToolState(attached,cd);
+      this._applyMaxHpModifiers();   // 「最大HP+N」道具立刻生效（此前完全不生效）
       this.addLog(`${pl.name} 为 ${t.name} 装备了「${cd.name}」`);
       return true;
     }
@@ -1164,6 +1172,7 @@ export class GameState {
 
   recomputePassives(){
     for(const mon of this.getAllPokemonInPlay()){mon.abilityDisabled=false;mon.abilityDisabledBy=null;}
+    this._applyMaxHpModifiers();
     // 简化的一轮处理：不做复杂互相消除 fixed-point，足够覆盖常见主动/被动锁特性。
     for(const lock of this.temporaryAbilityLocks||[]){
       const opp=this.getOpponent(lock.owner);
@@ -1404,6 +1413,25 @@ export class GameState {
   // 触发式事件分发：由 EffectExecutor 注入 handler（_emitTriggers）
   emitTriggerEvent(event,payload={}){if(this._triggerHandler){try{this._triggerHandler(event,payload);}catch(e){/* 忽略 */}}}
   // 最大 HP 被动加成（特性「附特殊能量则最大HP+N」）
+  /**
+   * 按「基础最大HP + 道具加成 + 被动特性加成」重算最大HP。
+   * ⚠️ 实测修复前：`getPassiveMaxHpModifier` 是**死代码**（全库只有注释提到），
+   *    道具的 max_hp_mod 也没人应用 → 64 张「最大HP +N」的卡**全都不生效**。
+   * 只在首次调用时记录 _baseMaxHp；最大HP变大时**不动当前HP**（不治疗），收窄时才夹。
+   */
+  _applyMaxHpModifiers(){
+    for(const mon of this.getAllPokemonInPlay()){
+      if(!mon)continue;
+      if(mon._baseMaxHp==null)mon._baseMaxHp=mon.maxHp||0;
+      const bonus=(mon.tool?.maxHpBonus||0)+this.getPassiveMaxHpModifier(mon);
+      const want=mon._baseMaxHp+bonus;
+      if(mon.maxHp!==want){
+        const grew=want>(mon.maxHp||0);
+        mon.maxHp=want;
+        if(!grew&&mon.hp>want)mon.hp=want;
+      }
+    }
+  }
   getPassiveMaxHpModifier(mon){let total=0;for(const {source,params:p} of this._passiveEffectsFor(mon,'max_hp_mod')){if(p.condition==='self_has_special_energy'&&!(mon?.energy||[]).some(e=>String(e).includes('特殊')))continue;total+=p.amount||0;}return total;}
   // 检查 pl 的对手场上是否有某被动（“对手的…无法…”类）
   _opponentHasPassive(pl,action){const opp=this.getOpponent(pl);return this._passiveEffectsFor(opp.active,action).length>0;}
@@ -1436,7 +1464,15 @@ export class GameState {
     if(pl.playRestrictions?.prizes){this.addLog(`${pl.name} 下回合无法拿取奖赏卡`);return;}
     if(pl.prizes.length>0){const prize=pl.prizes.pop();pl.hand.push(prize);this.addLog(`${pl.name} 获奖品卡 剩${pl.prizes.length}`);
     if(pl.prizes.length===0){this.winner=pl;this.phase=PHASE.GAME_OVER;this.addLog(`${pl.name} 胜利！`);}}}
-  prizesForKnockout(mon){return this.isExPokemon(mon)?2:1;}
+  prizesForKnockout(mon){
+    let n=this.isExPokemon(mon)?2:1;
+    // 「当该宝可梦，受到对手宝可梦的招式的伤害而【昏厥】时，对手拿取的奖赏卡将增加1张」
+    //  —— 只在招式窗口内（_koContext 存在）才算，特性/训练家造成的昏厥不算。
+    if(mon?.tool?.extraPrizeOnKo&&this._koContext)n+=1;
+    // 「如果因为这个招式的伤害…昏厥的话，则多拿取1张奖赏卡」（招式/特性/支援者版）
+    n+=(this._koContext?.extraPrize||0);
+    return n;
+  }
   takePrizesForKnockout(pl,mon){const count=this.prizesForKnockout(mon);for(let i=0;i<count&&pl?.prizes?.length>0&&this.phase!==PHASE.GAME_OVER;i++)this.takePrize(pl);}
 
   /**

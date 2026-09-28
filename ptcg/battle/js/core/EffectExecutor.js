@@ -2253,7 +2253,17 @@ const EXECUTORS = {
   tool_end_of_turn_discard() { /* no-op：标记类效果，由回合结束流程消费 */ },
 
   // ===== 多获奖赏 =====
-  extra_prize(gs, pl) { gs.takePrize(pl); },
+  /**
+   * 「如果因为这个招式的伤害…昏厥的话，则多拿取N张奖赏卡」/「对手拿取的奖赏卡将增加N张」
+   * ⚠️ 实测旧实现是 `gs.takePrize(pl)` —— **立刻拿一张** ✗：不看条件、没昏厥也照拿，
+   *    而且是在昏厥结算**之前**拿。正确语义是「昏厥结算时多拿 N 张」→
+   *    这里只把 N 记在本次招式窗口上，由 GameState.prizesForKnockout 一并结算。
+   */
+  extra_prize(gs, pl, p) {
+    gs._koContext = gs._koContext || {};
+    gs._koContext.extraPrize = (gs._koContext.extraPrize || 0) + (p?.count || 1);
+    gs.addLog(`本次招式的昏厥将多拿 ${p?.count || 1} 张奖赏卡`);
+  },
 
   // ===== 回合结束 =====
   end_turn(gs, pl) { gs.endTurn(); if (gs.phase === PHASE.DRAW) gs.nextPhase(); gs.addLog('回合结束'); },
@@ -2967,6 +2977,10 @@ const EXECUTORS = {
     gs.addLog(`${mon.name} 的「${pick.name}」在下一个对手的回合无法使用`);
   },
 
+  /**
+   * 「…多拿取1张奖赏卡」/「对手拿取的奖赏卡将增加1张」→ 记在**本次招式窗口**上，
+   * 由 GameState.prizesForKnockout 结算（道具自带的那条走 mon.tool.extraPrizeOnKo）。
+   */
   /** 玩偶/化石的「可从场上主动弃掉」 */
   discard_doll_self(gs, pl, p, eff) {
     const mon = eff?.source || eff?.params?.triggerSource;

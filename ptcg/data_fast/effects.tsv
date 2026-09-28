@@ -1,4 +1,4 @@
-#eff1 hash=03e8f1cfc22c9a5c
+#eff1 hash=711275f30e2b4bb1
 151C-001	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-002	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-003	ability		0	usage_condition	{"kind":"requires_active"}
@@ -23268,7 +23268,7 @@ CSV3C-118	trainer		0	usage_condition	{"kind":"generic_effect","raw":"身上放�
 CSV3C-119	trainer		0	usage_condition	{"kind":"generic_effect","raw":"身上放有这张卡的【2阶进化】宝可梦【撤退】所需能量，全部消除。"}
 CSV3C-120	trainer		0	damage_place	{"target":"attacker","count":4}
 CSV4C-117	trainer		0	max_hp_mod	{"amount":100,"target":"self"}
-CSV4C-117	trainer		1	trigger	{"event":"knocked_out","effect":{"action":"usage_condition","params":{"kind":"generic_effect","raw":"对手拿取的奖赏卡将增加1张。"}},"effects":[{"action":"usage_condition","params":{"kind":"generic_effect","raw":"对手拿取的奖赏卡将增加1张。"}}],"optional":false}
+CSV4C-117	trainer		1	extra_prize	{"count":1,"fromTool":true}
 CSV4C-118	trainer		0	damage_received_mod	{"amount":-40,"target":"self"}
 CSV4C-119	trainer		0	tool_end_of_turn_discard	{}
 CSV4C-119	trainer		1	attach_energy_from_deck	{"filter":"基本能量","target":"bench","count":2,"maxCount":2,"minCount":0,"allowFewer":true,"allowEmpty":true}
@@ -23283,7 +23283,7 @@ CSV4C-120	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"身上�
 CSV4C-120	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"【无】【无】【无】 暗中奇袭"}
 CSV4C-120	toolattack	暗中奇袭	0	damage_bench	{"target":"opponent_any","damage":100}
 CSV4C-164	trainer		0	max_hp_mod	{"amount":100,"target":"self"}
-CSV4C-164	trainer		1	trigger	{"event":"knocked_out","effect":{"action":"usage_condition","params":{"kind":"generic_effect","raw":"对手拿取的奖赏卡将增加1张。"}},"effects":[{"action":"usage_condition","params":{"kind":"generic_effect","raw":"对手拿取的奖赏卡将增加1张。"}}],"optional":false}
+CSV4C-164	trainer		1	extra_prize	{"count":1,"fromTool":true}
 CSV5C-117	trainer		0	usage_condition	{"kind":"on_ko_discard_opp_hand","raw":"身上放有这张卡的宝可梦，受到对手宝可梦的招式的伤害而【昏厥】时，在不看正面的前提下，选择对手的1张手牌，丢到弃牌区"}
 CSV5C-118	trainer		0	usage_condition	{"kind":"generic_effect","raw":"只要身上放有这张卡的宝可梦在战斗场上，自己的牌库，就不会受到因对手的招式、特性、物品、宝可梦道具、支援者而导致的将牌库的卡牌丢到弃牌区的效果影响。"}
 CSV5C-119	trainer		0	tool_end_of_turn_discard	{}
@@ -23334,7 +23334,7 @@ CSV9.5C-173	trainer		0	retreat_cost_reduce	{"amount":1,"target":"self"}
 CSV9.5C-173	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"若那只宝可梦的剩余HP在\\"30\\"及以下，则【撤退】所需能量，全部消除。"}
 CSV9.5C-174	trainer		0	passive_damage_mod	{"target":"self","amount":40}
 CSV9.5C-175	trainer		0	max_hp_mod	{"amount":100,"target":"self"}
-CSV9.5C-175	trainer		1	trigger	{"event":"knocked_out","effect":{"action":"usage_condition","params":{"kind":"generic_effect","raw":"对手拿取的奖赏卡将增加1张。"}},"effects":[{"action":"usage_condition","params":{"kind":"generic_effect","raw":"对手拿取的奖赏卡将增加1张。"}}],"optional":false}
+CSV9.5C-175	trainer		1	extra_prize	{"count":1,"fromTool":true}
 CSV9.5C-176	trainer		0	usage_condition	{"kind":"generic_effect","raw":"身上放有这张卡的宝可梦，受到对手【龙】宝可梦的招式的伤害时，那个伤害\\"-60\\"，将这张卡丢到弃牌区。"}
 CSV9.5C-177	trainer		0	max_hp_mod	{"amount":60,"target":"self"}
 CSV9.5C-177	trainer		1	usage_condition	{"kind":"residual_sentence","raw":"已经处于的特殊状态，也全部恢复。"}
@@ -23475,7 +23475,7 @@ CSVM1aC-024	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"从对
 CSVM1aC-024	trainer		4	usage_condition	{"kind":"residual_sentence","raw":"将被移除的卡牌，放回对手的手牌。"}
 CSVM1aC-024	toolattack	退化	0	usage_condition	{"kind":"generic_effect","raw":"从对手所有已经进化的宝可梦身上，各移除1张\\"进化卡\\"使其退化。将被移除的卡牌，放回对手的手牌。"}
 CSVM1bC-023	trainer		0	max_hp_mod	{"amount":100,"target":"self"}
-CSVM1bC-023	trainer		1	trigger	{"event":"knocked_out","effect":{"action":"usage_condition","params":{"kind":"generic_effect","raw":"对手拿取的奖赏卡将增加1张。"}},"effects":[{"action":"usage_condition","params":{"kind":"generic_effect","raw":"对手拿取的奖赏卡将增加1张。"}}],"optional":false}
+CSVM1bC-023	trainer		1	extra_prize	{"count":1,"fromTool":true}
 CSVM1bC-024	trainer		0	max_hp_mod	{"amount":50,"target":"self"}
 CSVM1bC-025	trainer		0	tool_end_of_turn_discard	{}
 CSVM1bC-025	trainer		1	shuffle_deck	{}

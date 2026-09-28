@@ -10291,6 +10291,101 @@ await test('B 族运行时：对手选招式后，复制的是**对手**的招�
   assert.ok(gs.log.some(l => String(l).includes('作为这个招式使用')), '应有复制日志');
 });
 
+
+// ============================================================
+//  道具「最大HP+N」+「昏厥时对手多拿1张奖赏卡」（豪华斗篷等）
+// ============================================================
+
+const _CAPE_TEXT = '身上放有这张卡牌的宝可梦（除「拥有规则的宝可梦」外）的最大HP「+100」，当该宝可梦，受到对手宝可梦的招式的伤害而【昏厥】时，对手拿取的奖赏卡将增加1张。';
+const _HERO_TEXT = '身上放有这张卡牌的宝可梦的最大HP「+100」。';
+const _TOUGH_TEXT = '身上放有这张卡牌的【基础】宝可梦（除「宝可梦GX」外）的最大HP增加「50」点。';
+const _capMon = (name, id, hp = 120) => Object.assign(mon(name, id), {
+  hp, maxHp: hp, attacks: [{ name:'撞击', damage:10, cost:[], effects:[] }],
+});
+const _capeSetup = async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  gs.player1.active = _capMon('我', 'a1');
+  gs.player2.active = _capMon('敌', 'o1');
+  gs.player1.prizes = ['a1', 'a2', 'a3', 'a4', 'a5', 'a6'];
+  gs.player2.prizes = ['b1', 'b2', 'b3', 'b4', 'b5', 'b6'];
+  return gs;
+};
+const _equip = (gs, mon, text, name) => {
+  const cd = { cardType:'trainer', trainerType:'tool', name, effects: parseEffect(text).effects };
+  mon.tool = gs._makeToolState('T-' + name, cd);
+  gs._applyMaxHpModifiers();
+  return cd;
+};
+
+await test('斗篷 解析：三张同类斗篷都产出 max_hp_mod（豪华斗篷另带 extra_prize）', () => {
+  const a = parseEffect(_CAPE_TEXT).effects;
+  assert.equal(a[0].action, 'max_hp_mod');
+  assert.equal(a[0].params.amount, 100);
+  assert.ok(a.some(x => x.action === 'extra_prize'), '豪华斗篷应含 extra_prize');
+  const b = parseEffect(_HERO_TEXT).effects;
+  assert.equal(b[0].action, 'max_hp_mod');
+  assert.equal(b[0].params.amount, 100);
+  const c = parseEffect(_TOUGH_TEXT).effects;
+  assert.equal(c[0].action, 'max_hp_mod');
+  assert.equal(c[0].params.amount, 50);
+});
+
+await test('斗篷 运行时：装备后最大HP+100、当前HP不变；卸下后还原', async () => {
+  const gs = await _capeSetup();
+  const mon = gs.player1.active;
+  const hpBefore = mon.hp, maxBefore = mon.maxHp;
+  _equip(gs, mon, _CAPE_TEXT, '豪华斗篷');
+  assert.equal(mon.maxHp, maxBefore + 100, '最大HP应 +100');
+  assert.equal(mon.hp, hpBefore, '当前HP不应被治疗');
+  mon.tool = null;
+  gs._applyMaxHpModifiers();
+  assert.equal(mon.maxHp, maxBefore, '卸下后应还原');
+});
+
+await test('斗篷 运行时：被招式伤害昏厥时，对手多拿 1 张奖赏卡', async () => {
+  const gs = await _capeSetup();
+  const pl = gs.player1, opp = gs.player2;
+  _equip(gs, pl.active, _CAPE_TEXT, '豪华斗篷');
+  gs._koContext = { attacker: opp.active }; // 招式窗口
+  const before = opp.prizes.length;
+  gs.knockout(pl);
+  assert.equal(before - opp.prizes.length, 2, '应为 1 + 1 张');
+});
+
+await test('斗篷 运行时：非招式造成的昏厥不多拿（条件限定）', async () => {
+  const gs = await _capeSetup();
+  const pl = gs.player1, opp = gs.player2;
+  _equip(gs, pl.active, _CAPE_TEXT, '豪华斗篷');
+  gs._koContext = null; // 没有招式窗口
+  const before = opp.prizes.length;
+  gs.knockout(pl);
+  assert.equal(before - opp.prizes.length, 1, '应只拿 1 张');
+});
+
+await test('奖赏卡 招式版「多拿取1张」不再立刻拿卡，而是在昏厥时结算', async () => {
+  const gs = await _capeSetup();
+  const pl = gs.player1, opp = gs.player2;
+  gs._koContext = { attacker: pl.active };
+  const eff = parseEffect('若因为这个招式的伤害，对手的宝可梦【昏厥】，则多拿取1张奖赏卡。').effects;
+  const before = pl.prizes.length;
+  await executeEffects(gs, pl, eff);
+  assert.equal(pl.prizes.length, before, '执行效果时不应立刻拿卡（旧实现会拿 ✗）');
+  gs.knockout(opp);
+  assert.equal(before - pl.prizes.length, 2, '昏厥时应拿 2 张（1 + 1）');
+});
+
+await test('最大HP 被动特性加成：此前是死代码，现已接线', async () => {
+  const gs = await _capeSetup();
+  const src = _capMon('光环', 's1', 100);
+  src.ability = { name:'HP光环', zone:'field',
+    effects: parseEffect('若这只宝可梦身上附着了特殊能量的话，则这只宝可梦的最大HP增加「30」。').effects };
+  src.energy = ['特殊能量E'];
+  gs.player1.active = src;
+  gs._applyMaxHpModifiers();
+  assert.equal(src.maxHp, 130, '应吃到 +30（此前 getPassiveMaxHpModifier 无人调用）');
+});
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',
