@@ -443,6 +443,9 @@ body.no-anim .sprite-img.anim-exit { animation: none !important; }
   image-rendering: pixelated;
   pointer-events: none;
   opacity: 0;
+  /* 基态也保持缩小：否则移除 .show 后回落到 scale(1)=96px，
+     在「淡出」的那一帧会闪出一个满尺寸精灵球（玩家实测看到的就是这个） */
+  transform: scale(.17);
 }
 .summon-ball.show { animation: ballEnter .55s cubic-bezier(.22,.75,.3,1) forwards; }
 @keyframes ballEnter {
@@ -451,9 +454,11 @@ body.no-anim .sprite-img.anim-exit { animation: none !important; }
   100% { transform: translate(0, 0) rotate(0deg) scale(.17); opacity: 1; }
 }
 /* 白爆时球立刻隐去（否则会一直挂在宝可梦头上） */
+/* 淡出必须把 transform 一起写上：只写 opacity 的话，
+   动画一接管就丢掉 ballEnter 的终态 transform，球会瞬间回到原始大小 */
 @keyframes ballFadeOut {
-  from { opacity: 1; }
-  to   { opacity: 0; }
+  from { opacity: 1; transform: scale(.17); }
+  to   { opacity: 0; transform: scale(.17); }
 }
 
 /* 爆白光 */
@@ -653,6 +658,9 @@ body.no-anim .sprite-img.anim-support-glow { animation: none !important; }
 }
 .fx-evo-old.evo-white { filter: brightness(0) invert(1); }           /* 老形象变白 */
 .fx-evo-old.evo-shrink { transform: scale(.06); opacity: 0; }         /* 老形象缩小消失 */
+
+/* 击倒/换人时的「收回」：老形象逐渐变白 → 迅速缩小消失（复用覆盖层结构） */
+.fx-evo-old.evo-recall { transition: filter .24s ease, transform .3s ease, opacity .3s ease; }
 
 /* 新形象：缩小白化出现 → 放大回色 */
 .sprite-img.anim-evo-new {

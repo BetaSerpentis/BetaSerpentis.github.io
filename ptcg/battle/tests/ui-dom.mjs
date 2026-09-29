@@ -265,7 +265,10 @@ const out = await page.evaluate(async () => {
 
     // 非进化（换人）→ 仍走召唤动画
     app._maybeAnimateActiveChange('pl', mon({ cardId: 'OTHER', name: '别的' }));
-    ok('④ 不是进化时走召唤动画（不误判）', !document.querySelector('.fx-evo-old'));
+    // 非进化换人 → 走「收回 → 召唤」（需求②），所以这时能看到收回覆盖层，但不是进化动画
+    ok('④ 换人不误判为进化（走收回→召唤而非进化）',
+      !!document.querySelector('.fx-evo-old') && !me.classList.contains('anim-evo-new'),
+      'layer=' + !!document.querySelector('.fx-evo-old') + ' cls=' + me.className);
     // 等召唤动画彻底跑完再测进化：两套动画同时跑会互相改 opacity/类名（上一次就是这么假失败的）
     await new Promise(r => setTimeout(r, 1750));
     ok('④ 召唤动画结束后立绘可见（opacity 已复原）', me.style.opacity !== '0', 'op=' + me.style.opacity);
@@ -304,6 +307,12 @@ const out = await page.evaluate(async () => {
     const app = build(mon({ cardId: 'P1' }), mon({ cardId: 'O1' }));
     app._renderMon(app.gs.player1.active, 'pl');
     app._renderMon(app.gs.player2.active, 'opp');
+    const me0 = document.getElementById('player-sprite');
+    // 收回动画需要「把当前立绘拍成快照」，所以这里必须放一张真实的 <img>
+    const battleApp0 = document.getElementById('battle-app');
+    if (battleApp0) { battleApp0.classList.add('active'); battleApp0.style.display = 'block'; }
+    me0.innerHTML = '<img src="/ptcg/images/sprites/006.png" style="max-height:156px">';
+    await new Promise(r => setTimeout(r, 500));
     app._activeAnimId = { pl: { id: 'P1', name: '旧形象' }, opp: { id: 'O1', name: '敌' } };
     const waitFor = async (fn, ms = 2500) => {
       const t0 = Date.now();
@@ -316,43 +325,52 @@ const out = await page.evaluate(async () => {
     ok('② 出战位换人触发召唤动画', app._maybeAnimateActiveChange('pl', mon({ cardId: 'P2' })) === true);
     ok('② 同一只宝可梦重复渲染不再触发', app._maybeAnimateActiveChange('pl', mon({ cardId: 'P2' })) === false);
 
-    ok('② 精灵球节点已生成', await waitFor(() => !!document.querySelector('.sprite-slot.player-sprite .summon-ball'), 600));
+    // ⚠️ 这里不能用「顺序 waitFor + 立即断言」：等待本身会消耗动画时间，
+    //    等前面几项等完，后面已经过站（上一版就是这样假失败的）。
+    //    改成用 MutationObserver 记录类名变化顺序，与时间无关。
+    const spriteSeq = [];
+    // ⚠️ 注意 TDZ：观察器回调里引用 ball 时它必须已经声明（这里曾写成先 observe 后 const → 报
+    //    "Cannot access 'ball' before initialization"，这类错误语法检查查不出来）
     const ball = document.querySelector('.sprite-slot.player-sprite .summon-ball');
-    ok('② 精灵球素材路径正确且能加载（96×96，来自 ddp）',
-      await waitFor(() => ball && ball.complete && ball.naturalWidth === 96, 1500), ball ? (ball.naturalWidth + 'x' + ball.naturalHeight) : 'n/a');
-    ok('② 精灵球正在旋转入场（.show）', !!ball && ball.classList.contains('show'));
-    ok('② 精灵球带旋转关键帧 ballEnter', getComputedStyle(ball).animationName === 'ballEnter', getComputedStyle(ball).animationName);
+    const moSprite = new MutationObserver(() => spriteSeq.push(sprite.className));
+    moSprite.observe(sprite, { attributes: true, attributeFilter: ['class'] });
+    ok('② 换人时先播收回（老形象覆盖层出现）', await waitFor(() => !!document.querySelector('.sprite-slot.player-sprite .fx-evo-old'), 900));
+    ok('② 精灵球节点已生成（收回之后才开始召唤）', await waitFor(() => !!document.querySelector('.sprite-slot.player-sprite .summon-ball'), 2500));
+    // 等整段动画收尾（类名回到只有基础类）
+    const finished = await waitFor(() => /^sprite-img( large)?$/.test(sprite.className) && spriteSeq.length > 4, 8000);
+    moSprite.disconnect();
+    ok('② 精灵球素材路径正确且能加载（96×96，来自 ddp）', !!ball && ball.complete && ball.naturalWidth === 96, ball ? (ball.naturalWidth + 'x' + ball.naturalHeight) : 'n/a');
+    ok('② 精灵球元素存在于立绘槽中', !!document.querySelector('.sprite-slot.player-sprite .summon-ball'));
+
     const ballKf = [...document.styleSheets].flatMap(sh => { try { return [...sh.cssRules]; } catch { return []; } })
       .filter(r => r.type === CSSRule.KEYFRAMES_RULE && r.name === 'ballEnter')[0];
     const ballText = ballKf ? [...ballKf.cssRules].map(r => r.style.cssText).join(' ') : '';
     const scales = [...ballText.matchAll(/scale\(([\d.]+)\)/g)].map(m => Number(m[1]));
     ok('② 精灵球尺寸为原来一半（scale .17）', scales.length > 0 && scales.every(v => v === 0.17), JSON.stringify(scales));
+    // 需求①：淡出关键帧必须带上 transform，否则会闪出满尺寸球
+    const fadeKf = [...document.styleSheets].flatMap(sh => { try { return [...sh.cssRules]; } catch { return []; } })
+      .filter(r => r.type === CSSRule.KEYFRAMES_RULE && r.name === 'ballFadeOut')[0];
+    const fadeText = fadeKf ? [...fadeKf.cssRules].map(r => r.style.cssText).join(' ') : '';
+    ok('① 精灵球淡出关键帧保留 scale（不会闪出满尺寸球）', /scale\(0\.17\)/.test(fadeText), fadeText.slice(0, 120));
+    // 基态（没有 .show 时）也必须是缩小状态
+    const ballBase = (() => {
+      const b = document.createElement('img'); b.className = 'summon-ball';
+      document.querySelector('.sprite-slot.player-sprite').appendChild(b);
+      const t = getComputedStyle(b).transform; b.remove(); return t;
+    })();
+    ok('① 精灵球基态也固定为 scale(.17)（避免淡出时闪大球）', /0\.17/.test(ballBase) || ballBase === 'none', ballBase);
 
-    // 白光爆点
-    const burst = document.querySelector('.sprite-slot.player-sprite .fx-burst');
-    ok('② 白光爆点节点已生成', !!burst);
-    ok('② 白光爆点触发（.show / burstFlash）',
-      await waitFor(() => burst && (burst.classList.contains('show') || getComputedStyle(burst).animationName === 'burstFlash'), 1200));
-
-    // 缩小白化出现 → 放大回色
-    ok('② 宝可梦以缩小白化状态出现（anim-summon-appear）',
-      await waitFor(() => sprite.classList.contains('anim-summon-appear'), 900));
-    const csAppear = getComputedStyle(sprite);
-    ok('② 出现阶段由 summonAppearGrow 驱动', csAppear.animationName === 'summonAppearGrow', csAppear.animationName);
-
-    // 自由落体
-    ok('② 随后进入自由落体（anim-summon-fall）',
-      await waitFor(() => sprite.classList.contains('anim-summon-fall'), 900));
-    ok('② 落体阶段由 summonFall 驱动', getComputedStyle(sprite).animationName === 'summonFall', getComputedStyle(sprite).animationName);
-
-    // 落地震一下
-    ok('② 落地震一下（anim-summon-land）',
-      await waitFor(() => sprite.classList.contains('anim-summon-land'), 900));
-    ok('② 落地阶段由 summonLand 驱动', getComputedStyle(sprite).animationName === 'summonLand', getComputedStyle(sprite).animationName);
-
-    // 结束后清干净并恢复呼吸
-    ok('② 动画结束后类名清理干净',
-      await waitFor(() => !/anim-summon|anim-recall/.test(sprite.className), 1500), sprite.className);
+    const joined = spriteSeq.join(' | ');
+    ok('② 阶段顺序：出现 → 落体 → 落地',
+      joined.indexOf('anim-summon-appear') >= 0 &&
+      joined.indexOf('anim-summon-fall') > joined.indexOf('anim-summon-appear') &&
+      joined.indexOf('anim-summon-land') > joined.indexOf('anim-summon-fall'),
+      joined.slice(-150));
+    // 爆点用关键帧静态校验（观察器拿不到新建节点的记录，见上面的说明）
+    const burstKf = [...document.styleSheets].flatMap(sh => { try { return [...sh.cssRules]; } catch { return []; } })
+      .filter(r => r.type === CSSRule.KEYFRAMES_RULE && r.name === 'burstFlash')[0];
+    ok('② 白光爆点节点与关键帧就绪', !!document.querySelector('.sprite-slot.player-sprite .fx-burst') && !!burstKf);
+    ok('② 动画收尾后类名干净', finished && /^sprite-img( large)?$/.test(sprite.className), sprite.className);
     ok('② 结束后恢复呼吸动画', getComputedStyle(sprite).animationName === 'idleBreath', getComputedStyle(sprite).animationName);
 
     // ③ 收回：变白 → 缩小

@@ -143,15 +143,28 @@ if (!chromium) {
       // 只取当前卡组页签上的用法按钮（其它页签的不点）
       const info = await page.evaluate(() => {
         const tab = document.querySelector('.deck-tabs-container .deck-tab.active');
-        const btn = tab?.querySelector('.deck-note-button');
+        const onTab = tab ? tab.querySelector('.deck-note-button') : null;
+        document.querySelector('.fab-button')?.click();         // 展开左下角折叠按钮区
+        const inFab = document.querySelector('.fab-menu .deck-note-button');
         const panel = document.querySelector('.deck-note-panel');
-        return { hasTab: !!tab, hasButton: !!btn, label: btn?.textContent, panelHidden: panel ? panel.hidden : null };
+        const tabs = document.querySelector('.deck-tabs-container');
+        return {
+          hasTab: !!tab, tabHasButton: !!onTab, hasFabButton: !!inFab,
+          label: inFab ? inFab.textContent : null,
+          panelHidden: panel ? panel.hidden : null,
+          panelZ: panel ? Number(getComputedStyle(panel).zIndex) : null,
+          tabsZ: tabs ? Number(getComputedStyle(tabs).zIndex) : null,
+        };
       });
-      ok('B 页签上有【用法】按钮', info.hasButton && /用法/.test(info.label || ''), JSON.stringify(info));
+      ok('B 【用法】按钮位于左下角折叠按钮区（不在卡组页签上）',
+        info.hasFabButton && !info.tabHasButton, JSON.stringify(info));
       ok('B 平时面板不显示', info.panelHidden === true, JSON.stringify(info));
+      // 需求④：面板必须压在 sticky 页签之上，否则看不到也点不到
+      ok('B 面板层级高于卡组页签', Number.isFinite(info.panelZ) && info.panelZ > (info.tabsZ || 0),
+        'panel=' + info.panelZ + ' tabs=' + info.tabsZ);
       const shown = await page.evaluate(() => {
-        const btn = document.querySelector('.deck-tabs-container .deck-tab.active .deck-note-button');
-        btn.click();
+        document.querySelector('.fab-button')?.click();
+        document.querySelector('.fab-menu .deck-note-button')?.click();
         return new Promise(r => setTimeout(() => r(document.querySelector('.deck-note-panel')?.hidden), 300));
       });
       ok('B 点【用法】后展开文本框', shown === false, 'hidden=' + shown);
@@ -169,8 +182,9 @@ if (!chromium) {
       });
       ok('B 输入内容自动保存进卡组', saved === '主力先铺场，能量优先给主力，不要过早攻击', JSON.stringify(saved));
       const btnMarked = await page.evaluate(() => {
-        const btn = document.querySelector('.deck-tabs-container .deck-tab.active .deck-note-button');
-        return { cls: btn.className, text: btn.textContent };
+        document.querySelector('.fab-button')?.click();
+        const btn = document.querySelector('.fab-menu .deck-note-button');
+        return { cls: btn ? btn.className : '', text: btn ? btn.textContent : '' };
       });
       ok('B 写过用法后按钮出现标记', /has-note/.test(btnMarked.cls), JSON.stringify(btnMarked));
       const collapsed = await page.evaluate(() => {
@@ -180,7 +194,8 @@ if (!chromium) {
       ok('B 点「收起」后面板重新隐藏', collapsed === true);
       // 重新展开时回填已保存内容
       const refill = await page.evaluate(() => {
-        document.querySelector('.deck-tabs-container .deck-tab.active .deck-note-button').click();
+        document.querySelector('.fab-button')?.click();
+        document.querySelector('.fab-menu .deck-note-button')?.click();
         return new Promise(r => setTimeout(() => r(document.querySelector('.deck-note-input')?.value), 300));
       });
       ok('B 再次展开能回填已保存内容', refill === '主力先铺场，能量优先给主力，不要过早攻击', JSON.stringify(refill));

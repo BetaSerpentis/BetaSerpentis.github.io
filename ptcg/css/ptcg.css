@@ -927,20 +927,8 @@
 }
 
 /* 卡组封面样式 */
-.deck-note-button {
-  margin-top: 4px;
-  font-size: 0.68rem;
-  line-height: 1.5;
-  padding: 0 6px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 152, 0, .8);
-  color: #FF9800;
-  background: rgba(255, 152, 0, .08);
-  cursor: pointer;
-  text-align: center;
-  user-select: none;
-}
-.deck-note-button:hover { background: rgba(255, 152, 0, .2); }
+/* 需求④：用法按钮现在位于左下角 FAB 折叠区，外观沿用 .fab-menu-item，
+   这里只保留「已填写说明」的高亮标记。 */
 /* 已填写用法说明时给个标记，便于一眼看出这套牌写过用法 */
 .deck-note-button.has-note {
   color: #1b1b1b;
@@ -948,8 +936,13 @@
   border-color: #FF9800;
   font-weight: 600;
 }
-/* 需求⑦：平时不显示；点【用法】才展开 */
+/* 需求⑦：平时不显示；点【用法】才展开
+   需求④：卡组页签是 position:sticky，其实际 computed z-index 为 **1001**，
+   会把面板压在下面导致看不到也点不到 → 这里给更高层级，并留出被页签遮挡的滚动边距。 */
 .deck-note-panel {
+  position: relative;
+  z-index: 1002;
+  scroll-margin-top: 180px;
   margin: 8px 0 4px;
   padding: 8px 10px;
   border: 1px solid rgba(255, 152, 0, .55);

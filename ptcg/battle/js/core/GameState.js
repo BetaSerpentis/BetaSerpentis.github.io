@@ -65,6 +65,7 @@ export class GameState {
     this.currentPlayer=this.player1;this.phase=PHASE.SETUP;this.turn=0;this.log=[];this.winner=null;this.temporaryAbilityLocks=[];
     this.firstPlayer=null;this.firstPlayerFirstTurnInProgress=false;
     this.stadium=null;this.pendingPick=null;this.pendingPokemonPick=null;this.pendingBenchPromotion=null;this.knockoutHistory=[];}
+  // 「遗赠能量」每方每局只生效一次 → 在 PlayerState 上打标记
 
   _applyTurnAttackModifiers(attacker,defender,move,pl){let total=0;
     for(const mod of pl?.turnAttackModifiers||[]){
@@ -103,7 +104,7 @@ export class GameState {
   resolvePokemonPick(slot){if(this.pendingPokemonPick){const r=this.pendingPokemonPick.resolve;this.pendingPokemonPick=null;r(slot);}}
   resolvePick(selected){if(this.pendingPick){const r=this.pendingPick.resolve;this.pendingPick=null;r(selected);}}
 
-  init(p1,p2){for(const pl of[this.player1,this.player2]){pl.hand=[];pl.discard=[];pl.active=null;pl.bench=[];pl.stadium=null;pl.abilityUsedThisTurn={};pl.stadiumUsedThisTurn={};}
+  init(p1,p2){for(const pl of[this.player1,this.player2]){pl.hand=[];pl.discard=[];pl.active=null;pl.bench=[];pl.stadium=null;pl.abilityUsedThisTurn={};pl.stadiumUsedThisTurn={};pl._prizeReduceUsed=false;}
     this.stadium=null;
     this.player1.deck=this._shuffle([...p1]);this.player2.deck=this._shuffle([...p2]);
     this.player1.prizes=this.player1.deck.splice(-6,6);this.player2.prizes=this.player2.deck.splice(-6,6);
@@ -1477,6 +1478,30 @@ export class GameState {
     if(mon?.tool?.extraPrizeOnKo&&this._koContext)n+=1;
     // 「如果因为这个招式的伤害…昏厥的话，则多拿取1张奖赏卡」（招式/特性/支援者版）
     n+=(this._koContext?.extraPrize||0);
+    // 「遗赠能量」等：附着该能量的宝可梦被**招式的伤害**打得昏厥时，对手少拿 N 张
+    //   （同样只在招式窗口内生效；卡面还写了「自己的这个效果只会生效 1 次」→ 每方每局一次）
+    if (this._koContext && Array.isArray(mon?.energy) && mon.energy.length) {
+      const inPlay = pl => !!pl && (pl.active === mon || (pl.bench || []).includes(mon));
+      const victim = inPlay(this.player1) ? this.player1 : (inPlay(this.player2) ? this.player2 : null);
+      if (victim && !victim._prizeReduceUsed) {
+        let cut = 0, once = false;
+        for (const e of mon.energy) {
+          const eid = (e && typeof e === 'object') ? (e.cardId || e.id || e.name) : e;
+          const cd = this.cardResolver?.getCard?.(eid);
+          const effs = cd?.effects || (e && typeof e === 'object' ? e.effects : null) || [];
+          for (const x of effs) {
+            if (x.action === 'reduce_prize_on_ko') cut += (x.params?.count || 1);
+            if (x.action === 'reduce_prize_on_ko_once') once = true;
+          }
+        }
+        if (cut > 0) {
+          const before = n;
+          n = Math.max(0, n - cut);
+          if (once) victim._prizeReduceUsed = true;
+          this.addLog(`${mon.name} 身上的特殊能量让对手少拿 ${before - n} 张奖赏卡`);
+        }
+      }
+    }
     return n;
   }
   takePrizesForKnockout(pl,mon){const count=this.prizesForKnockout(mon);for(let i=0;i<count&&pl?.prizes?.length>0&&this.phase!==PHASE.GAME_OVER;i++)this.takePrize(pl);}

@@ -231,18 +231,21 @@ export class DeckEditor {
         const saved = panel.querySelector('.deck-note-saved');
         if (saved) saved.textContent = deck?.note ? `已保存（${String(deck.note).trim().length} 字）` : '';
         panel.hidden = false;
+        // 需求④：卡组页签是 sticky，展开后主动滚到可见位置，否则会被页签压住
+        try { panel.scrollIntoView({ block: 'nearest' }); } catch (e) { /* ignore */ }
         if (this.deckNoteInput) this.deckNoteInput.focus();
         return true;
     }
 
-    /** 有说明时在按钮上加个标记，便于一眼看出「这套牌写过用法」 */
+    /** 有说明时在按钮上加个标记，便于一眼看出「这套牌写过用法」。
+     *  按钮现在位于左下角 FAB 折叠区（需求④），不再是页签上的小按钮。 */
     _markDeckNoteButton(hasNote) {
-        const btn = this.deckTabsContainer?.querySelector('.deck-tab.active .deck-note-button');
-        if (btn) {
+        const btns = document.querySelectorAll('.fab-menu .deck-note-button');
+        btns.forEach(btn => {
             btn.classList.toggle('has-note', !!hasNote);
             btn.textContent = hasNote ? '用法•' : '用法';
             btn.title = hasNote ? '已填写用法说明（点击展开）' : '点击填写这套牌的用法说明';
-        }
+        });
     }
 
     // 在 renderDeckTabs 方法中确保编辑模式下有删除按钮
@@ -344,18 +347,6 @@ export class DeckEditor {
         
         info.appendChild(name);
         info.appendChild(count);
-        // 需求⑦：【用法】按钮 —— 平时面板不显示，点它才展开文本框
-        const noteBtn = document.createElement('div');
-        noteBtn.className = 'deck-note-button' + (deck && deck.note ? ' has-note' : '');
-        noteBtn.textContent = deck && deck.note ? '用法•' : '用法';
-        noteBtn.title = deck && deck.note ? '已填写用法说明（点击展开）' : '点击填写这套牌的用法说明';
-        noteBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            if (!(this.deckManager.isEditing || index === this.deckManager.currentDeckIndex)) return;
-            this.toggleDeckNotePanel();
-        });
-        info.appendChild(noteBtn);
         
         tab.appendChild(cover);
         tab.appendChild(info);

@@ -1,4 +1,4 @@
-#eff1 hash=711275f30e2b4bb1
+#eff1 hash=894ef0334e964ccd
 151C-001	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-002	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-003	ability		0	usage_condition	{"kind":"requires_active"}
@@ -23804,8 +23804,8 @@ CSV8C-206	trainer		1	usage_condition	{"kind":"shell_fragment","raw":"只要这�
 CSV8C-206	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"若因为身上附着了这张卡的宝可梦所使用的招式的效果，而导致这张卡被丢到弃牌区，则在处理完招式的伤害和效果后，将这张卡附着回原来的宝可梦身上。"}
 CSV8C-207	trainer		0	usage_condition	{"kind":"energy_supply_desc","raw":"只要这张卡，被附于宝可梦身上，就的能量"}
 CSV8C-207	trainer		1	energy_provides	{"types":["any"],"count":1}
-CSV8C-207	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"身上附着了这张卡的宝可梦，受到对手宝可梦的招式的伤害而【昏厥】时，对手拿取的奖赏卡将减少1张。"}
-CSV8C-207	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"对战中，自己的\\"遗赠能量\\"的这个效果，只会生效1次。"}
+CSV8C-207	trainer		2	reduce_prize_on_ko	{"count":1}
+CSV8C-207	trainer		3	reduce_prize_on_ko_once	{"times":1}
 CSV8C-263	trainer		0	energy_provides	{"types":["colorless"],"count":1}
 CSV8C-263	trainer		1	usage_condition	{"kind":"shell_fragment","raw":"只要这张卡，被附于宝可梦身上，就。"}
 CSV8C-263	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"当将这张卡从手牌附于备战宝可梦身上时，将该宝可梦与战斗宝可梦互换。"}
@@ -23821,8 +23821,8 @@ CSV9.5C-207	trainer		1	usage_condition	{"kind":"shell_fragment","raw":"只要这
 CSV9.5C-207	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"身上附着了这张卡的宝可梦，不会受到对手宝可梦所使用的招式的效果影响。"}
 CSV9.5C-208	trainer		0	usage_condition	{"kind":"energy_supply_desc","raw":"只要这张卡，被附于宝可梦身上，就的能量"}
 CSV9.5C-208	trainer		1	energy_provides	{"types":["any"],"count":1}
-CSV9.5C-208	trainer		2	usage_condition	{"kind":"residual_sentence","raw":"身上附着了这张卡的宝可梦，受到对手宝可梦的招式的伤害而【昏厥】时，对手拿取的奖赏卡将减少1张。"}
-CSV9.5C-208	trainer		3	usage_condition	{"kind":"residual_sentence","raw":"对战中，自己的\\"遗赠能量\\"的这个效果，只会生效1次。"}
+CSV9.5C-208	trainer		2	reduce_prize_on_ko	{"count":1}
+CSV9.5C-208	trainer		3	reduce_prize_on_ko_once	{"times":1}
 CSV9C-208	trainer		0	energy_provides	{"types":["colorless"],"count":1}
 CSV9C-208	trainer		1	draw	{"count":4}
 CSV9C-208	trainer		2	usage_condition	{"kind":"shell_fragment","raw":"只要这张卡，被附于宝可梦身上，就。"}

@@ -385,11 +385,9 @@ export class PTCGBattleApp {
     if (anim) {
       const afterOpp = this.gs.player2.active;
       const afterOppId = afterOpp?.cardId ?? null;
-      // 换人/击倒补位：离场动画在这里负责；新上场的宝可梦由 _renderScene 统一播召唤动画
-      if (afterOppId !== beforeOppId) {
-        if (!afterOpp) { this._animateExit('opp'); this._markActiveAnimated('opp', null); }
-        await this._sleep(650);
-      }
+      // 换人/击倒补位：离场与登场动画由 _renderScene 的中枢统一负责
+      // （击败后：先收回被击倒的那只，再召唤新上场的；无替补时只收回）
+      if (afterOppId !== beforeOppId) await this._sleep(650);
       this._renderScene();
     }
     // attack() itself advances the turn and triggers UI callbacks. Do not reopen the action panel here.
@@ -1100,7 +1098,7 @@ export class PTCGBattleApp {
       const ok = this.gs.retreat(pl, benchIndex);
       if (!ok) { this._appendBattleLog(this.gs.log[this.gs.log.length - 1] || '无法撤退'); this._showPokeActions('active'); return; }
     }
-    await this._animateRecall('pl');   // 需求③：收回动画（此时 DOM 里还是旧的那只）
+    // 收回 → 召唤由 _renderScene 的中枢统一播（这里不再单独播收回，否则会重复）
     this._renderScene();
     this._afterAction();
   }
@@ -1393,21 +1391,80 @@ export class PTCGBattleApp {
     el.style.setProperty('--breath-delay', delay.toFixed(2) + 's');
   }
 
-  /** 记录/对比「出战位当前是谁」，用于自动播放召唤/进化动画 */
+  /**
+   * 记录/对比「出战位当前是谁」，统一在这里播放出战位变化的动画。
+   * 分支：
+   *   · 首次出现（开局 / 布置）→ 召唤
+   *   · 同一只 → 不播
+   *   · 离场（无替补 → 判负 / 放逐）→ 收回
+   *   · 进化（新卡 evolvesFrom == 上一个形象的名字）→ 进化动画
+   *   · 其它换人（击倒递补 / 撤退）→ **先收回再召唤**
+   * ⚠️ 本方法在 `_renderMon` **之前**调用，所以此时 DOM 里还是老形象，可以拍下来。
+   */
   _maybeAnimateActiveChange(prefix, mon) {
     if (!this._activeAnimId) this._activeAnimId = {};
     const id = mon ? (mon.cardId ?? mon.name ?? null) : null;
     const prev = this._activeAnimId[prefix];
     this._activeAnimId[prefix] = id ? { id, name: mon?.name || null } : null;
-    if (!id || id === prev?.id) return false;   // 同一个人不重复播
-    // 需求④：新形象的「进化自」正好是上一个形象的名字 → 这是进化/退化，走进化动画
-    // （此时 _renderMon 还没执行，DOM 里仍是老形象，可以拍下来做覆盖层）
-    if (prev?.name && mon?.evolvesFrom && String(mon.evolvesFrom) === String(prev.name)) {
+    if (!prev) {                       // 首次出现：只有召唤
+      if (!id) return false;
+      this._animateSummon(prefix);
+      return true;
+    }
+    if (id === prev.id) return false;  // 同一只不重复播
+    if (!id) {                         // 离场：收回老形象后什么都不上场
+      this._animateRecallToVanish(prefix);
+      return true;
+    }
+    if (mon?.evolvesFrom && String(mon.evolvesFrom) === String(prev.name)) {
       this._animateEvolve(prefix);
       return true;
     }
-    this._animateSummon(prefix);
+    // 需求②：击倒递补 / 撤退 —— 先播收回，再播新宝可梦的召唤
+    this._animateRecallThenSummon(prefix);
     return true;
+  }
+
+  /**
+   * 需求②：老形象收回 → 新形象召唤。
+   * 老形象用「快照覆盖层」呈现：本方法在渲染前调用，先把当前立绘拍下来，
+   * 渲染换成新形象后覆盖层仍显示老形象，于是可以做「收回 → 召唤」的顺接。
+   */
+  async _animateRecallThenSummon(prefix, shot = null) {
+    const snapshot = shot || this._snapshotSpriteImg(prefix);
+    await this._animateRecallLayer(prefix, snapshot);
+    this._animateSummon(prefix);          // 收回结束才开始召唤
+  }
+
+  /** 离场（没有替补/进放逐区）：只播收回，之后不再召唤 */
+  async _animateRecallToVanish(prefix) {
+    await this._animateRecallLayer(prefix, this._snapshotSpriteImg(prefix));
+  }
+
+  /** 收回的公共实现：老形象逐渐变白 → 迅速缩小消失 */
+  async _animateRecallLayer(prefix, shot) {
+    const slot = this._spriteSlotEl(prefix);
+    const sprite = this._spriteEl(prefix);
+    if (!this._animEnabled() || !slot || !sprite || !shot || !shot.src) return;
+    const token = this._animToken(prefix);
+    const layer = document.createElement('div');
+    layer.className = 'fx-evo-old evo-recall';
+    const img = document.createElement('img');
+    img.src = shot.src;
+    img.style.marginBottom = shot.marginBottom || '';
+    layer.appendChild(img);
+    slot.appendChild(layer);
+    this._clearSpriteAnims(sprite);
+    sprite.style.opacity = '0';            // 这段时间只看得见老形象
+    void layer.offsetWidth;
+    layer.classList.add('evo-white');      // 逐渐变白
+    await this._sleep(240);
+    if (!this._animAlive(prefix, token)) { layer.remove(); return; }
+    layer.classList.add('evo-shrink');     // 全白后迅速缩小
+    await this._sleep(300);
+    layer.remove();
+    if (!this._animAlive(prefix, token)) return;
+    sprite.style.opacity = '';
   }
 
   /** 拍下当前立绘的 <img>（进化动画要用老形象做覆盖层） */

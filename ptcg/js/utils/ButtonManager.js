@@ -120,6 +120,14 @@ export class ButtonManager {
         this.menu.appendChild(this.createButton('试抽', 'deck-draw-button', () => {
             this.deckEditor.enterDrawTest();
         }));
+        // 需求④：卡组「用法」说明的入口放在左下角折叠按钮区里（原来挂在卡组页签上）
+        const noteBtn = this.createButton('用法', 'deck-note-button', () => {
+            const on = this.deckEditor.toggleDeckNotePanel();
+            noteBtn.textContent = on ? '收起用法' : '用法';
+        });
+        const cur = this.deckEditor.deckManager.getCurrentDeck();
+        if (cur && cur.note) { noteBtn.textContent = '用法•'; noteBtn.classList.add('has-note'); }
+        this.menu.appendChild(noteBtn);
 
         this.createImportExportButtons();
         this.collapseMenu();

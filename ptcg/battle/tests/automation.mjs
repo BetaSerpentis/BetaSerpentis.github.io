@@ -10500,6 +10500,80 @@ await test('昏厥⑥：非法索引安全落空（标记清除、状态不变�
   assert.equal(gs.pendingBenchPromotion, null, '标记清除');
 });
 
+
+// ============================================================
+//  ③ 特殊能量「遗赠能量」：附着宝可梦被招式伤害昏厥时，对手少拿奖赏卡
+// ============================================================
+
+const _LEGACY_TEXT = '只要这张卡牌，被附着于宝可梦身上，就被视作1个所有属性的能量。\n\n身上附着了这张卡牌的宝可梦，受到对手宝可梦的招式的伤害而【昏厥】时，对手拿取的奖赏卡将减少1张。对战中，自己的「遗赠能量」的这个效果，只会生效1次。';
+
+await test('遗赠能量 解析：识别「减少N张」与「每局只生效1次」', () => {
+  const eff = parseEffect(_LEGACY_TEXT).effects;
+  const reduce = eff.find(e => e.action === 'reduce_prize_on_ko');
+  const once = eff.find(e => e.action === 'reduce_prize_on_ko_once');
+  assert.ok(reduce, '应产出 reduce_prize_on_ko');
+  assert.equal(reduce.params.count, 1);
+  assert.ok(once, '应产出 reduce_prize_on_ko_once');
+  const residual = eff.filter(e => ['residual_sentence', 'generic_effect'].includes(e.params?.kind));
+  assert.equal(residual.length, 0, '这两句不该再落到未建模：' + JSON.stringify(residual.map(r => r.params?.raw)));
+});
+
+const _legacySetup = async (attachCount = 1, prizeCount = 1) => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const eff = parseEffect(_LEGACY_TEXT).effects;
+  gs.cardResolver = { getCard: id => (id === 'LEGACY-E' ? { name: '遗赠能量', cardType: 'specialEnergy', effects: eff } : null) };
+  const victim = _capMon('小人牌', 'V1', 100);
+  victim.energy = Array.from({ length: attachCount }, () => 'LEGACY-E');
+  gs.player1.active = victim;
+  gs.player2.active = _capMon('敌', 'O1');
+  gs.player1.prizes = Array.from({ length: prizeCount }, (_, i) => 'p' + i);
+  gs.player2.prizes = ['q0', 'q1', 'q2', 'q3', 'q4', 'q5'];
+  return gs;
+};
+
+await test('遗赠能量 运行时：1 奖赏卡宝可梦被招式伤害昏厥 → 对手拿 0 张', async () => {
+  const gs = await _legacySetup(1, 1);
+  gs._koContext = { attacker: gs.player2.active };   // 招式窗口
+  const before = gs.player2.prizes.length;
+  gs.knockout(gs.player1);
+  assert.equal(before - gs.player2.prizes.length, 0, '应少拿 1 张（1-1=0）');
+});
+
+await test('遗赠能量 运行时：2 奖赏卡宝可梦（ex）也少拿 1 张', async () => {
+  const gs = await _legacySetup(1, 2);
+  gs.player1.active.name = '测试ex';
+  gs.player1.active.isEx = true;
+  gs._koContext = { attacker: gs.player2.active };
+  const before = gs.player2.prizes.length;
+  gs.knockout(gs.player1);
+  assert.equal(before - gs.player2.prizes.length, 1, 'ex 应拿 2-1=1 张');
+});
+
+await test('遗赠能量 运行时：每方每局只生效 1 次（第二次不再减）', async () => {
+  const gs = await _legacySetup(1, 1);
+  gs.player1.bench = [Object.assign(_capMon('第二只', 'V2', 100), { energy: ['LEGACY-E'] })];
+  gs._koContext = { attacker: gs.player2.active };
+  const b1 = gs.player2.prizes.length;
+  gs.knockout(gs.player1);
+  const first = b1 - gs.player2.prizes.length;
+  const b2 = gs.player2.prizes.length;
+  gs.player1.active.energy = ['LEGACY-E'];
+  gs.knockout(gs.player1);
+  const second = b2 - gs.player2.prizes.length;
+  assert.equal(first, 0, '第一次应生效（少拿 1 张）');
+  assert.equal(second, 1, '第二次不再减，照常拿 1 张，first/second=' + first + '/' + second);
+});
+
+await test('遗赠能量 运行时：非招式造成的昏厥不减（条件限定）', async () => {
+  const gs = await _legacySetup(1, 1);
+  gs._koContext = null;                              // 没有招式窗口
+  const before = gs.player2.prizes.length;
+  gs.knockout(gs.player1);
+  assert.equal(before - gs.player2.prizes.length, 1, '非招式昏厥照常拿 1 张');
+});
+
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',
