@@ -196,6 +196,15 @@ const out = await page.evaluate(async () => {
     ok('⑤ 前冲由 meleeDash 驱动', getComputedStyle(me).animationName === 'meleeDash', getComputedStyle(me).animationName);
     const dashLen = me.style.getPropertyValue('--dash-len');
     ok('⑤ 冲刺距离按两立绘实际间距算出（≥40px）', parseFloat(dashLen) >= 40, dashLen || '未设置');
+    // 需求③：冲刺方向必须按两个立绘的实际位置算（原来用 CSS 固定向量，方向会偏）
+    const fx = Number(me.style.getPropertyValue('--fwd-x')), fy = Number(me.style.getPropertyValue('--fwd-y'));
+    const pa = app._fxPoint('pl'), pb = app._fxPoint('opp');
+    const _len = Math.hypot(pb.x - pa.x, pb.y - pa.y);
+    // 容差放宽到 0.06：测量时立绘还在做冲刺动画，getBoundingClientRect 会随动画位移，
+    // 与 _setDashLen 当时的几何值有零点几的差；而修复前的固定向量是 (0.85,-0.53)，差得远。
+    ok('③ 冲刺方向指向对方宝可梦（归一化向量与几何一致）',
+      Math.abs(fx - (pb.x - pa.x) / _len) < 0.06 && Math.abs(fy - (pb.y - pa.y) / _len) < 0.06,
+      'got=(' + fx + ',' + fy + ') exp=(' + ((pb.x - pa.x) / _len).toFixed(4) + ',' + ((pb.y - pa.y) / _len).toFixed(4) + ')');
     await p1;
 
     // 命中：属性爆点在目标位置 + 受击闪烁（需求④）
@@ -242,12 +251,60 @@ const out = await page.evaluate(async () => {
     if (scene) scene.style.display = 'block';
   }
 
+  // ---------- ④ 进化 / 退化动画 ----------
+  {
+    const app = build(mon({ cardId: 'OLD', name: '伊布' }), mon({ cardId: 'O1' }));
+    const ba = document.getElementById('battle-app');
+    if (ba) { ba.classList.add('active'); ba.style.display = 'block'; }
+    const me = document.getElementById('player-sprite');
+    me.innerHTML = '<img src="/ptcg/images/sprites/006.png" style="max-height:156px">';
+    await new Promise(r => setTimeout(r, 500));
+    app._activeAnimId = { pl: { id: 'OLD', name: '伊布' }, opp: { id: 'O1', name: '敌' } };
+    const snapshot = app._snapshotSpriteImg('pl');
+    ok('④ 能拍下进化前的老形象', !!snapshot && /006\.png/.test(snapshot.src), snapshot ? snapshot.src : 'n/a');
+
+    // 非进化（换人）→ 仍走召唤动画
+    app._maybeAnimateActiveChange('pl', mon({ cardId: 'OTHER', name: '别的' }));
+    ok('④ 不是进化时走召唤动画（不误判）', !document.querySelector('.fx-evo-old'));
+    // 等召唤动画彻底跑完再测进化：两套动画同时跑会互相改 opacity/类名（上一次就是这么假失败的）
+    await new Promise(r => setTimeout(r, 1750));
+    ok('④ 召唤动画结束后立绘可见（opacity 已复原）', me.style.opacity !== '0', 'op=' + me.style.opacity);
+
+    // 进化：新卡的 evolvesFrom == 旧形象名字
+    app._activeAnimId = { pl: { id: 'OLD', name: '伊布' }, opp: { id: 'O1', name: '敌' } };
+    app._animateEvolve('pl', snapshot);
+    await new Promise(r => setTimeout(r, 80));
+    const layer = document.querySelector('.sprite-slot.player-sprite .fx-evo-old');
+    ok('④ 进化动画建立老形象覆盖层', !!layer);
+    ok('④ 覆盖层用的是进化前的形象', !!layer && /006\.png/.test(layer.querySelector('img')?.getAttribute('src') || ''), layer ? layer.querySelector('img')?.getAttribute('src') : '');
+    ok('④ 阶段1：老形象逐渐变白（evo-white）', !!layer && layer.classList.contains('evo-white'), layer ? layer.className : '');
+    ok('④ 阶段1：新形象此时不可见（主容器 opacity=0）', me.style.opacity === '0', me.style.opacity);
+    await new Promise(r => setTimeout(r, 420));
+    ok('④ 阶段2/3：老形象缩小消失（evo-shrink）', !!layer && layer.classList.contains('evo-shrink'), layer ? layer.className : '');
+    ok('④ 阶段2/3：新形象放大回色（anim-evo-new）', me.classList.contains('anim-evo-new'), me.className);
+    ok('④ 新形象由 evoNewGrow 驱动', getComputedStyle(me).animationName === 'evoNewGrow', getComputedStyle(me).animationName);
+    const evoKf = [...document.styleSheets].flatMap(sh => { try { return [...sh.cssRules]; } catch { return []; } })
+      .filter(r => r.type === CSSRule.KEYFRAMES_RULE && r.name === 'evoNewGrow')[0];
+    const evoText = evoKf ? [...evoKf.cssRules].map(r => r.style.cssText).join(' ') : '';
+    ok('④ 新形象从「缩小(scale .3)+白化」开始，最后恢复原色',
+      /scale\(0\.3\)/.test(evoText) && /brightness\(0\) invert\(1\)/.test(evoText) && /filter: none/.test(evoText), evoText.slice(0, 160));
+    ok('④ 阶段4：动画结束后老形象消失',
+      await (async () => { const t0 = Date.now(); while (Date.now() - t0 < 2500) { if (!document.querySelector('.fx-evo-old')) return true; await new Promise(r => setTimeout(r, 40)); } return false; })());
+    ok('④ 结束后主容器类名清理、opacity 复原', !me.classList.contains('anim-evo-new') && me.style.opacity !== '0', me.className + ' op=' + me.style.opacity);
+
+    // 集成：_maybeAnimateActiveChange 能自动识别进化
+    app._activeAnimId = { pl: { id: 'OLD', name: '伊布' }, opp: { id: 'O1', name: '敌' } };
+    const fired = app._maybeAnimateActiveChange('pl', mon({ cardId: 'NEW', name: '水伊布', evolvesFrom: '伊布' }));
+    ok('④ 自动识别进化（evolvesFrom 命中上一个名字）', fired === true && !!document.querySelector('.fx-evo-old'));
+    await new Promise(r => setTimeout(r, 1600));
+  }
+
   // ---------- ② 召唤动画 / ③ 收回动画 ----------
   {
     const app = build(mon({ cardId: 'P1' }), mon({ cardId: 'O1' }));
     app._renderMon(app.gs.player1.active, 'pl');
     app._renderMon(app.gs.player2.active, 'opp');
-    app._activeAnimId = { pl: 'P1', opp: 'O1' };
+    app._activeAnimId = { pl: { id: 'P1', name: '旧形象' }, opp: { id: 'O1', name: '敌' } };
     const waitFor = async (fn, ms = 2500) => {
       const t0 = Date.now();
       while (Date.now() - t0 < ms) { if (fn()) return true; await new Promise(r => setTimeout(r, 30)); }
@@ -265,6 +322,11 @@ const out = await page.evaluate(async () => {
       await waitFor(() => ball && ball.complete && ball.naturalWidth === 96, 1500), ball ? (ball.naturalWidth + 'x' + ball.naturalHeight) : 'n/a');
     ok('② 精灵球正在旋转入场（.show）', !!ball && ball.classList.contains('show'));
     ok('② 精灵球带旋转关键帧 ballEnter', getComputedStyle(ball).animationName === 'ballEnter', getComputedStyle(ball).animationName);
+    const ballKf = [...document.styleSheets].flatMap(sh => { try { return [...sh.cssRules]; } catch { return []; } })
+      .filter(r => r.type === CSSRule.KEYFRAMES_RULE && r.name === 'ballEnter')[0];
+    const ballText = ballKf ? [...ballKf.cssRules].map(r => r.style.cssText).join(' ') : '';
+    const scales = [...ballText.matchAll(/scale\(([\d.]+)\)/g)].map(m => Number(m[1]));
+    ok('② 精灵球尺寸为原来一半（scale .17）', scales.length > 0 && scales.every(v => v === 0.17), JSON.stringify(scales));
 
     // 白光爆点
     const burst = document.querySelector('.sprite-slot.player-sprite .fx-burst');
@@ -315,7 +377,11 @@ const out = await page.evaluate(async () => {
     const el = document.getElementById('player-sprite');
     const cs = getComputedStyle(el);
     ok('① 立绘容器默认播放 idleBreath', cs.animationName === 'idleBreath', cs.animationName);
-    ok('① 呼吸时长在 3.8~4.8s（缓慢）', parseFloat(cs.animationDuration) >= 3.8 && parseFloat(cs.animationDuration) <= 4.8, cs.animationDuration);
+    ok('① 呼吸时长在 2.9~3.7s（需求：速度稍加快）', parseFloat(cs.animationDuration) >= 2.9 && parseFloat(cs.animationDuration) <= 3.7, cs.animationDuration);
+    const breathKf = [...document.styleSheets].flatMap(sh => { try { return [...sh.cssRules]; } catch { return []; } })
+      .filter(r => r.type === CSSRule.KEYFRAMES_RULE && r.name === 'idleBreath')[0];
+    const breathText = breathKf ? [...breathKf.cssRules].map(r => r.style.cssText).join(' ') : '';
+    ok('① 呼吸幅度已加大（translateY(-5px) + scale(1.038)）', /translateY\(-5px\)/.test(breathText) && /1\.038/.test(breathText), breathText.slice(0, 120));
     ok('① 用负延迟错开相位（双方不同步）', parseFloat(cs.animationDelay) <= 0, cs.animationDelay);
     const durA = el.style.getPropertyValue('--breath-dur');
     const durB = document.getElementById('opp-sprite').style.getPropertyValue('--breath-dur');

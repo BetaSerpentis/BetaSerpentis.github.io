@@ -19,12 +19,15 @@ const DATA_FILES = [
 const ELEM = { '草':'grass','火':'fire','水':'water','雷':'lightning','斗':'fighting',
                '恶':'dark','钢':'metal','超':'psychic','无':'colorless','龙':'dragon','妖':'fairy' };
 const REV_ELEM = { grass:'草',fire:'火',water:'水',lightning:'雷',fighting:'斗',dark:'恶',metal:'钢',psychic:'超',colorless:'无',dragon:'龙',fairy:'妖' };
-const CACHE_KEY = 'ptcg_names_v3';
+// 缓存版本：改了归一化/兜底逻辑就要 +1，避免老缓存行为不一致
+const CACHE_KEY = 'ptcg_names_v4';
 
 export class CardResolver {
   constructor() {
     this.map = null; this.raw = {}; this.compiled = {};
     this._nameIndex = null; // 名字 → [id]（懒构建，供「进化前招式继承」等按名字回查卡面）
+    this._normIndex = null; // 归一化 id（去空白+小写）→ 真实 id，供大小写/空白不一致时兜底
+    this._loadWarnings = [];  // 数据文件加载失败的记录（诊断用）
     this.loaded = false; this.loading = null;
   }
 
@@ -44,7 +47,15 @@ export class CardResolver {
 
     for (const f of DATA_FILES) {
       try {
-        const r = await fetch(new URL(f.file, DATA_BASE)); if (!r.ok) continue;
+        // 数据文件失败时重试一次：手机弱网下偶发漏拉会导致「某类卡查不到名字、
+        // UI 回退显示原始 id」（玩家看到的就是卡名变成 CSV5C-128 这种）
+        let r = null;
+        for (let attempt = 0; attempt < 2; attempt++) {
+          r = await fetch(new URL(f.file, DATA_BASE));
+          if (r && r.ok) break;
+          await new Promise(res => setTimeout(res, 300));
+        }
+        if (!r || !r.ok) { this._loadWarnings.push(f.file); continue; }
         const cards = await r.json();
         for (const raw of cards) {
           const ids = raw['卡牌ID']||[];
@@ -58,11 +69,33 @@ export class CardResolver {
     }
     this.loaded = true;
     if (!skipBuild) try{ localStorage.setItem(CACHE_KEY,JSON.stringify([...this.map])); }catch(e){}
+    if (this._loadWarnings.length) console.warn('[CR] 数据文件加载失败（已重试）:', this._loadWarnings.join(', '));
   }
 
-  getName(id){ const i=this.map?.get(String(id)); return i?i.name:'#'+id; }
-  getNumber(id){ return this.map?.get(String(id))?.number??null; }
-  getType(id){ return this.map?.get(String(id))?.type??'unknown'; }
+  /** 归一化 id：去掉首尾空白并统一小写（卡组可能从导入/旧数据带进不同写法） */
+  _normKey(id) { return String(id ?? '').trim().toLowerCase(); }
+
+  /** 惰性构建「归一化 id → 真实 id」索引 */
+  _ensureNormIndex() {
+    if (this._normIndex) return this._normIndex;
+    this._normIndex = new Map();
+    const push = id => { const k = this._normKey(id); if (k && !this._normIndex.has(k)) this._normIndex.set(k, id); };
+    for (const id of Object.keys(this.raw)) push(id);
+    if (this.map) for (const id of this.map.keys()) push(id);
+    return this._normIndex;
+  }
+
+  /** 把任意写法的 id 解析成数据里的真实 id（找不到则原样返回） */
+  resolveId(id) {
+    const sid = String(id ?? '');
+    if (this.raw[sid] || this.map?.has(sid)) return sid;
+    const real = this._ensureNormIndex().get(this._normKey(sid));
+    return real !== undefined ? real : sid;
+  }
+
+  getName(id){ const k=this.resolveId(id); const i=this.map?.get(k)||this.map?.get(String(id)); return i?i.name:'#'+id; }
+  getNumber(id){ const k=this.resolveId(id); return (this.map?.get(k)||this.map?.get(String(id)))?.number??null; }
+  getType(id){ const k=this.resolveId(id); return (this.map?.get(k)||this.map?.get(String(id)))?.type??'unknown'; }
   /** 全部宝可梦卡里名字等于 name 的卡牌 id（懒构建索引；供「继承进化前招式」等按名字回查卡面） */
   findPokemonIdsByName(name) {
     const want = String(name || '').trim();
@@ -83,8 +116,24 @@ export class CardResolver {
   getCard(id){
     const sid=String(id);
     if(this.compiled[sid]) return this.compiled[sid];
-    const raw=this.raw[sid];
-    if(!raw) return null;
+    let raw=this.raw[sid];
+    let key=sid;
+    if(!raw){
+      // 容错 1：大小写/空白写法不一致 → 用归一化索引找回真实 id
+      const real=this.resolveId(sid);
+      if(real!==sid && this.raw[real]){ key=real; raw=this.raw[real]; }
+    }
+    if(!raw){
+      // 容错 2：某个数据文件这次没拉全（弱网/缓存命中时 raw 是空的）→
+      //   用名字缓存 map 兜底返回「有名字的最小卡牌对象」，
+      //   避免 UI 把 `cd?.name || String(cid)` 走到「显示原始 id」那一支。
+      const meta=this.map?.get(key) || this.map?.get(sid);
+      if(meta){
+        console.warn('[CR] 卡面数据缺失，用名字缓存兜底:', sid, '→', meta.name);
+        return { cardType:meta.type||'unknown', name:meta.name, number:meta.number ?? null, _nameOnly:true };
+      }
+      return null;
+    }
     const card=raw._t==='pokemon'?this._pokemon(raw):
       (['item','supporter','stadium','tool'].includes(raw._t)?this._trainer(raw):this._energy(raw));
     this.compiled[sid]=card;

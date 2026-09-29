@@ -339,7 +339,7 @@ body.ptcg-battle-active {
    .sprite-img.anim-xxx 的选择器权重更高，会自然接管 animation，动画类移除后自动恢复呼吸。 */
 @keyframes idleBreath {
   0%, 100% { transform: translateY(0) scale(1); }
-  50%      { transform: translateY(-3px) scale(1.022); }
+  50%      { transform: translateY(-5px) scale(1.038); }
 }
 .sprite-img {
   animation: idleBreath var(--breath-dur, 4.2s) ease-in-out infinite;
@@ -446,9 +446,9 @@ body.no-anim .sprite-img.anim-exit { animation: none !important; }
 }
 .summon-ball.show { animation: ballEnter .55s cubic-bezier(.22,.75,.3,1) forwards; }
 @keyframes ballEnter {
-  0%   { transform: translate(-190px, -64px) rotate(-540deg) scale(.34); opacity: 0; }
+  0%   { transform: translate(-190px, -64px) rotate(-540deg) scale(.17); opacity: 0; }
   20%  { opacity: 1; }
-  100% { transform: translate(0, 0) rotate(0deg) scale(.34); opacity: 1; }
+  100% { transform: translate(0, 0) rotate(0deg) scale(.17); opacity: 1; }
 }
 /* 白爆时球立刻隐去（否则会一直挂在宝可梦头上） */
 @keyframes ballFadeOut {
@@ -629,6 +629,43 @@ body.no-anim .sprite-img.anim-melee-dash,
 body.no-anim .sprite-img.anim-ranged-charge,
 body.no-anim .sprite-img.anim-ranged-back,
 body.no-anim .sprite-img.anim-support-glow { animation: none !important; }
+
+/* ================= 进化 / 退化（需求④） =================
+   老形象：逐渐变白 → 逐渐缩小
+   新形象：以「白化的缩小版」出现 → 放大到正常尺寸 → 恢复正常颜色
+   实现：进化前把当前立绘拍成覆盖层 .fx-evo-old 放在原位，
+        主立绘容器里已经是进化后的新形象，于是两层天然对齐、可以做交叉过渡。 */
+.fx-evo-old {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 2;
+  pointer-events: none;
+  transform-origin: 50% 100%;
+  transition: filter .42s ease, transform .5s ease, opacity .5s ease;
+}
+.fx-evo-old img {
+  width: 100%; height: auto; max-height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+.fx-evo-old.evo-white { filter: brightness(0) invert(1); }           /* 老形象变白 */
+.fx-evo-old.evo-shrink { transform: scale(.06); opacity: 0; }         /* 老形象缩小消失 */
+
+/* 新形象：缩小白化出现 → 放大回色 */
+.sprite-img.anim-evo-new {
+  transform-origin: 50% 100%;
+  animation: evoNewGrow .56s ease-out forwards;
+}
+@keyframes evoNewGrow {
+  0%   { opacity: 0; transform: scale(.3); filter: brightness(0) invert(1); }
+  18%  { opacity: 1; }
+  62%  { filter: brightness(0) invert(1); }
+  100% { opacity: 1; transform: scale(1); filter: none; }
+}
+body.no-anim .sprite-img.anim-evo-new { animation: none !important; }
 
 /* ③ 收回：快速逐渐变白 → 全白后迅速缩小到几乎看不见 */
 .sprite-img.anim-recall {

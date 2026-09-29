@@ -963,7 +963,13 @@ export class PTCGBattleApp {
         label: '进化',
         meta: blocked ? '本回合刚出场或已进化，下回合才能进化' : `→ ${evo.name}`,
         disabled: blocked,
-        onSelect: async () => { this.engine.evolvePokemon(evoIdx, evo, slot); done(); },
+        onSelect: async () => {
+          // 需求④：进化动画需要「进化前」的形象，必须在下一次渲染覆盖它之前拍下来
+          const shot = this._snapshotSpriteImg(slot);
+          this.engine.evolvePokemon(evoIdx, evo, slot);
+          done();
+          this._animateEvolve(slot, shot);
+        },
       });
     }
     // 附着能量：手牌中的能量卡
@@ -1381,27 +1387,86 @@ export class PTCGBattleApp {
     const key = String(mon?.cardId ?? mon?.name ?? '');
     let h = 0;
     for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
-    const dur = 3.8 + (h % 9) * 0.12;            // 3.80s ~ 4.76s：缓慢呼吸
+    const dur = 2.9 + (h % 9) * 0.09;            // 2.90s ~ 3.62s：缓慢呼吸（需求：速度稍加快）
     const delay = -((h >> 4) % 40) * 0.1;        // -0s ~ -3.9s：负延迟=从周期中途开始，错开相位
     el.style.setProperty('--breath-dur', dur.toFixed(2) + 's');
     el.style.setProperty('--breath-delay', delay.toFixed(2) + 's');
   }
 
-  /** 记录/对比「出战位当前是谁」，用于自动播放召唤动画 */
+  /** 记录/对比「出战位当前是谁」，用于自动播放召唤/进化动画 */
   _maybeAnimateActiveChange(prefix, mon) {
     if (!this._activeAnimId) this._activeAnimId = {};
     const id = mon ? (mon.cardId ?? mon.name ?? null) : null;
     const prev = this._activeAnimId[prefix];
-    this._activeAnimId[prefix] = id;
-    if (!id || id === prev) return false;   // 首次出现/换人 → 播召唤；同一个人不重复播
+    this._activeAnimId[prefix] = id ? { id, name: mon?.name || null } : null;
+    if (!id || id === prev?.id) return false;   // 同一个人不重复播
+    // 需求④：新形象的「进化自」正好是上一个形象的名字 → 这是进化/退化，走进化动画
+    // （此时 _renderMon 还没执行，DOM 里仍是老形象，可以拍下来做覆盖层）
+    if (prev?.name && mon?.evolvesFrom && String(mon.evolvesFrom) === String(prev.name)) {
+      this._animateEvolve(prefix);
+      return true;
+    }
     this._animateSummon(prefix);
     return true;
   }
 
-  /** 主动标记「这一侧已经处理过动画」，避免 _renderScene 重复播放 */
+  /** 拍下当前立绘的 <img>（进化动画要用老形象做覆盖层） */
+  _snapshotSpriteImg(prefix) {
+    const el = this._spriteEl(prefix);
+    const img = el ? el.querySelector('img') : null;
+    if (!img) return null;
+    return { src: img.getAttribute('src') || '', marginBottom: img.style.marginBottom || '' };
+  }
+
+  /**
+   * 需求④：进化 / 退化动画
+   *   老形象逐渐变白 → 白化的缩小版新形象开始显示 → 老形象缩小同时新形象放大
+   *   → 老形象消失、新形象恢复正常颜色
+   * 做法：把进化前的老形象拍成覆盖层放在原位（此刻主容器里已经渲染成新形象，
+   *       两层天然对齐）；先只让老形象可见并变白，再交叉过渡。
+   */
+  async _animateEvolve(prefix, snapshot = null) {
+    if (!this._animEnabled()) return;
+    const slot = this._spriteSlotEl(prefix);
+    const sprite = this._spriteEl(prefix);
+    if (!slot || !sprite) return;
+    const shot = snapshot || this._snapshotSpriteImg(prefix);
+    if (!shot || !shot.src) return;
+    const token = this._animToken(prefix);
+
+    const oldLayer = document.createElement('div');
+    oldLayer.className = 'fx-evo-old';
+    const oldImg = document.createElement('img');
+    oldImg.src = shot.src;
+    oldImg.style.marginBottom = shot.marginBottom || '';
+    oldLayer.appendChild(oldImg);
+    slot.appendChild(oldLayer);
+
+    this._clearSpriteAnims(sprite);
+    sprite.style.opacity = '0';            // 阶段1：只看得见老形象
+    void oldLayer.offsetWidth;
+    oldLayer.classList.add('evo-white');    // 老形象逐渐变白
+    await this._sleep(430);
+    if (!this._animAlive(prefix, token)) { oldLayer.remove(); return; }
+    sprite.classList.add('anim-evo-new');   // 新形象：白化缩小版 → 放大回色
+    sprite.style.opacity = '';
+    oldLayer.classList.add('evo-shrink');   // 老形象缩小消失
+    await this._sleep(560);
+    oldLayer.remove();
+    if (!this._animAlive(prefix, token)) return;
+    this._clearSpriteAnims(sprite);
+    // ⚠️ 恢复成 CSS 默认而不是「原先的值」：原先的值可能是别的动画留下的 '0'，
+    //    恢复它会让立绘永久隐形（已实测踩到）。
+    sprite.style.opacity = '';
+  }
+
+  /** 主动标记「这一侧已经处理过动画」，避免 _renderScene 重复播放。
+   *  ⚠️ 存的是 {id,name} 而不是纯 id：进化判断要用到上一个形象的**名字**
+   *     （拿新卡的 evolvesFrom 与它比对），两处必须保持同一结构。 */
   _markActiveAnimated(prefix, mon) {
     if (!this._activeAnimId) this._activeAnimId = {};
-    this._activeAnimId[prefix] = mon ? (mon.cardId ?? mon.name ?? null) : null;
+    const id = mon ? (mon.cardId ?? mon.name ?? null) : null;
+    this._activeAnimId[prefix] = id ? { id, name: mon?.name || null } : null;
   }
 
   _spriteSlotEl(prefix) {
@@ -1422,11 +1487,30 @@ export class PTCGBattleApp {
     return el;
   }
 
+  /**
+   * 动画令牌：同一侧（pl/opp）同时只允许一套动画生效。
+   * ⚠️ 实测踩坑：召唤动画会把立绘 opacity 置 0 等精灵球爆开；如果这期间又触发进化，
+   *    进化保存的「原 opacity」就是 0 → 动画结束时把 0 恢复回去 → **立绘永久隐形**。
+   *    所以每次开动画都领一个令牌，await 之后检查令牌是否还是自己的，不是就立刻退出，
+   *    并且结束时一律把 opacity 恢复成 CSS 默认（不保存旧值）。
+   */
+  _animToken(prefix) {
+    if (!this._animSeq) this._animSeq = {};
+    this._animSeq[prefix] = (this._animSeq[prefix] || 0) + 1;
+    return this._animSeq[prefix];
+  }
+
+  _animAlive(prefix, token) {
+    return !!this._animSeq && this._animSeq[prefix] === token;
+  }
+
   /** 清掉立绘上所有会互相抢 animation 的动画类 */
   _clearSpriteAnims(el) {
     if (!el || !el.classList) return;
     el.classList.remove('anim-attack', 'anim-hit', 'anim-enter', 'anim-exit', 'anim-recall',
-      'anim-summon-appear', 'anim-summon-grow', 'anim-summon-fall', 'anim-summon-land');
+      'anim-summon-appear', 'anim-summon-grow', 'anim-summon-fall', 'anim-summon-land',
+      'anim-evo-new', 'anim-melee-wind', 'anim-melee-dash',
+      'anim-ranged-charge', 'anim-ranged-back', 'anim-support-glow');
   }
 
   /**
@@ -1443,6 +1527,7 @@ export class PTCGBattleApp {
     const slot = this._spriteSlotEl(prefix);
     const sprite = this._spriteEl(prefix);
     if (!slot || !sprite || !this._animEnabled()) return;
+    const token = this._animToken(prefix);
     const ball = this._fxNode(slot, 'summon-ball');
     const burst = this._fxNode(slot, 'fx-burst');
 
@@ -1455,17 +1540,22 @@ export class PTCGBattleApp {
 
     ball?.classList.add('show');                // ① 精灵球旋转入场
     await this._sleep(550);
+    if (!this._animAlive(prefix, token)) { ball?.classList.remove('show'); return; }
     burst?.classList.add('show');               // ② 爆一下白光
     // 球在白爆的同时隐去（否则会一直挂在宝可梦头上）
     if (ball) { ball.classList.remove('show'); ball.style.animation = 'ballFadeOut .16s ease-out forwards'; }
     sprite.classList.add('anim-summon-appear'); // ③ 缩小白化出现 + 放大回色
     sprite.style.opacity = '';
     await this._sleep(360);
+    if (!this._animAlive(prefix, token)) return;
     sprite.classList.add('anim-summon-fall');   // ④ 自由落体
     await this._sleep(260);
+    if (!this._animAlive(prefix, token)) return;
     sprite.classList.add('anim-summon-land');   // ⑤ 落地震一下
     await this._sleep(340);
+    if (!this._animAlive(prefix, token)) return;
     this._clearSpriteAnims(sprite);
+    sprite.style.opacity = '';                  // 一律恢复默认，避免把 0 恢复回去导致隐形
     ball?.classList.remove('show');
     if (ball) ball.style.animation = '';
     burst?.classList.remove('show');
@@ -1475,10 +1565,12 @@ export class PTCGBattleApp {
   async _animateRecall(prefix) {
     const sprite = this._spriteEl(prefix);
     if (!sprite || !this._animEnabled()) return;
+    const token = this._animToken(prefix);
     this._clearSpriteAnims(sprite);
     void sprite.offsetWidth;
     sprite.classList.add('anim-recall');
     await this._sleep(430);
+    if (!this._animAlive(prefix, token)) return;
     sprite.classList.remove('anim-recall');
   }
 
@@ -1509,13 +1601,23 @@ export class PTCGBattleApp {
     return { x: a.left - s.left + a.width / 2, y: a.top - s.top + a.height * 0.55 };
   }
 
-  /** 按攻击方与目标的实际位置，把冲刺距离写进立绘容器 */
+  /**
+   * 按攻击方与目标的**实际位置**算出冲刺方向与距离，写进立绘容器。
+   * ⚠️ 原来只用 CSS 里固定的 --fwd-x/--fwd-y（我方 1/-0.62）→ 两个立绘的实际夹角
+   *    随屏幕尺寸/位置变化，冲刺方向就会「有点偏」。现在改成用归一化向量，
+   *    CSS 的 --fwd-* 仅作为取不到几何信息时的兜底默认值。
+   */
   _setDashLen(prefix) {
     const sprite = this._spriteEl(prefix);
     const a = this._fxPoint(prefix);
     const b = this._fxPoint(prefix === 'pl' ? 'opp' : 'pl');
     if (!sprite || !a || !b) return;
-    const dist = Math.hypot(b.x - a.x, b.y - a.y);
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const dist = Math.hypot(dx, dy);
+    if (!dist) return;
+    // 归一化方向（指向对方宝可梦）
+    sprite.style.setProperty('--fwd-x', (dx / dist).toFixed(4));
+    sprite.style.setProperty('--fwd-y', (dy / dist).toFixed(4));
     // 走到「贴近目标」而不是穿过去：留出立绘宽度的一半左右
     const len = Math.max(40, Math.min(190, Math.round(dist * 0.62)));
     sprite.style.setProperty('--dash-len', len + 'px');
@@ -1574,6 +1676,7 @@ export class PTCGBattleApp {
     if (!sprite) return;
     const type = this._moveAnimType(info.move);
     this._lastMoveType = type;
+    const token = this._animToken(prefix);
     this._clearSpriteAnims(sprite);
     void sprite.offsetWidth;
 
