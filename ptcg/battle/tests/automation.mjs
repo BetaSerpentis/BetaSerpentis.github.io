@@ -10574,6 +10574,122 @@ await test('遗赠能量 运行时：非招式造成的昏厥不减（条件限�
 });
 
 
+
+// ============================================================
+//  ① 竞技场【火箭队的工厂】的使用前提
+//  ② 招式【高傲指令】：从对手牌库翻开的前 N 张里选宝可梦招式当这个招式用
+// ============================================================
+
+const _FACTORY_TEXT = '在这个回合，从手牌使出了名字中带有「火箭队」的支援者的玩家，在自己的回合有1次机会，可以从自己牌库上方抽取2张卡牌。';
+const _ARROGANT_TEXT = '将对手牌库上方10张卡牌翻到正面。若希望，可以选择其中的宝可梦所拥有的1个招式，作为这个招式使用。将翻到正面的卡牌放回牌库并重洗牌库。';
+
+await test('火箭队的工厂 解析：前提被识别为 rocket_supporter_once，抽牌是无条件动作', () => {
+  const eff = parseEffect(_FACTORY_TEXT).effects;
+  const cond = eff.find(e => e.action === 'usage_condition' && e.params?.kind === 'rocket_supporter_once');
+  const draw = eff.find(e => e.action === 'draw');
+  assert.ok(cond, '应识别出前提注记');
+  assert.ok(draw && draw.params.count === 2, '应有抽 2 张的效果');
+});
+
+const _factorySetup = async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  gs.phase = PHASE.MAIN;
+  gs.currentPlayer = gs.player1;
+  gs.player1.active = _capMon('我', 'F1');
+  gs.player2.active = _capMon('敌', 'F2');
+  gs.player1.deck = ['d1', 'd2', 'd3', 'd4'];
+  gs.player1.hand = ['SUPPORTER-1'];   // useTrainer 会检查手牌里确实有这张卡
+  // 竞技场以「已编译卡牌」的形态存在（effects 才是判定依据）
+  gs.stadium = { name: '火箭队的工厂', effects: parseEffect(_FACTORY_TEXT).effects };
+  return gs;
+};
+
+await test('火箭队的工厂 运行时：本回合没使出火箭队支援者 → 不能使用（原来能无条件抽2张）', async () => {
+  const gs = await _factorySetup();
+  const chk = gs.canActivateStadium(gs.player1);
+  assert.equal(chk.ok, false, '应判定为不可使用');
+  assert.equal(chk.reason, 'need_rocket_supporter');
+});
+
+await test('火箭队的工厂 运行时：打出名字带「火箭队」的支援者后即可使用', async () => {
+  const gs = await _factorySetup();
+  const ok = gs.useTrainer(gs.player1, 0, { name: '火箭队的球', cardType: 'trainer', trainerType: 'supporter', effects: [] });
+  assert.equal(ok, true, '支援者应能打出');
+  assert.equal(gs.player1.rocketSupporterThisTurn, true, '应记录本回合用过火箭队支援者');
+  assert.equal(gs.canActivateStadium(gs.player1).ok, true, '此时竞技场应可用');
+});
+
+await test('火箭队的工厂 运行时：非火箭队支援者不满足前提；回合结束会重置', async () => {
+  const gs = await _factorySetup();
+  gs.useTrainer(gs.player1, 0, { name: '博士的研究', cardType: 'trainer', trainerType: 'supporter', effects: [] });
+  assert.equal(gs.player1.rocketSupporterThisTurn, false, '非火箭队支援者不应满足前提');
+  assert.equal(gs.canActivateStadium(gs.player1).ok, false);
+  // 换成火箭队支援者 → 可用；结束回合后重置
+  const gs2 = await _factorySetup();
+  gs2.useTrainer(gs2.player1, 0, { name: '火箭队的干部', cardType: 'trainer', trainerType: 'supporter', effects: [] });
+  assert.equal(gs2.canActivateStadium(gs2.player1).ok, true);
+  gs2.endTurn();
+  assert.equal(gs2.player1.rocketSupporterThisTurn, false, '回合结束应重置为 false');
+});
+
+await test('高傲指令 解析：不再落到未建模，产出「从对手翻开牌库复制招式」（可放弃）', () => {
+  const eff = parseEffect(_ARROGANT_TEXT).effects;
+  const copy = eff.find(e => e.action === 'copy_opponent_attack');
+  assert.ok(copy, '应产出 copy_opponent_attack');
+  assert.equal(copy.params.from, 'opponent_revealed');
+  assert.equal(copy.params.optional, true, '「若希望」= 可放弃');
+  const residual = eff.filter(e => ['residual_sentence', 'generic_effect'].includes(e.params?.kind));
+  assert.equal(residual.length, 0, '不该再有未建模残句：' + JSON.stringify(residual.map(r => r.params?.raw)));
+  assert.ok(eff.some(e => e.action === 'reveal_deck_top'), '翻牌库效果应保留');
+});
+
+const _arrogantSetup = async () => {
+  const gs = new GameState();
+  await executeEffects(gs, gs.player1, []);
+  const fakeCard = (name, attacks) => ({ cardType: 'pokemon', name, attacks });
+  gs.cardResolver = {
+    getCard: id => ({
+      'ENEMY-1': fakeCard('对手的小怪', [{ name: '撞击', damage: 30, cost: [], effects: [] }]),
+      'ENEMY-2': fakeCard('对手的大怪', [{ name: '究极冲击', damage: 120, cost: [], effects: [] }]),
+      'ENEMY-E': { cardType: 'energy', name: '基本火能量', attacks: [] },
+    }[id] || null),
+  };
+  gs.player1.active = _capMon('我方ex', 'A1');
+  gs.player2.active = _capMon('对手出战', 'D1');
+  // 对手牌库：顶部（数组末尾）放一张有招式的宝可梦与一张能量
+  gs.player2.deck = ['FILLER', 'ENEMY-1', 'ENEMY-E', 'ENEMY-2'];
+  const engine = new BattleEngine(gs, gs.cardResolver, { onLog: () => {} });
+  const move = { name: '高傲指令', damage: '0', effects: parseEffect(_ARROGANT_TEXT).effects };
+  return { gs, engine, move };
+};
+
+await test('高傲指令 运行时：从对手牌库上方翻开的卡里取出宝可梦招式（能量卡被跳过）', async () => {
+  const { gs, engine, move } = await _arrogantSetup();
+  const eff = move.effects.find(e => e.action === 'copy_opponent_attack');
+  const copied = await engine._resolveCopiedAttack(gs.player1, gs.player2, eff, move);   // 无 UI → 自动取第一个
+  assert.ok(copied, '应取到一个招式');
+  // ⚠️ 牌库顶 = 数组末尾，所以最先翻开的正是 ENEMY-2（究极冲击）；能量卡应被跳过
+  assert.equal(copied.name, '究极冲击', '应取到翻开的宝可梦招式：' + (copied && copied.name));
+  assert.equal(copied.damage, 120);
+});
+
+await test('高傲指令 运行时：「若希望」可以放弃（返回 null，不产生效果）', async () => {
+  const { gs, engine, move } = await _arrogantSetup();
+  const eff = move.effects.find(e => e.action === 'copy_opponent_attack');
+  // 造出「有 UI 的玩家决策」环境，并让玩家选最后一项（不使用）
+  gs.aiPickHandler = null;
+  gs._onPendingPick = () => {};
+  gs.waitForPick = async (labels) => [labels.length - 1];
+  const copied = await engine._resolveCopiedAttack(gs.player1, gs.player2, eff, move);
+  assert.equal(copied, null, '放弃时应返回 null');
+  // 选择第 1 个招式
+  gs.waitForPick = async () => [0];
+  const picked = await engine._resolveCopiedAttack(gs.player1, gs.player2, eff, move);
+  assert.ok(picked && picked.name, '选择后应返回招式：' + JSON.stringify(picked && picked.name));
+});
+
+
 await test('全卡牌效果文本解析覆盖率报告', () => {
   const files = [
     'Item-cards.json',

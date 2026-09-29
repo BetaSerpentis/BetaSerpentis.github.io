@@ -251,6 +251,32 @@ const out = await page.evaluate(async () => {
     if (scene) scene.style.display = 'block';
   }
 
+  // ---------- 竞技场前提：不能用时在「场地」列表里置灰 ----------
+  {
+    const gsStub = (rocketOk) => {
+      const app = build(mon(), mon());
+      app.gs.phase = 'MAIN';
+      app.gs.currentPlayer = app.gs.player1;
+      app.gs.stadium = { name: '火箭队的工厂', effects: [{ action: 'usage_condition', params: { kind: 'rocket_supporter_once' } }, { action: 'draw', params: { count: 2 } }] };
+      app.gs.player1.rocketSupporterThisTurn = rocketOk;
+      app.gs.getActiveStadium = () => app.gs.stadium;   // _showPokemonList 用的是这个方法
+      app.gs.canActivateStadium = p => (p.rocketSupporterThisTurn
+        ? { ok: true, message: '' }
+        : { ok: false, message: '本回合没有从手牌使出名字带「火箭队」的支援者' });
+      app._pokeHasActions = () => true;
+      return app;
+    };
+    const blocked = gsStub(false);
+    blocked._showPokemonList();
+    const item = [...document.querySelectorAll('#list-menu .menu-item')].find(i => /使用竞技场效果/.test(i.textContent));
+    ok('竞技场：前提不满足时「使用竞技场效果」置灰并给出原因',
+      !!item && item.classList.contains('disabled') && /火箭队/.test(item.textContent), item ? item.className + ' | ' + item.textContent : '未找到');
+    const allowed = gsStub(true);
+    allowed._showPokemonList();
+    const item2 = [...document.querySelectorAll('#list-menu .menu-item')].find(i => /使用竞技场效果/.test(i.textContent));
+    ok('竞技场：满足前提时可用（不置灰）', !!item2 && !item2.classList.contains('disabled'), item2 ? item2.className : '未找到');
+  }
+
   // ---------- ④ 进化 / 退化动画 ----------
   {
     const app = build(mon({ cardId: 'OLD', name: '伊布' }), mon({ cardId: 'O1' }));

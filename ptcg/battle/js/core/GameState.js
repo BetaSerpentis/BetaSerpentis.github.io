@@ -56,7 +56,9 @@ export class PlayerState {
   constructor(name){this.name=name;this.deck=[];this.hand=[];this.discard=[];this.prizes=[];this.active=null;this.bench=[];
     // 放逐区：与弃牌区**分开**的区域。放进去的卡不能被回收（部分卡的效果以此为条件）。
     this.lostZone=[];
-    this.stadium=null;this.supporterUsed=false;this.energyAttached=false;this.retreatUsed=false;this.stadiumPlayedThisTurn=false;this.abilityUsedThisTurn={};this.stadiumUsedThisTurn={};this.turnAttackModifiers=[];this.extraTurnPending=false;}
+    this.stadium=null;this.supporterUsed=false;this.energyAttached=false;this.retreatUsed=false;this.stadiumPlayedThisTurn=false;this.abilityUsedThisTurn={};this.stadiumUsedThisTurn={};this.turnAttackModifiers=[];this.extraTurnPending=false;
+    // 「在这个回合，从手牌使出了名字中带有「火箭队」的支援者的玩家…」（火箭队的工厂等前提）
+    this.rocketSupporterThisTurn=false;}
   draw(n=1){const d=[];for(let i=n;i>0&&this.deck.length;i--){const c=this.deck.pop();this.hand.push(c);d.push(c);}return d;}
 }
 
@@ -222,6 +224,7 @@ export class GameState {
     if(this.firstPlayerFirstTurnInProgress&&this.currentPlayer===this.firstPlayer)this.firstPlayerFirstTurnInProgress=false;
     this.currentPlayer.coinChoiceArmed=false; // 一树：只在使用的那个回合有效
     this.currentPlayer.supporterUsed=false;this.currentPlayer.energyAttached=false;this.currentPlayer.retreatUsed=false;this.currentPlayer.stadiumPlayedThisTurn=false;this.currentPlayer.abilityUsedThisTurn={};this.currentPlayer.stadiumUsedThisTurn={};this.currentPlayer.turnAttackModifiers=[];
+    this.currentPlayer.rocketSupporterThisTurn=false;   // 「在这个回合」→ 结束该玩家的回合时清掉
     this.currentPlayer.playRestrictions=null;
     this.temporaryAbilityLocks=(this.temporaryAbilityLocks||[]).filter(lock=>lock.expires!=='turn'&&lock.owner!==this.currentPlayer);
     for(const mon of[this.currentPlayer.active,...this.currentPlayer.bench]){if(mon){mon.placedThisTurn=false;mon.evolvedThisTurn=false;mon.cameFromBenchThisTurn=false;}}
@@ -610,7 +613,10 @@ export class GameState {
     const check=this.canUseTrainer(pl,cd,targetSlot);
     if(!check.ok){this.addLog(this._trainerLegalityMessage(check));return false;}
     const tt=cd.trainerType;
-    if(tt==='supporter')pl.supporterUsed=true;
+    if(tt==='supporter'){pl.supporterUsed=true;
+      // 「在这个回合，从手牌使出了名字中带有「火箭队」的支援者的玩家…」
+      // → 记录本回合是否打出过火箭队支援者，供竞技场【火箭队的工厂】等前提判定
+      if(/火箭队/.test(String(cd?.name||'')))pl.rocketSupporterThisTurn=true;}
     if(tt==='stadium'){
       this.setActiveStadium(pl,hi,cd);
       pl.stadiumPlayedThisTurn=true;
@@ -827,6 +833,12 @@ export class GameState {
     if(!effects.length)return {ok:false,reason:'no_effects',message:'这个竞技场暂无可执行效果'};
     // 需求：深钵镇这类「放于备战区」的竞技场效果，备战区已满时不能空发
     if(this._benchSlotBlocked(pl,effects))return {ok:false,reason:'bench_full',message:'备战区已满，这个竞技场无法放置宝可梦'};
+    // 「在这个回合，从手牌使出了名字中带有「火箭队」的支援者的玩家，在自己的回合有1次机会，
+    //   可以从自己牌库上方抽取2张卡牌。」→ 没使出过就不能用（原来 draw{2} 是无条件执行的）。
+    const needsRocket = (stadium?.effects || []).some(e => e.action === 'usage_condition' && e.params?.kind === 'rocket_supporter_once');
+    if (needsRocket && !pl.rocketSupporterThisTurn) {
+      return {ok:false, reason:'need_rocket_supporter', message:'本回合没有从手牌使出名字带「火箭队」的支援者'};
+    }
     const key=this._stadiumUseKey(stadium);pl.stadiumUsedThisTurn=pl.stadiumUsedThisTurn||{};
     if(pl.stadiumUsedThisTurn[key])return {ok:false,reason:'already_used',message:'这个竞技场本回合已使用'};
     return {ok:true,stadium,effects,key};

@@ -503,10 +503,12 @@ export class BattleEngine {
     {
       const copyEff = (move.effects || []).find(e => e.action === 'copy_opponent_attack');
       if (copyEff) {
-        const copied = await this._resolveCopiedAttack(atk, def, copyEff);
+        const copied = await this._resolveCopiedAttack(atk, def, copyEff, move);
         if (copied) {
           move = copied;
           gs.addLog?.(`${atk.active.name} 将「${copied.name}」作为这个招式使用`);
+        } else if (copyEff.params?.optional) {
+          gs.addLog?.('选择了不使用复制来的招式');   // 「若希望」→ 放弃不算异常
         } else {
           gs.addLog?.('没有可复制的招式');
         }
@@ -711,9 +713,33 @@ export class BattleEngine {
    * 「选择（对手战斗宝可梦 / 对手自己场上的宝可梦）所拥有的1个招式，作为这个招式使用」
    * 返回被选中的招式对象（含 damage 与 effects，交给调用方当成本招式结算）。
    */
-  async _resolveCopiedAttack(atk, def, eff) {
+  async _resolveCopiedAttack(atk, def, eff, move = null) {
     const gs = this.gs;
     const p = eff?.params || {};
+    // ② 「高傲指令」：被复制的招式来自**对手牌库上方翻开的卡**（不是场上宝可梦）
+    if (p.from === 'opponent_revealed') {
+      const revealed = (move?.effects || []).find(e => e.action === 'reveal_deck_top');
+      const n = Number(revealed?.params?.count) || 10;
+      const top = (def.deck || []).slice(-n).reverse();      // 牌库顶 = 数组末尾
+      const options = [];
+      for (const id of top) {
+        const cd = gs.cardResolver?.getCard?.(id);
+        if (!cd || cd.cardType !== 'pokemon') continue;
+        for (const a of (cd.attacks || [])) options.push({ mon: { name: cd.name }, attack: a });
+      }
+      if (!options.length) return null;
+      // AI / 无 UI：直接取第一个；有 UI 且可选时额外给一个「不使用」
+      const humanChooser = atk === gs.player1 && !gs.aiPickHandler && gs._onPendingPick;
+      if (!humanChooser) return options[0].attack;
+      const labels = options.map(o => `${o.mon.name}：${o.attack.name}`);
+      if (p.optional) labels.push('不使用（这个招式不产生效果）');
+      const picked = await gs.waitForPick(labels, 1, {
+        source: 'copy-attack-revealed', prompt: '选择要作为这个招式使用的招式', minCount: 1, maxCount: 1,
+      });
+      const idx = Array.isArray(picked) ? picked[0] : picked;
+      if (p.optional && (idx == null || idx === labels.length - 1)) return null;
+      return options[idx]?.attack || options[0].attack;
+    }
     // chooser:'opponent' → 由对手选（卡面写「对手选择…」）；被复制的一方始终是「对方」
     const chooser = p.chooser === 'opponent' ? def : atk;
     // 被复制的招式**始终来自防守方**（两种写法都是：进攻方选对手的招式 / 对手从他自己的场上选）

@@ -1,4 +1,4 @@
-#eff1 hash=894ef0334e964ccd
+#eff1 hash=796fa399e1ef80dc
 151C-001	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-002	attack	1	0	heal	{"amount":20,"target":"self"}
 151C-003	ability		0	usage_condition	{"kind":"requires_active"}
@@ -12379,8 +12379,8 @@ CSV10C-169	attack	1	0	opponent_hand_to_deck	{"count":1}
 CSV10C-169	attack	1	1	shuffle_deck	{}
 CSV10C-169	attack	2	0	coin_flip_damage	{"count":3,"damage_per":20}
 CSV10C-170	attack	1	0	reveal_deck_top	{"who":"opponent","count":10,"elseTo":"deck"}
-CSV10C-170	attack	1	1	shuffle_deck	{}
-CSV10C-170	attack	1	2	usage_condition	{"kind":"residual_sentence","raw":"若希望，可以选择其中的宝可梦所拥有的1个招式，作为这个招式使用。"}
+CSV10C-170	attack	1	1	copy_opponent_attack	{"from":"opponent_revealed","pick":1,"optional":true}
+CSV10C-170	attack	1	2	shuffle_deck	{}
 CSV10C-170	attack	2	0	inflict_status	{"statuses":["confusion"]}
 CSV10C-171	attack	2	0	coin_flip_damage	{"count":2,"damage_per":90}
 CSV10C-172	attack	1	0	discard_opponent_hand_random	{"count":1,"chooser":"opponent"}
@@ -12471,8 +12471,8 @@ CSV10C-247	attack	2	0	cannot_attack_next	{"move":"英勇之刃"}
 CSV10C-248	attack	1	0	damage_bench	{"target":"opponent_all","damage":50}
 CSV10C-248	attack	2	0	discard_energy	{"target":"self","count":2}
 CSV10C-249	attack	1	0	reveal_deck_top	{"who":"opponent","count":10,"elseTo":"deck"}
-CSV10C-249	attack	1	1	shuffle_deck	{}
-CSV10C-249	attack	1	2	usage_condition	{"kind":"residual_sentence","raw":"若希望，可以选择其中的宝可梦所拥有的1个招式，作为这个招式使用。"}
+CSV10C-249	attack	1	1	copy_opponent_attack	{"from":"opponent_revealed","pick":1,"optional":true}
+CSV10C-249	attack	1	2	shuffle_deck	{}
 CSV10C-249	attack	2	0	inflict_status	{"statuses":["confusion"]}
 CSV10C-250	attack	1	0	conditional_damage_mod	{"amount":60,"mode":"per_unit","condition":"opponent_field_name_count","name":"宝可梦【ex】"}
 CSV10C-250	attack	2	0	ignore	{"what":"opponent_effects"}
