@@ -171,7 +171,16 @@ export class DeckEditor {
         title.textContent = '卡组用法（写给 AI 看的玩法说明）';
         const tip = document.createElement('span');
         tip.className = 'deck-note-tip';
-        tip.textContent = '例：主力是XX，先铺场再进化；优先给XX附能；不要过早用掉XX';
+        // 需求：告诉玩家「AI 到底能读到什么、怎么写才有用」——写在这里，填的时候就能看到
+        tip.innerHTML = [
+          'AI 只会读到：自己的手牌/场上/牌库张数、可选动作，以及这段说明（上限 800 字）。',
+          '写法建议（越具体越有用，卡名要和卡面一致）：',
+          '① 主力：<宝可梦名>，优先铺场、优先附能',
+          '② 节奏：前几回合先做什么（铺场/检索/进化），什么时候开始攻击',
+          '③ 能量：<属性/卡名> 优先给谁，不要给谁',
+          '④ 关键卡：<卡名> 留到什么时机用',
+          '⑤ 避免：不要做的事（例如 不要过早进化 / 未铺好前不要攻击）',
+        ].join('<br>');
         const close = document.createElement('span');
         close.className = 'deck-note-close';
         close.textContent = '收起';
@@ -181,7 +190,12 @@ export class DeckEditor {
 
         const area = document.createElement('textarea');
         area.className = 'deck-note-input';
-        area.placeholder = '例如：这套牌靠「XX」铺场、「YY」收尾；能量优先给主力；前两回合不要攻击…';
+        area.placeholder = [
+          '主力：喷火龙ex。第 1~2 回合先用「宝可梦捕捉器」铺场，第 3 回合后再进化。',
+          '能量：火能量优先给喷火龙ex，不要给其他宝可梦。',
+          '关键卡：「博士的研究」留到手牌少的时候用。',
+          '避免：场上只有 1 只时不要攻击，先保证能接住下一回合。',
+        ].join('\n');
         area.rows = 4;
         area.maxLength = 2000;
 

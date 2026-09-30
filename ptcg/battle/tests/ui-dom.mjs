@@ -48,6 +48,7 @@ await page.waitForTimeout(1500);
 
 const out = await page.evaluate(async () => {
   const mod = await import('/ptcg/battle/js/main.js');
+  const { PHASE } = await import('/ptcg/battle/js/core/GameState.js');   // 用真实常量，别再写字面量
   const proto = mod.PTCGBattleApp.prototype;
   const results = [];
   const ok = (name, cond, extra = '') => results.push({ name, pass: !!cond, extra });
@@ -67,7 +68,7 @@ const out = await page.evaluate(async () => {
     app._lastMainStatus = '';
     app._aiThinking = false;
     app.gs = {
-      phase: 'MAIN', currentPlayer: null, log: [], winner: null,
+      phase: PHASE.MAIN, currentPlayer: null, log: [], winner: null,
       pendingPick: null, pendingPokemonPick: null, pendingBenchPromotion: null,
       player1: { name: '我方', active: p1Mon, bench: [], hand: [], deck: [], discard: [], prizes: [1, 2, 3, 4, 5, 6], energyAttached: false },
       player2: { name: '对手', active: p2Mon, bench: [], hand: [], deck: [], discard: [], prizes: [1, 2, 3, 4, 5, 6] },
@@ -251,11 +252,41 @@ const out = await page.evaluate(async () => {
     if (scene) scene.style.display = 'block';
   }
 
+  // ---------- 胜负：特性/物品造成伤害获胜后要能回到「返回卡组选择」 ----------
+  {
+    const app = build(mon({ name: '我' }), mon({ name: '敌' }));
+    app.gs.phase = PHASE.GAME_OVER;
+    app.gs.winner = app.gs.player2;
+    app._returnView = 'pokemon';            // 从「场地」页签触发的场景
+    // 先把列表打开（模拟停在列表上的旧行为），再走一次收尾流程
+    app._showListView([{ label: '占位', disabled: true }]);
+    app._afterAction();
+    const main = document.getElementById('panel-main');
+    const list = document.getElementById('panel-list');
+    const back = document.getElementById('main-back-deck');
+    ok('胜负：特性/物品获胜后回到主面板（不再停在列表）',
+      main.classList.contains('active') && !list.classList.contains('active'),
+      'main=' + main.classList.contains('active') + ' list=' + list.classList.contains('active'));
+    ok('胜负：提供「返回卡组选择」按钮', !!back && !back.hidden, back ? String(back.hidden) : 'n/a');
+    // 注意：排除「返回卡组选择」按钮本身（它就在 #main-menu 里，且本来就该可见）
+    const others = [...document.querySelectorAll('#main-menu .menu-item')].filter(i => i.id !== 'main-back-deck');
+    ok('胜负：其它操作按钮已隐藏', others.length > 0 && others.every(i => i.hidden),
+      JSON.stringify(others.map(i => i.hidden)));
+    ok('胜负：主文案显示获胜方', /获胜/.test(document.getElementById('main-text').textContent),
+      document.getElementById('main-text').textContent);
+    // 对照：正常回合中收尾仍应回到原来的列表（不能误伤）
+    const app2 = build(mon(), mon());
+    app2._returnView = 'pokemon';
+    app2._afterAction();
+    ok('对照：非结束状态下收尾仍回到「场地」列表', document.getElementById('panel-list').classList.contains('active'),
+      document.getElementById('panel-list').className);
+  }
+
   // ---------- 竞技场前提：不能用时在「场地」列表里置灰 ----------
   {
     const gsStub = (rocketOk) => {
       const app = build(mon(), mon());
-      app.gs.phase = 'MAIN';
+      app.gs.phase = PHASE.MAIN;
       app.gs.currentPlayer = app.gs.player1;
       app.gs.stadium = { name: '火箭队的工厂', effects: [{ action: 'usage_condition', params: { kind: 'rocket_supporter_once' } }, { action: 'draw', params: { count: 2 } }] };
       app.gs.player1.rocketSupporterThisTurn = rocketOk;

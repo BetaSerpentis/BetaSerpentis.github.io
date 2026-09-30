@@ -1165,6 +1165,11 @@ export class PTCGBattleApp {
 
   // 动作完成后回到来源页签（卡牌→手牌列表；场地→场地列表），便于连续操作
   _goBackToList() {
+    // 对局已结束：一律回主面板（那里只显示「返回卡组选择」）。
+    // ⚠️ 实测问题：在「场地」页签用特性、或在「卡牌」界面用物品**造成伤害并获胜**时，
+    //    _refresh() 已经正确切到了结算面板，但紧接着的 _goBackToList() 又按 _returnView
+    //    把「场地/手牌」列表打开了 → 玩家停在列表上、看不到「返回卡组选择」。
+    if (this.gs.phase === PHASE.GAME_OVER) { this._updateMainMenu(); this._showPanel('panel-main'); return; }
     if (this._returnView === 'hand') this._showHandList();
     else if (this._returnView === 'pokemon') this._showPokemonList();
     else this._showPanel('panel-main');
@@ -1174,6 +1179,7 @@ export class PTCGBattleApp {
     if (this.gs.pendingPick || this.gs.pendingPokemonPick) return; // 等待玩家继续选择
     if (this._maybeShowBenchPromotion()) return;
     this._refresh();
+    if (this.gs.phase === PHASE.GAME_OVER) return;   // 结束时不再回到列表
     this._goBackToList();
   }
 
